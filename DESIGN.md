@@ -665,17 +665,25 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 |---|---|---|
 | **0** | **설계 문서 확정** ← 이번 세션 | 문서 + team.md 상태 갱신 + log.md |
 | ~~0.5~~ | ~~`gh auth login` → wiki 공개 여부~~ | ✅ **완료** — 두 계정 등록, vault는 private → §5 유지 |
-| 1 | `gh repo create` **두 계정 모두**(`jtwjs`·`jtw-219`, private) + 골격 + push remote 2개 배선 | 양쪽 다 `/plugin marketplace add` 파싱 성공 |
+| ~~1~~ | ~~repo 생성 + 골격 + remote 2개~~ | ✅ **완료 (2026-08-23)** — 양쪽 private 생성, `git push` 한 번에 양쪽 반영, `claude plugin marketplace add jtwjs/claude-harness` → **파싱·설치 성공** |
 | 2 | 자산 이식 + 훅 재배선 (**절대경로 전수 점검** — `weekly-readiness-check:18`, `memory-reminder:5`) | 각 훅 1회 실행해 exit code 확인 |
 | 3 | **일반화 — 하드코딩 59줄 / 128건 제거 + 예시→절차 승격.** `testing.md`는 §0·§2가 핵심이고 FSD·MSW·TanStack·Playwright 경로는 걷어낸다 | `pnpm`·`내부 DS 패키지`·`FSD` grep 0건 **+ `<org>`·`<org>`·`참고레포A`·내부 도메인 grep 0건**(개인 계정에 올라가므로 보안 요구) |
 | 3.5 | **hallucinated 참조 정리** — `sdd/SKILL.md`의 `design-reconcile`(:10,:18)·guide-*(:19), 에이전트 전체의 "인계한다" | `harness-doctor` 검사 2·4가 green |
 | 4 | `harness-init`·`brain-sync`·`harness-doctor` 작성 + agents **4개** 재작성(§7, `test-writer` 신설) + `why-logictree`·`testing.md` 이식 | description 4요소 충족 |
 | 4-b | **RED/GREEN 배선**(§8-e) — `harness`에 `kind`·`tdd` 키, `harness-run`에 2단 루프 | **red 실검증**: 통과하는 테스트만 넣은 step이 **실패로 잡히는가** |
 | 4.5 | `incubator/ready/` 3개 + `BACKLOG.md` 6줄 | `/context`로 incubator 미로드 확인 |
-| 5 | **설치 검증** | ⭐ **유일한 판정 기준**: ① 한 패키지인가 ② 한 줄로 설치되나 (`team.md:69`) |
+| 5 | **설치 검증** | ⭐ ① 한 패키지인가 ② 한 줄로 설치되나 (`team.md:69`) **③ `claude plugin details`의 Always-on 토큰이 §12 예산 안인가** ← 1단계에서 발견한 실측 수단 |
 | 6 | **일반화 검증** (§10) + `hooks/test.sh` green | verify 전체 green |
 | 7 | 전역 `~/.claude` 정리. **백업 후, 5·6 통과 뒤에만** | 재시작 후 스킬 중복 없음 |
 | 8 | 2번째 레포 실사용 → **3번째부터** BACKLOG 승격 | 3번의 법칙 |
+
+**🔎 1단계에서 발견한 CLI 검증 수단** (슬래시 명령 없이 셸에서 판정 가능)
+
+| 명령 | 쓰는 곳 |
+|---|---|
+| `claude plugin marketplace add <owner/repo>` | 1단계 완료 판정. **SSH 실패 시 HTTPS 자동 폴백**을 확인함(SSH 키가 `jtw-219`에만 있어도 `jtwjs` 클론이 된다) |
+| `claude plugin details <name>` | **`Projected token cost — Always-on`을 실측한다.** §12의 description 비용(≈1,900토큰)이 지금까지 추정치였는데 **이제 잴 수 있다** → 5단계 판정 ③으로 승격 |
+| `claude plugin eval` | 공식 eval 러너. 2-A #6에서 evals 5케이스를 *"기계 판정 불가"*로 뺐는데, **공식 러너가 있으므로 BACKLOG에서 재검토** |
 
 **3단계 하드코딩 실측**
 | 파일 | 하드코딩 | 잘라낼 구간 |
