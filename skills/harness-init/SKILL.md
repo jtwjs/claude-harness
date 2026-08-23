@@ -55,6 +55,9 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 **조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/` · ⑦이면 Changesets · CI 워크플로
 
+**`.gitignore` 보강** — `templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
+⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).
+
 ⚠️ **`rules/`는 `paths:` frontmatter를 반드시 단다**(`non-obvious-patterns.md`만 예외 — 상시). 붙이지 않으면 매 세션 전량 로드된다.
 
 ## 5. 심지 않는 것
