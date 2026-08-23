@@ -666,7 +666,7 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | **0** | **설계 문서 확정** ← 이번 세션 | 문서 + team.md 상태 갱신 + log.md |
 | ~~0.5~~ | ~~`gh auth login` → wiki 공개 여부~~ | ✅ **완료** — 두 계정 등록, vault는 private → §5 유지 |
 | ~~1~~ | ~~repo 생성 + 골격 + remote 2개~~ | ✅ **완료 (2026-08-23)** — 양쪽 private 생성, `git push` 한 번에 양쪽 반영, `claude plugin marketplace add jtwjs/claude-harness` → **파싱·설치 성공** |
-| 2 | 자산 이식 + 훅 재배선 (**절대경로 전수 점검** — `weekly-readiness-check:18`, `memory-reminder:5`) | 각 훅 1회 실행해 exit code 확인 |
+| ~~2~~ | ~~자산 이식 + 훅 재배선~~ | ✅ **완료 (2026-08-23)** — skills 12·agents 3·hooks 8+hooks.json. 절대경로 **0건**, 회사 고유정보 **0건**. 하네스 없는 레포에서 7개 훅 전부 exit 0·무출력 / 위험명령만 exit 2 / tdd-guard 3케이스(차단·면제·범위밖) 통과 / Stop 훅 작업트리 무변화 |
 | 3 | **일반화 — 하드코딩 59줄 / 128건 제거 + 예시→절차 승격.** `testing.md`는 §0·§2가 핵심이고 FSD·MSW·TanStack·Playwright 경로는 걷어낸다 | `pnpm`·`내부 DS 패키지`·`FSD` grep 0건 **+ `<org>`·`<org>`·`참고레포A`·내부 도메인 grep 0건**(개인 계정에 올라가므로 보안 요구) |
 | 3.5 | **hallucinated 참조 정리** — `sdd/SKILL.md`의 `design-reconcile`(:10,:18)·guide-*(:19), 에이전트 전체의 "인계한다" | `harness-doctor` 검사 2·4가 green |
 | 4 | `harness-init`·`brain-sync`·`harness-doctor` 작성 + agents **4개** 재작성(§7, `test-writer` 신설) + `why-logictree`·`testing.md` 이식 | description 4요소 충족 |
@@ -692,6 +692,7 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | `code-reviewer.md` | 12줄 / 25건 | `<example>`×2, `:34` generated 파일명, `:55` TipTap 예시, `:16` rules 7파일 나열 |
 | `harness/SKILL.md` | 8줄 / 13건 | **93~99행 부록 전체**(FSD·Zustand·TanStack·`/manage/*`) |
 | `sdd-review/SKILL.md` | 5줄 / 11건 | `:22`·`:23`·`:25`·`:26`, **`:27` 비주얼싱크 행 전체** |
+| `why-logictree/SKILL.md` | description **270토큰**(트리거 조건 나열) | 트리거는 3~4개로 압축. **범용 스킬이라 하드코딩은 없지만 길다** — 실측으로 드러난 항목 |
 | `rules/functional-programming.md` | **lodash-es 절이 37%** + React 훅 순서 | 둘 다 잘라낸다(특정 라이브러리·프레임워크 전용). **대신 wiki 기반 판정 6개로 채운다** — 액션/계산/데이터 · 구현 순서 · 전염 차단 · 암묵적 입출력 승격 · 카피온라이트(중첩) · 추상화 수준 섞임. **분량은 늘리지 않는다**(§3-1: rules는 짧아야 매칭 폭탄이 안 된다) |
 | `root-cause-debugger.md` | — | **`:22` 함정 목록 → 5경계 절차로 승격**(§7) |
 | `sdd/SKILL.md` | — | **`:19` DOCUMENT 단계 전체**, `:10`·`:18` design-reconcile 참조 |
@@ -746,7 +747,7 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | 스킬 | 12 | **15** (−claude-md-improver +harness-doctor +commit +pr-write +changeset, **why-logictree 복귀** §8-d) |
 | commands | 1 | **0** |
 | 에이전트 | 3 | **4** (+`test-writer` — 편향 격리가 사전/사후 둘로 갈림 §7) |
-| description 비용 | ≈2,780토큰 | **≈1,900토큰 (−32%)** — 에이전트 `<example>` −1,739자, cartography −633자, +test-writer 450자, +why-logictree 396자, +스킬 3개 |
+| description 비용 | ~~≈2,780토큰 추정~~ | 🔴 **실측 3,828토큰** (2026-08-23 `claude plugin details`). 추정이 틀렸다 — 목표를 실측 기반 **≤2,500**으로 다시 세운다 (§12-1) |
 | 심는 파일 | 17 | **기본 6 + 조건부** (`testing.md` 추가) |
 | repo 파일 | — | **−13개** |
 | **프로젝트 세션 비용** ① | `@_brain/wiki/` **≈15,000토큰** | `index.md` 1파일 **≈900토큰 (−14,000)** |
@@ -754,6 +755,28 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | 에이전트 `memory:` 잔해 | 레포마다 3~5개 디렉토리 | **0** |
 
 > `harness-engineering.md:100` — *"좋은 하네스는 시간이 갈수록 단순해져야 정상이다. 규칙·도구가 계속 늘어난다면 과설계 신호."*
+
+### 12-1. 🔴 실측 Always-on 비용 — 추정이 틀렸다
+
+`claude plugin details claude-harness` (2단계 직후, 삭감 **전**):
+
+```
+Always-on: ~3,828 tok   added to every session
+```
+
+| 컴포넌트 | always-on | 처분 |
+|---|---|---|
+| `ai-readiness-cartography` | **680** | 3단계 −633자 삭감 → ~350 예상 |
+| `code-reviewer` | **630** | `<example>` 제거 → ~300 |
+| `feature-builder` | **560** | 재작성 → ~300 |
+| `root-cause-debugger` | **530** | 삭감 → ~280 |
+| `why-logictree` | **270** | ⚠️ **새로 발견** — description에 트리거 조건을 길게 나열. ~120으로 |
+| 스킬 9개 (70~150씩) | ~1,140 | 유지 (개별로는 싸다) |
+| **hooks 8개** | **0** | *"harness-only — no model context cost"* |
+
+**목표 재설정: ≤2,500 always-on** (삭감 후 +`test-writer` ~250 포함). 기존 "≈1,900"은 자(char) 기준 추정을 토큰으로 잘못 환산한 것이다.
+
+> **배운 것**: 스킬 하나당 70~150토큰이 **고정비**로 붙는다. 15개면 그것만 ~1,600이다. *"스킬을 늘리는 것은 공짜가 아니다"* — 개수 통제(§12 자기 점검표)의 근거가 추정에서 **실측으로** 바뀌었다.
 
 ### ⚠️ 이번(2026-08-23) 증가분에 대한 자기 점검
 스킬 14→**15**, 에이전트 3→**4**, 템플릿 5→**6**. 위 인용과 정면으로 부딪히므로 근거를 남긴다.
