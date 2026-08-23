@@ -36,4 +36,4 @@ feat: 한 줄 요약
 …
 ```
 
-Changeset이 필요한 사용자 영향 변경(참고레포A·packages/_)인데 `.changeset/_.md`가 없으면, 커밋 계획 끝에 "먼저 `/changeset`실행 필요 (예상 bump: {patch|minor|major})" 한 줄을 덧붙인다. 대상 패키지 판정 근거는`changeset` 스킬을 따른다.
+`harness.json.release.tool`이 `changesets`이고 사용자 영향 변경인데 `.changeset/*.md`가 없으면, 커밋 계획 끝에 "먼저 `/changeset`실행 필요 (예상 bump: {patch|minor|major})" 한 줄을 덧붙인다. 대상 패키지 판정 근거는`changeset` 스킬을 따른다.

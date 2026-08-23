@@ -19,12 +19,11 @@ disable-model-invocation: false
 
 | 축            | 확인                                                                                                                                                |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 아키텍처 준수 | FSD 레이어 배치·경계(feature→feature import 금지, shared 도메인 로직 금지, 1-depth public API), `/manage/*`, ARCHITECTURE.md와 일치                 |
-| 기술스택·ADR  | React19/TS strict·Zustand/TanStack Query·Tailwind·`내부 DS 패키지`·lodash-es named import — ADR 결정과 일치, 미승인 새 의존성 없음                         |
-| 테스트 존재   | 변경 구현 `.ts(x)`에 짝 `*.test.ts(x)` 존재, 레이어별 도구(Vitest/RTL/MSW/Playwright), 동작 기준(구현 디테일 아님)                                  |
-| CRITICAL 규칙 | hook 미우회, generated 파일 미수정, `내부 DS 패키지` 화살표 함수, 커밋 괄호 스코프 없음                                                                    |
-| 빌드·테스트   | `pnpm build` · `pnpm test` (필요 시 `pnpm --filter 참고레포A typecheck`) 실제 실행해 통과 확인                                                    |
-| 비주얼 싱크   | 디자인에서 구현한 화면이면 `design-reconcile`로 확정 — Playwright 스크린샷 vs Claude Design 파일 대조해 어긋남(레이아웃·간격·색·상태) 없음(머지 전) |
+| 아키텍처 준수 | `docs/{feature-date}/ARCHITECTURE.md`의 계층 배치·의존 방향과 일치. `.claude/rules/`가 금지한 경계 위반 없음                                        |
+| 기술스택·ADR  | `ADR.md` 결정과 일치. **미승인 새 의존성 없음**(추가됐다면 어느 ADR이 허락했는지 대라)                                                              |
+| 테스트 존재   | `harness.json.tdd.include` 범위의 변경 파일에 짝 테스트 존재. **동작 기준**으로 단언(구현 디테일 아님). 대상 판정은 `.claude/rules/testing.md` §0   |
+| CRITICAL 규칙 | `CLAUDE.md`의 🔴 CRITICAL 각 항목을 **그대로 대조**. hook 미우회(`--no-verify`), 자동 생성물 미수정                                                 |
+| 빌드·테스트   | `.claude/harness.json`의 `verify`를 **실제 실행**해 통과 확인. 비어 있는 키는 그 사실을 보고한다                                                    |
 
 ## 4. 출력 형식
 
@@ -38,5 +37,4 @@ disable-model-invocation: false
 
 - 성능/구조 건강성/보안까지 **깊게** 볼 필요가 있으면 Agent 도구로 **`code-reviewer`** 실행.
 - 원인 불명 회귀 → `root-cause-debugger` / `systematic-debugging` 스킬.
-- 디자인→구현 변경분은 **`design-reconcile` 스킬**로 비주얼 피델리티·DS 정합 검증(내부적으로 DesignSync/`/design-sync`).
 - 이 스킬은 판정만 한다(코드 수정 없음).

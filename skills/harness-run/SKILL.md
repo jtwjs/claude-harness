@@ -30,7 +30,7 @@ disable-model-invocation: false
 
 2. **서브에이전트 실행**: Agent 도구로 **`feature-builder`**를 띄우고 위 preamble을 프롬프트로 전달한다. 지시:
    - stepN.md의 `읽어야 할 파일`을 먼저 읽고, `작업`을 시그니처대로 구현.
-   - `Acceptance Criteria` 쉘 명령을 **실제 실행**해 통과시킨다(`pnpm --filter 참고레포A ...` / `pnpm typecheck` / `pnpm test` / `pnpm build`).
+   - `Acceptance Criteria` 쉘 명령을 **실제 실행**해 통과시킨다. 명령은 step 파일에 적힌 것(= `.claude/harness.json`의 `verify`)을 쓴다.
    - TDD: 구현 `.ts(x)`에 짝 `*.test.ts(x)` 필수(hook hard-block).
    - 완료 후 **반드시 `phases/{task}/index.json`의 해당 step 상태를 갱신**(completed+summary / error+error_message / blocked+blocked_reason).
    - 메인 세션에는 결과 코드를 재출력하지 말고 짧게 보고.
@@ -47,7 +47,7 @@ disable-model-invocation: false
 1. **코드 커밋**
    - subject: `feat: step N — {name}` (구현이 리팩터/수정이면 `refactor:`/`fix:`)
    - body: `phase: {task}` + step 요약 1줄
-   - 커밋 전 루트에서 `pnpm typecheck` → `pnpm format` → `pnpm lint -- --fix`.
+   - 커밋 전 `.claude/harness.json`의 `verify`를 순서대로 실행한다. **1회만** — 서브에이전트 자체 점검과 중복하지 않는다.
 2. **메타데이터 커밋**
    - `phases/{task}/index.json` 변경분: `chore: update phase index for step N` (body: `phase: {task}`).
 

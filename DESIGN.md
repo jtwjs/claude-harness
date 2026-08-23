@@ -125,7 +125,7 @@ git remote set-url --add --push origin git@github.com:jtw-219/claude-harness.git
 
 > 🔴 **두 계정에 두는 것의 대가 — 일반화가 "품질 요구"에서 "보안 요구"로 격상된다.**
 > 개인 계정 repo에 회사 고유 정보(org명 `<org>`·내부 도메인·서비스명·사내 규칙)가 한 줄이라도 들어가면 그건 사내 정보를 개인 계정으로 옮긴 것이 된다.
-> §9 3단계의 완료 판정(`pnpm`·`내부 DS 패키지`·`FSD` grep 0건)에 **`<org>`·`<org>`·`참고레포A`·내부 도메인 grep 0건**을 추가한다.
+> §9 3단계의 완료 판정에 **회사 org명·레포명·내부 패키지명·내부 도메인 grep 0건**을 추가한다. (검색할 실제 문자열은 이 문서에 적지 않는다 — 적는 순간 그 자체가 위반이다.)
 
 ```
 claude-harness/
@@ -261,6 +261,18 @@ paths: ["src/**/*.ts", "src/**/*.tsx"]
     └── implementation-patterns.md  구현 패턴 6개 (증상→변환→검증)
 ```
 `.claude/README.md`(라우팅) 한 줄에 **"references/는 자동 로드되지 않는다 — 링크로만 연다"** 를 적는다. 새 파일을 더 만들지 않는다.
+
+### 3-3. 🔴 자기위반 1건 — 설계 문서 자신이 규칙을 어겼다
+
+§3의 경고는 *"개인 계정 repo에 회사 고유 정보가 한 줄이라도 들어가면 사내 정보를 개인 계정으로 옮긴 것"* 이었다. **그런데 이 DESIGN.md 자신에 회사 org명·레포명·내부 패키지명이 45건 있었고, 1단계에서 그대로 push됐다.**
+
+- 발견 시점: 3단계 완료 판정을 돌리다가. **완료 판정이 자기 문서를 검사 대상에서 빼고 있었다**
+- 조치: 전부 익명화(`참고레포A`·`<org>`·`내부 DS 패키지`). **실측 수치와 판정 근거는 그대로 살아 있다** — 설계 문서의 값은 레포 이름이 아니라 *"40,000토큰"·"396개"·"102,928 bytes"* 쪽이다
+- 규칙 보강: **완료 판정의 검사 범위에 문서 자신을 포함한다.** `.git` 외 전부다
+
+> **일반화가 코드에만 적용되고 문서에는 적용되지 않는다고 믿은 것이 원인**이다. E1(hallucinated path)이 *"문서에 적힌 경로가 실재하는가"* 를 코드와 문서 양쪽에 물었던 것과 같은 실수를 반대편에서 했다.
+>
+> ⚠️ **남은 것: git 히스토리.** 1·2단계 커밋에 원문이 남아 있다. private repo라 긴급하지는 않지만, 지우려면 history rewrite가 필요하다 — **사용자 판단 사항.**
 
 ### 3-2. 프로젝트에 심어지는 실물 — `CLAUDE.md` · `rules/` · `references/`
 
@@ -667,7 +679,7 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | ~~0.5~~ | ~~`gh auth login` → wiki 공개 여부~~ | ✅ **완료** — 두 계정 등록, vault는 private → §5 유지 |
 | ~~1~~ | ~~repo 생성 + 골격 + remote 2개~~ | ✅ **완료 (2026-08-23)** — 양쪽 private 생성, `git push` 한 번에 양쪽 반영, `claude plugin marketplace add jtwjs/claude-harness` → **파싱·설치 성공** |
 | ~~2~~ | ~~자산 이식 + 훅 재배선~~ | ✅ **완료 (2026-08-23)** — skills 12·agents 3·hooks 8+hooks.json. 절대경로 **0건**, 회사 고유정보 **0건**. 하네스 없는 레포에서 7개 훅 전부 exit 0·무출력 / 위험명령만 exit 2 / tdd-guard 3케이스(차단·면제·범위밖) 통과 / Stop 훅 작업트리 무변화 |
-| 3 | **일반화 — 하드코딩 59줄 / 128건 제거 + 예시→절차 승격.** `testing.md`는 §0·§2가 핵심이고 FSD·MSW·TanStack·Playwright 경로는 걷어낸다 | `pnpm`·`내부 DS 패키지`·`FSD` grep 0건 **+ `<org>`·`<org>`·`참고레포A`·내부 도메인 grep 0건**(개인 계정에 올라가므로 보안 요구) |
+| ~~3~~ | ~~일반화 + 예시→절차 승격~~ | ✅ **완료 (2026-08-23)** — skills 12개 스택 고유명사 **0건**, hallucinated 참조 정리(design 3종 → `incubator/`), description 삭감(cartography −579자·why-logictree −181자). 🔴 **회사 고유정보 grep 0건 — 단 DESIGN.md 자신이 위반이어서 45건 익명화**(§3-3) |
 | 3.5 | **hallucinated 참조 정리** — `sdd/SKILL.md`의 `design-reconcile`(:10,:18)·guide-*(:19), 에이전트 전체의 "인계한다" | `harness-doctor` 검사 2·4가 green |
 | 4 | `harness-init`·`brain-sync`·`harness-doctor` 작성 + agents **4개** 재작성(§7, `test-writer` 신설) + `why-logictree`·`testing.md` 이식 | description 4요소 충족 |
 | 4-b | **RED/GREEN 배선**(§8-e) — `harness`에 `kind`·`tdd` 키, `harness-run`에 2단 루프 | **red 실검증**: 통과하는 테스트만 넣은 step이 **실패로 잡히는가** |

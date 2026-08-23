@@ -23,11 +23,12 @@ disable-model-invocation: false
 
 ## 3. Step 분해 원칙
 
-- **범위 최소화**: 한 step = 하나의 작동 단위. 순서 = 데이터타입 → API → 상태 → 이벤트 → 컴포넌트 → 통합(FSD: entities→features/widgets→pages).
+- **범위 최소화**: 한 step = 하나의 작동 단위. 순서는 **의존 방향을 따라 아래 계층부터** — 타입/데이터 → 외부 연동 → 상태 → 화면 → 통합. 계층 이름은 프로젝트 규약(`CLAUDE.md` 구조 절·`.claude/rules/`)을 따른다.
 - **자기완결성**: step 하나만 읽어도 서브에이전트가 작업 가능해야 한다. 앞 step 결과에 의존하는 부분은 명시.
 - **관련 파일 강제 열람**: 따라야 할 기존 패턴 파일 경로를 `## 읽어야 할 파일`에 못박는다.
 - **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다.
-- **AC = 실행 가능한 쉘 명령**: 통과 여부를 기계가 판정할 수 있게.
+- **AC = 실행 가능한 쉘 명령**: 통과 여부를 기계가 판정할 수 있게. 명령은 **지어내지 말고 `.claude/harness.json`의 `verify`에서 가져온다.**
+- **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 `test-writer`(RED) → `feature-builder`(GREEN) 2단으로 돌고, `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
 - **금지사항 명시**: CRITICAL 규칙을 step 안에 재고정.
 - step 이름은 **kebab-case**.
 
@@ -37,10 +38,10 @@ disable-model-invocation: false
 
 ```json
 {
-  "project": "참고레포A",
+  "project": "<repo-name>",
   "phase": "{task}",
   "steps": [
-    { "step": 1, "name": "add-autosave-entity-type", "status": "pending" }
+    { "step": 1, "name": "add-draft-model", "status": "pending", "tdd": true }
   ]
 }
 ```
@@ -61,18 +62,18 @@ disable-model-invocation: false
 ## 작업
 
 - 시그니처 수준 지시(만들/바꿀 파일 · 레이어 · 타입/함수 계약)
-- 고정할 CRITICAL 규칙(FSD 경계·내부 DS 패키지 화살표·generated 금지 등)
+- 고정할 CRITICAL 규칙 — `CLAUDE.md`의 🔴 CRITICAL 절과 해당 `.claude/rules/`에서 **그대로 인용**한다(새로 지어내지 않는다)
 
 ## Acceptance Criteria
 
-- `pnpm --filter 참고레포A typecheck` 통과
-- `pnpm --filter 참고레포A test <경로>` 통과
-- (필요 시) `pnpm build`
+- `.claude/harness.json`의 `verify.typecheck` 통과
+- `verify.test` 통과 (비어 있으면 **그 사실을 step에 명시**한다)
+- (필요 시) `verify.build`
 
 ## 검증 절차
 
 1. 위 AC 명령을 실제 실행한다.
-2. 아키텍처 체크리스트 대조(FSD 경계·DS 우선·타입 규칙·TDD 짝 테스트 존재).
+2. 아키텍처 체크리스트 대조 — `docs/{feature-date}/ARCHITECTURE.md`의 경계 규칙, `.claude/rules/`의 판정, 짝 테스트 존재.
 3. 결과를 `phases/{task}/index.json`의 해당 step에 기록:
    - 성공 → `status:"completed"` + `summary`(1~2줄)
    - 실패 → `status:"error"` + `error_message`
@@ -80,7 +81,7 @@ disable-model-invocation: false
 
 ## 금지사항
 
-- hook 우회(`--no-verify`)·generated 파일 수정·feature→feature import·요청 범위 밖 수정 금지.
+- hook 우회(`--no-verify`) · 자동 생성물 직접 수정 · `.claude/rules/`가 금지한 의존 방향 위반 · 요청 범위 밖 수정 · **테스트 파일 수정**(구현 step에서) 금지.
 ```
 
 ## 5. 마무리
@@ -92,8 +93,8 @@ disable-model-invocation: false
 
 ## 부록 — 설계문서 템플릿 (`docs/{feature-YYYY-MM-DD}/`)
 
-DESIGN 단계에서 아래 형태로 작성(사람 주도, AI 보조):
+DESIGN 단계 산출물. 없으면 `why-logictree`로 **PRD부터 만든 뒤** 이 스킬로 돌아온다.
 
-**PRD.md**: 무엇을(한 문장) · 왜(문제·성공지표) · 사용자 시나리오 · 범위(포함/제외) · 수용 조건(체크리스트).
-**ARCHITECTURE.md**: 개요 · FSD 레이어 배치(entities/features/widgets·pages 책임 표) · 데이터 흐름(API↔Zustand/TanStack Query↔UI) · 경계·의존성(승격/공유·`/manage/*`) · 상태관리(쿼리키 규약) · 테스트 전략(레이어별 도구).
+**PRD.md**: 무엇을(한 문장) · 왜(문제·성공지표) · 사용자 시나리오 · 범위(포함/제외) · **수용 조건 체크리스트** ← `test-writer`가 케이스를 뽑는 입력이다.
+**ARCHITECTURE.md**: 개요 · 계층 배치와 각 층의 책임 · 데이터 흐름 · 경계·의존 방향 · 상태 관리 규약 · 테스트 전략. **구체 스택 이름은 그 프로젝트의 것을 쓴다.**
 **ADR.md**: `ADR-00N` 블록 반복 — 상태 · 맥락 · 결정 · 대안(+버린 이유) · 결과(트레이드오프).

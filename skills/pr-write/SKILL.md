@@ -120,9 +120,7 @@ EOF
 
 ## Test plan
 
-- [ ] 로컬 빌드 확인 (`pnpm build`)
-- [ ] 타입 체크 (`pnpm typecheck`)
-- [ ] 린트 (`pnpm lint`)
+- [ ] `.claude/harness.json`의 `verify` 전체 통과 (build · typecheck · lint · test)
 - [ ] 관련 테스트 통과
 - [ ] (UI 변경 시) 스크린샷 첨부
 
