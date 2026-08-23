@@ -31,7 +31,7 @@
 | 5 | `non-obvious-patterns.md`(102KB·커밋 47회·8-20까지 갱신) | **진짜 자산은 여기.** 혼자 잘 살아 있음 |
 | 6 | `_brain/` + `brain-intake` | Karpathy LLM Wiki(ingest/query/lint) 구현 |
 | 7 | `portable-assets.md` | 이 작업의 직전 단계 |
-| 8 | **`.claude/rules/testing.md`(9KB) + `shared/test/bdd.ts`(9줄) + 테스트 396개** | ⭐ **1차 설계에서 통째로 빠져 있던 것.** `tdd-guard.sh`는 넣어놓고 **그 게이트의 판정 근거 문서를 안 넣었다** — 무슨 기준으로 막는지 프로젝트에 남지 않는다. §0 테스트 대상 기준·§2 BDD 3계층이 이식 대상 |
+| 8 | 2번째 레포 실사용 → **3번째부터** BACKLOG 승격 | 3번의 법칙 |
 
 > `docs-app` 관련 4스킬 + `guide-reviewer` **전부 제외**.
 
@@ -64,7 +64,7 @@
 | 5 | 🔴 `incubator/spec/` 6장이 `BACKLOG.md`와 중복 | spec 삭제 → BACKLOG 6줄 |
 | 6 | 🔴 evals 5케이스 — 01·02·05는 **기계 판정 불가라 게이트가 못 됨** | `hooks/test.sh` 2케이스 |
 | 7 | 🔴 SDD 단계표 5중 중복 | 정본은 `sdd/SKILL.md`. 프로젝트엔 `process/workflow.md` **안 심음** |
-| 8 | 🟡 `memory-reminder` 제외 시 기능 손실(내 "손실 없음"은 틀림) | `cadence-reminder.sh`로 병합 |
+| 8 | 2번째 레포 실사용 → **3번째부터** BACKLOG 승격 | 3번의 법칙 |
 | 9 | 🟡 `why-logictree`는 코딩 하네스 무관 + 이미 2벌 | ~~플러그인 제외~~ → **2026-08-23 뒤집음.** 코어 트랙의 DESIGN이 비어 있어(PRD를 만드는 주체 부재) 무관하지 않다 → **DESIGN 게이트로 배선** (§8-d) |
 | 10 | 🟡 `CODEBASE_MAP.md`·`docs/adr/000-template.md` 실물 0. ADR은 `docs/{feature-date}/ADR.md`로 **7개 실제 축적** | **작동하는 관행을 따름**(§4) |
 | 11 | 🟡 nested CLAUDE.md 충돌(`feature-cohesion.md §5.1`) | `.claude/rules/` **`paths:` frontmatter** 1순위(§3-1·§4). ⚠️ 2026-08-23 키 이름 정정 — `globs:`는 Cursor `.mdc` 것이고 Claude Code는 **`paths:`** 다 |
@@ -686,7 +686,7 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 | 4.5 | `incubator/ready/` 3개 + `BACKLOG.md` 6줄 | `/context`로 incubator 미로드 확인 |
 | ~~5~~ | ~~설치 검증~~ | ✅ **완료 (2026-08-23)** — 로컬 등록을 지우고 **GitHub에서 순수 설치**: marketplace add → install → Skills 15·Agents 4·Hooks 3 인식, Always-on **3,218** |
 | ~~6~~ | ~~일반화 검증 + `hooks/test.sh`~~ | ✅ **부분 완료 (2026-08-23)** — `hooks/test.sh` **16/16 green**, 테스트베드 실측. ⏳ `harness-init` 실제 실행은 그 레포 세션에서(회사 레포이므로 사용자가 직접) |
-| 7 | 전역 `~/.claude` 정리. **백업 후, 5·6 통과 뒤에만** | 재시작 후 스킬 중복 없음 |
+| ~~7~~ | ~~전역 `~/.claude` 정리~~ | ✅ **완료 (2026-08-23)** — 백업 후 제거 7 + 수리 6. settings.json 유효·죽은 참조 0건·ccstatusline 1회. **제거 전에 설치본 훅을 직접 실행해 차단이 도는 것을 확인**했다 |
 | 8 | 2번째 레포 실사용 → **3번째부터** BACKLOG 승격 | 3번의 법칙 |
 
 **🔎 1단계에서 발견한 CLI 검증 수단** (슬래시 명령 없이 셸에서 판정 가능)
@@ -712,7 +712,17 @@ CHECKED:  architecture=pass adr=pass tests=pass critical=pass build=unsure
 
 **7단계 — 제거 4 + 수리 6**: 제거 `skills/{grilling, grill-me, systematic-debugging}`·`agents/root-cause-debugger.md`·`hooks/{block-dangerous-bash, auto-format}.sh`·`deny-patterns.yaml` / 수리 ① 끊어진 `skills/briefing/` allow ② 구 이름 `mcp__claude_ai_Atlassian__*` 2건 ③ **`ccstatusline --hook` 4중 등록(매 호출 2배 실행)** ④ 빈 `rules/` ⑤ 빈 `agent-memory/root-cause-debugger/` ⑥ 사장된 `statusline-command.sh`
 
-**되돌리기 어려운 지점은 7단계뿐이다.**
+**되돌리기 어려운 지점은 7단계뿐이다.** → ✅ 완료. 백업: `~/.claude/backups/pre-harness-cleanup-<타임스탬프>/`
+
+### 7단계 실행 기록 (2026-08-23)
+
+**제거 7** — 플러그인이 대체하는 것: `skills/{grilling, grill-me, systematic-debugging}` · `agents/root-cause-debugger.md` · `hooks/{block-dangerous-bash, auto-format}.sh` · `deny-patterns.yaml`
+
+**수리 6** — ①죽은 훅 참조 2건(방금 지운 파일을 부르던 등록) ②`ccstatusline --hook` **중복 그룹 2개 제거**(같은 matcher·같은 명령이 두 벌 → 매 호출 2배 실행이 1배로) ③빈 `rules/` ④빈 `agent-memory/root-cause-debugger/` ⑤죽은 allow 3건 ⑥사장된 `statusline-command.sh`
+
+🔴 **제거 전 안전 확인을 먼저 했다** — 전역 `block-dangerous-bash.sh`를 지우면 그 보호가 사라지므로, **설치본 훅을 직접 실행해** 위험 명령 exit 2·정상 명령 exit 0을 확인하고 `enabledPlugins`에 활성인 것을 본 뒤에 지웠다.
+
+⚠️ **하지 않은 것**: Atlassian allow 2건은 **제거만** 했다(구 이름이라 매칭 안 됨). 현재 이름으로 다시 허용할지는 **권한 확대**이므로 사용자가 정한다. orca 훅·`afplay` 알림·`additionalDirectories`·`statusline-5hr-segment.sh`는 **건드리지 않았다** — 하네스와 무관한 사용자 도구다.
 
 ---
 
