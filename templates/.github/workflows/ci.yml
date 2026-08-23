@@ -1,0 +1,34 @@
+# harness-init 이 harness.json.verify 에서 실제로 통과한 명령만 채운다.
+# 비어 있는 단계는 넣지 않는다 — 없는 명령을 적으면 첫날부터 red 가 뜬다.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["{{BASE_BRANCH}}"]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # {{SETUP_STEPS}}  ← 런타임·패키지매니저·의존성 설치 (harness-init 이 채움)
+
+      - name: format
+        run: {{VERIFY_FORMAT}}
+
+      - name: lint
+        run: {{VERIFY_LINT}}
+
+      - name: typecheck
+        run: {{VERIFY_TYPECHECK}}
+
+      # 🔴 test 는 건너뛰지 않는다.
+      #    harness.json 의 ci.test 가 "deferred" 면 이 단계를 넣되 아래처럼 사실을 남긴다.
+      #    조용히 빼면 "테스트가 없다"가 아니라 "테스트가 있는 줄" 알게 된다.
+      - name: test
+        run: {{VERIFY_TEST}}
+
+      - name: build
+        run: {{VERIFY_BUILD}}

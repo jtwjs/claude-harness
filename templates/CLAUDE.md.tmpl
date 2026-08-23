@@ -1,0 +1,44 @@
+# {{PROJECT_NAME}}
+
+{{ONE_LINE}}
+
+## 🔴 CRITICAL — 어기면 사고
+
+{{CRITICAL_RULES}}
+
+- **테스트 선행**: `tdd.include` 범위의 구현 파일에 짝 테스트가 없으면 `tdd-guard`가 차단한다.
+  무엇을 테스트하고 무엇을 안 하는지는 → [testing.md](.claude/rules/testing.md) §0
+- **자동 생성물은 재생성으로만** 고친다. 직접 수정 금지: {{GENERATED_PATHS}}
+- **hook 우회 금지** (`--no-verify` 등)
+
+## 검증
+
+{{VERIFY_COMMANDS}}
+
+> 정본은 [.claude/harness.json](.claude/harness.json)의 `verify`다. 여기와 어긋나면 `harness-doctor` 검사 1이 잡는다.
+
+## 구조
+
+{{ENTRY_POINTS}}
+
+{{DEPENDENCY_DIRECTION}}
+
+## 결정 기록
+
+아키텍처 결정은 `docs/{feature-YYYY-MM-DD}/ADR.md`에 남긴다.
+**혼자 일할수록 이게 중요하다** — 팀이면 논의로 남았을 것이 혼자면 아무 데도 안 남고, 나중에 복원이 불가능하다.
+
+## 규칙·참고
+
+- `.claude/rules/` — **자동 로드.** `paths:`에 걸리는 파일을 만질 때 들어온다
+- `.claude/references/` — **자동 로드 안 됨.** rules의 ⏬ 트리거로만 연다
+- `.claude/README.md` — 어떤 상황에 무엇을 부르는지
+
+<!--
+이 파일에 적지 않는 것 (의도적):
+  · 에이전트·스킬 개수 → 라우팅은 .claude/README.md 한 곳만
+  · SDD 단계표 → 정본은 sdd 스킬
+  · 훅 목록 → 정본은 플러그인
+  · 긴 규칙 설명 → rules(짧게) 또는 references(길게)
+CLAUDE.md는 링크판이지 내용판이 아니다. 항상 로드되므로 여기 한 줄은 매 세션 비용이다.
+-->

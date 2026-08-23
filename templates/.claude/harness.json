@@ -1,0 +1,43 @@
+{
+  "$comment": "harness-init 이 실제로 돌려보고 통과한 것만 채운다. 없는 키는 비워 둔다 — 지어내지 않는다.",
+
+  "packageManager": "",
+
+  "verify": {
+    "$comment": "format 은 반드시 읽기 전용(--check 계열). 포맷 적용은 auto-format 훅이 편집 직후에 한다.",
+    "format": "",
+    "lint": "",
+    "typecheck": "",
+    "test": "",
+    "build": ""
+  },
+
+  "test": {
+    "$comment": "bddAlias 가 false 면 test-writer 는 별칭 파일을 심지 않고 중첩 describe 로 3계층을 만든다.",
+    "runner": "",
+    "bddAlias": false
+  },
+
+  "ci": {
+    "$comment": "test 게이트가 없으면 'deferred'. 비워 두지 말고 deferred 라고 적어야 매번 보고된다.",
+    "test": "deferred"
+  },
+
+  "tdd": {
+    "$comment": "exclude 는 .claude/rules/testing.md §0 과 같은 내용을 가리켜야 한다. 어긋나면 막는 것과 적힌 것이 달라진다.",
+    "enabled": false,
+    "include": [],
+    "exclude": []
+  },
+
+  "release": {
+    "$comment": "null 이면 changeset 스킬이 스스로 skip 한다.",
+    "tool": null
+  },
+
+  "brainSync": {
+    "$comment": "통합 wiki 경로와 대상 폴더. brain-sync 가 처음 실행될 때 물어서 캐시한다.",
+    "wikiPath": "",
+    "targetFolder": ""
+  }
+}
