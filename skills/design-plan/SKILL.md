@@ -1,5 +1,5 @@
 ---
-description: SDD PLAN 단계(디자인→구현 전 de-risk) — Claude Design 파일(brief→import 트랙 또는 화면 핸드오프 프롬프트)을 메인에서 끝까지 읽고 코드 디자인시스템(내부 DS 패키지→shared/ui)과 대조해, 각 요소를 기존 컴포넌트에 매핑하거나 누락으로 표시하고, 정적 HTML이 빠뜨린 것을 역질문으로 메운 뒤, 재사용 임계 규칙(≥3곳→새 내부 DS 패키지 DS 컴포넌트 권고)으로 신규 생성 여부를 사용자와 합의한다. Use when Claude Design 파일·핸드오프를 받은 뒤 harness로 step을 쪼개기 직전. IMPLEMENT-from-design은 최고위험 단계라 반드시 엄격히. Claude Design은 Figma가 아니다.
+description: SDD PLAN 단계(디자인→구현 전 de-risk) — Claude Design 파일(brief→import 트랙 또는 화면 핸드오프 프롬프트)을 메인에서 끝까지 읽고 코드 디자인시스템(내부 DS 패키지→shared/ui)과 대조해, 각 요소를 기존 컴포넌트에 매핑하거나 누락으로 표시하고, 정적 HTML이 빠뜨린 것을 역질문으로 메운 뒤, 재사용 임계 규칙(≥3곳→새 내부 DS 패키지 DS 컴포넌트 권고)으로 신규 생성 여부를 사용자와 합의한다. Use when `/design` 또는 웹 캔버스에서 디자인 파일·핸드오프를 받은 뒤 harness로 step을 쪼개기 직전. IMPLEMENT-from-design은 최고위험 단계라 반드시 엄격히. Claude Design은 Figma가 아니다.
 disable-model-invocation: false
 ---
 
@@ -27,7 +27,7 @@ claude_design(`api.anthropic.com/v1/design/mcp`)은 이 환경에서 **`DesignSy
 
 ## 2. 매핑 레지스트리 + DS 스캔 (b)
 
-- `.claude/process/design-system-map.md`를 먼저 읽어 기존 매핑 재사용.
+- `.claude/design/design-system-map.md`를 먼저 읽어 기존 매핑 재사용.
 - **DS-first 순서로만 후보 탐색**: `내부 DS 패키지` → `shared/ui` → 로컬(rules/ui-guideline.md).
   - `내부 DS 패키지` barrel(`packages/ui/src/index.ts`)·컴포넌트 폴더 스캔.
   - 아이콘은 `내부 아이콘 패키지` + `내부 DS 패키지` `Icon` 경유(직접 svg 금지). 미등록 아이콘은 registry 갭으로 표기.
@@ -64,7 +64,7 @@ claude_design(`api.anthropic.com/v1/design/mcp`)은 이 환경에서 **`DesignSy
 
 ## 6. 산출물 (f)
 
-- 위 매핑 표 + 역질문 답 + 누락/신규 결정 요약을 `docs/{feature-date}/DESIGN-PLAN.md`로 저장.
+- 위 매핑 표 + 역질문 답 + 누락/신규 결정 요약을 `.claude/design/DESIGN-PLAN.md`로 저장.
 - 각 항목은 **harness step 입력**이 되도록: `디자인 파일 경로 + 화면 + 요소→컴포넌트 매핑 + 확정된 product 결정`을 명시.
 - FSD 경계(feature→feature import 금지, 1-depth public API)·DS-first·아이콘 규약을 계획에 재고정.
 

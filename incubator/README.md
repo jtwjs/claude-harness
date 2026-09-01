@@ -5,22 +5,18 @@
 ## 꺼내는 법
 
 ```bash
-mv incubator/ready/skills/design-brief skills/
+mv incubator/ready/skills/<이름> skills/
 ```
 
-`mv` 한 번이면 다음 세션부터 동작한다.
-
-## ⚠️ 꺼낼 때 같이 고쳐야 하는 것
-
-`skills/sdd/SKILL.md`는 **디자인 트랙을 언급하지 않는다** — 없는 스킬을 부르지 않기 위해서다(hallucinated 참조 금지). design 3종을 꺼내면 `sdd/SKILL.md`에 트랙 분기를 **다시 넣어야** 한다:
-
-- `## 0. 트랙 판단` 절을 되살리고 (UI/화면 → 디자인 트랙 / 그 외 → 코어 트랙)
-- DESIGN 에 `design-brief`, PLAN 에 `design-plan`, REVIEW 에 `design-reconcile` 연결
+`mv` 한 번이면 다음 세션부터 동작한다. 꺼낼 때 **그 스킬을 부르는 쪽(주로 `skills/sdd/SKILL.md`)에
+호출 지점을 같이 넣어야 한다** — 없는 스킬을 부르지 않기 위해 참조를 미리 심어두지 않기 때문이다.
 
 ## 지금 들어 있는 것
 
-| | 무엇 | 꺼낼 조건 |
+없다.
+
+## 나간 것
+
+| 언제 | 무엇 | 어디로 |
 |---|---|---|
-| `design-brief` | Claude Design 브리프 생성 | UI 비중 큰 프로젝트 착수 |
-| `design-plan` | 디자인↔DS 매핑·갭 산출 | 〃 |
-| `design-reconcile` | 스크린샷 vs 디자인 파일 대조 | 〃 |
+| 2026-09-01 | `design-brief` · `design-plan` · `design-reconcile` | `skills/`. `sdd/SKILL.md`에 `## 0. 트랙 판단` 절과 DESIGN·PLAN·REVIEW 3개 호출 지점을 복원했다. 산출물 종착지는 `.claude/design/` |

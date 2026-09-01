@@ -7,7 +7,7 @@ disable-model-invocation: false
 
 ## 0. 전제
 
-- 대상 `docs/{feature-date}/DESIGN-PLAN.md` + 원본 디자인 파일 + Claude Design 프로젝트 URL.
+- 대상 `.claude/design/DESIGN-PLAN.md` + 원본 디자인 파일 + Claude Design 프로젝트 URL.
 - DesignSync 인증: `/design-login`. 스킬: `/design-sync`.
 
 ## 1. 비주얼 피델리티 (a)
@@ -41,7 +41,7 @@ disable-model-invocation: false
 
 ## 5. REFLECT 환류 (learning loop)
 
-- 이번에 확정/신규된 매핑을 `.claude/process/design-system-map.md`에 반영.
+- 이번에 확정/신규된 매핑을 `.claude/design/design-system-map.md`에 반영.
 - **디자인→코드 함정**을 발견했으면(디자인 착시·토큰 함정·Claude Design export 특이점 등) `.claude/rules/non-obvious-patterns.md`에 한 줄 추가.
 - 신규 DS 컴포넌트/토큰 결정 근거를 레지스트리에 기록(컨벤션화되면 `ui-guideline.md`). 기존 `reflect-reminder` 훅·`LEARNED.md` 흐름에 탑승.
 
