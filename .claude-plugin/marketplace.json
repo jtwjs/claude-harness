@@ -1,7 +1,9 @@
 {
   "name": "jtwjs-plugins",
   "id": "jtwjs-plugins",
-  "owner": { "name": "jtwjs" },
+  "owner": {
+    "name": "jtwjs"
+  },
   "metadata": {
     "description": "개인 Claude Code 플러그인 마켓플레이스",
     "version": "0.1.0"
@@ -11,9 +13,16 @@
       "name": "claude-harness",
       "source": "./",
       "description": "신규 프로젝트에 까는 개인 표준 하네스 — SDD·RED/GREEN·컨텍스트 3층·brain 파이프라인",
-      "version": "0.1.0",
-      "author": { "name": "jtwjs" },
-      "keywords": ["harness", "sdd", "tdd", "context-engineering"],
+      "version": "0.1.1",
+      "author": {
+        "name": "jtwjs"
+      },
+      "keywords": [
+        "harness",
+        "sdd",
+        "tdd",
+        "context-engineering"
+      ],
       "category": "workflow"
     }
   ]
