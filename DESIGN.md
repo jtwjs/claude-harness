@@ -136,6 +136,7 @@ claude-harness/
 │   ├── brain-intake/  brain-sync/   ⭐ 지식 파이프라인 (§5)
 │   ├── ai-readiness-cartography/    GitHub판(score.py 34KB + template.html 43KB)
 │   ├── why-logictree/               ← DESIGN 게이트 (§8-d, 제외 판단 뒤집음)
+│   ├── slack-writing/  notion-writing/  ← 공유 글쓰기 (SDD 밖, 2026-09-02)
 │   ├── grilling/                    ← PLAN 게이트로 배선
 │   ├── systematic-debugging/
 │   ├── sdd/  harness/  harness-run/  sdd-review/
