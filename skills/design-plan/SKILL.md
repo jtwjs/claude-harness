@@ -1,5 +1,5 @@
 ---
-description: SDD PLAN 단계(디자인→구현 전 de-risk) — Claude Design 파일(brief→import 트랙 또는 화면 핸드오프 프롬프트)을 메인에서 끝까지 읽고 코드 디자인시스템(내부 DS 패키지→shared/ui)과 대조해, 각 요소를 기존 컴포넌트에 매핑하거나 누락으로 표시하고, 정적 HTML이 빠뜨린 것을 역질문으로 메운 뒤, 재사용 임계 규칙(≥3곳→새 내부 DS 패키지 DS 컴포넌트 권고)으로 신규 생성 여부를 사용자와 합의한다. Use when `/design` 또는 웹 캔버스에서 디자인 파일·핸드오프를 받은 뒤 harness로 step을 쪼개기 직전. IMPLEMENT-from-design은 최고위험 단계라 반드시 엄격히. Claude Design은 Figma가 아니다.
+description: SDD PLAN 단계(디자인→구현 전 de-risk) — Claude Design 파일을 메인에서 끝까지 읽고 코드 디자인시스템과 대조해 컴포넌트 매핑 계획과 역질문을 만든다. Use when `/design` 또는 웹 캔버스에서 디자인 파일·핸드오프를 받은 뒤 harness로 step을 쪼개기 직전. IMPLEMENT-from-design은 최고위험 단계라 반드시 엄격히. Claude Design은 Figma가 아니다.
 disable-model-invocation: false
 ---
 

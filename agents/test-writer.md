@@ -1,6 +1,6 @@
 ---
 name: "test-writer"
-description: "SDD IMPLEMENT stage, RED half. Call before any implementation exists, to turn a spec's acceptance criteria into failing tests — especially edge cases. Reads docs/{feature}/PRD.md, the step file, and .claude/rules/testing.md. Deliberately does NOT open implementation files (that isolation is the whole point), does NOT write or fix production code (feature-builder), does NOT judge quality (code-reviewer). Stops and reports when the spec is too thin to derive cases from."
+description: "SDD IMPLEMENT stage, RED half. Call before any implementation exists, to turn a spec's acceptance criteria into failing tests — especially edge cases. Deliberately does NOT open implementation files (that isolation is the whole point), does NOT write or fix production code (feature-builder), does NOT judge quality (code-reviewer). Stops and reports when the spec is too thin to derive cases from."
 model: opus
 color: yellow
 ---
