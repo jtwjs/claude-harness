@@ -10,6 +10,7 @@
 | 기능·버그 작업을 처음부터 끝까지 | `sdd` (위 단계를 알아서 넘긴다) |
 | 원인 모를 버그·간헐적 실패 | `root-cause-debugger` |
 | 하네스가 썩었는지 점검 | `harness-doctor` |
+| 같은 지시·같은 교정이 반복된다 | `task-observer` (3회부터 승격 후보. 원장은 `observations.md`) |
 | 프로젝트 지식을 통합 wiki로 | `brain-intake` → `brain-sync` |
 
 ## 이 폴더의 구조
@@ -19,6 +20,7 @@
 | `harness.json` | — | ⭐ **정본.** 검증 명령·TDD 범위·릴리스 도구 |
 | `rules/` | **자동** (`paths:`에 걸릴 때) | **판정** — 위반인가 아닌가. 짧게 |
 | `references/` | **수동** (rules의 ⏬ 트리거) | **변환** — 그래서 어떻게 고치나. 길어도 됨 |
+| `observations.md` | — (로드 안 됨) | **계수기** — 반복된 것과 횟수. `task-observer`만 쓴다 |
 
 > 🔴 **`references/`는 자동으로 읽히지 않는다.** rules에 `⏬` 트리거가 걸려 있어야 열린다. 트리거 없는 references는 죽은 문서이고, `harness-doctor` 검사 2가 잡는다.
 

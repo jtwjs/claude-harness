@@ -21,7 +21,7 @@
 
 | 칸 | 성격 | 내용 |
 |---|---|---|
-| `skills/` | **부르면** 도는 것 | 하네스 자체(`harness-init`·`harness-doctor`) · 지식 파이프라인(`brain-intake`·`brain-sync`) · SDD 4종 · 품질 3종 · 마무리 3종 · 글쓰기 2종(`slack-writing`·`notion-writing`, SDD 밖) |
+| `skills/` | **부르면** 도는 것 | 하네스 자체(`harness-init`·`harness-doctor`·`task-observer`) · 지식 파이프라인(`brain-intake`·`brain-sync`) · SDD 4종 · 품질 3종 · 마무리 3종 · 글쓰기 2종(`slack-writing`·`notion-writing`, SDD 밖) |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |
 | `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) |
 | `templates/` | 플러그인엔 없고 **프로젝트에 남는** 것 | `CLAUDE.md` · `.claude/{harness.json, rules/, references/}` · CI |
@@ -32,7 +32,7 @@
 ```
 why-logictree(스펙) → harness(분해) → grilling(빈칸) → 🙋 승인
   → test-writer(RED) → feature-builder(GREEN) → sdd-review → code-reviewer
-  → changeset → commit → pr-write → brain-sync
+  → changeset → commit → pr-write → brain-sync → task-observer
 ```
 
 **RED/GREEN이 핵심이다** — 테스트는 *실패하는 것을 확인해야* 통과이고, 구현은 *테스트 파일을 건드리면* 실패다.

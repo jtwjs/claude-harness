@@ -11,9 +11,12 @@
 | `oncall-agent` | 운영 알림·CI 권한을 받았을 때 |
 | design 3종 + `DESIGN.md` 템플릿 | UI 비중 큰 프로젝트 착수 시 (`incubator/ready/`에서 `mv`) |
 | `review-{task}.json` 리포트 계약 | **3번째 레포**에서 순환 재검증이 실제로 일어난 뒤 |
-| `references/testing-patterns.md` | `test-writer` 보고에 "셋업을 몰라서 못 씀"이 **3회** 누적 |
-| `implementation-patterns.md` 7번째 패턴 | 같은 종류 지적이 `code-reviewer` 리뷰에서 **3회** 반복 |
-| `evals/` (공식 `claude plugin eval` 러너) | 스킬이 **실제로 안 불리는 사례 3건**이 관측된 뒤 (트리거 회귀는 그때부터 값이 생긴다) |
+| `references/testing-patterns.md` | `test-writer` 보고에 "셋업을 몰라서 못 씀"이 **3회** 누적 (`task-observer`·재교정) |
+| `implementation-patterns.md` 7번째 패턴 | 같은 종류 지적이 `code-reviewer` 리뷰에서 **3회** 반복 (`task-observer`·재교정) |
+| `evals/` (공식 `claude plugin eval` 러너) | 스킬이 **실제로 안 불리는 사례 3건** (`task-observer`·불발). 트리거 회귀는 그때부터 값이 생긴다 |
 | `InstructionsLoaded` 훅 계측 | `harness-doctor` 검사 5의 바이트 계측으로 부족해진 뒤 |
+| `task-observer` 상시 관찰 훅 | REFLECT 되짚기가 **놓친 반복 3건**이 나중에 뒤늦게 발견된 뒤 (`.claude/observations.md`의 `마지막` 날짜가 실제 발생일보다 늦은 경우) |
 
 > `habit.md:78` — **"3번부터."** 두 번까지는 우연이고 세 번째가 패턴이다.
+>
+> 세는 주체가 `task-observer`인 행은 `.claude/observations.md`의 `횟수` 칸이 근거다. **기억이 아니라 파일을 읽어서 센다.**

@@ -41,6 +41,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    **자동 clobber 금지** — 발산은 보고 후 사람 결정.
 5. **REFLECT** 🤖 — `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`.
    그 다음 **지식 환류**: 새 함정은 `.claude/rules/non-obvious-patterns.md`에 한 줄, `_brain/`이 있으면 `brain-intake` → **`brain-sync`로 통합 wiki 이관**(🙋 확인 후).
+   마지막에 `task-observer` — 이번 작업에서 **반복된 것**(재지시·재교정·불발)을 `.claude/observations.md`에 세고, 3회에 닿은 것만 승격 제안한다. 🙋 판정은 사람이.
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 
