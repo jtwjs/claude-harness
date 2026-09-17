@@ -7,6 +7,7 @@
 ## 설치
 
 ```bash
+/plugin marketplace add Egonex-AI/Understand-Anything   # 의존 플러그인의 마켓플레이스 — 없으면 harness가 비활성화된다
 /plugin marketplace add jtwjs/claude-harness
 /plugin install claude-harness@jtwjs-plugins
 ```
@@ -21,7 +22,8 @@
 
 | 칸 | 성격 | 내용 |
 |---|---|---|
-| `skills/` | **부르면** 도는 것 | 하네스 자체(`harness-init`·`harness-doctor`·`task-observer`) · 지식 파이프라인(`brain-intake`·`brain-sync`) · SDD 4종 · 품질 3종 · 마무리 3종 · 글쓰기 2종(`slack-writing`·`notion-writing`, SDD 밖) |
+| `skills/` | **부르면** 도는 것 | 하네스 자체(`harness-init`·`harness-doctor`·`task-observer`) · 지식 파이프라인(`brain-intake`·`brain-sync`) · SDD 4종 · 품질 3종 · 마무리 3종 · 글쓰기 2종(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3종(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
+| 의존 플러그인 | 같이 **켜지는** 것 | `understand-anything` — 코드베이스 지식 그래프. 스킬 복사로는 안 돌아서(빌드된 플러그인 루트 필요) `dependencies`로 건다 |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |
 | `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) |
 | `templates/` | 플러그인엔 없고 **프로젝트에 남는** 것 | `CLAUDE.md` · `.claude/{harness.json, rules/, references/}` · CI |

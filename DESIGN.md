@@ -838,6 +838,8 @@ Always-on: ~3,828 tok   added to every session
 | 2026-09-06 (0.1.1) | 20 skills + 4 agents | **4,600** |
 | 2026-09-06 (0.2.0) | **21 skills + 4 agents** | **4,732** |
 | **2026-09-06 (0.2.1)** | 21 + 4 | **4,370** (−362, §13-6) |
+| 2026-09-18 (0.2.2 설치본) | 21 + 4 | **4,412** (slack-writing 개정분) |
+| **2026-09-18 (0.3.0)** | **24 + 4** | **4,650** (+238, §14) |
 
 > 아래 세 행은 **2026-09-06 재계측**이다. 그 사이 14일간 계측이 없었고 목표를 넘긴 시점을 못 봤다 → §13-5. 마지막 행이 그 처분이다 → **§13-6**.
 
@@ -990,3 +992,49 @@ always-on을 키우는 변수는 `description` 길이 **하나**다 — 25개 �
 **검증하다 결함 1건.** §13-2 #4가 회수 지점을 둘로 정했는데(`REFLECT 끝` + `harness-doctor`) **뒤쪽에 배선이 없었다** — `sdd/SKILL.md:44`에만 있고 `harness-doctor` 검사 1~5 어디에도 없었다. **검사 6**으로 배선했다. `/lint`가 말하는 *"선언과 실재의 불일치"*가 이 플러그인 자신에게서 나온 것이다.
 
 **별건 카운트**: §12의 *"스킬 늘린 커밋에서 계측하고 1행 추가"* 관행 불발 = **2/3** (`be61bfb` 글쓰기 2종 · `e6252f5` design 3종. `a39ea9c`에서는 지켰다). 3에 닿으면 §13-5의 예고대로 `task-observer`의 불발 대상이 된다.
+
+---
+
+## 14. 코드 이해 3종 반입 + `understand-anything` 의존 (2026-09-18)
+
+출처 발표: Geoffrey Litt, *Understanding is the new bottleneck* (AI Engineer World's Fair 2026). 요지는 **검증은 에이전트에 넘겨도, 다음 루프에 참여하기 위한 이해는 못 넘긴다**는 것이다. 이 플러그인의 REVIEW 단계에는 검증(`sdd-review`·`code-reviewer`)만 있고 **사람이 변경을 이해했는지 확인하는 칸이 없었다.**
+
+### 14-1. §12 자기 점검표 — 이번 증가분
+
+스킬 21→**24**, 의존 플러그인 0→**1**.
+
+| 늘어난 것 | 신규 발명인가 | 무엇을 대신하나 |
+|---|---|---|
+| `explain-diff-html` · `explain-diff-notion` | ❌ 발표자 gist 원문 그대로 (`geoffreylitt/a29df1b5f9865506e8952488eac3d524`, 2026-09-17본) | **대신하는 것 없음 — 순수 추가.** 배경 → 직관 → 코드 워크스루 → 퀴즈 5문항. 퀴즈를 못 풀면 리뷰 요청을 안 한다는 게이트 |
+| `plannotator-visual-explainer` | ❌ `backnotprop/plannotator` 원문 그대로 (MIT·Apache-2.0 이중 라이선스 → `LICENSE`에 MIT 동봉) | 대신하는 것 없음. 같은 칸의 시각화판(파일 투어·위험 지도·집중할 곳) |
+| `understand-anything` (`dependencies`) | ❌ 외부 플러그인 | 복사가 불가능해서 의존으로 걸었다 — 스킬이 빌드된 플러그인 루트(`packages/core/dist`, pnpm)를 찾는다 |
+
+**신규 발명 0개. 다만 §12·§13-1과 달리 "이미 있던 것의 빠진 짝"이라고 부를 근거는 없다.** 사용자 요청으로 들인 **기능 추가**다. 과설계 신호(지어낸 규칙 증가)는 0이지만 개수는 늘었다.
+
+### 14-2. 원문을 건드리지 않은 이유와 대가
+
+- 세 스킬의 본문과 `description` 모두 **무수정**. 원문 갱신을 diff로 따라가기 위해서다. 대가로 `plannotator-visual-explainer`의 description은 §13-6 기준이면 삭감 대상(자기 지시 섞임)인데 그대로 뒀다
+- 제외한 파일 1개: plannotator `SKILL.test.ts` — 원 레포의 bun 테스트용이고 스킬 실행과 무관
+- 🔴 **런타임 의존은 플러그인이 설치하지 않는다.** `plannotator-visual-explainer`는 결과를 `plannotator annotate`로 띄우므로 바이너리가 없으면 전달 단계에서 멈춘다(`curl -fsSL https://plannotator.ai/install.sh | bash -s -- --minimal` — 바이너리만). `explain-diff-notion`은 Notion MCP가 있어야 한다
+- explain-diff gist에는 **라이선스 표기가 없다.** 이 레포가 private이라 들였다 — 공개로 바꾸면 이 항목부터 재검토한다
+
+### 14-3. `understand-anything` 의존
+
+`plugin.json` `dependencies`에 `{ name, marketplace: "understand-anything" }`, `marketplace.json`에 `allowCrossMarketplaceDependenciesOn`. 버전 제약은 걸지 않았다(마켓플레이스 최신을 따른다).
+
+| 대가 | 내용 |
+|---|---|
+| 컨텍스트 | harness를 켜면 UA도 켜진다. 스킬 9 · 에이전트 10 · always-on **~1,146** (2.9.7 실측). **아래 §14-4 harness 합계에는 안 잡힌다** — `harness-doctor` 검사 5가 보는 숫자 밖이다 |
+| 로드 실패 | UA 마켓플레이스가 등록 안 된 환경에서는 `dependency-unsatisfied`로 **harness 자체가 비활성화**된다 → README 설치 절 첫 줄에 마켓플레이스 추가를 올렸다 |
+| 훅 | UA 훅 2개(PostToolUse·SessionStart)는 `.understand-anything/config.json`에 `autoUpdate: true`가 있는 레포에서만 동작한다. 그 외에는 조건문에서 끝난다 |
+
+### 14-4. 컨텍스트 비용
+
+| | 구성 | Always-on | 컴포넌트당 |
+|---|---|---|---|
+| 0.2.2 설치본 (`claude plugin details`) | 21 + 4 | 4,412 | 176.5 |
+| 0.3.0 로컬 (`claude --plugin-dir . plugin details claude-harness@inline`) | 24 + 4 | **4,650 (+238)** | **166.1** |
+
+목표 ≤180 통과. 3개를 늘리고도 평균이 내려간 건 추가분 평균(~79)이 기존 평균보다 싸서다. 개별 값은 총량에 따라 재정규화돼 표시되므로(§13-6 ⚠️) 스킬별 기여는 적지 않는다.
+
+**§12 관행("스킬 늘린 커밋에서 계측하고 1행 추가")은 이번에 지켰다** — 불발 카운트 2/3 유지.
