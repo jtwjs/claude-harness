@@ -16,6 +16,8 @@
 | `evals/` (공식 `claude plugin eval` 러너) | 스킬이 **실제로 안 불리는 사례 3건** (`task-observer`·불발). 트리거 회귀는 그때부터 값이 생긴다 |
 | `InstructionsLoaded` 훅 계측 | `harness-doctor` 검사 5의 바이트 계측으로 부족해진 뒤 |
 | `task-observer` 상시 관찰 훅 | REFLECT 되짚기가 **놓친 반복 3건**이 나중에 뒤늦게 발견된 뒤 (`.claude/observations.md`의 `마지막` 날짜가 실제 발생일보다 늦은 경우) |
+| `hooks/test.sh` find-skills 회귀 케이스 | 스캔 수가 조용히 0 또는 급감한 사례 **1건** (`DESIGN.md §15-4` — 실패가 침묵이라 3의 법칙 예외) |
+| `feature-builder` opus 승격 | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건** (`DESIGN.md §16`). 올리기 전에 step 분해부터 의심한다 |
 
 > `habit.md:78` — **"3번부터."** 두 번까지는 우연이고 세 번째가 패턴이다.
 >

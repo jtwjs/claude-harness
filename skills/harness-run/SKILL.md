@@ -28,7 +28,7 @@ disable-model-invocation: false
    - **재시도라면** 직전 `error_message`(무엇이 왜 실패했는지)
    - 대상 `phases/{task}/stepN.md` 전문
 
-2. **서브에이전트 실행**: Agent 도구로 **`feature-builder`**를 띄우고 위 preamble을 프롬프트로 전달한다. 지시:
+2. **서브에이전트 실행**: Agent 도구로 **`feature-builder`**를 띄우고 위 preamble을 프롬프트로 전달한다. step 에 `model` 이 있으면 Agent 도구의 `model` 로 **그 값만** 넘기고, 없으면 넘기지 않는다(에이전트 정의값). 지시:
    - stepN.md의 `읽어야 할 파일`을 먼저 읽고, `작업`을 시그니처대로 구현.
    - `Acceptance Criteria` 쉘 명령을 **실제 실행**해 통과시킨다. 명령은 step 파일에 적힌 것(= `.claude/harness.json`의 `verify`)을 쓴다.
    - TDD: 구현 `.ts(x)`에 짝 `*.test.ts(x)` 필수(hook hard-block).
@@ -37,7 +37,7 @@ disable-model-invocation: false
 
 3. **판정 = index.json 재읽기**(서브에이전트 stdout 아님):
    - `completed` → **두 커밋(4)** 후 다음 step.
-   - `error` → 같은 step 재시도. retry 카운트 ≤ **3**(MAX_RETRIES). 3회 초과 시 루프 **중단**하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
+   - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`DESIGN.md §16`)이 읽는 유일한 계수기다. retry 카운트 ≤ **3**(MAX_RETRIES). 3회 초과 시 루프 **중단**하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
    - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
 
 ## 4. 두 단계 커밋 (⚠️ 이 저장소는 괄호 스코프 금지)

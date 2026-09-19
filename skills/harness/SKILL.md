@@ -47,7 +47,10 @@ disable-model-invocation: false
 ```
 
 - `status` ∈ `pending | completed | error | blocked`. 최초 전부 `pending`.
-- `summary`·`error_message`·`blocked_reason`·timestamp는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
+- `summary`·`error_message`·`blocked_reason`·`retries`·timestamp는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
+- **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 에이전트 정의값(`feature-builder` = sonnet)으로 돈다.
+  - 🔴 **어렵겠다는 느낌으로 적지 않는다.** feature-builder 가 sonnet 인 건 "정해진 것을 만드는 일"이라는 판단이고(`DESIGN.md §7`), step 이 자기완결적이면 그 판단이 맞다. 올리는 근거는 `DESIGN.md §16` 의 승격 조건이다
+  - 올리기 전에 **step 파일이 자기완결적인지 먼저 의심한다.** 모델을 올려야 풀리는 step 은 대개 **분해가 덜 된 step** 이다
 
 ### `phases/{task}/stepN.md` — 5개 섹션 고정
 
@@ -98,3 +101,4 @@ DESIGN 단계 산출물. 없으면 `why-logictree`로 **PRD부터 만든 뒤** �
 **PRD.md**: 무엇을(한 문장) · 왜(문제·성공지표) · 사용자 시나리오 · 범위(포함/제외) · **수용 조건 체크리스트** ← `test-writer`가 케이스를 뽑는 입력이다.
 **ARCHITECTURE.md**: 개요 · 계층 배치와 각 층의 책임 · 데이터 흐름 · 경계·의존 방향 · 상태 관리 규약 · 테스트 전략. **구체 스택 이름은 그 프로젝트의 것을 쓴다.**
 **ADR.md**: `ADR-00N` 블록 반복 — 상태 · 맥락 · 결정 · 대안(+버린 이유) · 결과(트레이드오프).
+**다른 ADR을 가리킬 때 번호만 쓰지 않는다** — 처음 나올 때 괄호로 무엇을 정했는지 한 줄 붙인다(`ADR-003(설정 스키마를 blocks 패키지에)`). 번호만 보고 아는 사람은 그걸 쓴 사람뿐이다. 문장 끝에 근거로 묶어 다는 자리(`(ADR-003·ADR-007)`)는 예외.
