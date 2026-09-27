@@ -96,7 +96,7 @@ disable-model-invocation: false
 
 ## 부록 — 설계문서 템플릿 (`docs/{feature-YYYY-MM-DD}/`)
 
-DESIGN 단계 산출물. 없으면 `why-logictree`로 **PRD부터 만든 뒤** 이 스킬로 돌아온다.
+DESIGN 단계 산출물. 없으면 `grilling`으로 **PRD부터 만든 뒤** 이 스킬로 돌아온다.
 
 **PRD.md**: 무엇을(한 문장) · 왜(문제·성공지표) · 사용자 시나리오 · 범위(포함/제외) · **수용 조건 체크리스트** ← `test-writer`가 케이스를 뽑는 입력이다.
 **ARCHITECTURE.md**: 개요 · 계층 배치와 각 층의 책임 · 데이터 흐름 · 경계·의존 방향 · 상태 관리 규약 · 테스트 전략. **구체 스택 이름은 그 프로젝트의 것을 쓴다.**

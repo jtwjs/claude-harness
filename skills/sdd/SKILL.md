@@ -6,7 +6,7 @@ disable-model-invocation: false
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/harness` 등으로 직접 호출도 가능.)
 
 > **한 줄 흐름**
-> **코어 트랙** — `why-logictree`(스펙) → `harness`(분해) → `grilling`(빈칸) → 🙋 → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
+> **코어 트랙** — `grilling`(스펙 인터뷰 → PRD) → `harness`(분해) → 🙋(빈칸이 많으면 `grilling` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
 > **디자인 트랙** — 위 흐름에 3개가 끼어든다: DESIGN에 `design-brief`, PLAN에 `design-plan`, REVIEW에 `design-reconcile`
 
 ## 0. 트랙 판단
@@ -23,7 +23,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 ## 단계 진행 (🤖 자동 위임 / 🙋 사람 체크포인트)
 
 1. **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   **PRD가 없거나 과제가 아직 막연하면 `why-logictree`로 먼저 만든다**(WHY→3질문→로직트리→So What/Why So). → 🙋 확인.
+   **PRD가 없거나 과제가 아직 막연하면 `grilling`으로 먼저 만든다**(WHY → 3질문 → 갈래별 한 질문씩 → So What/Why So → PRD). → 🙋 확인.
    ⚠️ PRD의 **수용 조건**이 `test-writer`의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 `.claude/design/`에 브리프를 만든다 →
    사람이 `/design`(Claude Code 내장) 또는 웹 캔버스로 시안 생성 → 프로젝트 URL 회수. → 🙋 확인.

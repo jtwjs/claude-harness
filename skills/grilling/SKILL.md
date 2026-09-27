@@ -1,12 +1,30 @@
 ---
 name: grilling
-description: Grill the user relentlessly about a plan or design. Use when the user wants to stress-test a plan before building, or uses any 'grill' trigger phrases.
+description: 계획·설계를 만들기 전에 한 번에 한 질문씩 캐물어 공유된 이해에 도달하고 PRD로 남긴다. SDD 계획 단계(PRD가 없거나 과제가 막연할 때)와 step 승인 직전(빈칸이 많을 때), 그리고 "grill"·"캐물어줘" 요청에 쓴다.
+argument-hint: <계획·과제·기존 PRD 경로>
 ---
 
-Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
+이 계획의 모든 갈래를 **공유된 이해에 도달할 때까지** 캐묻는다. 설계 트리를 가지 하나씩 내려가며 결정 사이의 의존을 하나씩 푼다.
 
-Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering.
+## 규칙
 
-If a _fact_ can be found by exploring the codebase, look it up rather than asking me. The _decisions_, though, are mine — put each one to me and wait for my answer.
+- **한 번에 한 질문.** 답을 받고 다음으로 간다. 여러 개를 한꺼번에 던지면 헷갈린다.
+- 질문마다 **추천 답**을 같이 낸다.
+- **사실은 찾고, 결정은 묻는다.** 코드·문서로 확인할 수 있는 사실은 직접 찾아보고 묻지 않는다. 결정은 사람의 몫이다 — 하나씩 올리고 답을 기다린다.
+- **지어내지 않는다.** 사람이 준 적 없는 근거·수치는 `⚠️ 근거 필요`로 남기고 묻는다.
+- 공유된 이해에 도달했다고 **사람이 확인하기 전에는 실행하지 않는다.**
 
-Do not enact the plan until I confirm we have reached a shared understanding.
+## 순서 — 가지를 내려가는 방향
+
+1. **WHY 먼저.** 해결책(HOW)으로 뛰어들지 않는다. "왜 하는가 — 겉 이유 말고 진짜 이유는?" 사람이 이미 답을 갖고 있으면 확인만 하고 넘어간다.
+2. **세 질문으로 틀을 잡는다.** ① 목표 — 원하는 미래는? ② 진짜 문제 — 목표를 막는 것은? (증상과 구분) ③ 최적 행동 — 실현 가능한 것 중 가장 결정적인 것은?
+3. **갈래를 내려간다.** 범위 · 수용 조건(관찰 가능한 동작으로) · 경계(하지 않을 것) · 데이터·상태 · 실패 경로 · 기존 코드와의 접점. 앞 답이 뒤 질문을 바꾸면 순서를 바꾼다.
+4. **양방향으로 검증한다.** Why So(결론 → 근거가 있나) · So What(근거 → 이 결론이 나오나). 한쪽이 비면 짚는다 — 감으로 정한 해결책, 결론 없는 근거 나열.
+
+## 끝
+
+- 사람이 "됐다"고 하면 합의 내용을 PRD 초안으로 정리한다: 목표 → 진짜 문제 → 범위·하지 않을 것 → 수용 조건 → 남은 `⚠️`.
+- 저장 경로는 **제안하고 확인받는다**. 기본 제안은 `docs/{feature-YYYY-MM-DD}/PRD.md`.
+- step 승인 직전에 불렸으면(계획에 `⚠️`·TBD가 많을 때) PRD를 새로 쓰지 않고, 푼 결정을 해당 step 파일에 반영한다.
+
+> 트리를 그려 원인·해결책을 쪼개는 기획 문서 작업은 `why-logictree`가 한다. 이 스킬은 **코드를 만들 계획의 빈칸을 없애는 인터뷰**다.

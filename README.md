@@ -34,7 +34,7 @@
 ## 워크플로우
 
 ```
-why-logictree(스펙) → harness(분해) → grilling(빈칸) → 🙋 승인
+grilling(스펙 인터뷰 → PRD) → harness(분해) → 🙋 승인 (빈칸이 많으면 grilling 한 번 더)
   → test-writer(RED) → feature-builder(GREEN) → sdd-review → code-reviewer
   → revise-claude-md(세션 학습 회수) → changeset → commit → pr-write → brain-sync → task-observer
 ```
@@ -53,8 +53,6 @@ why-logictree(스펙) → harness(분해) → grilling(빈칸) → 🙋 승인
 >
 > **폴더 경계도 이 3층 안에서 푼다** — 디렉토리별 `CLAUDE.md`를 두지 않고 `rules/`의 `paths:` glob으로 표현한다. 하위 `CLAUDE.md`는 `harness-doctor` 검사 5(상시 로드량·매칭 폭탄)가 **재는 대상이 아니라** 조용히 자란다.
 
-## 두 계정 미러
+## 공개 원칙
 
-`jtwjs`(개인·정본) / `jtw-219`(회사·미러). 로컬 1개에 push remote 2개를 붙여 한 번에 양쪽으로 보낸다.
-
-🔴 **개인 계정 repo이므로 회사 고유 정보(org명·내부 도메인·서비스명·사내 규칙)는 한 줄도 들어가지 않는다.**
+🔴 **특정 조직의 정보(조직명·내부 도메인·서비스명·사내 규칙·사람 이름)는 한 줄도 들어가지 않는다.** 실측 근거는 "운영 중인 레포 N곳" 같은 익명 표현으로만 적는다.
