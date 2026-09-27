@@ -14,7 +14,7 @@
 | `references/testing-patterns.md` | `test-writer` 보고에 "셋업을 몰라서 못 씀"이 **3회** 누적 (`task-observer`·재교정) |
 | `implementation-patterns.md` 7번째 패턴 | 같은 종류 지적이 `code-reviewer` 리뷰에서 **3회** 반복 (`task-observer`·재교정) |
 | `evals/` (공식 `claude plugin eval` 러너) | 스킬이 **실제로 안 불리는 사례 3건** (`task-observer`·불발). 트리거 회귀는 그때부터 값이 생긴다 |
-| **품질 골든셋 + LLM-as-judge 채점** (`ax-framework` §6) | `.claude/observations.md`의 **`닫힌 것` 행 5개** 누적 (`task-observer`). **그 5개가 곧 첫 골든셋이다** — 새로 만들지 않는다 |
+| **품질 골든셋 + LLM-as-judge 채점** | `.claude/observations.md`의 **`닫힌 것` 행 5개** 누적 (`task-observer`). **그 5개가 곧 첫 골든셋이다** — 새로 만들지 않는다 |
 | `InstructionsLoaded` 훅 계측 | `harness-doctor` 검사 5의 바이트 계측으로 부족해진 뒤 |
 | `task-observer` 상시 관찰 훅 | REFLECT 되짚기가 **놓친 반복 3건**이 나중에 뒤늦게 발견된 뒤 (`.claude/observations.md`의 `마지막` 날짜가 실제 발생일보다 늦은 경우) |
 | `hooks/test.sh` find-skills 회귀 케이스 | 스캔 수가 조용히 0 또는 급감한 사례 **1건** (`DESIGN.md §15-4` — 실패가 침묵이라 3의 법칙 예외) |
@@ -22,6 +22,6 @@
 
 > ⚠️ `evals/` 행과 **품질 골든셋** 행은 이름이 비슷하지만 **다른 물건**이다 — `evals/`는 *스킬이 불리나*(트리거 회귀), 골든셋은 *산출물이 좋아졌나*(품질 점수). 한쪽을 깔았다고 다른 쪽이 덮이지 않는다.
 >
-> `habit.md:78` — **"3번부터."** 두 번까지는 우연이고 세 번째가 패턴이다.
+> **"3번부터."** 두 번까지는 우연이고 세 번째가 패턴이다.
 >
 > 세는 주체가 `task-observer`인 행은 `.claude/observations.md`의 `횟수` 칸이 근거다. **기억이 아니라 파일을 읽어서 센다.**

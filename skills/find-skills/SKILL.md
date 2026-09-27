@@ -21,7 +21,7 @@ node "$SCRIPT" <키워드...>
 ```
 claude-harness:notion-writing
   노션처럼 조직에 공유하는 문서(제안·보고·기획·PRD 공유본)를 쓰거나…
-  /Users/…/claude-harness/0.3.0/skills/notion-writing/SKILL.md
+  ~/.claude/plugins/cache/<marketplace>/claude-harness/<version>/skills/notion-writing/SKILL.md
 
 2개 일치 / 스캔 78개
 ```

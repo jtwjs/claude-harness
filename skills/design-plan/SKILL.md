@@ -46,7 +46,7 @@ claude_design(`api.anthropic.com/v1/design/mcp`)은 이 환경에서 **`DesignSy
 
 정적 디자인 HTML은 아래를 거의 담지 못한다. **Desktop+Mobile을 먼저 대조**해 "HTML에 답이 있는" 것(라벨·치수·토글 상태·간격)은 스스로 소거하고, 남은 **진짜 product 결정만 `AskUserQuestion`으로 되묻는다**(추측으로 채우지 않는다):
 
-- **권한·게이팅**: role(NONE~SUPER_ADMIN) + 커스텀 scope(1 글발행·7 포토기자·8 보도기사)별 노출/비활성 차이. 이 화면이 특정 권한 전용인가?
+- **권한·게이팅**: 역할·세부 권한별 노출/비활성 차이. 이 화면이 특정 권한 전용인가?
 - **상태**: 로딩(스켈레톤 vs spinner)·빈·에러·비활성 각각의 표현. 에러 토스트는 개별 vs 전역(500은 전역 `notifyRequestError` 규약이라 개별 onError 중복 금지).
 - **서버 상태/데이터**: 소스 API/쿼리, TanStack Query(캐시 키·suspense·낙관적 업데이트), 페이지네이션(서버 vs 클라 — 서버면 `useSuspensePaginatedQuery`+`PendingFade`), 실시간/동기화 시점.
 - **폼/검증**: 필수·검증 규칙, 에러 메시지 위치(인라인 vs 토스트), dirty 판정·제출 비활성 조건.

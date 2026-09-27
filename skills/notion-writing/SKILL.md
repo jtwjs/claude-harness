@@ -42,7 +42,7 @@ allowed-tools: [Read, Write, Edit]
 | 기획서 | 읽고 조직이 실제로 움직이는가 | Insight(문제·배경·현황 데이터) → Strategy(해결·구체화·실행 가능성) → Impact(일정·예산·KPI·리스크) | 예상 반론을 먼저 처리. 문제 먼저 / 해결책 먼저 중 독자에 맞춰 순서 선택. 절마다 독자 감정 목표(공감 → 신뢰 → 설득 → 확신 → 동의) |
 | PRD | 문서만 보고 바로 구현을 시작할 수 있는가 | 배경·문제 → 목표·In/Out Scope → 기능 명세(유저스토리·BDD·예외) → 의존성·승인자 → 완료 기준·KPI | Out of Scope·예외·완료 기준은 PRD 필수라 "범위 밖은 적지 않는다"의 예외. 요구사항에 번호(FR-001) |
 
-유형 불문: 필수 5요소(Why / Goal / What&How / Who / When&Impact) 중 하나라도 빠지면 "그래서 뭘 하라는 건가"가 돌아온다. 정성 표현("사용자 친화적")은 숫자로 바꾼다. 레퍼런스는 외부 사례보다 사내에서 이미 통과된 문서가 낫다.
+유형 불문: 필수 5요소(Why / Goal / What&How / Who / When&Impact) 중 하나라도 빠지면 "그래서 뭘 하라는 건가"가 돌아온다. 정성 표현("사용자 친화적")은 숫자로 바꾼다. 레퍼런스는 외부 사례보다 조직 안에서 이미 통과된 문서가 낫다.
 
 ## 형식
 
@@ -93,4 +93,4 @@ em dash 0 · H1 0 · mermaid 1 이하 · wikilink 0 · 코드 경로 0 · 표의
 
 ## 출처
 
-개인 위키의 `wiki/docs/shared-doc-format.md`(실전에서 확정한 자기 규칙), `wiki/docs/{document-types, proposal-writing, prd-writing, report-format-reference}.md`, `wiki/synthesis/reporting-format.md`를 2026-09-02에 압축했다. 원문이 바뀌면 이 스킬을 갱신한다.
+작성자가 실전에서 확정한 공유 문서 규범(문서 유형·제안서·PRD·보고 형식)을 압축했다(2026-09).

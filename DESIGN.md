@@ -1290,4 +1290,10 @@ ax의 핵심 통찰은 못 맡기는 순간을 잡아 **툴 이슈냐 컨텍스�
 - `jtwjs/stack-kits`(공개): `kotlin-spring`(Boot 4.1·Kotlin 2.3·JDK 21·MySQL 8.4) · `nextjs`(16.3·Node 24·pnpm). CI는 kit별 잡 + `ci-gate`, 의존성은 Dependabot
 - kit에서 실측해 팩에 되돌린 것 4개: ① springdoc 3.x는 Kotlin non-null을 `required`로 안 옮긴다(`api.md`) ② `-Xannotation-default-target=param-property`가 없으면 `@field:` 없는 검증이 조용히 빠진다(`kotlin.md`) ③ `./gradlew test build -x test`는 테스트를 안 돈다(`pack.md`) ④ `tsc --noEmit`만으로는 `.next` 없는 CI에서 `LayoutProps` 미정의 — `next typegen` 먼저(`nextjs/pack.md`, CI 첫 실행이 잡음)
 
-**검증**: `hooks/test.sh` **27 통과 · 0 실패**(케이스 3-b Kotlin 짝 5 · 3-c ktlint 부재 1 추가). `viewus-cms-consumer` 사본: 판정 kotlin-spring, `ktlintCheck`·`spotlessCheck`·`detekt` = 태스크 없음(→ 비움), `compileKotlin compileTestKotlin`·`build -x test` 통과.
+**검증**: `hooks/test.sh` **27 통과 · 0 실패**(케이스 3-b Kotlin 짝 5 · 3-c ktlint 부재 1 추가). 운영 중인 Spring 레포 사본: 판정 kotlin-spring, `ktlintCheck`·`spotlessCheck`·`detekt` = 태스크 없음(→ 비움), `compileKotlin compileTestKotlin`·`build -x test` 통과.
+
+## 20. 계획 게이트 재편 + `_brain` 스캐폴드 + 공개 스크럽 (0.8.0, 2026-09-27)
+
+- **§8-d 개정**: 계획 게이트를 `grilling` 하나로 합쳤다. `grilling`이 PRD를 만드는 인터뷰(WHY → 3질문 → 갈래별 한 질문 → So What·Why So → `docs/{feature-YYYY-MM-DD}/PRD.md` 제안)와 step 승인 직전 빈칸 캐묻기를 둘 다 맡는다. `why-logictree`는 SDD 배선에서 빼고 범용 기획 스킬로 둔다
+- **`templates/_brain/` 신설**: `harness-init` ⑤의 복사 원본이 없었다. 카테고리 다섯(`decisions`·`domain`·`infra`·`conventions`·`glossary`), 빈 폴더 미생성, walk 오퍼레이션, "언제 채우나" 세 순간. `brain-intake`도 같은 규약으로(VoC는 이슈가 정본, `voc/`·`retro/`·`design/` 폐기)
+- **공개 스크럽**: skills·hooks·templates·README·BACKLOG에서 조직 고유 정보를 걷어냈다(서비스명·사람 이름·내부 채널·개인 vault 경로). 이 문서(DESIGN.md)는 설계 로그라 여전히 내부 맥락이 많다 — 공개 전 처리 필요

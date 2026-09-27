@@ -1,7 +1,7 @@
 {
   "name": "claude-harness",
   "description": "개인 표준 하네스 — SDD 5단계 오케스트레이션, 스펙→테스트→구현(RED/GREEN) 워크플로우, 컨텍스트 3층(CLAUDE.md/rules/references), 프로젝트 지식을 통합 wiki로 흘려보내는 brain 파이프라인.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": {
     "name": "jtwjs"
   },
