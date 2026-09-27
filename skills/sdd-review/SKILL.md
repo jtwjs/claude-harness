@@ -13,7 +13,7 @@ disable-model-invocation: false
 
 ## 2. 변경 수집
 
-- `git diff --name-only develop...HEAD`(또는 `git diff HEAD`)로 변경 파일 파악 → 필요한 파일 맥락 확인. diff가 비면 범위를 한 번 확인.
+- `git diff --name-only <base>...HEAD`(또는 `git diff HEAD`)로 변경 파일 파악 — `<base>`는 `harness.json`의 `git.baseBranch`(비었으면 `origin/HEAD`) → 필요한 파일 맥락 확인. diff가 비면 범위를 한 번 확인.
 
 ## 3. 체크리스트 대조
 

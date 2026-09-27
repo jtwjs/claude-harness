@@ -6,6 +6,12 @@
     "packs": []
   },
 
+  "git": {
+    "$comment": "baseBranch 는 harness-init 이 git symbolic-ref refs/remotes/origin/HEAD 에서 채운다. commitScope=false 면 'feat(x):' 괄호 스코프를 쓰지 않고 영역은 본문에 적는다.",
+    "baseBranch": "",
+    "commitScope": false
+  },
+
   "packageManager": "",
 
   "verify": {

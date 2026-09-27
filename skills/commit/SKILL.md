@@ -20,7 +20,7 @@ CLAUDE.md의 커밋 전 시퀀스(typecheck→format→lint --fix)를 실행한�
 
 ## 커밋 메시지 형식
 
-`<type>: 한 줄 요약` (한국어). 타입·괄호 스코프 금지 규칙은 CLAUDE.md "Git 커밋" 준수. 영역/패키지는 본문에 서술.
+`<type>: 한 줄 요약` (한국어). `.claude/harness.json`의 `git.commitScope`가 `true`일 때만 `<type>(<scope>):`를 쓴다 — 아니면 영역/패키지는 본문에 서술.
 
 ## 출력 형식
 

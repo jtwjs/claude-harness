@@ -31,18 +31,18 @@ disable-model-invocation: false
 2. **서브에이전트 실행**: Agent 도구로 **`feature-builder`**를 띄우고 위 preamble을 프롬프트로 전달한다. step 에 `model` 이 있으면 Agent 도구의 `model` 로 **그 값만** 넘기고, 없으면 넘기지 않는다(에이전트 정의값). 지시:
    - stepN.md의 `읽어야 할 파일`을 먼저 읽고, `작업`을 시그니처대로 구현.
    - `Acceptance Criteria` 쉘 명령을 **실제 실행**해 통과시킨다. 명령은 step 파일에 적힌 것(= `.claude/harness.json`의 `verify`)을 쓴다.
-   - TDD: 구현 `.ts(x)`에 짝 `*.test.ts(x)` 필수(hook hard-block).
+   - TDD: 구현 파일에 짝 테스트 필수(`tdd-guard`가 hard-block — TS `*.test.ts(x)`, JVM `src/test/…/FooTest.kt`).
    - 완료 후 **반드시 `phases/{task}/index.json`의 해당 step 상태를 갱신**(completed+summary / error+error_message / blocked+blocked_reason).
    - 메인 세션에는 결과 코드를 재출력하지 말고 짧게 보고.
 
 3. **판정 = index.json 재읽기**(서브에이전트 stdout 아님):
    - `completed` → **두 커밋(4)** 후 다음 step.
-   - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`DESIGN.md §16`)이 읽는 유일한 계수기다. retry 카운트 ≤ **3**(MAX_RETRIES). 3회 초과 시 루프 **중단**하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
+   - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`BACKLOG.md` 승격 조건)이 읽는 유일한 계수기다. retry 카운트 ≤ **3**(MAX_RETRIES). 3회 초과 시 루프 **중단**하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
    - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
 
-## 4. 두 단계 커밋 (⚠️ 이 저장소는 괄호 스코프 금지)
+## 4. 두 단계 커밋
 
-참조 하네스는 `feat({phase}): step N — {name}`를 쓰지만, 이 repo는 **커밋 괄호 스코프를 CRITICAL로 금지**한다. → **타입만** 쓰고 phase는 **본문**에 넣는다.
+`harness.json`의 `git.commitScope`가 `false`(기본)면 괄호 스코프 없이 **타입만** 쓰고 phase는 **본문**에 넣는다. `true`면 `feat({phase}): step N — {name}`.
 
 1. **코드 커밋**
    - subject: `feat: step N — {name}` (구현이 리팩터/수정이면 `refactor:`/`fix:`)

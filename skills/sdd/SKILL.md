@@ -7,7 +7,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 > **한 줄 흐름**
 > **코어 트랙** — `grilling`(스펙 인터뷰 → PRD) → `harness`(분해) → 🙋(빈칸이 많으면 `grilling` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
-> **디자인 트랙** — 위 흐름에 3개가 끼어든다: DESIGN에 `design-brief`, PLAN에 `design-plan`, REVIEW에 `design-reconcile`
+> **디자인 트랙** — 위 흐름에 둘이 끼어든다: DESIGN에 `design-brief`(→ `/design`), REVIEW에 `design-reconcile`. PLAN은 `harness`가 핸드오프를 읽는다
 
 ## 0. 트랙 판단
 
@@ -25,20 +25,18 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 1. **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
    **PRD가 없거나 과제가 아직 막연하면 `grilling`으로 먼저 만든다**(WHY → 3질문 → 갈래별 한 질문씩 → So What/Why So → PRD). → 🙋 확인.
    ⚠️ PRD의 **수용 조건**이 `test-writer`의 입력이다. 여기가 비면 뒤가 전부 빈다.
-   🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 `.claude/design/`에 브리프를 만든다 →
-   사람이 `/design`(Claude Code 내장) 또는 웹 캔버스로 시안 생성 → 프로젝트 URL 회수. → 🙋 확인.
+   🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 **시안 전에** 권한·상태·데이터 결정을 끝내고 `.claude/design/`에 브리프를 만든다 →
+   사람이 `/design`으로 시안 생성(상태 화면까지) → 프로젝트 URL 회수. → 🙋 확인.
 2. **PLAN** — `harness`로 step 분해(각 step에 `tdd: true|false` 판정 포함).
    step 파일에 `⚠️`·`TBD`·미해결 가정이 **3개 이상**이거나 사람이 요청하면 `grilling`으로 빈칸을 캐묻는다. → 🙋 step 계획 승인.
-   🎨 **디자인 트랙**: `harness` **앞에** `design-plan`을 돌린다 — 디자인 파일을 끝까지 읽고
-   요소↔컴포넌트 매핑·역질문·신규 컴포넌트 합의를 끝낸 뒤 step을 쪼갠다.
-   **디자인→코드가 이 워크플로에서 가장 오류가 잦은 지점**이라 여기를 건너뛰면 IMPLEMENT가 표류한다.
+   🎨 **디자인 트랙**: `harness` §3-b가 시안(핸드오프)을 읽어 step마다 디자인 파일·화면·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
 3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 2단으로 돈다. hands-off.
    - **RED**: `test-writer` → `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
    - **GREEN**: `feature-builder` → `verify` 전체 통과 **AND** diff에 테스트 파일 없음
    - (🙋 정지: blocked / 파괴적 변경 / 3회 실패.)
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
-   🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 드리프트를 양방향 플래그한다.
-   **자동 clobber 금지** — 발산은 보고 후 사람 결정.
+   🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
+   **자동으로 덮어쓰지 않는다** — 코드→디자인 반영은 사람이 `/design-sync`로.
 5. **REFLECT** 🤖 — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
    🔴 **종착지는 하네스 3층으로 재지정한다** — 이 명령의 기본값은 CLAUDE.md라 그대로 두면 CLAUDE.md가 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*)로 가른다: 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.**
    플러그인이 없으면 건너뛰고 **건너뛴 사실을 한 줄 보고**한다(하드 의존 아님).

@@ -1,6 +1,6 @@
 ---
 name: "root-cause-debugger"
-description: "Call to trace the ROOT CAUSE of a bug, error, test failure, or intermittent/unreproducible behavior — reading stack traces to the end, reproducing, validating one hypothesis at a time, proposing a minimal fix. Does NOT implement fixes (feature-builder), does NOT write the regression test (test-writer), does NOT do quality review (code-reviewer). Stops at a proposal when the change is risky or needs agreement."
+description: "Call to find the root cause of a bug, test failure, or intermittent behavior — reproduce, test one hypothesis at a time, propose a minimal fix. Proposes; does not implement."
 model: opus
 color: magenta
 ---

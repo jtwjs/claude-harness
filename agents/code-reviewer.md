@@ -1,6 +1,6 @@
 ---
 name: "code-reviewer"
-description: "SDD REVIEW stage, deep pass. Call when sdd-review escalated (ESCALATE: yes) or when a finished chunk needs judgment beyond a checklist — quality/security, performance, structural health, test coverage. Reviews the recent diff, not the whole codebase. Does NOT fix anything (feature-builder), does NOT write tests (test-writer), does NOT diagnose unexplained failures (root-cause-debugger). Classifies findings 🔴/🟡/🟢 and stops there."
+description: "SDD REVIEW deep pass. Call when sdd-review escalates or a finished chunk needs judgment beyond a checklist (quality, security, performance, structure, tests). Reviews the recent diff; classifies 🔴/🟡/🟢 and does not fix."
 model: opus
 color: cyan
 ---

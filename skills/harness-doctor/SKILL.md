@@ -40,7 +40,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 >
 > 실측 사례: 한 레포는 rules 7개가 frontmatter 없이 **160KB ≈ 40,000토큰**을 매 세션 로드하고 있었다. 구조가 없어서가 아니라 **아무도 재지 않아서**다.
 
-**교차 확인**: `claude plugin details <plugin>`의 `Always-on` 값도 함께 보고한다. **컴포넌트당 ≤180토큰**(`DESIGN.md §12`)을 넘으면 ⚠️ — 넘긴 컴포넌트를 `always-on` 내림차순 상위부터 지목한다. always-on을 키우는 것은 본문이 아니라 **`description` 길이**뿐이므로, 지목 대상은 description이다.
+**교차 확인**: `claude plugin details <plugin>`의 `Always-on` 값도 함께 보고한다. **컴포넌트당 ≤180토큰**(`docs/design-notes.md` §3)을 넘으면 ⚠️ — 넘긴 컴포넌트를 `always-on` 내림차순 상위부터 지목한다. always-on을 키우는 것은 본문이 아니라 **`description` 길이**뿐이므로, 지목 대상은 description이다.
 
 ## 6. 반복 계수 (`task-observer`)
 

@@ -2,7 +2,7 @@
 
 신규 프로젝트에 까는 **개인 표준 하네스**. `/harness-init` 한 번이면 그 레포가 하네스를 갖춘 상태가 된다.
 
-> 설계 근거·실측·판정 이력은 [DESIGN.md](DESIGN.md)에 있다. 이 README는 "무엇이 들었고 어떻게 쓰나"만 적는다.
+> 설계 결론은 [docs/design-notes.md](docs/design-notes.md)에 있다. 이 README는 "무엇이 들었고 어떻게 쓰나"만 적는다.
 
 ## 설치
 
@@ -56,3 +56,17 @@ grilling(스펙 인터뷰 → PRD) → harness(분해) → 🙋 승인 (빈칸�
 ## 공개 원칙
 
 🔴 **특정 조직의 정보(조직명·내부 도메인·서비스명·사내 규칙·사람 이름)는 한 줄도 들어가지 않는다.** 실측 근거는 "운영 중인 레포 N곳" 같은 익명 표현으로만 적는다.
+
+## 출처
+
+직접 만들지 않은 스킬과 그 원본. 원본 라이선스를 따른다.
+
+| 스킬 | 원본 | 라이선스 |
+|---|---|---|
+| `plannotator-visual-explainer` | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) 원문 그대로 | MIT (스킬 폴더 `LICENSE`) |
+| `find-skills` | [obra/superpowers](https://github.com/obra/superpowers)의 `superpowers-codex find-skills` 서브커맨드를 스킬로 옮김 | MIT (원본) |
+| `explain-diff-html` · `explain-diff-notion` | Geoffrey Litt의 gist(`a29df1b5f9865506e8952488eac3d524`) 원문 | ⚠️ 원본에 라이선스 표기 없음 — 공개 배포 전 확인 필요 |
+| `ai-readiness-cartography` | `jha0313/skills_repo`의 상위 버전을 바탕으로 | ⚠️ 원본 라이선스 미확인 |
+| `systematic-debugging` · `grilling` | 전역 `~/.claude/skills/`에 있던 공개 스킬에서 출발(grilling은 원형 `grill-me`, 이후 전면 재작성) | ⚠️ 원본 저장소 미확인 |
+
+그 밖의 스킬·에이전트·훅·템플릿은 이 레포의 MIT 라이선스(`LICENSE`)를 따른다.

@@ -1,6 +1,6 @@
 ---
 name: ai-readiness-cartography
-description: Audits a repository against the v2 AI-Ready rubric (100 pts · 7 categories) and produces a single-file HTML dashboard plus an ROI-ranked action list. Trigger when the user asks to score, audit, map, or visualize how AI-ready / agent-friendly a codebase is — with or without the exact keyword. Output is a technical dashboard, never a fantasy map.
+description: Scores how AI-ready a repository is (100-pt, 7-category rubric) and outputs a single-file HTML dashboard with an ROI-ranked action list. Use when asked to audit or score agent-friendliness.
 ---
 
 # AI-Readiness Cartography

@@ -7,10 +7,12 @@ disable-model-invocation: false
 
 ## 1단계: 변경 내용 수집
 
+기준 브랜치: `.claude/harness.json`의 `git.baseBranch`(비었으면 `git symbolic-ref --short refs/remotes/origin/HEAD`에서 `origin/`을 뗀 값. 그것도 없으면 묻는다) = `<base>`.
+
 ```bash
-git log develop..HEAD --oneline          # 커밋 목록
-git diff --name-only develop...HEAD      # 변경 파일 목록
-git diff develop...HEAD                  # 전체 diff
+git log <base>..HEAD --oneline          # 커밋 목록
+git diff --name-only <base>...HEAD      # 변경 파일 목록
+git diff <base>...HEAD                  # 전체 diff
 git status --short                       # 미커밋 변경 확인
 ```
 
@@ -67,11 +69,11 @@ diff·커밋을 근거로 5축 위험 점수를 매겨 PR 본문에 기입한다
 
 ## 5단계: PR 본문 작성 후 생성
 
-아래 템플릿으로 본문을 작성하고 `gh pr create`로 PR을 생성한다. base 브랜치는 항상 `develop`이다.
+아래 템플릿으로 본문을 작성하고 `gh pr create`로 PR을 생성한다. base 브랜치는 1단계의 `<base>`다.
 
 ```bash
 gh pr create \
-  --base develop \
+  --base <base> \
   --title "<PR 제목>" \
   --assignee "<GitHub 로그인>" \
   --label "<유형 레이블>" \
