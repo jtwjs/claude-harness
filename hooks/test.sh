@@ -72,5 +72,25 @@ after=$(snap)
 [ -f "$TMP/on/.claude/.last-session-validate" ] && ok "stamp 가 프로젝트 .claude/ 안에" || bad "stamp 위치" "프로젝트 밖에 생겼다"
 echo "$out" | grep -q "verify.test 가 비어" && ok "빈 verify.test 를 보고한다" || bad "침묵" "test 가 비었는데 아무 말이 없다"
 
+# ── 케이스 5: cadence 축 3(CLAUDE.md 비대) — 임계 아래는 조용, 위는 말한다 ───
+# 임계 검사는 조용히 안 터져도 아무도 모른다(§15-4 "무출력 실패"). 그래서 양쪽을 다 건다.
+printf '\n[5] cadence 축 3 — CLAUDE.md 비대 임계\n'
+printf '# tiny\n' > "$TMP/on/CLAUDE.md"
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q 'claude-md-improver' && bad "오탐" "작은 CLAUDE.md 에 떠들었다" || ok "임계 아래 — 조용"
+python3 -c "print('x\n'*100, end='')" > "$TMP/on/CLAUDE.md"
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q 'claude-md-improver' && ok "임계 초과 — 환기" || bad "침묵" "101줄인데 아무 말이 없다 out=[$out]"
+
+# ── 케이스 6: cadence 축 4(readiness 채점 공백) — 커밋 수 게이트 ────────────
+printf '\n[6] cadence 축 4 — readiness 채점 공백\n'
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q 'ai-readiness-cartography' && bad "오탐" "커밋 1건인데 떠들었다" || ok "게이트 아래 — 조용"
+(cd "$TMP/on" && for i in $(seq 25); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q 'ai-readiness-cartography' && ok "게이트 초과 — 환기" || bad "침묵" "커밋 26건인데 아무 말이 없다 out=[$out]"
+# 채점을 실행해선 안 된다 — Stop 훅은 읽기 전용이다(케이스 4와 같은 계약)
+[ -d "$TMP/on/.claude/reports" ] && bad "쓰기 발생" "환기 훅이 채점까지 돌렸다" || ok "채점은 실행하지 않는다"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

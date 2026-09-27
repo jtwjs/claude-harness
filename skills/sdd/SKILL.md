@@ -39,13 +39,17 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 드리프트를 양방향 플래그한다.
    **자동 clobber 금지** — 발산은 보고 후 사람 결정.
-5. **REFLECT** 🤖 — `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`.
-   그 다음 **지식 환류**: 새 함정은 `.claude/rules/non-obvious-patterns.md`에 한 줄, `_brain/`이 있으면 `brain-intake` → **`brain-sync`로 통합 wiki 이관**(🙋 확인 후).
+5. **REFLECT** 🤖 — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
+   🔴 **종착지는 하네스 3층으로 재지정한다** — 이 명령의 기본값은 CLAUDE.md라 그대로 두면 CLAUDE.md가 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*)로 가른다: 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.**
+   플러그인이 없으면 건너뛰고 **건너뛴 사실을 한 줄 보고**한다(하드 의존 아님).
+   그 다음 `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. **문서 한 줄은 고친 커밋과 같은 커밋에 태운다**(`rules/non-obvious-patterns.md` 자신의 규칙).
+   그 다음 **지식 환류**: `_brain/`이 있으면 `brain-intake` → **`brain-sync`로 통합 wiki 이관**(🙋 확인 후).
    마지막에 `task-observer` — 이번 작업에서 **반복된 것**(재지시·재교정·불발)을 `.claude/observations.md`에 세고, 3회에 닿은 것만 승격 제안한다. 🙋 판정은 사람이.
+   ⚖️ 앞의 `revise-claude-md`(매 세션·자동 수집)와 뒤의 `task-observer`(3회부터·손으로 승격)는 **다른 층**이다 — 앞은 흘린 컨텍스트를 줍고, 뒤는 반복을 센다.
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 
-① DESIGN(PRD·수용 조건) 확인 ② PLAN step 승인 ③ 파괴적 변경 ④ REVIEW 최종 판정 ⑤ blocked step ⑥ brain-sync 이관
+① DESIGN(PRD·수용 조건) 확인 ② PLAN step 승인 ③ 파괴적 변경 ④ REVIEW 최종 판정 ⑤ blocked step ⑥ brain-sync 이관 ⑦ `revise-claude-md` diff 승인(종착지 판정 포함)
 
 ## 재개
 

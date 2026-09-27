@@ -4,7 +4,7 @@ description: 이미 깔린 하네스가 썩었는지 점검한다. 문서와 실
 allowed-tools: [Read, Bash, Glob, Grep]
 ---
 
-**하네스 고유 검사 5개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
+**하네스 고유 검사 6개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
 
 ## 1. verify drift
 

@@ -12,6 +12,7 @@
 | 하네스가 썩었는지 점검 | `harness-doctor` |
 | 같은 지시·같은 교정이 반복된다 | `task-observer` (3회부터 승격 후보. 원장은 `observations.md`) |
 | 프로젝트 지식을 통합 wiki로 | `brain-intake` → `brain-sync` |
+| 세션에서 말로 설명하고 흘린 것 | `/revise-claude-md` (세션 끝마다. 종착지는 CLAUDE.md가 아니라 **아래 판정**을 따른다) |
 
 ## 이 폴더의 구조
 
@@ -29,5 +30,8 @@
 판정 한 줄: **"이걸 안 읽고 코드를 쓰면 규칙을 어기게 되나?"**
 → 예면 `rules/`(짧게 줄여서), 아니오면 `references/`.
 → 어겨선 안 되는데 길면 **판정만 rules, 설명은 references**로 쪼갠다.
+
+**폴더마다 다른 규칙이면** 하위 `CLAUDE.md`를 만들지 말고 `rules/`에 `paths:` glob을 건다.
+하위 `CLAUDE.md`는 `harness-doctor` 검사 5가 재지 않아 **조용히 자란다** — 3층 밖으로 새는 길이다.
 
 ⚠️ `paths:`를 붙였다고 길어도 되는 게 아니다. **매칭되면 그 파일은 통째로** 로드된다.
