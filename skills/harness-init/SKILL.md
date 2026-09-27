@@ -22,9 +22,15 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | 결정 기록 | 왜 그렇게 했는지가 어딘가 남는가 |
 | 작업 단위 | 일을 쪼개는 규약이 있는가 |
 
+## 1-b. 스택 판정
+
+`templates/stacks/README.md`의 표대로 **빌드 파일로만** 판정한다. 모노레포면 앱 디렉터리마다 따로. 결과는 `harness.json.stacks.packs`에 적는다.
+
+⛔ **스택을 추측하지 않는다.** 빌드 파일이 없거나 표에 없는 조합이면 묻는다.
+
 ## 2. 명령 실측 ⭐
 
-`package.json` scripts·Makefile·CI 설정에서 후보를 뽑고 **하나씩 실제로 실행한다.**
+`package.json` scripts·Makefile·CI 설정, 그리고 **판정된 팩의 `pack.md` 후보표**에서 후보를 뽑고 **하나씩 실제로 실행한다.**
 
 - **통과한 것만** `harness.json.verify`에 적는다. 실패하면 **뺀다**(고치려 들지 않는다).
 - `verify.format`에는 **읽기 전용(`--check` 계열)만** 넣는다. 포맷 적용은 `auto-format` 훅이 편집 직후에 한다.
@@ -55,6 +61,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 **조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/` · ⑦이면 Changesets · CI 워크플로
 
+**스택 팩**: 판정된 팩마다 `templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
+
 **`.gitignore` 보강** — `templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
 ⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).
 
@@ -81,6 +89,6 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 `verify` 전체를 돌려 **red/green을 그대로 보고**한다.
 
-마지막에 **비어 있는 칸을 명시**한다 — `verify.test` 없음 / `ci.test: deferred` / `tdd.enabled: false` / `release.tool: null`.
+마지막에 **비어 있는 칸을 명시**한다 — `verify.test` 없음 / `ci.test: deferred` / `tdd.enabled: false` / `release.tool: null` / `stacks.packs: []`(팩 없음).
 
 > 🔴 **비었다는 사실을 말하지 않으면 조용히 죽는다.** 채우라고 강요하지는 않되, **매번 보이게** 남긴다.

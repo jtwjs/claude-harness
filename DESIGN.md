@@ -1263,3 +1263,23 @@ ax의 핵심 통찰은 못 맡기는 순간을 잡아 **툴 이슈냐 컨텍스�
 늘어난 17은 전부 `task-observer` description의 4종화(+14자)다. 스킬·에이전트 수는 그대로고 훅은 모델 컨텍스트 비용이 0이다(`Hooks (3) — harness-only`). 목표 **≤180** 통과.
 
 > §13-5가 만든 관행(*"스킬을 늘린 커밋에서 계측하고 1행 추가"*)을 이번엔 지켰다. 직전 기록은 **2/3 불발**이었다.
+
+## 19. 스택 팩 + `brain-walk` 합류 (0.6.0, 2026-09-27)
+
+**왜**: `harness-init`은 사실상 TS 전용이었다(조건 분기 "TS면" 하나, 훅은 prettier·`.test.ts` 짝만). Kotlin/Spring 레포에 깔면 규칙·검증 후보·훅이 전부 비었다. 보일러플레이트(코드 뼈대)는 별도 레포 `jtwjs/stack-kits`가 맡고, 하네스는 **AI 환경의 정본**만 맡는다 — 코드 뼈대는 스스로 CI로 검증되고 의존성이 갱신돼야 해서 플러그인 캐시에 둘 수 없다.
+
+**BE/FE 플러그인을 나누지 않은 이유**: 절차 스킬(sdd·harness-run·리뷰)은 스택과 무관하게 공통이고, 템플릿은 상시 컨텍스트 비용이 0이다. 분리 트리거는 여전히 "동료가 설치하겠다고 할 때"(9/26 결정). 팩이 디렉터리 단위라 그때 `git mv` 한 번이다.
+
+| 무엇 | 어디 |
+|---|---|
+| 판정 표(빌드 파일 기준, 추측 금지) | `templates/stacks/README.md` — `harness-init` §1-b와 `brain-walk` §0이 **같은 표**를 본다 |
+| 팩 | `templates/stacks/{kotlin-spring,nextjs}/` = `pack.md`(verify 후보·tdd 제안·CI 셋업) + `rules/*.md`(전부 `paths:`) |
+| 기록 | `harness.json.stacks.packs` = `[{pack, root}]`. 모노레포는 `root`마다 팩, 규칙 `paths:` 앞에 root |
+| 정합 검사 | `harness-doctor` §7 |
+| 훅 | `auto-format`: `.kt`는 `ktlint` CLI가 있을 때만(gradle은 편집마다 느림) · `tdd-guard`: `src/main/…/Foo.kt` ↔ `src/test/…/FooTest.kt` |
+
+- TS 규칙 두 파일(`typescript`·`functional-programming`)은 **옮기지 않았다** — 이 문서와 `implementation-patterns.md`가 현재 경로를 참조한다. `nextjs` 팩은 그 위에 Next 전용만 더한다
+- `nextjs` 팩은 Next 16 기준: `next lint` 제거·`next build`가 린트 안 함(v16 업그레이드 문서, context7 확인)
+- `brain-walk`(코드→`_brain` 5장)를 스킬로 합류시켰다. 스킬 수 25 → 26
+
+**검증**: `hooks/test.sh` **27 통과 · 0 실패**(케이스 3-b Kotlin 짝 5 · 3-c ktlint 부재 1 추가). `viewus-cms-consumer` 사본: 판정 kotlin-spring, `ktlintCheck`·`spotlessCheck`·`detekt` = 태스크 없음(→ 비움), `compileKotlin compileTestKotlin`·`build -x test` 통과.

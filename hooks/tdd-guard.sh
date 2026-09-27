@@ -48,23 +48,33 @@ if match(exclude):
     sys.exit(0)                      # 면제
 
 p = pathlib.Path(rel)
+jvm = p.suffix in (".kt", ".java")
 if any(s in p.name for s in (".test.", ".spec.")) or "__tests__" in p.parts:
     sys.exit(0)                      # 테스트 파일 자체
+if jvm and (p.stem.endswith(("Test", "Tests")) or "/src/test/" in f"/{rel}"):
+    sys.exit(0)                      # JVM 테스트 파일 자체
 
 stem = p.name.rsplit(".", 1)[0]
 ext  = p.suffix
-cands = [p.with_name(f"{stem}.test{ext}"), p.with_name(f"{stem}.spec{ext}"),
-         p.parent / "__tests__" / f"{stem}.test{ext}"]
-for c in (p.with_suffix("").with_name(f"{stem}.test.ts"),
-          p.with_suffix("").with_name(f"{stem}.test.tsx")):
-    cands.append(c)
+if jvm:
+    # src/main/kotlin/a/Foo.kt ↔ src/test/kotlin/a/FooTest.kt (또는 FooTests.kt)
+    tdir = pathlib.Path(f"/{rel}".replace("/src/main/", "/src/test/", 1).lstrip("/")).parent
+    cands = [tdir / f"{stem}Test{ext}", tdir / f"{stem}Tests{ext}"]
+    expect = f"{tdir}/{stem}Test{ext}"
+else:
+    cands = [p.with_name(f"{stem}.test{ext}"), p.with_name(f"{stem}.spec{ext}"),
+             p.parent / "__tests__" / f"{stem}.test{ext}"]
+    for c in (p.with_suffix("").with_name(f"{stem}.test.ts"),
+              p.with_suffix("").with_name(f"{stem}.test.tsx")):
+        cands.append(c)
+    expect = f"{stem}.test{ext} 또는 __tests__/{stem}.test{ext}"
 
 if any((root / c).is_file() for c in cands):
     sys.exit(0)
 
 reason = (
     f"TDD GUARD: '{p.name}' 의 짝 테스트가 없습니다. 구현 전 실패 테스트를 먼저 작성하세요.\n"
-    f"  기대 경로: {stem}.test{ext} 또는 __tests__/{stem}.test{ext}\n"
+    f"  기대 경로: {expect}\n"
     f"  대상 범위는 .claude/harness.json 의 tdd.include, 면제는 tdd.exclude 이고,\n"
     f"  '무엇을 테스트하고 무엇을 안 하는가'의 정본은 .claude/rules/testing.md §0 입니다."
 )

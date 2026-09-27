@@ -1,6 +1,11 @@
 {
   "$comment": "harness-init 이 실제로 돌려보고 통과한 것만 채운다. 없는 키는 비워 둔다 — 지어내지 않는다.",
 
+  "stacks": {
+    "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음.",
+    "packs": []
+  },
+
   "packageManager": "",
 
   "verify": {

@@ -4,7 +4,7 @@ description: 이미 깔린 하네스가 썩었는지 점검한다. 문서와 실
 allowed-tools: [Read, Bash, Glob, Grep]
 ---
 
-**하네스 고유 검사 6개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
+**하네스 고유 검사 7개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
 
 ## 1. verify drift
 
@@ -47,6 +47,10 @@ allowed-tools: [Read, Bash, Glob, Grep]
 `.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 같이 돈다. 파일이 없으면 "아직 안 셌다"로 보고하고 만든다.
 
 > 검사 3(빈 축적소)과 다르다 — 저기는 *비어 있나*를 보고, 여기는 *찬 것을 안 옮겼나*를 본다. 3회를 넘긴 행이 방치되면 계수기를 둔 값이 없어진다.
+
+## 7. 스택 팩 정합
+
+`harness.json.stacks.packs` ↔ 실제 빌드 파일(`templates/stacks/README.md` 판정표) ↔ `.claude/rules/`에 깔린 팩 규칙. 셋이 어긋나면 ⚠️ — 빌드 파일은 있는데 팩이 없거나, 팩은 적혀 있는데 규칙 파일이 없거나, 모노레포 팩 규칙의 `paths:`가 앱 디렉터리를 안 붙여 0개 파일에 매칭되는 경우.
 
 ## 출력
 

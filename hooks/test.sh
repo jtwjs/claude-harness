@@ -55,6 +55,27 @@ check_tdd "src/features/a.ts"     deny   # 짝 테스트 없음
 check_tdd "src/features/index.ts" pass   # exclude
 check_tdd "src/other/b.ts"        pass   # include 범위 밖
 
+# ── 케이스 3-b: tdd-guard — Kotlin src/main ↔ src/test 짝 ─────────────────
+printf '\n[3-b] tdd-guard — Kotlin 짝 판정\n'
+cat > "$TMP/on/.claude/harness.json" <<JSON
+{ "tdd": { "enabled": true, "include": ["src/main/kotlin/**"], "exclude": ["**/dto/**"] } }
+JSON
+K="src/main/kotlin/app/order"; mkdir -p "$TMP/on/$K/dto" "$TMP/on/src/test/kotlin/app/order"
+: > "$TMP/on/$K/OrderService.kt"; : > "$TMP/on/$K/PayService.kt"; : > "$TMP/on/$K/dto/OrderRes.kt"
+: > "$TMP/on/src/test/kotlin/app/order/PayServiceTest.kt"
+check_tdd "$K/OrderService.kt"   deny   # 짝 없음
+check_tdd "$K/PayService.kt"     pass   # src/test/.../PayServiceTest.kt 있음
+check_tdd "$K/dto/OrderRes.kt"   pass   # exclude
+check_tdd "src/test/kotlin/app/order/PayServiceTest.kt" pass   # 테스트 파일 자체
+out=$(cd "$TMP/on" && printf '{"tool_input":{"file_path":"%s"}}' "$TMP/on/$K/OrderService.kt" | bash "$HOOKS/tdd-guard.sh" 2>&1)
+echo "$out" | grep -q 'src/test/kotlin/app/order/OrderServiceTest.kt' && ok "기대 경로를 src/test 로 안내" || bad "안내 경로" "out=[$out]"
+
+# ── 케이스 3-c: auto-format — .kt 는 ktlint 없으면 조용히 통과 ──────────────
+printf '\n[3-c] auto-format — Kotlin\n'
+printf 'fun a( ) = 1\n' > "$TMP/on/$K/Fmt.kt"
+out=$(cd "$TMP/on" && printf '{"tool_input":{"file_path":"%s"}}' "$TMP/on/$K/Fmt.kt" | PATH="/usr/bin:/bin" bash "$HOOKS/auto-format.sh" 2>&1); code=$?
+[ "$code" = "0" ] && [ -z "$out" ] && ok "ktlint 없음 — exit 0 · 무출력" || bad "ktlint 없음" "exit=$code out=[$out]"
+
 # ── 케이스 4: Stop 훅은 읽기 전용이어야 한다 ────────────────────────────────
 printf '\n[4] Stop 훅 — 작업트리를 건드리지 않는다\n'
 cat > "$TMP/on/.claude/harness.json" <<JSON
