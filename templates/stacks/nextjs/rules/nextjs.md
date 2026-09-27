@@ -15,7 +15,7 @@ paths: ["app/**", "src/app/**", "src/**/*.tsx", "next.config.*", "middleware.ts"
 - API 타입은 생성물(`src/api/generated/` 등 OpenAPI → orval, 또는 공유 zod 패키지)에서만 import한다. **손으로 쓴 응답 타입 금지** — 서버가 바뀐 날 조용히 틀어진다.
 - 서버 응답을 믿지 않는 경계(외부 API)는 zod로 parse한다.
 - 서버 상태는 TanStack Query(클라이언트) 또는 서버 컴포넌트 fetch 중 하나로 정하고 섞지 않는다. 결정은 `non-obvious-patterns.md`에 한 줄로 남긴다.
-- 캐시·재검증 동작은 Next 메이저 버전마다 기본값이 바뀌어 왔다. 추측하지 말고 설치된 버전 문서(context7)를 확인한 뒤 명시적으로 적는다.
+- 캐시·재검증 동작은 Next 메이저 버전마다 기본값이 바뀌어 왔다. 추측하지 말고 **설치된 버전 문서**(`node_modules/next/dist/docs/`, 없으면 context7)를 확인한 뒤 명시적으로 적는다.
 
 ## 라우트
 

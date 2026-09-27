@@ -1283,4 +1283,10 @@ ax의 핵심 통찰은 못 맡기는 순간을 잡아 **툴 이슈냐 컨텍스�
 - `nextjs` 팩은 Next 16 기준: `next lint` 제거·`next build`가 린트 안 함(v16 업그레이드 문서, context7 확인)
 - `brain-walk`(코드→`_brain` 5장)를 스킬로 합류시켰다. 스킬 수 25 → 26
 
+### 19-1. `harness-new` + `jtwjs/stack-kits` (0.7.0)
+
+- `harness-new`: kit 목록을 레포에서 읽고 → `degit`으로 복사 → kit README의 검증 명령으로 첫 검증 → `harness-init`. 스킬 26 → 27
+- `jtwjs/stack-kits`(공개): `kotlin-spring`(Boot 4.1·Kotlin 2.3·JDK 21·MySQL 8.4) · `nextjs`(16.3·Node 24·pnpm). CI는 kit별 잡 + `ci-gate`, 의존성은 Dependabot
+- kit에서 실측해 팩에 되돌린 것 4개: ① springdoc 3.x는 Kotlin non-null을 `required`로 안 옮긴다(`api.md`) ② `-Xannotation-default-target=param-property`가 없으면 `@field:` 없는 검증이 조용히 빠진다(`kotlin.md`) ③ `./gradlew test build -x test`는 테스트를 안 돈다(`pack.md`) ④ `tsc --noEmit`만으로는 `.next` 없는 CI에서 `LayoutProps` 미정의 — `next typegen` 먼저(`nextjs/pack.md`, CI 첫 실행이 잡음)
+
 **검증**: `hooks/test.sh` **27 통과 · 0 실패**(케이스 3-b Kotlin 짝 5 · 3-c ktlint 부재 1 추가). `viewus-cms-consumer` 사본: 판정 kotlin-spring, `ktlintCheck`·`spotlessCheck`·`detekt` = 태스크 없음(→ 비움), `compileKotlin compileTestKotlin`·`build -x test` 통과.

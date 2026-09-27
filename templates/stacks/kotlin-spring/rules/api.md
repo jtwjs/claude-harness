@@ -17,7 +17,8 @@ paths: ["**/controller/**", "**/dto/**", "**/presentation/**", "**/http/*.http",
 - `contracts/openapi.json`은 **생성물**이다(springdoc `/v3/api-docs`). 손으로 고치지 않는다. API를 바꾼 PR에는 재생성한 파일이 같이 들어가야 한다(CI가 `git diff --exit-code`로 막는다).
 - 응답 타입에 `Map<String, Any>`·`Any`를 쓰지 않는다 — 프론트 타입이 `unknown`이 된다.
 - 컨트롤러 메서드에 `@Operation(summary = …)`, DTO 필드에 `@Schema(description = …)`. 프론트가 읽는 문서다.
-- springdoc 2.8.17 미만은 Kotlin `?`를 `nullable: true`로 옮기지 않는다(필수 목록에서 빠지기만 한다). null이 오는 응답 필드는 `@Schema(nullable = true)`를 직접 붙인다.
+- springdoc 2.8.17 미만은 Kotlin `?`를 `nullable: true`로 옮기지 않는다. null이 오는 응답 필드는 `@Schema(nullable = true)`를 직접 붙인다.
+- springdoc 3.x는 반대로 Kotlin non-null을 `required`로 옮기지 않는다 — 그대로면 프론트 생성 타입이 전부 선택(`?:`)이 된다. non-null 속성을 `required`에 넣는 `ModelConverter` 빈을 둔다(stack-kits `kotlin-spring`의 `KotlinRequiredSchemaConverter`). `contracts/openapi.json`에서 응답 스키마의 `required`가 비어 있으면 이것부터 의심한다.
 - enum은 enum 타입 그대로 노출한다. String으로 바꾸면 후보 값이 스펙에서 사라진다.
 
 ## 손 확인

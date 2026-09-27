@@ -52,7 +52,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ## 4. 생성
 
 **기본 6**
-- `CLAUDE.md` — ~40줄. **CRITICAL + 링크만.** 검증 명령은 적되 정본은 `harness.json`
+- `CLAUDE.md` — ~40줄. **CRITICAL + 링크만.** 검증 명령은 적되 정본은 `harness.json`. 이미 있으면 덮지 않고 기존 줄(예: Next의 `@AGENTS.md`)을 보존한 채 더한다
 - `.claude/harness.json`
 - `.claude/README.md` — 라우팅 ~10줄
 - `.claude/rules/non-obvious-patterns.md` — **빈 파일로 시작**(②의 답 한 줄만)

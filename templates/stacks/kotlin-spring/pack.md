@@ -10,6 +10,7 @@
 | test | `./gradlew test` | Testcontainers를 쓰면 Docker가 떠 있어야 통과한다. 실패 원인이 Docker면 그렇게 보고한다 |
 | build | `./gradlew build -x test` | |
 
+- ⚠️ `-x test`는 태스크 그래프 전체에서 test를 뺀다. `./gradlew test build -x test`처럼 한 명령에 섞으면 테스트가 **돌지 않고 초록**이 된다. verify 키마다 따로 적는다.
 - `packageManager`는 비운다. 대신 `./gradlew`가 실행 권한을 갖는지 확인한다(`chmod +x`가 필요하면 보고만).
 
 ## test · tdd

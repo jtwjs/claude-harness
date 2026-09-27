@@ -9,8 +9,8 @@ paths: ["**/*.kt", "**/*.kts"]
 - 엔티티의 `?`는 JPA 사정이다(저장 전에는 PK가 없다: `val id: Long? = null`). **DTO에는 이 사정이 없다.** DTO 필드는 "비즈니스상 비어 있을 수 있다"일 때만 `?`를 붙인다.
 - 엔티티 → DTO 변환에서 **한 번만** 푼다: `id = requireNotNull(entity.id)`. `!!`를 흩뿌리지 않는다 — 실패 지점이 런타임 NPE로 흩어진다.
 - 응답 DTO의 `?`는 스펙(OpenAPI)으로 새어 나가 프론트가 null 분기를 떠안는다.
-- 예외: **요청 DTO**. non-null 필드가 JSON에서 빠지면 jackson-module-kotlin이 `@Valid`보다 먼저 400을 던져 검증 메시지가 안 나온다. 필수 입력은 `val email: String? = null` + `@field:NotBlank`로 받는다.
-- 검증 어노테이션은 `@field:` 대상을 붙인다(`@field:Size(max = 100)`). 안 붙이면 생성자 파라미터에 붙어 검증되지 않는다.
+- 예외: **요청 DTO**. non-null 필드가 JSON에서 빠지면 jackson-module-kotlin이 `@Valid`보다 먼저 400을 던져 검증 메시지가 안 나온다. 필수 입력은 `val email: String? = null` + `@NotBlank`(대상 규칙은 아래 줄)로 받는다.
+- 검증 어노테이션의 대상: 빌드 파일 `freeCompilerArgs`에 `-Xannotation-default-target=param-property`가 **있으면** `@NotBlank`만으로 필드까지 붙는다. **없으면** `@field:NotBlank`로 적어야 한다 — 안 적으면 생성자 파라미터에만 붙어 검증이 **에러 없이 빠진다**(2026-09-27 stack-kits 실측: 플래그 제거 시 400 테스트 실패).
 
 ## 클래스
 

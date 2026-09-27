@@ -8,7 +8,7 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 |---|---|---|
 | format | `<pm> exec prettier --check .` · `<pm> exec biome format .` | 읽기 전용만 |
 | lint | `package.json`의 `lint` 스크립트 · `<pm> exec eslint .` | **Next 16에서 `next lint`는 제거됐고 `next build`도 린트를 돌리지 않는다.** `next lint`가 스크립트에 남아 있으면 실패하므로 적지 않고 보고한다(코드모드 `npx @next/codemod@canary next-lint-to-eslint-cli .`) |
-| typecheck | `<pm> exec tsc --noEmit` | |
+| typecheck | `<pm> exec next typegen && <pm> exec tsc --noEmit` | `LayoutProps`·`PageProps` 같은 전역 타입은 Next가 `.next/types`에 **생성**한다. `tsc`만 돌리면 `.next`가 없는 CI에서 `TS2304`로 실패하고, 로컬은 앞선 build 덕에 통과해 **로컬만 초록**이 된다(stack-kits 실측) |
 | test | `package.json`의 `test` 스크립트 (보통 `vitest run`) | E2E(Playwright)는 verify에 넣지 않고 CI 별도 잡으로 |
 | build | `<pm> build` | |
 
@@ -30,6 +30,11 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 ```
 
 `.nvmrc`·`engines`가 없으면 Node 버전을 묻는다.
+
+## create-next-app이 만드는 에이전트 파일 (16.x 실측)
+
+- `AGENTS.md`의 `<!-- BEGIN:nextjs-agent-rules -->` 블록은 **`next dev`가 실행될 때마다 다시 써 넣는다.** 지우면 미커밋 변경으로 되살아난다 — 지우지 말고 커밋한다. 내용은 "설치된 버전 문서 `node_modules/next/dist/docs/`를 먼저 읽어라".
+- `CLAUDE.md`는 `@AGENTS.md` 한 줄로 만들어진다. `harness-init`은 이 파일을 덮지 않고 **그 줄을 보존한 채** 하네스 내용을 더한다.
 
 ## 복사할 규칙
 
