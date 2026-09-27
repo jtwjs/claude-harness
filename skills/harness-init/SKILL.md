@@ -59,7 +59,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
 
-**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/` · ⑦이면 Changesets · CI 워크플로
+**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) · ⑦이면 Changesets · CI 워크플로
 
 **스택 팩**: 판정된 팩마다 `templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
 

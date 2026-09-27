@@ -16,10 +16,10 @@ disable-model-invocation: false
 | raw 성격                              | wiki 대상                                                 |
 | ------------------------------------- | --------------------------------------------------------- |
 | 도메인 용어·내부 명칭(외부와 다른 것) | `wiki/glossary/`                                          |
-| 사용자 요청·피드백·VoC                | 개별 요청 → GitHub 이슈(정본) / 반복 테마만 → `wiki/voc/` |
+| 사용자 요청·피드백·VoC                | GitHub 이슈(정본). **wiki에 복제하지 않는다** |
 | 도메인 흐름·비즈니스 로직             | `wiki/domain/`                                            |
 | 회의·설계 결정                        | `wiki/decisions/`                                         |
-| 컨벤션·인프라·디자인·회고             | 기존 `conventions`·`infra`·`design`·`retro`               |
+| 컨벤션·인프라                         | `wiki/conventions/` · `wiki/infra/` (디자인은 `decisions/`, 회고는 `docs/LEARNED.md`) |
 
 ## 2. 노드 생성·갱신
 
@@ -35,8 +35,8 @@ disable-model-invocation: false
 1. raw의 개별 요청을 **실행 가능한 작업 단위**로 분해(영향 범위·수용 조건·복잡도).
 2. 이슈 초안(제목 `<type>: 요약`·본문·수용조건·라벨)을 사용자에게 보여주고 **🙋 승인**받는다(추측으로 바로 생성 금지).
 3. 승인 시 **`gh issue create`**(github MCP 아님 — gh CLI)로 생성. 라벨·assignee는 `pr-write` 스킬 관례 참조.
-4. **반복 테마·제품 신호가 보일 때만** `wiki/voc/`에 집약 인사이트 노드 생성/갱신하고 근거 이슈(#)를 링크(개별 요청 복제 금지).
-5. 이후 SDD 흐름(`why-logictree`로 PRD → `harness`로 분해)으로 이어진다.
+4. **반복 테마가 제품 판단으로 굳었을 때만** `wiki/decisions/` 1장 + 근거 이슈(#) 링크. 개별 요청은 복제하지 않는다 — 이슈가 정본이다.
+5. 이후 SDD 흐름(`grilling`으로 계획 검증 → `harness`로 분해)으로 이어진다.
 
 ## 4. 마무리
 
