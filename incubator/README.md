@@ -20,3 +20,5 @@ mv incubator/ready/skills/<이름> skills/
 | 언제 | 무엇 | 어디로 |
 |---|---|---|
 | 2026-09-01 | `design-brief` · `design-plan` · `design-reconcile` | `skills/`. `sdd/SKILL.md`에 `## 0. 트랙 판단` 절과 DESIGN·PLAN·REVIEW 3개 호출 지점을 복원했다. 산출물 종착지는 `.claude/design/` |
+
+> ⚠️ **위 행은 2026-09-01 시점의 기록이라 그대로 둔다. 지금 상태는 다르다** — `design-plan`은 **2026-09-28(0.9.0)에 `skills/`에서 삭제**됐고, PLAN 자리는 `harness`가 디자인 핸드오프를 읽는 것으로 대체됐다. 현재 `sdd`의 디자인 호출 지점은 **DESIGN(`design-brief`) · REVIEW(`design-reconcile`) 둘**이다.
