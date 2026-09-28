@@ -9,7 +9,6 @@
 | `security-scan` | 프로덕션 트래픽이 붙은 레포가 생겼을 때 |
 | `improve-token-efficiency` | 월 비용이 신경 쓰일 때 |
 | `oncall-agent` | 운영 알림·CI 권한을 받았을 때 |
-| design 3종 + `DESIGN.md` 템플릿 | UI 비중 큰 프로젝트 착수 시 (`incubator/ready/`에서 `mv`) |
 | `review-{task}.json` 리포트 계약 | **3번째 레포**에서 순환 재검증이 실제로 일어난 뒤 |
 | `references/testing-patterns.md` | `test-writer` 보고에 "셋업을 몰라서 못 씀"이 **3회** 누적 (`task-observer`·재교정) |
 | `implementation-patterns.md` 7번째 패턴 | 같은 종류 지적이 `code-reviewer` 리뷰에서 **3회** 반복 (`task-observer`·재교정) |

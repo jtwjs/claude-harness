@@ -53,6 +53,6 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 중단 지점(`phases/{task}/index.json`의 status·현재 단계)을 읽고 이어서 진행한다. 디버깅이 필요하면 `root-cause-debugger`(`systematic-debugging` 규율). 원인이 확정되고 사람이 승인하면 **메인이** 해당 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 루프를 재개한다.
 
-> 디자인 트랙 3스킬은 **2026-09-01에 설치됐다**(`incubator/ready/` → `skills/`). 산출물 종착지는
-> `.claude/design/` — `brief.md`(내용)·`DESIGN.md`(스타일)·`DESIGN-PLAN.md`(매핑)·`design-system-map.md`(레지스트리).
+> 디자인 트랙은 `design-brief`(DESIGN) · `design-reconcile`(REVIEW) **2스킬**이다 — 2026-09-01에 3스킬로 설치됐다가 `design-plan`이 **0.9.0에서 삭제**됐고, PLAN 자리는 `harness`가 디자인 핸드오프를 읽는다. 산출물 종착지는
+> `.claude/design/` — `brief.md`(내용)·`DESIGN.md`(스타일)·`design-system-map.md`(레지스트리).
 > 시안 생성은 `/design`(Claude Code 내장) 또는 claude.ai/design 웹 캔버스에서 **사람이 개시한다.**
