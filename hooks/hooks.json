@@ -44,6 +44,18 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/cadence-reminder.sh\"",
+            "timeout": 15,
+            "statusMessage": "cadence 점검"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -52,10 +64,6 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-session-end.sh\"",
             "timeout": 120,
             "statusMessage": "verify 실행 중 (읽기 전용)..."
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/cadence-reminder.sh\""
           }
         ]
       }

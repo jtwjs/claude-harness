@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
-# Stop — 두 가지 cadence 환기. 읽기 전용·비차단(exit 0).
+# SessionStart — cadence 4축 환기. 읽기 전용·비차단(exit 0).
+#
+# 🔴 왜 Stop 이 아니라 SessionStart 인가 (2026-09-28 실측으로 옮겼다):
+#   Stop 은 세션이 **끝나는** 시점이라 "이제 회고 쓰세요"를 받을 사람이 이미 나간다.
+#   LEARNED 실측이 증거다 — 이 훅은 3레포에 설치돼 매 세션 발화했는데
+#   임계 초과가 13·21·8건 쌓인 채 엔트리 생산은 **0** 이었다.
+#   세션 **시작**에 뜨면 그 세션에서 처리할 수 있다.
+#   출력도 stderr → stdout JSON additionalContext 로 바꿨다(stderr 는 컨텍스트에 안 들어간다).
 #
 # 병합 이력: memory-reminder.sh + reflect-reminder.sh → 이 파일.
 #   - memory 폴더 카운트 기능은 버렸다. 절대경로가 박혀 있었고(레포마다 오탐),
@@ -12,7 +19,11 @@
 #     날짜가 아니라 '쌓인 양'으로 잰다 — 커밋 0인 2주는 감사할 것이 없고,
 #     3일에 커밋 40개면 2주를 기다릴 이유가 없다. 세 축 모두 같은 원리다.
 set -uo pipefail
-cat >/dev/null 2>&1 || true
+cat >/dev/null 2>&1 || true   # hook 입력(JSON) 소비
+
+MSGS=()
+# ⚠️ 메시지에 큰따옴표를 쓰지 않는다 — 아래에서 JSON 으로 직접 싸므로 이스케이프를 피한다.
+say() { MSGS+=("$1"); }
 
 command -v git >/dev/null 2>&1 || exit 0
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
@@ -32,7 +43,7 @@ anchor=$(git log -1 --format=%H -- CLAUDE.md .claude/rules/ 2>/dev/null || true)
 if [ -n "$anchor" ]; then
   fixes=$(git log --oneline "${anchor}..HEAD" --grep='^fix:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "${fixes:-0}" -ge "$FIX_THRESHOLD" ]; then
-    printf 'ℹ️  CLAUDE.md·rules 갱신 이후 fix: 커밋 %s건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가하세요. (harness-doctor 로 점검 가능)\n' "$fixes" >&2
+    say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (harness-doctor 로 점검)."
   fi
 fi
 
@@ -43,7 +54,7 @@ if [ -d "$REPO_ROOT/_brain/wiki" ]; then
   if [ -n "$banchor" ]; then
     n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
     if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
-      printf 'ℹ️  _brain/wiki 갱신 이후 feat:/refactor: 커밋 %s건. brain-intake 로 정리하고 brain-sync 로 통합 wiki 에 이관할 시점입니다.\n' "$n" >&2
+      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 근거로 decisions/ 또는 infra/ **초안을 만들어 제시할 것** — 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 정리는 brain-intake, 이관은 brain-sync."
     fi
   fi
 fi
@@ -55,7 +66,7 @@ c=0; r=0
 [ -f CLAUDE.md ] && c=$(wc -l < CLAUDE.md | tr -d ' ')
 [ -d .claude/rules ] && r=$(find .claude/rules -name '*.md' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
 if [ "${c:-0}" -gt "$CLAUDE_MAX_LINES" ] || [ "${r:-0}" -gt "$RULES_MAX_LINES" ]; then
-  printf 'ℹ️  CLAUDE.md %s줄(목표 ~40) · .claude/rules 합계 %s줄. "audit my CLAUDE.md"(claude-md-improver)로 등급·압축 제안을 받을 시점입니다.\n' "$c" "$r" >&2
+  say "CLAUDE.md ${c}줄(목표 ~40) · .claude/rules 합계 ${r}줄. claude-md-improver 로 등급·압축 제안을 받을 시점이다."
 fi
 
 # ── 축 4: AI-Readiness 채점 공백 ─────────────────────────────────────────────
@@ -73,7 +84,16 @@ else
   since_label="채점 이력 없음 — 레포 시작"
 fi
 if [ "${gap:-0}" -ge "$READINESS_GAP_COMMITS" ]; then
-  printf 'ℹ️  %s 이후 커밋 %s건. ai-readiness-cartography 로 점수를 다시 재세요 — 떨어진 폭이 곧 "뭔가 들어왔는데 문서가 안 따라왔다"입니다.\n' "$since_label" "$gap" >&2
+  say "${since_label} 이후 커밋 ${gap}건. ai-readiness-cartography 로 점수를 다시 잴 시점이다 — 떨어진 폭이 곧 「뭔가 들어왔는데 문서가 안 따라왔다」다."
+fi
+
+# ── 출력: SessionStart 는 stdout JSON 의 additionalContext 를 컨텍스트로 넣는다 ─────
+if [ "${#MSGS[@]}" -gt 0 ]; then
+  msg=""
+  for m in "${MSGS[@]}"; do
+    msg="${msg}${msg:+  }⚠️ ${m}"
+  done
+  printf '{"systemMessage":"%s","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$msg" "$msg"
 fi
 
 exit 0
