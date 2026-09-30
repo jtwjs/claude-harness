@@ -32,7 +32,7 @@ _brain/
 | 뺀 것 | 실측 | 왜 |
 |---|---|---|
 | `voc/` | **0건** | 이 규약이 개별 요청 복제를 금지해 **쓸 것이 남지 않는다**(이슈가 정본) |
-| `retro/` | 1건 | 이 규약이 "정본은 `docs/LEARNED.md`"라고 스스로 밝혀 중복이다 |
+| `retro/` | 1건 | 회고는 `infra/`로 흡수했다 — 아래 §회고의 집 참고 |
 | `design/` | 2건 | `decisions/`로 합친다 |
 
 남긴 다섯의 근거: `decisions` 13 · `domain` 9 · `infra` 6 · `conventions` 4 · `glossary` 2 = **37장 중 34장**.
@@ -100,7 +100,7 @@ status: active # 필수 — active | archived | superseded
 | `glossary`             | 용어 정의 + 내부↔외부 명칭 차이 + 코드 위치                                                           |
 | `domain`               | 비즈니스 흐름·프로세스 + 관련 엔티티/코드 경로                                                        |
 
-**폐기된 셋** — `voc`(개별 요청은 GitHub 이슈가 정본이라 쓸 것이 남지 않는다) · `retro`(정본 `docs/LEARNED.md`) · `design`(`decisions`로 합친다).
+**폐기된 셋** — `voc`(개별 요청은 GitHub 이슈가 정본이라 쓸 것이 남지 않는다) · `retro`(`infra/`로 흡수) · `design`(`decisions`로 합친다).
 
 ## 민감정보 격리
 
@@ -117,6 +117,22 @@ status: active # 필수 — active | archived | superseded
 
 ## 관계
 
-- 루트 `CLAUDE.md`는 `@_brain/wiki/`를 참조한다(노드 카탈로그가 세션에 노출). 회고 정본은 `docs/LEARNED.md`.
+- 루트 `CLAUDE.md`는 `@_brain/wiki/`를 참조한다(노드 카탈로그가 세션에 노출). **회고 정본은 `_brain/wiki/infra/`** 다.
+
+## 🔴 회고의 집은 하나다 — `docs/LEARNED.md` 를 접었다 (2026-09-28)
+
+실측이 근거다. 레포 7곳에서 `docs/LEARNED.md` 는 **3곳에만 있고 3곳 전부 죽었다.**
+
+| | 실측 |
+|---|---|
+| 있는 곳 | 3 / 7 |
+| 마지막 엔트리 | 2026-08-21 ~ 09-18 |
+| 임계(5) 대비 쌓인 `feat`/`refactor` | **13 · 21 · 8건** — 훅이 매 세션 환기했는데 엔트리 생산은 **0** |
+| cm-admin | 훅은 설치됐는데 **대상 파일이 없어 anchor 가 빈 값** → 구조적으로 절대 발화하지 않았다 |
+| 형식 | 헤딩형 2곳 · 표형 1곳 — 단순 grep 은 표형을 0으로 오판한다 |
+
+반면 `_brain/wiki/infra/` 는 같은 기간 **6장이 살아 있었다.** 붙은 경로가 셋(`brain-walk`·`brain-intake`·`brain-sync`)이라 갱신될 이유가 있고, LEARNED 는 붙은 경로가 훅 환기 하나뿐이었다.
+
+**그래서 인프라 회고는 `infra/` 한 곳에 쓴다.** 기존 `docs/LEARNED.md` 가 있는 레포는 포인터 한 줄만 남기고 내용을 옮긴다 — 두 곳에 두면 둘 다 썩는다.
 - 팀이 커밋해 공유하는 지식은 `_brain/` 한 곳이다. 통합 wiki로 흘려보내는 배출구는 `brain-sync`.
 - 세션 auto-recall memory(`~/.claude/projects/.../memory/`)는 **개인 로컬 레이어**로 별도 유지(커밋 안 함).

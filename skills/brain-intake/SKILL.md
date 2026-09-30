@@ -19,7 +19,7 @@ disable-model-invocation: false
 | 사용자 요청·피드백·VoC                | GitHub 이슈(정본). **wiki에 복제하지 않는다** |
 | 도메인 흐름·비즈니스 로직             | `wiki/domain/`                                            |
 | 회의·설계 결정                        | `wiki/decisions/`                                         |
-| 컨벤션·인프라                         | `wiki/conventions/` · `wiki/infra/` (디자인은 `decisions/`, 회고는 `docs/LEARNED.md`) |
+| 컨벤션·인프라·**회고**                | `wiki/conventions/` · `wiki/infra/` (디자인은 `decisions/`, **회고도 `infra/`** — `docs/LEARNED.md` 는 접었다) |
 
 ## 2. 노드 생성·갱신
 
