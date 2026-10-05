@@ -18,6 +18,17 @@ git status --short                       # 미커밋 변경 확인
 
 미커밋 변경이 있으면 PR 생성 전에 커밋 여부를 사용자에게 확인한다.
 
+**현재 브랜치가 `<base>` 자신이면**(base 에 바로 커밋이 쌓인 경우) `<base>..HEAD` 가 비거나 틀린다. 사용자 확인 뒤 커밋을 작업 브랜치로 옮긴다:
+
+```bash
+git fetch -q
+git log origin/<base>..HEAD --oneline   # 옮길 커밋 확인
+git switch -c <type>/<slug>             # 지금 HEAD 그대로 새 브랜치
+git branch -f <base> origin/<base>      # 로컬 base 를 원격 위치로 (커밋은 새 브랜치에 남는다)
+```
+
+이후 단계의 비교 기준은 `origin/<base>` 를 쓴다. 원격에 `<base>` 가 없으면 멈추고 묻는다.
+
 ## 2단계: 원격 브랜치 푸시
 
 현재 브랜치가 원격에 없거나 뒤처져 있으면 push한다:
@@ -35,6 +46,14 @@ git push -u origin HEAD
 **Assignee**: `git config user.name` 또는 `gh api user --jq .login`으로 현재 작업자의 GitHub 로그인을 가져와 설정한다.
 
 **Label**: diff와 커밋 내용을 바탕으로 아래 두 축에서 각각 1개씩 선택한다.
+
+먼저 레포에 라벨이 있는지 확인한다 — 없는 라벨을 `--label` 로 넘기면 `gh pr create` 가 실패한다:
+
+```bash
+gh label list --limit 100 --json name --jq '.[].name' | grep -E '^(유형|복잡도): '
+```
+
+없으면 `--label` 을 빼고 PR 을 만든 뒤 «라벨 없음 — 만들까요?» 로 보고한다. 사용자 확인 없이 라벨을 만들지 않는다.
 
 ### 유형 레이블 (1개 선택)
 
@@ -109,6 +128,7 @@ EOF
 - [ ] fix: 버그 수정
 - [ ] refactor: 리팩토링 (기능 변경 없음)
 - [ ] style: 코드 스타일 변경
+- [ ] docs: 문서만 변경
 - [ ] chore: 기타 작업
 
 ## 변경 사항
@@ -123,6 +143,7 @@ EOF
 ## Test plan
 
 - [ ] `.claude/harness.json`의 `verify` 전체 통과 (build · typecheck · lint · test)
+  <!-- 문서만 바뀐 PR: verify 대신 포맷 검사(예: format:check) 결과를 적고, verify 를 생략했다고 명시 -->
 - [ ] 관련 테스트 통과
 - [ ] (UI 변경 시) 스크린샷 첨부
 
