@@ -24,8 +24,15 @@ OUT_DIR=".claude/reports"
 
 [ -f "$SCORER" ] || { printf '채점 스크립트 없음: %s\n' "$SCORER" >&2; exit 0; }
 
-# 날짜별 보관 디렉터리(추세 추적용). 최신본은 기본 위치에도 갱신됨.
-python3 "$SCORER" "$REPO_ROOT" --out-dir "$OUT_DIR/$DATE" >/dev/null 2>&1 || true
-
-printf '📊 AI-Readiness 주간 리포트 생성: %s/%s/ai-readiness-report.html\n' "$OUT_DIR" "$DATE" >&2
+# 날짜별 보관 디렉터리(추세 추적용). cadence-reminder.sh 축 4 가 이 폴더의 날짜 이름을 읽는다.
+# score.py 의 인자는 repo · --json · --markdown · --quiet 뿐이다 (--out-dir 없음 — 2026-10-08 이전에는
+# 없는 인자를 넘겨 매번 실패했고, 그 실패가 || true 에 묻혀 "리포트 생성"을 거짓으로 찍었다).
+mkdir -p "$OUT_DIR/$DATE" 2>/dev/null || exit 0
+if python3 "$SCORER" "$REPO_ROOT" --quiet --json "$OUT_DIR/$DATE/ai-readiness-score.json" >/dev/null 2>&1; then
+  printf '📊 AI-Readiness 채점: %s/%s/ai-readiness-score.json\n' "$OUT_DIR" "$DATE" >&2
+else
+  code=$?
+  rmdir "$OUT_DIR/$DATE" 2>/dev/null || true   # 빈 날짜 폴더를 남기면 cadence 가 "채점했다"고 믿는다
+  printf '⚠️ AI-Readiness 채점 실패 (exit %s) — %s\n' "$code" "$SCORER" >&2
+fi
 exit 0

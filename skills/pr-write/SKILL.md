@@ -39,7 +39,7 @@ git push -u origin HEAD
 
 ## 3단계: PR 제목 결정
 
-제목은 커밋 형식 `<type>: 요약` (CLAUDE.md "Git 커밋" 규칙). 예: `feat: 다건 이미지 DnD/paste 업로드 optimistic UI 적용`
+제목은 커밋 메시지 형식과 같다 — `<type>: 요약`, 괄호 스코프는 `harness.json`의 `git.commitScope`가 `true`일 때만(**정본은 `commit` 스킬**). 예: `feat: 다건 이미지 DnD/paste 업로드 optimistic UI 적용`
 
 ## 4단계: Assignee·Label 결정
 

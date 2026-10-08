@@ -36,6 +36,25 @@ done
 out=$(cd "$TMP/none" && printf '{"tool_input":{"command":"git status"}}' | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
 if [ "$code" = "0" ] && [ -z "$out" ]; then ok "정상 명령 통과: git status"; else bad "오탐" "git status 가 막혔다 (exit=$code)"; fi
 
+# ── 케이스 2-b: deny 패턴 경계 — `.*` 가 &&·;·| 를 넘어가던 오탐 (2026-10-08) ─
+# 명령은 JSON 으로 감싸 넘긴다 (따옴표가 섞여 printf 포맷으로 못 쓴다).
+printf '\n[2-b] deny 패턴 — 한 명령 안에서만 매칭 · 따옴표 안 무시 · exclude\n'
+check_deny() { # $1=expect(0|2)  $2=command
+  out=$(cd "$TMP/none" && printf '%s' "$2" | python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.stdin.read()}}))' \
+        | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
+  if [ "$code" = "$1" ]; then ok "exit $1: $2"; else bad "exit $code (기대 $1)" "$2"; fi
+}
+check_deny 0 'git commit -m "x" && git log | head -n 5'      # -n 이 다른 명령에 있다
+check_deny 0 'git commit -m "fix" ; sed -n 1p a'             # ; 뒤
+check_deny 0 'git commit -m "use -n flag later"'             # 메시지 문자열 안
+check_deny 0 'cat .env.example'                              # exclude
+check_deny 0 'git push origin feature/x'
+check_deny 2 'git commit -n -m x'
+check_deny 2 'git commit --no-verify -m x'
+check_deny 2 'git commit -m "x" -n'
+check_deny 2 'cat .env'
+check_deny 2 'git push -f origin main'
+
 # ── 케이스 3: tdd-guard 는 harness.json 만으로 판정한다 ──────────────────────
 printf '\n[3] tdd-guard — include/exclude 판정\n'
 mkdir -p "$TMP/on/.claude" "$TMP/on/src/features" && (cd "$TMP/on" && git init -q)

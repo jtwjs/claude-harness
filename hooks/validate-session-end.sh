@@ -18,8 +18,14 @@ command -v python3 >/dev/null 2>&1 || exit 0
 cd "$REPO_ROOT" 2>/dev/null || exit 0
 
 # ── 루프 가드 ────────────────────────────────────────────────────────────────
+# 해시는 "변경 내용" 기준이다. `git status --porcelain` 을 해시하면 이미 ` M` 인 파일을 더 고쳐도
+# 출력이 같아서 첫 Stop 이후 verify 가 전부 건너뛰어진다 (2026-10-08 리뷰).
 stamp="$REPO_ROOT/.claude/.last-session-validate"
-cur_hash=$(git status --porcelain 2>/dev/null | git hash-object --stdin 2>/dev/null || echo "")
+# untracked 에서 훅 자신의 stamp·리포트는 뺀다 — 넣으면 해시가 자기 자신을 참조해 매번 달라진다.
+cur_hash=$({ git diff HEAD 2>/dev/null;
+             git ls-files -o --exclude-standard -z -- . ':(exclude).claude/.last-*' ':(exclude).claude/reports' 2>/dev/null \
+               | xargs -0 cat 2>/dev/null; } \
+           | git hash-object --stdin 2>/dev/null || echo "")
 if [ -n "$cur_hash" ] && [ -f "$stamp" ] && [ "$(cat "$stamp" 2>/dev/null)" = "$cur_hash" ]; then
   exit 0
 fi
@@ -47,7 +53,7 @@ fi
 failed=""
 while IFS=$'\t' read -r name cmd; do
   [ -z "$name" ] && continue
-  out=$(eval "$cmd" 2>&1); code=$?
+  out=$(eval "$cmd" 2>&1 </dev/null); code=$?   # stdin 을 끊는다 — 아래 heredoc 을 verify 명령이 삼키지 않게
   if [ "$code" -ne 0 ]; then
     failed="$failed $name"
     printf '\n🔴 %s 실패\n' "$name" >&2

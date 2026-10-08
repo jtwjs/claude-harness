@@ -49,12 +49,14 @@ UI 작업이고 `/design`·claude.ai/design 시안(또는 핸드오프 프롬프
 {
   "project": "<repo-name>",
   "phase": "{task}",
+  "docs": "docs/{feature-YYYY-MM-DD}",
   "steps": [
     { "step": 1, "name": "add-draft-model", "status": "pending", "tdd": true }
   ]
 }
 ```
 
+- **`docs`** — §0에서 합의한 설계문서 폴더. `task` slug와 `feature-YYYY-MM-DD`는 별개 식별자라 **이 필드가 없으면 `harness-run`·`sdd-review`가 PRD·ARCHITECTURE·ADR을 찾을 방법이 없다.** 반드시 채운다.
 - `status` ∈ `pending | completed | error | blocked`. 최초 전부 `pending`.
 - `summary`·`error_message`·`blocked_reason`·`retries`·timestamp는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
 - **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 에이전트 정의값(`feature-builder` = sonnet)으로 돈다.

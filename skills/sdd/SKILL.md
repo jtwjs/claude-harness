@@ -33,7 +33,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 2단으로 돈다. hands-off.
    - **RED**: `test-writer` → `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
    - **GREEN**: `feature-builder` → `verify` 전체 통과 **AND** diff에 테스트 파일 없음
-   - (🙋 정지: blocked / 파괴적 변경 / 3회 실패.)
+   - (🙋 정지: blocked / 파괴적 변경 / step `retries`가 3이 됨.)
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 코드→디자인 반영은 사람이 `/design-sync`로.

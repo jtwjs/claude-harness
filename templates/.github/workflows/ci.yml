@@ -1,5 +1,7 @@
 # harness-init 이 harness.json.verify 에서 실제로 통과한 명령만 채운다.
 # 비어 있는 단계는 넣지 않는다 — 없는 명령을 적으면 첫날부터 red 가 뜬다.
+# 플레이스홀더 {{…}} 는 7개. 출처와 비었을 때 규칙은 harness-init SKILL.md §4 표.
+# 채운 뒤 이 파일에 "{{" 가 남아 있으면 안 된다 — 빈 run: 은 워크플로 자체가 거부된다.
 name: CI
 
 on:
@@ -27,6 +29,8 @@ jobs:
       # 🔴 test 는 건너뛰지 않는다.
       #    harness.json 의 ci.test 가 "deferred" 면 이 단계를 넣되 아래처럼 사실을 남긴다.
       #    조용히 빼면 "테스트가 없다"가 아니라 "테스트가 있는 줄" 알게 된다.
+      #    deferred 일 때 harness-init 이 넣는 줄:
+      #      run: echo "test deferred — .claude/harness.json ci.test 참고"
       - name: test
         run: {{VERIFY_TEST}}
 

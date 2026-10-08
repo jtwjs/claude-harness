@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash) — .claude/deny-patterns.yaml 의 사고 패턴 차단
+# PreToolUse(Bash) — 같은 폴더 deny-patterns.yaml 의 사고 패턴 차단
 # stdin: { tool_input: { command: "..." } }
 # exit 2 = 차단 (Claude가 stderr 메시지를 deny 사유로 인식)
 set -uo pipefail
+
+# 이 훅만 harness.json 게이팅 없이 항상 켜진다. 그래서 꺼지는 조건은 소리 내서 꺼진다 —
+# python3 가 없으면 cmd="" 로 조용히 exit 0 하던 것이 "차단이 켜져 있는 줄" 알게 만들었다 (2026-10-08).
+if ! command -v python3 >/dev/null 2>&1; then
+  printf '⚠️ block-dangerous-bash: python3 없음 — 위험 명령 차단이 꺼져 있습니다\n' >&2
+  exit 0
+fi
 
 input=$(cat 2>/dev/null || true)
 cmd=$(printf '%s' "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
@@ -48,14 +55,25 @@ for entry in entries:
 
     if not pattern:
         continue
-    if not grep_match(pattern, cmd):
+
+    # ignore_quoted: 따옴표 안 문자열을 비우고 매칭 (커밋 메시지·printf 인자 속 "-n" 오탐 방지)
+    target = cmd
+    if field("ignore_quoted").lower() == "true":
+        target = re.sub(r"'[^']*'|\"[^\"]*\"", "''", cmd)
+
+    if not grep_match(pattern, target):
+        continue
+
+    # exclude: 매칭되면 이 항목은 차단하지 않는다 (.env.example 같은 템플릿 파일)
+    excl = field("exclude")
+    if excl and grep_match(excl, target):
         continue
 
     # match_all 처리 (yaml list)
     ma_block = re.search(r'(?ms)^\s*match_all:\s*\n((?:\s+-\s+.+\n?)+)', entry)
     if ma_block:
         extras = re.findall(r'^\s+-\s+(.+?)\s*$', ma_block.group(1), re.M)
-        ok = all(grep_match(p.strip().strip('"').strip("'"), cmd) for p in extras)
+        ok = all(grep_match(p.strip().strip('"').strip("'"), target) for p in extras)
         if not ok:
             continue
 

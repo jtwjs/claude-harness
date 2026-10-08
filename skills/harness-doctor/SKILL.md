@@ -4,13 +4,21 @@ description: 이미 깔린 하네스가 썩었는지 점검한다. 문서와 실
 allowed-tools: [Read, Bash, Glob, Grep]
 ---
 
-**하네스 고유 검사 7개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
+**하네스 고유 검사 8개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
+
+## 0. 버전·스키마 표류
+
+`.claude/harness.json`의 `harness.version` ↔ `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`. 다르거나 비어 있으면 ⚠️와 함께 **키 차이**를 두 줄로 보고한다 — ① `${CLAUDE_PLUGIN_ROOT}/templates/.claude/harness.json`에 있는데 레포에 없는 최상위 키 ② 레포에만 있는 키(`$comment` 제외). 고치지는 않는다 — 어느 키를 받아들일지는 사람이 정한다.
+
+> 2026-10-08 실측: 레포 9개의 키 모양이 4종이었다(`git`·`stacks`는 셋만, `docs`·`project`는 둘만, `brainSync.sensitivePolicy`는 하나만·템플릿에 없음). 버전 키가 없어서 이게 표류인지 의도인지 아무도 몰랐다.
 
 ## 1. verify drift
 
 `CLAUDE.md`에 적힌 검증 명령 ↔ `.claude/harness.json`의 `verify`가 같은가.
 
 > 이 둘은 **의도적으로 중복**돼 있다(사람도 봐야 하므로). 그래서 어긋날 수 있고, 그걸 잡는 게 이 검사의 존재 이유다. 정본은 `harness.json`.
+
+**1-b. CI 워크플로** — `.github/workflows/ci.yml`이 있으면 세 가지를 본다. ① `{{`가 남아 있는가(남아 있으면 🔴 — 워크플로가 통째로 무효다) ② 각 `run:` 값이 `verify.*` 중 하나와 같은가(`verify`가 바뀌었는데 CI가 옛 명령을 돌리는 drift) ③ `verify.test`가 비었는데 test 스텝이 없거나 `ci.test`가 `"deferred"`가 아닌가. 이 검사가 **harness-init §4 표가 안 지켜진 것을 잡는 유일한 자리**다.
 
 ## 2. 참조 무결성 (양방향)
 

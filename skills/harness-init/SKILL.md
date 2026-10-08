@@ -54,7 +54,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 **기본 6**
 - `CLAUDE.md` — ~40줄. **CRITICAL + 링크만.** 검증 명령은 적되 정본은 `harness.json`. 이미 있으면 덮지 않고 기존 줄(예: Next의 `@AGENTS.md`)을 보존한 채 더한다
-- `.claude/harness.json`
+- `.claude/harness.json` — `harness.version` ← `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`(어느 플러그인 버전으로 깔았는지. `harness-doctor` 검사 0이 읽는다)
 - `.claude/README.md` — 라우팅 ~10줄
 - `.claude/rules/non-obvious-patterns.md` — **빈 파일로 시작**(②의 답 한 줄만)
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
@@ -63,6 +63,17 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 **조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) · ⑦이면 Changesets · CI 워크플로
 
 **스택 팩**: 판정된 팩마다 `templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
+
+**CI 워크플로(`templates/.github/workflows/ci.yml`) 플레이스홀더 — 7개 전부 이 표로 채운다.** 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다(2026-10-08 리뷰에서 `{{SETUP_STEPS}}`만 적혀 있었다).
+
+| 플레이스홀더 | 출처 (`harness.json`) | 비어 있을 때 |
+|---|---|---|
+| `{{BASE_BRANCH}}` | `git.baseBranch` | `origin/HEAD`에서 다시 뽑고, 그것도 없으면 묻는다 |
+| `{{SETUP_STEPS}}` | 판정된 팩의 `pack.md` CI 셋업 스텝 | 팩이 없으면 주석 줄째 삭제 |
+| `{{VERIFY_FORMAT}}` `{{VERIFY_LINT}}` `{{VERIFY_TYPECHECK}}` `{{VERIFY_BUILD}}` | `verify.format` · `lint` · `typecheck` · `build` | **그 `- name:` 스텝을 통째로 삭제** (ci.yml 머리 주석 "비어 있는 단계는 넣지 않는다") |
+| `{{VERIFY_TEST}}` | `verify.test` | 스텝을 지우지 않는다. `ci.test`가 `"deferred"`면 `run: echo "test deferred — .claude/harness.json ci.test 참고"` |
+
+채운 뒤 `grep -c '{{' .github/workflows/ci.yml`이 **0**이어야 한다.
 
 **`.gitignore` 보강** — `templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
 ⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).

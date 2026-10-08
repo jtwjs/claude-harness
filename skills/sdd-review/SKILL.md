@@ -8,7 +8,8 @@ disable-model-invocation: false
 ## 1. 기준 로드 (이 파일들만)
 
 - 루트 `CLAUDE.md`
-- `docs/{feature-date}/ARCHITECTURE.md`(구조·레이어) · `ADR.md`(기술 결정)
+- 설계문서 폴더는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`harness`가 채움). `task`를 모르면 묻고, `docs/` 아래를 뒤져 추측하지 않는다.
+- `{docs}/ARCHITECTURE.md`(구조·레이어) · `ADR.md`(기술 결정)
 - (필요 시 `PRD.md`로 요구사항 대조)
 
 ## 2. 변경 수집
@@ -19,7 +20,7 @@ disable-model-invocation: false
 
 | 축            | 확인                                                                                                                                                                      |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 아키텍처 준수 | `docs/{feature-date}/ARCHITECTURE.md`의 계층 배치·의존 방향과 일치. `.claude/rules/`가 금지한 경계 위반 없음                                                              |
+| 아키텍처 준수 | `{docs}/ARCHITECTURE.md`의 계층 배치·의존 방향과 일치. `.claude/rules/`가 금지한 경계 위반 없음                                                              |
 | 기술스택·ADR  | `ADR.md` 결정과 일치. **미승인 새 의존성 없음**(추가됐다면 어느 ADR이 허락했는지 대라). ADR을 인용할 땐 번호 옆에 괄호로 한 줄 — `ADR-003(설정 스키마를 blocks 패키지에)` |
 | 테스트 존재   | `harness.json.tdd.include` 범위의 변경 파일에 짝 테스트 존재. **동작 기준**으로 단언(구현 디테일 아님). 대상 판정은 `.claude/rules/testing.md` §0                         |
 | CRITICAL 규칙 | `CLAUDE.md`의 🔴 CRITICAL 각 항목을 **그대로 대조**. hook 미우회(`--no-verify`), 자동 생성물 미수정                                                                       |
@@ -31,7 +32,7 @@ disable-model-invocation: false
 2. **결과 표** — 각 축: `통과 / 위반 / 확인필요` + 근거(파일:라인).
    - 🔴 크리티컬(빌드·타입 붕괴·CRITICAL 위반·명백 버그) / 🟡 경고(규칙·경계·테스트 누락) / 🟢 제안.
 3. **수정 제안** — 항목별 `파일:라인 — 문제 — 수정 방향`. 실제 수정은 하지 않고 `feature-builder`로 인계.
-4. **다음 단계** — 통과 시 커밋(`commit` 스킬)·changeset·PR 안내. 커밋은 타입만·괄호 스코프 금지·`--no-verify` 금지.
+4. **다음 단계** — 통과 시 REFLECT로. 순서와 커밋 메시지 규칙은 여기 다시 적지 않는다 — **순서는 `sdd` SKILL.md의 REFLECT 절, 메시지 형식(`git.commitScope`)은 `commit` 스킬이 정본**이다. `--no-verify` 금지만 여기서도 한 번 더.
 
 ## 위임
 

@@ -1,6 +1,11 @@
 {
   "$comment": "harness-init 이 실제로 돌려보고 통과한 것만 채운다. 없는 키는 비워 둔다 — 지어내지 않는다.",
 
+  "harness": {
+    "$comment": "이 파일을 만든 플러그인 버전. harness-init 이 ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json 의 version 으로 채우고, harness-doctor 검사 0 이 현재 플러그인과 비교해 스키마 표류를 잡는다. (2026-10-08 — 실레포 9개의 키 모양이 4종으로 갈라져 있었는데 어느 버전으로 깔렸는지 알 길이 없었다.)",
+    "version": ""
+  },
+
   "stacks": {
     "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음.",
     "packs": []
