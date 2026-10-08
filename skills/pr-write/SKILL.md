@@ -1,4 +1,5 @@
 ---
+name: pr-write
 description: git 변경 내용을 분석해서 PR을 GitHub에 실제로 생성해줘. Reflect 완료 후 PR이 필요할 때 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
 disable-model-invocation: false
 ---
@@ -18,16 +19,7 @@ git status --short                       # 미커밋 변경 확인
 
 미커밋 변경이 있으면 PR 생성 전에 커밋 여부를 사용자에게 확인한다.
 
-**현재 브랜치가 `<base>` 자신이면**(base 에 바로 커밋이 쌓인 경우) `<base>..HEAD` 가 비거나 틀린다. 사용자 확인 뒤 커밋을 작업 브랜치로 옮긴다:
-
-```bash
-git fetch -q
-git log origin/<base>..HEAD --oneline   # 옮길 커밋 확인
-git switch -c <type>/<slug>             # 지금 HEAD 그대로 새 브랜치
-git branch -f <base> origin/<base>      # 로컬 base 를 원격 위치로 (커밋은 새 브랜치에 남는다)
-```
-
-이후 단계의 비교 기준은 `origin/<base>` 를 쓴다. 원격에 `<base>` 가 없으면 멈추고 묻는다.
+**현재 브랜치가 `<base>` 자신이면**(base 에 바로 커밋이 쌓인 경우) `<base>..HEAD` 가 비거나 틀린다 → `references/base-branch-rescue.md` 절차로 작업 브랜치로 옮긴 뒤(사용자 확인 필수) `origin/<base>` 기준으로 계속한다.
 
 ## 2단계: 원격 브랜치 푸시
 
@@ -74,21 +66,12 @@ gh label list --limit 100 --json name --jq '.[].name' | grep -E '^(유형|복잡
 
 ## 4.5단계: Risk Score 산출 (5축 0~100)
 
-diff·커밋을 근거로 5축 위험 점수를 매겨 PR 본문에 기입한다. **점수는 리뷰 강도 안내용이며, 자동 머지는 하지 않는다**(사람 판단 유지).
-
-| 축           | 만점 | 측정                                                            |
-| ------------ | ---- | --------------------------------------------------------------- |
-| 보안         | 30   | auth·permission·scope·secrets 변경, 새 외부 입력, 의존성 CVE    |
-| 스코프       | 20   | 변경 파일 수·라인 수·영향 모듈 수                               |
-| Breaking     | 20   | public API 시그니처, DB 스키마, env 추가/제거, 배럴 export 변경 |
-| 테스트       | 15   | 새 코드 대응 테스트 유무·기존 테스트 유지(없을수록 위험↑)       |
-| 마이그레이션 | 15   | DB 마이그레이션·데이터 백필·환경 설정 변경                      |
-
-각 축 0~만점 합산(0~100). 밴드: **0~30** 낮음(가벼운 리뷰) / **31~60** 보통(+AI 코멘트) / **61~80** 높음(사람 필수) / **81~100** 매우 높음(시니어+보안). 보안(30)이 가장 무겁다 — scope/permission/auth 변경 시 보수적으로(높게) 잡는다.
+`references/risk-score.md`의 5축(보안 30 · 스코프 20 · Breaking 20 · 테스트 15 · 마이그레이션 15)으로 점수를 매겨 PR 본문에 표로 넣는다. **리뷰 강도 안내용이며 자동 머지는 하지 않는다.**
 
 ## 5단계: PR 본문 작성 후 생성
 
 아래 템플릿으로 본문을 작성하고 `gh pr create`로 PR을 생성한다. base 브랜치는 1단계의 `<base>`다.
+레포에 `.github/PULL_REQUEST_TEMPLATE.md`가 있으면(harness-init이 CI와 함께 깐다) **그 섹션 구조를 채우고** Risk Score 표만 첫 섹션 아래에 추가한다 — 사람이 만든 PR과 모양이 같아야 리뷰어가 같은 자리를 본다.
 
 ```bash
 gh pr create \
@@ -114,13 +97,7 @@ EOF
 
 ## ⚠️ Risk Score: <합계>/100 (<낮음|보통|높음|매우 높음>)
 
-| 축           | 점수 | 근거    |
-| ------------ | ---- | ------- |
-| 보안         | x/30 | <한 줄> |
-| 스코프       | x/20 | <한 줄> |
-| Breaking     | x/20 | <한 줄> |
-| 테스트       | x/15 | <한 줄> |
-| 마이그레이션 | x/15 | <한 줄> |
+<!-- 5축 표 — references/risk-score.md 의 표를 그대로 -->
 
 ## 변경 유형
 

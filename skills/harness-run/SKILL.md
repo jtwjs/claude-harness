@@ -1,4 +1,5 @@
 ---
+name: harness-run
 description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 test-writer(RED) → feature-builder(GREEN) 서브에이전트를 띄워 구현·검증하고, index.json 재읽기로 상태를 판정해 커밋/재시도/중단한다. Use when harness 스킬로 만든 계획을 실제로 구현할 때. claude -p 없이 세션 내 서브에이전트로만 동작(API 과금 없음).
 disable-model-invocation: false
 ---

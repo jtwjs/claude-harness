@@ -77,11 +77,11 @@ last_report=""
 [ -d .claude/reports ] && last_report=$(ls -1 .claude/reports 2>/dev/null \
   | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | sort | tail -1)
 if [ -n "$last_report" ]; then
-  gap=$(git rev-list --count --since="$last_report" HEAD 2>/dev/null || echo 0)
+  gap=$(git rev-list --count --since="$last_report 00:00" HEAD 2>/dev/null || echo 0)   # 날짜만 주면 시각이 현재로 채워져 당일 커밋이 들쭉날쭉하다
   since_label="마지막 채점($last_report)"
 else
   gap=$(git rev-list --count HEAD 2>/dev/null || echo 0)
-  since_label="채점 이력 없음 — 레포 시작"
+  since_label="이 머신에 채점 이력 없음(.claude/reports/ 는 gitignore 라 clone 마다 비어 있다) — 레포 시작"
 fi
 if [ "${gap:-0}" -ge "$READINESS_GAP_COMMITS" ]; then
   say "${since_label} 이후 커밋 ${gap}건. ai-readiness-cartography 로 점수를 다시 잴 시점이다 — 떨어진 폭이 곧 「뭔가 들어왔는데 문서가 안 따라왔다」다."

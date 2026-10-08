@@ -132,5 +132,54 @@ echo "$out" | grep -q 'ai-readiness-cartography' && ok "게이트 초과 — 환
 # 채점을 실행해선 안 된다 — 환기 훅(SessionStart)은 읽기 전용이다(케이스 4 Stop 훅과 같은 계약)
 [ -d "$TMP/on/.claude/reports" ] && bad "쓰기 발생" "환기 훅이 채점까지 돌렸다" || ok "채점은 실행하지 않는다"
 
+# ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
+printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'
+cat > "$TMP/on/.claude/harness.json" <<JSON
+{ "verify": { "test": "pnpm test" } }
+JSON
+rm -f "$TMP/on/.claude/.last-loop-lock"
+ll() { # $1=session $2=command → exit code
+  (cd "$TMP/on" && printf '{"session_id":"%s","tool_input":{"command":"%s"}}' "$1" "$2" | bash "$HOOKS/loop-lock.sh" >/dev/null 2>&1); echo $?
+}
+[ "$(ll s1 'pnpm test')" = "0" ] && [ "$(ll s1 'pnpm test')" = "0" ] && [ "$(ll s1 'pnpm test')" = "2" ] \
+  && ok "같은 세션 3회째 exit 2" || bad "반복 차단" "3회째가 exit 2 가 아니다"
+[ "$(ll s2 'pnpm test')" = "0" ] && ok "세션이 바뀌면 count 리셋" || bad "세션 리셋" "다른 세션 첫 호출이 차단됐다"
+rm -f "$TMP/on/.claude/.last-loop-lock"
+ll s3 'ls build/' >/dev/null; [ ! -f "$TMP/on/.claude/.last-loop-lock" ] && ok "ls build/ 는 추적하지 않는다" || bad "오탐 추적" "ls build/ 가 stamp 를 만들었다"
+
+# ── 케이스 8: todo-warn — stdout JSON 으로 낸다 (stderr 는 아무도 못 본다) ─────
+printf '\n[8] todo-warn — stdout JSON\n'
+printf 'x\n// TODO later\n' > "$TMP/on/t.ts"
+(cd "$TMP/on" && git add t.ts >/dev/null 2>&1)
+out=$(cd "$TMP/on" && printf '{"tool_input":{"command":"git commit -m x"}}' | bash "$HOOKS/todo-warn.sh" 2>/dev/null)
+echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "TODO" in d["hookSpecificOutput"]["additionalContext"] and d["systemMessage"]' 2>/dev/null \
+  && ok "additionalContext + systemMessage" || bad "JSON" "out=[$out]"
+(cd "$TMP/on" && git reset -q t.ts && rm -f t.ts)
+
+# ── 케이스 9: validate-session-end — 결과를 stdout JSON systemMessage 로 ─────
+printf '\n[9] Stop 훅 — stdout JSON systemMessage\n'
+cat > "$TMP/on/.claude/harness.json" <<JSON
+{ "verify": { "lint": "echo ok", "test": "" } }
+JSON
+rm -f "$TMP/on/.claude/.last-session-validate"
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/validate-session-end.sh" 2>/dev/null)
+echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); m=d["systemMessage"]; assert "🟢 lint" in m and "verify.test" in m' 2>/dev/null \
+  && ok "systemMessage 에 🟢 lint · 빈 verify.test" || bad "JSON" "out=[$out]"
+
+# ── 케이스 10: deny — force push 위치 · +refspec · rm -rf 플래그 순서 (2026-10-08) ─
+printf '\n[10] deny 패턴 — force push · rm -rf 변형\n'
+check_deny 2 'git push -f origin main'
+check_deny 2 'git push --force-with-lease origin develop'
+check_deny 2 'git push origin +main'
+check_deny 2 'git push -f origin HEAD:main'
+check_deny 0 'git push -f origin feature/main-fix'
+check_deny 0 'git push origin main'
+check_deny 2 'rm -fr ~'
+check_deny 2 'rm -r -f /'
+check_deny 2 'rm -rf "$HOME"'
+check_deny 2 'rm -rf ~/'
+check_deny 0 'rm -rf ./build'
+check_deny 0 'rm -rf /tmp/x'
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

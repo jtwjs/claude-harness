@@ -1,4 +1,5 @@
 ---
+name: design-reconcile
 description: SDD REVIEW 단계 — 구현 화면을 Playwright로 찍어 시안과 대조하고, 코드↔디자인 어긋남의 방향을 판정해 보고한다. 구현 후 머지 전에 쓴다. 고치지 않는다.
 disable-model-invocation: false
 ---

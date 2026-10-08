@@ -1,4 +1,5 @@
 ---
+name: design-brief
 description: SDD DESIGN 단계 — PRD를 `/design`에 넣을 디자인 브리프로 만든다. 시안 전에 상태·권한·데이터 결정을 한 질문씩 끝내고, 재사용할 컴포넌트를 코드 이름으로 짚는다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
 disable-model-invocation: false
 ---

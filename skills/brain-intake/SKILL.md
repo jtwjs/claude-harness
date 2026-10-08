@@ -1,4 +1,5 @@
 ---
+name: brain-intake
 description: _brain/raw/에 던진 원본(Slack 스레드·Notion·VoC·사용자 요청·회의록)을 읽어 _brain/wiki/에 유형별로 정리(도메인 용어·결정·흐름 등. VoC는 wiki가 아니라 GitHub 이슈로)하고 [[wikilink]]로 연결한다. VoC·사용자 요청은 정리 후 사용자 확인 하에 gh CLI로 GitHub 이슈로 분해. Use when _brain/raw/에 새 자료를 넣고 지식베이스를 갱신할 때.
 disable-model-invocation: false
 ---

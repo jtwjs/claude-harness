@@ -56,9 +56,15 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 > 검사 3(빈 축적소)과 다르다 — 저기는 *비어 있나*를 보고, 여기는 *찬 것을 안 옮겼나*를 본다. 3회를 넘긴 행이 방치되면 계수기를 둔 값이 없어진다.
 
-## 7. 스택 팩 정합
+## 7. 설정 ↔ 실재
 
-`harness.json.stacks.packs` ↔ 실제 빌드 파일(`${CLAUDE_PLUGIN_ROOT}/templates/stacks/README.md` 판정표) ↔ `.claude/rules/`에 깔린 팩 규칙. 셋이 어긋나면 ⚠️ — 빌드 파일은 있는데 팩이 없거나, 팩은 적혀 있는데 규칙 파일이 없거나, 모노레포 팩 규칙의 `paths:`가 앱 디렉터리를 안 붙여 0개 파일에 매칭되는 경우.
+**7-a. 스택 팩**: `harness.json.stacks.packs` ↔ 실제 빌드 파일(`${CLAUDE_PLUGIN_ROOT}/templates/stacks/README.md` 판정표) ↔ `.claude/rules/`에 깔린 팩 규칙. 셋이 어긋나면 ⚠️ — 빌드 파일은 있는데 팩이 없거나, 팩은 적혀 있는데 규칙 파일이 없거나, 모노레포 팩 규칙의 `paths:`가 앱 디렉터리를 안 붙여 0개 파일에 매칭되는 경우.
+
+**7-b. 릴리스**: `release.tool`이 `"changesets"`인데 `.changeset/config.json`이 없거나, 반대로 `.changeset/`은 있는데 `release.tool`이 `null`이면 ⚠️ — `changeset` 스킬이 0단계에서 잘못 skip 하거나 잘못 돈다.
+
+**7-c. gitignore**: 루트 `.gitignore`에 `.claude/.last-*`가 없으면 ⚠️ — 훅 stamp 가 매 세션 untracked 로 뜬다(`${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append` 미적용). `_brain/`이 있으면 `_brain/internal/`도 같이 본다.
+
+**7-d. `_brain/`**(있을 때만): `_brain/wiki/index.md`에 적힌 노드 ↔ 실제 `.md` 파일이 1:1인가. 비밀값 패턴 grep은 `_brain/CLAUDE.md`의 명령 그대로 한 번 돌려 0건인지 본다.
 
 ## 출력
 

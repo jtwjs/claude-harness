@@ -19,9 +19,11 @@
 
 patterns:
   - id: protected-force-push
-    pattern: 'git[[:space:]]+push[[:space:]].*(-f\b|--force\b|--force-with-lease\b)'
+    # -f / --force / --force-with-lease, 또는 +refspec 강제 push. 브랜치는 push 인자 자리(공백 뒤, 선택적 `+`·`src:` 접두)에서만 본다 —
+    # 옛 패턴은 명령 전체에서 main 을 찾아 `feature/main-fix` 도 막았다. 브랜치 인자를 생략한 push(현재 브랜치가 main)는 정적으로 못 잡는다.
+    pattern: 'git[[:space:]]+push[[:space:]][^|;&]*(-f\b|--force\b|--force-with-lease\b|[[:space:]]\+[A-Za-z0-9_./-]+)'
     match_all:
-      - '(\b|/)(main|develop)\b'
+      - 'push[^|;&]*[[:space:]]\+?([A-Za-z0-9_./-]+:)?(main|develop)([[:space:]]|$)'
     title: "main/develop force push"
     reason: "보호 브랜치 force push 금지. hotfix 브랜치 → PR로 처리."
 
@@ -42,7 +44,8 @@ patterns:
     reason: "pre-commit hook 우회 금지. hook 실패 시 원인 수정 후 재커밋. (CLAUDE.md 정책)"
 
   - id: rm-rf-root-home
-    pattern: 'rm[[:space:]]+-r[fR]*[[:space:]]+(/|~|\$HOME)([[:space:]]|$)'
+    # 플래그 순서·표기 무관(-rf · -fr · -r -f · --recursive), 경로는 따옴표·끝 슬래시 허용. ./build 나 /tmp/x 같은 하위 경로는 막지 않는다.
+    pattern: 'rm[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+-[a-zA-Z-]+)*[[:space:]]+["'"'"']?(/|~|\$HOME|\$\{HOME\})/?["'"'"']?([[:space:]]|$)'
     title: "rm -rf 루트/홈 디렉터리"
     reason: "치명적 재귀 삭제 차단."
 

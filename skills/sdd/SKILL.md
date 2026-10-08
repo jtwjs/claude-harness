@@ -1,4 +1,5 @@
 ---
+name: sdd
 description: SDD 전체 워크플로우 오케스트레이터 — 기능·버그 작업을 DESIGN→PLAN→IMPLEMENT→REVIEW→REFLECT로 자동 진행한다. 스펙→테스트→구현 순서를 강제하고, 위임 구간은 자동으로 넘어가되 사람 체크포인트에서만 멈춘다. Use when 새 기능·버그 작업을 시작할 때(단계별 수동 호출 대신 이 흐름으로).
 disable-model-invocation: false
 ---

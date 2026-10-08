@@ -1,4 +1,5 @@
 ---
+name: sdd-review
 description: SDD REVIEW 단계 — 루트 CLAUDE.md + 기능의 ARCHITECTURE.md·ADR.md를 읽고 최근 변경 diff를 아키텍처·기술스택/ADR·테스트·CRITICAL 규칙·빌드/테스트 통과 관점으로 대조해 결과 표와 수정 제안을 낸다. Use when 구현(harness-run) 후 머지·커밋 전에 변경분을 검증할 때. 깊은 리뷰는 code-reviewer 에이전트에 위임.
 disable-model-invocation: false
 ---

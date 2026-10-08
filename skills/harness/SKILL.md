@@ -1,4 +1,5 @@
 ---
+name: harness
 description: SDD PLAN 단계 — docs/{feature-date}/ 설계문서(PRD·ARCHITECTURE·ADR)와 CLAUDE.md를 읽고 사용자와 범위를 합의한 뒤, 자기완결적 step 파일(phases/{task}/index.json + stepN.md)로 분해해줘. Use when 설계가 끝나 구현 계획을 세울 때(harness-run 실행 직전).
 disable-model-invocation: false
 ---
@@ -105,11 +106,6 @@ UI 작업이고 `/design`·claude.ai/design 시안(또는 핸드오프 프롬프
 
 ---
 
-## 부록 — 설계문서 템플릿 (`docs/{feature-YYYY-MM-DD}/`)
+## 설계문서가 없을 때
 
-DESIGN 단계 산출물. 없으면 `grilling`으로 **PRD부터 만든 뒤** 이 스킬로 돌아온다.
-
-**PRD.md**: 무엇을(한 문장) · 왜(문제·성공지표) · 사용자 시나리오 · 범위(포함/제외) · **수용 조건 체크리스트** ← `test-writer`가 케이스를 뽑는 입력이다.
-**ARCHITECTURE.md**: 개요 · 계층 배치와 각 층의 책임 · 데이터 흐름 · 경계·의존 방향 · 상태 관리 규약 · 테스트 전략. **구체 스택 이름은 그 프로젝트의 것을 쓴다.**
-**ADR.md**: `ADR-00N` 블록 반복 — 상태 · 맥락 · 결정 · 대안(+버린 이유) · 결과(트레이드오프).
-**다른 ADR을 가리킬 때 번호만 쓰지 않는다** — 처음 나올 때 괄호로 무엇을 정했는지 한 줄 붙인다(`ADR-003(설정 스키마를 blocks 패키지에)`). 번호만 보고 아는 사람은 그걸 쓴 사람뿐이다. 문장 끝에 근거로 묶어 다는 자리(`(ADR-003·ADR-007)`)는 예외.
+`docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없으면 `grilling`으로 **PRD부터 만든 뒤** 이 스킬로 돌아온다. 세 문서의 항목 정의는 `grilling` SKILL.md 「설계문서 3장」이 정본이다(2026-10-08 — DESIGN 산출물 정의가 PLAN 스킬에 붙어 있던 것을 옮김).

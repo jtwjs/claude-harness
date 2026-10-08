@@ -7,6 +7,8 @@
 #
 # non-blocking: 실패해도 exit 0. 진짜 게이트는 CI 와 feature-builder 자체 점검이다.
 # 루프 가드: 같은 변경 상태면 재실행하지 않는다.
+# 출력: stdout JSON 의 systemMessage. exit 0 의 stderr 는 디버그 로그에만 남아 아무도 못 본다
+#   (2026-10-08 공식 문서 확인 — 그 전까지 이 훅의 🟢/🔴 결과는 한 번도 전달된 적이 없다).
 set -uo pipefail
 cat >/dev/null 2>&1 || true
 
@@ -45,21 +47,27 @@ for k in ("format", "lint", "typecheck", "test"):
 PY
 )
 
+emit() { # $1 = 메시지 — stdout JSON systemMessage 로 낸다
+  MSG="$1" python3 -c 'import json,os; print(json.dumps({"systemMessage": os.environ["MSG"]}, ensure_ascii=False))'
+}
+
 if [ -z "$steps" ]; then
-  printf 'ℹ️  harness.json 에 verify 명령이 없습니다 — skip\n' >&2
+  emit 'ℹ️ harness.json 에 verify 명령이 없습니다 — Stop 검증 skip'
   exit 0
 fi
 
-failed=""
+failed=""; report=""
 while IFS=$'\t' read -r name cmd; do
   [ -z "$name" ] && continue
   out=$(eval "$cmd" 2>&1 </dev/null); code=$?   # stdin 을 끊는다 — 아래 heredoc 을 verify 명령이 삼키지 않게
   if [ "$code" -ne 0 ]; then
     failed="$failed $name"
-    printf '\n🔴 %s 실패\n' "$name" >&2
-    printf '%s\n' "$out" | tail -n 25 >&2
+    report="${report}🔴 ${name} 실패
+$(printf '%s\n' "$out" | tail -n 12)
+"
   else
-    printf '🟢 %s\n' "$name" >&2
+    report="${report}🟢 ${name}
+"
   fi
 done <<EOF
 $steps
@@ -68,15 +76,12 @@ EOF
 [ -n "$cur_hash" ] && printf '%s' "$cur_hash" >"$stamp" 2>/dev/null || true
 
 # verify.test 가 비어 있으면 그 사실을 말한다 (조용히 죽지 않게)
-python3 - "$CFG" <<'PY' >&2
-import json, sys
-try:
-    cfg = json.load(open(sys.argv[1], encoding="utf-8"))
-except Exception:
-    sys.exit(0)
-if not ((cfg.get("verify") or {}).get("test") or "").strip():
-    print("⚠️  verify.test 가 비어 있습니다 — 이 레포에는 테스트 실행 경로가 없습니다.")
-PY
+if ! python3 -c 'import json,sys; cfg=json.load(open(sys.argv[1],encoding="utf-8")); sys.exit(0 if ((cfg.get("verify") or {}).get("test") or "").strip() else 1)' "$CFG" 2>/dev/null; then
+  report="${report}⚠️ verify.test 가 비어 있습니다 — 이 레포에는 테스트 실행 경로가 없습니다.
+"
+fi
+[ -n "$failed" ] && report="${report}⚠️ 실패:${failed} (차단 아님 — CI 가 최종 게이트)"
 
-[ -n "$failed" ] && printf '\n⚠️  실패:%s (차단 아님 — CI 가 최종 게이트)\n' "$failed" >&2
+emit "Stop 검증(읽기 전용)
+${report}"
 exit 0
