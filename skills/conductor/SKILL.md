@@ -141,9 +141,12 @@ query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
     number title labels(first:10){nodes{name}}
     blockedBy(first:20){nodes{number state}}
 }}}}' --jq '.data.repository.issues.nodes[]
+  | select([.labels.nodes[].name] | index("decision") | not)
   | select([.blockedBy.nodes[] | select(.state=="OPEN")] | length == 0)
   | "#\(.number) [\([.labels.nodes[].name | select(startswith("track:"))] | join(","))] \(.title)"'
 ```
+
+`decision` 이슈는 지휘가 들고 있는 원장이라 결과에서 뺀다 — 트랙이 집어 갈 것은 `follow-up`·`contract-change`뿐이다(2026-10-08 비공개 임시 레포 실측: 빼지 않으면 결정 이슈가 "진행 가능"으로 섞여 나왔다).
 
 **실패하면**(권한·기능 미지원): 본문 첫 줄 `Blocked-by: #N` + `blocked` 라벨로 대신한다. 조회는 `gh issue list --label conductor --json number,title,body,labels` 한 번으로 받아 첫 줄을 파싱한다.
 
