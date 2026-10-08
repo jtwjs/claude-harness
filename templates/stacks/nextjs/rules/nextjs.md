@@ -1,5 +1,5 @@
 ---
-paths: ["app/**", "src/app/**", "src/**/*.tsx", "next.config.*", "middleware.ts", "src/middleware.ts"]
+paths: ["app/**", "src/app/**", "src/**/*.tsx", "src/**/*.ts", "next.config.*", "middleware.ts", "src/middleware.ts"]
 ---
 
 # Next.js 규칙 (App Router)

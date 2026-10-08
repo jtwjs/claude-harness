@@ -1,0 +1,30 @@
+# harness-init 이 판정한 팩마다 블록을 남기고 나머지는 지운다. directory 는 stacks.packs[].root.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /            # 앱별이면 /apps/api 처럼 root
+    # target-branch: develop   # 기준 브랜치가 기본 브랜치와 다르면 푼다 (안 풀면 PR 이 기본 브랜치로 간다)
+    schedule: { interval: monthly }
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+    # Kotlin minor 는 lint 플러그인(ktlint) 지원 확인 뒤 손으로 올린다 — Kotlin minor 만 올라가
+    # ktlintCheck · build 가 전부 실패해 기준 브랜치 CI 가 붉어진 적이 있다(2026-09-30 실측).
+    # ignore:
+    #   - dependency-name: "org.jetbrains.kotlin*"
+    #     update-types: ["version-update:semver-minor"]
+    #   - dependency-name: "jvm"
+    #     update-types: ["version-update:semver-minor"]
+    #   - dependency-name: "plugin.*"
+    #     update-types: ["version-update:semver-minor"]
+
+  - package-ecosystem: npm
+    directory: /            # 앱별이면 /apps/web 처럼 root
+    # target-branch: develop
+    schedule: { interval: monthly }
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+
+  - package-ecosystem: github-actions
+    directory: /
+    # target-branch: develop
+    schedule: { interval: monthly }

@@ -29,7 +29,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 ## 3. 빈 축적소
 
-`.claude/rules/non-obvious-patterns.md`가 **비어 있는가.**
+`.claude/rules/non-obvious-patterns.md`가 **비어 있는가.** 0.10.0부터 플러그인이 심는 「시드」 절 2줄은 세지 않는다 — `---` 아래만 본다.
 
 > 비었다는 것은 아직 아무 함정도 안 겪었거나, **겪고도 안 적었다**는 뜻이다. 후자면 이 레포에서 같은 사고가 반복된다.
 

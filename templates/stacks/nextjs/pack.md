@@ -24,12 +24,16 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 
 ```yaml
       - uses: pnpm/action-setup@v4
+        with: { package_json_file: <root>/package.json }   # pnpm 버전은 package.json packageManager 한 곳에서
       - uses: actions/setup-node@v4
-        with: { node-version-file: ".nvmrc", cache: pnpm }
+        with:
+          node-version-file: <root>/.nvmrc
+          cache: pnpm
+          cache-dependency-path: <root>/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
 ```
 
-`.nvmrc`·`engines`가 없으면 Node 버전을 묻는다.
+`<root>`는 `stacks.packs[].root`(단일 앱이면 `.`). `.nvmrc`·`engines`가 없으면 Node 버전을 묻는다. `package_json_file`을 안 주면 action이 루트 `package.json`만 찾아 앱별 레포에서 실패한다.
 
 ## create-next-app이 만드는 에이전트 파일 (16.x 실측)
 
@@ -38,4 +42,4 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 
 ## 복사할 규칙
 
-`rules/nextjs.md` (+ 기존 TS 조건부 두 파일)
+`rules/nextjs.md` · `rules/e2e.md`(Playwright가 있을 때) (+ 기존 TS 조건부 두 파일)

@@ -42,16 +42,17 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
 별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. `test-writer`가 중첩 `describe`로 대체한다.
 
-## 3. 인터뷰 (기계가 모르는 것만, 8개)
+## 3. 인터뷰 (기계가 모르는 것만, 9개)
 
 ① **절대 금기가 있나?** → CLAUDE.md 🔴 CRITICAL
 ② **처음 온 사람이 당하는 함정은?** → `non-obvious-patterns.md` 첫 항목
 ③ **이 서비스를 한 줄로?** → CLAUDE.md 첫 줄
 ④ **TDD를 강제할 경로는?** (후보 제시) → `tdd.include`/`exclude`. 없으면 `enabled: false` + **감점 보고**
-⑤ **`_brain/`을 둘까?** → 지식 파이프라인
+⑤ **`_brain/`을 둘까?** → 지식 파이프라인. 예면 「사실을 바꾸는 코드 경로」(마이그레이션 · 컨트롤러 · 스케줄러 · 설정 · 라우트 · CI)를 후보로 보여 주고 `rules/brain.md`의 `paths:`와 표를 채운다
 ⑥ **CI에 테스트 게이트가 있나?** → 없으면 `ci.test: "deferred"`
 ⑦ **릴리스를 Changesets로 관리할까?** → 예면 **없어도 깔아준다**(6단계)
 ⑧ **병렬 트랙(worktree 세션 여러 개)으로 진행하나?** → 예면 트랙 표를 묻는다(트랙 이름 · 소유 경로 · 공유 구역 · 계약 경로). `tracks.md`·`track-brief.md`를 깔고 지휘 세션 하나는 `conductor`로 돈다고 안내한다. 아니오면 깔지 않는다
+⑨ **LLM을 부르는 코드가 있나?**(`grep -rlE 'anthropic|openai|bedrock|messages\.create'` 등으로 후보를 먼저 찾는다) → 예면 그 경로로 `rules/llm-pipeline.md`의 `paths:`를 채워 깐다. 경로가 안 정해지면 깔지 않는다(`paths: []`로 두면 아무 데도 안 걸린다)
 
 ## 4. 생성
 
@@ -59,11 +60,11 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `CLAUDE.md` — ~40줄. **CRITICAL + 링크만.** 검증 명령은 적되 정본은 `harness.json`. 이미 있으면 덮지 않고 기존 줄(예: Next의 `@AGENTS.md`)을 보존한 채 더한다
 - `.claude/harness.json` — `harness.version` ← `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`(어느 플러그인 버전으로 깔았는지. `harness-doctor` 검사 0이 읽는다)
 - `.claude/README.md` — 라우팅 ~10줄
-- `.claude/rules/non-obvious-patterns.md` — **빈 파일로 시작**(②의 답 한 줄만)
+- `.claude/rules/non-obvious-patterns.md` — 플러그인 시드 2줄(셸 함정) + ②의 답 한 줄. 레포 항목은 `---` 아래부터
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
 
-**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`${CLAUDE_PLUGIN_ROOT}/templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`가 있으면 그 구조를 따른다. 레포에 이미 있으면 덮지 않는다)
+**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`${CLAUDE_PLUGIN_ROOT}/templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) + `rules/brain.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`가 있으면 그 구조를 따른다. 레포에 이미 있으면 덮지 않는다)
 
 **스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
 

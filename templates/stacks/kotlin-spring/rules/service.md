@@ -1,5 +1,5 @@
 ---
-paths: ["**/service/**", "**/application/**", "**/worker/**", "**/scheduler/**", "**/listener/**"]
+paths: ["**/service/**", "**/application/**", "**/worker/**", "**/scheduler/**", "**/listener/**", "**/*Service.kt", "**/*Worker.kt", "**/*Scheduler.kt", "**/*Listener.kt"]
 ---
 
 # 서비스 규칙

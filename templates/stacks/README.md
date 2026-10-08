@@ -8,13 +8,14 @@
 ## 판정 — 빌드 파일로만
 
 ```bash
-ls build.gradle.kts build.gradle pom.xml package.json tsconfig.json next.config.* 2>/dev/null
+ls build.gradle.kts build.gradle pom.xml package.json tsconfig.json next.config.* vite.config.* 2>/dev/null
 ```
 
 | 있는 것 | 팩 | 비고 |
 |---|---|---|
 | `build.gradle.kts`·`build.gradle`·`pom.xml` + 본문에 `org.springframework.boot` | `kotlin-spring/` | Kotlin 소스(`src/main/kotlin`)가 없으면 팩을 적용하지 않고 묻는다 |
 | `package.json`의 dependencies에 `next` | `nextjs/` | TS면 기존 `rules/{typescript,functional-programming}.md`도 같이 |
+| `vite.config.*` + dependencies에 `react` (`next` 없음) | `react-vite/` | TS 조건부 두 파일도 같이. `rules/fsd.md`는 FSD를 쓸 때만(묻는다). ESLint 설정 정본은 stack-kits `fullstack` kit의 `apps/web/eslint.config.*` |
 | `tsconfig.json`만 | (팩 없음) | 기존 TS 조건부 규칙만 |
 
 - ⛔ **스택을 추측하지 않는다.** 빌드 파일이 없거나 표에 없는 조합이면 사용자에게 묻는다.
