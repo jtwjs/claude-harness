@@ -181,5 +181,28 @@ check_deny 2 'rm -rf ~/'
 check_deny 0 'rm -rf ./build'
 check_deny 0 'rm -rf /tmp/x'
 
+# ── 케이스 11: 앱별 verify — Stop 훅이 root 마다 cd 해서 돌리고 root 이름을 낸다 (0.10.0) ─
+printf '\n[11] Stop 훅 — 앱별 verify\n'
+mkdir -p "$TMP/multi/.claude" "$TMP/multi/apps/api" "$TMP/multi/apps/web" && (cd "$TMP/multi" && git init -q)
+: > "$TMP/multi/apps/api/only-here"   # cd 가 안 되면 test -f 가 실패한다
+cat > "$TMP/multi/.claude/harness.json" <<JSON
+{ "verify": { "\$comment": "x",
+  "apps/api": { "test": "test -f only-here" },
+  "apps/web": { "lint": "echo ok", "test": "" } } }
+JSON
+out=$(cd "$TMP/multi" && printf '{}' | bash "$HOOKS/validate-session-end.sh" 2>/dev/null)
+msg=$(printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdin)["systemMessage"])' 2>/dev/null)
+echo "$msg" | grep -q '🟢 apps/api test' && ok "root 에서 실행 · 이름 표시 (apps/api test)" || bad "앱별 실행" "msg=[$msg]"
+echo "$msg" | grep -q '🟢 apps/web lint' && ok "두 번째 root 도 실행 (apps/web lint)" || bad "앱별 실행" "msg=[$msg]"
+echo "$msg" | grep -q 'apps/web: verify.test 가 비어' && ok "빈 test 를 root 별로 보고" || bad "침묵" "msg=[$msg]"
+# loop-lock: 중첩 verify 명령을 검증성으로 본다 — 'cd … &&' 로 시작해 2순위 정규식에는 안 걸리는 명령
+cat > "$TMP/multi/.claude/harness.json" <<JSON
+{ "verify": { "apps/api": { "test": "mytool verify-all" } } }
+JSON
+llm() { (cd "$TMP/multi" && printf '{"session_id":"m1","tool_input":{"command":"%s"}}' "$1" | bash "$HOOKS/loop-lock.sh" >/dev/null 2>&1); echo $?; }
+c='cd apps/api && mytool verify-all'
+[ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "2" ] \
+  && ok "loop-lock — 중첩 verify 명령 3회째 exit 2" || bad "loop-lock 중첩" "앱별 verify 명령을 추적하지 못했다"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

@@ -33,6 +33,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 `package.json` scripts·Makefile·CI 설정, 그리고 **판정된 팩의 `pack.md` 후보표**에서 후보를 뽑고 **하나씩 실제로 실행한다.**
 
 - **통과한 것만** `harness.json.verify`에 적는다. 실패하면 **뺀다**(고치려 들지 않는다).
+- **앱이 둘 이상**(모노레포 · `stacks.packs`에 root가 여럿)이면 앱별 형태로 적는다: `{"apps/api": {"test": "…"}, "apps/web": {…}}`. 키는 `stacks.packs[].root`와 같은 값이고, 명령은 **그 폴더에서** 실행해 본다(`cd <root> && …`). 앱별이면 단일 앱 키(`format`·`lint`…)는 지운다. `validate-session-end`·`loop-lock` 훅과 `harness-doctor`가 두 형태를 다 읽는다
 - `verify.format`에는 **읽기 전용(`--check` 계열)만** 넣는다. 포맷 적용은 `auto-format` 훅이 편집 직후에 한다.
 - 없는 키는 **비워 둔다.** 지어내지 않는다.
 - `git.baseBranch` ← `git symbolic-ref --short refs/remotes/origin/HEAD`(`origin/` 제거). 리모트가 없으면 비우고 보고한다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다
@@ -74,8 +75,9 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | `{{SETUP_STEPS}}` | 판정된 팩의 `pack.md` CI 셋업 스텝 | 팩이 없으면 주석 줄째 삭제 |
 | `{{VERIFY_FORMAT}}` `{{VERIFY_LINT}}` `{{VERIFY_TYPECHECK}}` `{{VERIFY_BUILD}}` | `verify.format` · `lint` · `typecheck` · `build` | **그 `- name:` 스텝을 통째로 삭제** (ci.yml 머리 주석 "비어 있는 단계는 넣지 않는다") |
 | `{{VERIFY_TEST}}` | `verify.test` | 스텝을 지우지 않는다. `ci.test`가 `"deferred"`면 `run: echo "test deferred — .claude/harness.json ci.test 참고"` |
+| (형태) | `verify`가 **앱별**이면 | `jobs` 전체를 `ci.yml` 맨 아래 주석 블록 형태로 바꾼다 — 앱마다 잡(`working-directory: <root>`, 스텝은 `verify["<root>"]`로 위 규칙대로) + `paths` 필터 + `ci-gate`(needs 전부, skipped 허용). 브랜치 보호 필수 체크는 `ci-gate` 하나 |
 
-채운 뒤 `grep -c '{{' .github/workflows/ci.yml`이 **0**이어야 한다.
+채운 뒤 `grep -cE '\{\{[A-Z_]+\}\}' .github/workflows/ci.yml`이 **0**이어야 한다. (`${{ github.… }}`는 GitHub 식이라 세지 않는다. 0.10.0에서 `concurrency`가 들어가 옛 검사 `grep -c '{{'`는 항상 0이 아니다)
 
 **`.gitignore` 보강** — `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
 ⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).

@@ -7,8 +7,9 @@
   },
 
   "stacks": {
-    "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음.",
-    "packs": []
+    "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음. kitRef 는 harness-new 가 degit 한 kit 과 고정 ref(예: \"jtwjs/stack-kits/fullstack#v0.2.0\"). kit 없이 깔았으면 비운다.",
+    "packs": [],
+    "kitRef": ""
   },
 
   "git": {
@@ -20,7 +21,7 @@
   "packageManager": "",
 
   "verify": {
-    "$comment": "format 은 반드시 읽기 전용(--check 계열). 포맷 적용은 auto-format 훅이 편집 직후에 한다.",
+    "$comment": "format 은 반드시 읽기 전용(--check 계열). 포맷 적용은 auto-format 훅이 편집 직후에 한다. 형태 둘: ① 단일 앱 — 지금처럼 키→명령 문자열, 레포 루트에서 실행. ② 앱별 — { \"<root>\": { \"format\": \"…\", \"lint\": \"…\", \"typecheck\": \"…\", \"test\": \"…\", \"build\": \"…\" } }, root 는 stacks.packs[].root 와 같은 값이고 명령은 그 폴더에서 실행한다. 앱별이면 아래 단일 앱 키 5개는 지운다(섞으면 앱별만 읽힌다).",
     "format": "",
     "lint": "",
     "typecheck": "",

@@ -35,7 +35,7 @@ disable-model-invocation: false
 
    **2-a. RED — `tdd: true`인 step만.** Agent 도구로 **`test-writer`**를 띄우고 preamble + `{index.json.docs}/PRD.md`의 수용 조건을 전달한다. 지시:
    - 구현 파일을 열지 않고, step의 수용 조건을 **실패하는 테스트**로 쓴다(짝 테스트 위치는 `tdd-guard`가 보는 자리 — TS `*.test.ts(x)`, JVM `src/test/…/FooTest.kt`).
-   - 끝나면 메인이 `verify.test`를 **실제 실행**한다. **실패해야 RED 통과.** 전부 통과하면 잡는 게 없다는 뜻이다 → step `error`, `error_message: "RED: 테스트가 아무것도 잡지 않음"`. 2-b로 넘어가지 않는다.
+   - 끝나면 메인이 `verify.test`를 **실제 실행**한다(앱별 verify면 step이 만지는 root의 `test`를 그 폴더에서). **실패해야 RED 통과.** 전부 통과하면 잡는 게 없다는 뜻이다 → step `error`, `error_message: "RED: 테스트가 아무것도 잡지 않음"`. 2-b로 넘어가지 않는다.
    - `verify.test`가 비어 있으면 RED를 돌 수 없다 → step `blocked`, `blocked_reason: "verify.test 없음 — tdd:true step을 돌릴 수 없다"`.
 
    **2-b. GREEN — 모든 step.** Agent 도구로 **`feature-builder`**를 띄우고 preamble을 전달한다. 지시:
@@ -60,7 +60,7 @@ disable-model-invocation: false
 1. **코드 커밋**
    - subject: `feat: step N — {name}` (구현이 리팩터/수정이면 `refactor:`/`fix:`)
    - body: `phase: {task}` + step 요약 1줄
-   - 커밋 전 `.claude/harness.json`의 `verify`를 순서대로 실행한다. **1회만** — 서브에이전트 자체 점검과 중복하지 않는다.
+   - 커밋 전 `.claude/harness.json`의 `verify`를 순서대로 실행한다. **1회만** — 서브에이전트 자체 점검과 중복하지 않는다. 앱별(`{"<root>": {…}}`)이면 **root마다 그 폴더에서** 1회씩 — step이 만진 root만이 아니라 전부(계약을 거쳐 다른 앱이 깨질 수 있다)
 2. **메타데이터 커밋**
    - `phases/{task}/index.json` 변경분: `chore: update phase index for step N` (body: `phase: {task}`).
 

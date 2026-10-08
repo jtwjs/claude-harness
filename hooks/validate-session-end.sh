@@ -9,6 +9,9 @@
 # 루프 가드: 같은 변경 상태면 재실행하지 않는다.
 # 출력: stdout JSON 의 systemMessage. exit 0 의 stderr 는 디버그 로그에만 남아 아무도 못 본다
 #   (2026-10-08 공식 문서 확인 — 그 전까지 이 훅의 🟢/🔴 결과는 한 번도 전달된 적이 없다).
+# verify 두 형태 (0.10.0):
+#   단일 앱  {"verify": {"lint": "…", "test": "…"}}                    → 레포 루트에서 실행
+#   앱별     {"verify": {"apps/api": {"test": "…"}, "apps/web": {…}}}  → root 마다 cd 후 실행, 결과에 root 이름
 set -uo pipefail
 cat >/dev/null 2>&1 || true
 
@@ -33,19 +36,32 @@ if [ -n "$cur_hash" ] && [ -f "$stamp" ] && [ "$(cat "$stamp" 2>/dev/null)" = "$
 fi
 
 # ── verify 추출 (없는 키는 skip — 거짓말하지 않는다) ─────────────────────────
-steps=$(python3 - "$CFG" <<'PY'
+# 한 줄 = root \t 키 \t 명령. 단일 앱이면 root 는 "." 이다.
+# "#notest \t root" 줄은 verify.test 가 빈 root (조용히 죽지 않게 보고용).
+parsed=$(python3 - "$CFG" <<'PY'
 import json, sys
 try:
     cfg = json.load(open(sys.argv[1], encoding="utf-8"))
 except Exception:
     sys.exit(0)
 v = cfg.get("verify") or {}
-for k in ("format", "lint", "typecheck", "test"):
-    c = (v.get(k) or "").strip()
-    if c:
-        print(f"{k}\t{c}")
+apps = {k: m for k, m in v.items() if not k.startswith("$") and isinstance(m, dict)}
+if not apps:
+    apps = {".": v}
+def cmd(m, k):
+    c = m.get(k)
+    return c.strip() if isinstance(c, str) else ""
+for root, m in apps.items():
+    if not cmd(m, "test"):
+        print(f"#notest\t{root}")
+for root, m in apps.items():
+    for k in ("format", "lint", "typecheck", "test"):
+        if cmd(m, k):
+            print(f"{root}\t{k}\t{cmd(m, k)}")
 PY
 )
+notest=$(printf '%s\n' "$parsed" | awk -F'\t' '$1=="#notest"{print $2}')
+steps=$(printf '%s\n' "$parsed" | grep -v '^#notest' || true)
 
 emit() { # $1 = 메시지 — stdout JSON systemMessage 로 낸다
   MSG="$1" python3 -c 'import json,os; print(json.dumps({"systemMessage": os.environ["MSG"]}, ensure_ascii=False))'
@@ -57,11 +73,19 @@ if [ -z "$steps" ]; then
 fi
 
 failed=""; report=""
-while IFS=$'\t' read -r name cmd; do
-  [ -z "$name" ] && continue
-  out=$(eval "$cmd" 2>&1 </dev/null); code=$?   # stdin 을 끊는다 — 아래 heredoc 을 verify 명령이 삼키지 않게
+while IFS=$'\t' read -r root key cmd; do
+  [ -z "$key" ] && continue
+  if [ "$root" = "." ]; then name="$key"; else name="$root $key"; fi
+  if [ ! -d "$REPO_ROOT/$root" ]; then
+    failed="$failed [$name]"
+    report="${report}🔴 ${name} — root 폴더 없음
+"
+    continue
+  fi
+  # root 마다 서브셸에서 cd. stdin 을 끊는다 — 아래 heredoc 을 verify 명령이 삼키지 않게
+  out=$(cd "$REPO_ROOT/$root" && eval "$cmd" 2>&1 </dev/null); code=$?
   if [ "$code" -ne 0 ]; then
-    failed="$failed $name"
+    failed="$failed [$name]"
     report="${report}🔴 ${name} 실패
 $(printf '%s\n' "$out" | tail -n 12)
 "
@@ -75,11 +99,19 @@ EOF
 
 [ -n "$cur_hash" ] && printf '%s' "$cur_hash" >"$stamp" 2>/dev/null || true
 
-# verify.test 가 비어 있으면 그 사실을 말한다 (조용히 죽지 않게)
-if ! python3 -c 'import json,sys; cfg=json.load(open(sys.argv[1],encoding="utf-8")); sys.exit(0 if ((cfg.get("verify") or {}).get("test") or "").strip() else 1)' "$CFG" 2>/dev/null; then
-  report="${report}⚠️ verify.test 가 비어 있습니다 — 이 레포에는 테스트 실행 경로가 없습니다.
+# verify.test 가 비어 있으면 그 사실을 말한다 (조용히 죽지 않게). 앱별이면 root 마다
+while IFS= read -r r; do
+  [ -z "$r" ] && continue
+  if [ "$r" = "." ]; then
+    report="${report}⚠️ verify.test 가 비어 있습니다 — 이 레포에는 테스트 실행 경로가 없습니다.
 "
-fi
+  else
+    report="${report}⚠️ ${r}: verify.test 가 비어 있습니다 — 이 앱에는 테스트 실행 경로가 없습니다.
+"
+  fi
+done <<EOF
+$notest
+EOF
 [ -n "$failed" ] && report="${report}⚠️ 실패:${failed} (차단 아님 — CI 가 최종 게이트)"
 
 emit "Stop 검증(읽기 전용)

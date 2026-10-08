@@ -33,6 +33,8 @@ stamp="$REPO_ROOT/.claude/.last-loop-lock"  # .claude/.last-* 는 .gitignore 처
 
 # 검증성(루프 위험) 명령만 추적.
 #   1순위: harness.json verify.* 에 적힌 명령 문자열이 들어 있다.
+#          앱별 verify({"apps/api": {"test": …}})는 한 겹 평탄화해서 본다 (0.10.0 — 평탄화 전에는
+#          중첩 dict 에서 .strip() 이 터져 앱별 레포의 verify 명령을 하나도 추적하지 못했다).
 #   2순위: 러너 이름으로 시작하고 test/lint/typecheck/build/check 를 품는다 (verify 가 비어 있는 레포).
 is_verify=$(CMD="$cmd" python3 - "$CFG" <<'PY'
 import json, os, re, sys
@@ -41,8 +43,16 @@ try:
     v = (json.load(open(sys.argv[1], encoding="utf-8")).get("verify") or {})
 except Exception:
     v = {}
-for c in v.values():
-    c = (c or "").strip()
+flat = []
+for k, c in v.items():
+    if k.startswith("$"):
+        continue
+    if isinstance(c, dict):
+        flat += [x for kk, x in c.items() if not kk.startswith("$")]
+    else:
+        flat.append(c)
+for c in flat:
+    c = c.strip() if isinstance(c, str) else ""
     if c and c in cmd:
         print("1"); sys.exit(0)
 if re.search(r"^\s*(pnpm|npm|yarn|npx|bun|turbo|vitest|jest|tsc|eslint|gradle|\./gradlew|mvn|\./mvnw)\b[^|;&]*\b(test|lint|typecheck|build|check)\b", cmd):

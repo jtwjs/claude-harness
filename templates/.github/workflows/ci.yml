@@ -1,13 +1,23 @@
 # harness-init 이 harness.json.verify 에서 실제로 통과한 명령만 채운다.
 # 비어 있는 단계는 넣지 않는다 — 없는 명령을 적으면 첫날부터 red 가 뜬다.
 # 플레이스홀더 {{…}} 는 7개. 출처와 비었을 때 규칙은 harness-init SKILL.md §4 표.
-# 채운 뒤 이 파일에 "{{" 가 남아 있으면 안 된다 — 빈 run: 은 워크플로 자체가 거부된다.
+# 채운 뒤 플레이스홀더({{대문자}})가 남아 있으면 안 된다 — 빈 run: 은 워크플로 자체가 거부된다.
+# (GitHub 식 ${{ github.… }} 는 플레이스홀더가 아니다. 검사는 grep -cE '\{\{[A-Z_]+\}\}')
+#
+# 형태 둘 — harness.json verify 형태를 따른다:
+#   단일 앱 (verify 가 키→명령 문자열)  → 아래 jobs.verify 그대로
+#   앱별   (verify 가 { "<root>": {…} }) → 맨 아래 주석 블록 형태로 바꾼다 (앱별 잡 + paths 필터 + ci-gate)
 name: CI
 
 on:
   pull_request:
   push:
     branches: ["{{BASE_BRANCH}}"]
+
+# 같은 PR 에 새 push 가 오면 이전 실행을 취소한다. 기준 브랜치 push 는 취소하지 않는다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -36,3 +46,54 @@ jobs:
 
       - name: build
         run: {{VERIFY_BUILD}}
+
+# ── 앱별 형태 (verify 가 앱별일 때 jobs 전체를 이것으로 바꾼다) ──────────────────
+# 앱마다 잡 하나. 바뀐 앱만 돈다(changes 잡의 paths 필터). 브랜치 보호의 필수 체크는
+# ci-gate 하나만 건다 — 앱 잡을 필수로 걸면 그 앱이 안 바뀐 PR 이 skipped 로 막힌다.
+# 앱 잡의 스텝은 위 단일 형태와 같은 규칙(빈 단계 삭제 · test 는 지우지 않음)으로
+# verify["<root>"] 에서 채운다. 계약 생성물을 쓰는 앱이면 "재생성 후 git diff --exit-code" 스텝을 앞에 둔다.
+#
+# jobs:
+#   changes:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       api: ${{ steps.f.outputs.api }}
+#       web: ${{ steps.f.outputs.web }}
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: dorny/paths-filter@v3
+#         id: f
+#         with:
+#           filters: |
+#             api: ["apps/api/**", ".github/workflows/ci.yml"]
+#             web: ["apps/web/**", "<계약 파일 경로>", ".github/workflows/ci.yml"]
+#
+#   api:
+#     needs: changes
+#     if: needs.changes.outputs.api == 'true'
+#     runs-on: ubuntu-latest
+#     defaults: { run: { working-directory: apps/api } }
+#     steps:
+#       - uses: actions/checkout@v4
+#       # <apps/api 팩의 pack.md CI 셋업 스텝>
+#       - name: test
+#         run: <verify["apps/api"].test>
+#
+#   web:
+#     needs: changes
+#     if: needs.changes.outputs.web == 'true'
+#     runs-on: ubuntu-latest
+#     defaults: { run: { working-directory: apps/web } }
+#     steps:
+#       - uses: actions/checkout@v4
+#       # <apps/web 팩의 pack.md CI 셋업 스텝>
+#       - name: test
+#         run: <verify["apps/web"].test>
+#
+#   ci-gate:
+#     needs: [changes, api, web]
+#     if: always()
+#     runs-on: ubuntu-latest
+#     steps:
+#       # skipped(안 바뀐 앱)는 통과로 친다. failure · cancelled 만 막는다.
+#       - run: echo '${{ toJSON(needs) }}' | jq -e 'all(.[]; .result == "success" or .result == "skipped")'
