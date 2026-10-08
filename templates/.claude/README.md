@@ -8,6 +8,7 @@
 | 설계는 끝났고 구현 계획을 세운다 | `harness` |
 | 계획에 빈칸이 많다 | `grilling` |
 | 기능·버그 작업을 처음부터 끝까지 | `sdd` (위 단계를 알아서 넘긴다) |
+| 병렬 트랙을 조율한다 | `conductor` (worktree 세션 2개 이상일 때 지휘 세션 하나) |
 | 원인 모를 버그·간헐적 실패 | `root-cause-debugger` |
 | 하네스가 썩었는지 점검 | `harness-doctor` |
 | 같은 지시·같은 교정이 반복된다 | `task-observer` (3회부터 승격 후보. 원장은 `observations.md`) |

@@ -23,7 +23,7 @@
 
 | 칸 | 성격 | 내용 |
 |---|---|---|
-| `skills/` | **부르면** 도는 것 | 26개. 하네스 자체 5(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`·`find-skills`) · 지식 파이프라인 3(`brain-walk`·`brain-intake`·`brain-sync`) · SDD 7(`grilling`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 기획 1(`why-logictree`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
+| `skills/` | **부르면** 도는 것 | 27개. 하네스 자체 5(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`·`find-skills`) · 지식 파이프라인 3(`brain-walk`·`brain-intake`·`brain-sync`) · SDD 7(`grilling`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 병렬 트랙 1(`conductor`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 기획 1(`why-logictree`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
 | 의존 플러그인 | 같이 **켜지는** 것 | `understand-anything` — 코드베이스 지식 그래프. 스킬 복사로는 안 돌아서(빌드된 플러그인 루트 필요) `dependencies`로 건다 |
 | 짝 플러그인 | **있으면** 쓰는 것 | 공식 `claude-md-management` — `/revise-claude-md`(REFLECT 세션 학습 회수) · `claude-md-improver`(2주 audit). CLAUDE.md 품질 감사는 `harness-doctor`가 **일부러 안 하고 여기로 넘긴다.** `dependencies`가 아니라 **없으면 그 칸만 건너뛴다** |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |
@@ -63,6 +63,7 @@ grilling(스펙 인터뷰 → PRD) → harness(분해) → 🙋 승인 (빈칸�
 | `find-skills` | [obra/superpowers](https://github.com/obra/superpowers)의 `superpowers-codex find-skills` 서브커맨드를 스킬로 옮김 | MIT (원본) |
 | `explain-diff-html` · `explain-diff-notion` | Geoffrey Litt의 gist(`a29df1b5f9865506e8952488eac3d524`) 원문 | ⚠️ 원본에 라이선스 표기 없음 — 공개 배포 전 확인 필요 |
 | `ai-readiness-cartography` | `jha0313/skills_repo`의 상위 버전을 바탕으로 | ⚠️ 원본 라이선스 미확인 |
+| `conductor` | 아이디어만 빌림: [obra/superpowers](https://github.com/obra/superpowers) `subagent-driven-development`(지휘는 디스패치·판정·기록만) · mattpocock `wayfinder`(결정은 티켓 하나에 한 번, 차단 관계로 진행 가능한 것 조회) · warpdotdev `saga`(선의보다 빈틈없는 계약). 본문은 새로 씀 | 이 레포 MIT |
 | `systematic-debugging` · `grilling` | 전역 `~/.claude/skills/`에 있던 공개 스킬에서 출발(grilling은 원형 `grill-me`, 이후 전면 재작성) | ⚠️ 원본 저장소 미확인 |
 
 그 밖의 스킬·에이전트·훅·템플릿은 이 레포의 MIT 라이선스(`LICENSE`)를 따른다.

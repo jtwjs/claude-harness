@@ -30,7 +30,7 @@ disable-model-invocation: false
 - **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다.
 - **AC = 실행 가능한 쉘 명령**: 통과 여부를 기계가 판정할 수 있게. 명령은 **지어내지 말고 `.claude/harness.json`의 `verify`에서 가져온다.**
 - **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 `test-writer`(RED) → `feature-builder`(GREEN) 2단으로 돌고, `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
-- **금지사항 명시**: CRITICAL 규칙을 step 안에 재고정.
+- **금지사항 명시**: CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 2026-10 병렬 트랙 실측: step md 111개 중 49개가 ADR 내용을 복사했고, ADR이 바뀐 뒤 step 값이 옛 값으로 남아 지시문으로 덮어써야 했다(재지시 2회).
 - step 이름은 **kebab-case**.
 
 ## 3-b. 디자인 핸드오프가 있을 때
@@ -78,6 +78,7 @@ UI 작업이고 `/design`·claude.ai/design 시안(또는 핸드오프 프롬프
 
 - 시그니처 수준 지시(만들/바꿀 파일 · 레이어 · 타입/함수 계약)
 - 고정할 CRITICAL 규칙 — `CLAUDE.md`의 🔴 CRITICAL 절과 해당 `.claude/rules/`에서 **그대로 인용**한다(새로 지어내지 않는다)
+- ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적는다. 값을 복사하지 않는다
 
 ## Acceptance Criteria
 

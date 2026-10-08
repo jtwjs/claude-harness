@@ -29,6 +29,7 @@ disable-model-invocation: false
    - **완료 step 요약**: index.json의 각 completed step `summary`(누적 문맥)
    - **재시도라면** 직전 `error_message`(무엇이 왜 실패했는지)
    - 대상 `phases/{task}/stepN.md` 전문
+   - **병렬 트랙이면** — 레포에 `conductor` 라벨이 있으면(`gh label list --search conductor`) 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈를 **한 번** 조회해 목록(번호·제목)을 넣는다: `gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 `blocked`
 
 2. **서브에이전트 실행 — step의 `tdd` 값에 따라 1단 또는 2단.** step 에 `model` 이 있으면 Agent 도구의 `model` 로 **그 값만** 넘기고, 없으면 넘기지 않는다(에이전트 정의값).
 
