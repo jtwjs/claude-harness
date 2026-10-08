@@ -22,7 +22,7 @@ harness-init(스택 판정·명령·규칙·CI) → brain-walk(코드→5장) �
 
 ## 0. 스택 판정 — 먼저 무엇을 grep할지 고른다
 
-판정은 `harness-init`과 **같은 표**를 쓴다: `templates/stacks/README.md`(빌드 파일 기준). `.claude/harness.json`의 `stacks.packs`가 이미 있으면 그 값을 그대로 쓰고 다시 판정하지 않는다. 모노레포면 `root`마다 따로 돈다.
+판정은 `harness-init`과 **같은 표**를 쓴다: `${CLAUDE_PLUGIN_ROOT}/templates/stacks/README.md`(빌드 파일 기준). `.claude/harness.json`의 `stacks.packs`가 이미 있으면 그 값을 그대로 쓰고 다시 판정하지 않는다. 모노레포면 `root`마다 따로 돈다.
 
 판정된 스택으로 아래 표의 grep 대상을 고른다. 표에 없는 스택(`go.mod`·`pyproject.toml` 등)이면 입구·스키마 패턴을 사용자에게 묻는다.
 
@@ -181,7 +181,7 @@ status: active
 
 본문 골격: `# 제목` → 한 줄 요지 → 표 중심 본문 → 마지막 줄 `관련: [[..]] · [[..]]`
 
-**5번은 카테고리 폴더에 넣지 않고 `wiki/` 바로 아래 둔다** — `overview.md`·`index.md`·`log.md`와 같은 메타 레벨이다(8분류에 "질문" 버킷이 없다).
+**5번은 카테고리 폴더에 넣지 않고 `wiki/` 바로 아래 둔다** — `overview.md`·`index.md`·`log.md`와 같은 메타 레벨이다(5분류 — decisions·domain·infra·conventions·glossary — 에 "질문" 버킷이 없다).
 
 마지막에 `wiki/index.md`에 5행을 추가하고 `wiki/log.md`에 1엔트리를 append한다.
 

@@ -129,7 +129,7 @@ echo "$out" | grep -q 'ai-readiness-cartography' && bad "오탐" "커밋 1건인
 (cd "$TMP/on" && for i in $(seq 25); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
 echo "$out" | grep -q 'ai-readiness-cartography' && ok "게이트 초과 — 환기" || bad "침묵" "커밋 26건인데 아무 말이 없다 out=[$out]"
-# 채점을 실행해선 안 된다 — Stop 훅은 읽기 전용이다(케이스 4와 같은 계약)
+# 채점을 실행해선 안 된다 — 환기 훅(SessionStart)은 읽기 전용이다(케이스 4 Stop 훅과 같은 계약)
 [ -d "$TMP/on/.claude/reports" ] && bad "쓰기 발생" "환기 훅이 채점까지 돌렸다" || ok "채점은 실행하지 않는다"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"

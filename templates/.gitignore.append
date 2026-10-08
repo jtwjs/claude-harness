@@ -5,6 +5,10 @@
 # 채점 리포트(weekly-readiness-check). 추세는 로컬에서만 본다.
 .claude/reports/
 
+# _brain/internal/ 이중 차단 — _brain/.gitignore 에도 있지만, 나중에 _brain/ 을 커밋으로 전환할 때 같이 열리지 않게.
+# _brain/ 이 없는 레포에서는 아무 효과가 없다.
+_brain/internal/
+
 # ⚠️ 아래는 ignore 하지 않는다 — 이것들이 자산이다:
 #   .claude/harness.json  .claude/README.md  .claude/rules/  .claude/references/
 #   .gitignore 에 넣고 혼자 쓰면 자산이 아니라 dotfiles 다.

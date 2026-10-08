@@ -47,7 +47,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 1. `_brain/wiki/`를 읽고 **통합 wiki에 이미 있는지** 확인한다(중복 방지)
 2. 옮길 항목을 목록으로 만들어 **🙋 사람에게 보여주고 확인받는다**
 3. `targetFolder`에 쓴다 — `_brain/wiki/`의 카테고리 구조를 유지
-4. **원본은 남긴다**(복사이지 이동이 아니다). 정리는 `_brain/CLAUDE.md`의 archive 규칙이 담당
+4. **원본은 남긴다**(복사이지 이동이 아니다). 낡은 노드 정리는 `_brain/CLAUDE.md`의 `status:` 규칙(`superseded`·`archived` — 폴더로 옮기지 않는다)이 담당
 5. 통합 wiki의 인덱스·로그를 갱신한다(그쪽 규약을 따른다)
 6. 이관한 항목 수와 **뺀 것**을 보고한다
 

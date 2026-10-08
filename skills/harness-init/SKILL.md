@@ -24,7 +24,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 1-b. 스택 판정
 
-`templates/stacks/README.md`의 표대로 **빌드 파일로만** 판정한다. 모노레포면 앱 디렉터리마다 따로. 결과는 `harness.json.stacks.packs`에 적는다.
+`${CLAUDE_PLUGIN_ROOT}/templates/stacks/README.md`의 표대로 **빌드 파일로만** 판정한다. 모노레포면 앱 디렉터리마다 따로. 결과는 `harness.json.stacks.packs`에 적는다.
 
 ⛔ **스택을 추측하지 않는다.** 빌드 파일이 없거나 표에 없는 조합이면 묻는다.
 
@@ -36,6 +36,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `verify.format`에는 **읽기 전용(`--check` 계열)만** 넣는다. 포맷 적용은 `auto-format` 훅이 편집 직후에 한다.
 - 없는 키는 **비워 둔다.** 지어내지 않는다.
 - `git.baseBranch` ← `git symbolic-ref --short refs/remotes/origin/HEAD`(`origin/` 제거). 리모트가 없으면 비우고 보고한다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다
+- `packageManager` ← lock 파일로 판정한다: `pnpm-lock.yaml`→`pnpm` · `yarn.lock`→`yarn` · `package-lock.json`→`npm` · `bun.lockb`→`bun` · JVM은 `gradlew`/`mvnw` 유무. 둘 이상이면 묻는다. (§6 릴리스 세팅이 이 값을 읽는데 채우는 단계가 없었다 — 2026-10-08)
 
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
 별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. `test-writer`가 중첩 `describe`로 대체한다.
@@ -60,11 +61,11 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
 
-**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) · ⑦이면 Changesets · CI 워크플로
+**조건부**: TS면 `rules/{typescript,functional-programming}.md` · ⑤면 `_brain/`(`${CLAUDE_PLUGIN_ROOT}/templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) · ⑦이면 Changesets · CI 워크플로
 
-**스택 팩**: 판정된 팩마다 `templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
+**스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
 
-**CI 워크플로(`templates/.github/workflows/ci.yml`) 플레이스홀더 — 7개 전부 이 표로 채운다.** 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다(2026-10-08 리뷰에서 `{{SETUP_STEPS}}`만 적혀 있었다).
+**CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) 플레이스홀더 — 7개 전부 이 표로 채운다.** 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다(2026-10-08 리뷰에서 `{{SETUP_STEPS}}`만 적혀 있었다).
 
 | 플레이스홀더 | 출처 (`harness.json`) | 비어 있을 때 |
 |---|---|---|
@@ -75,7 +76,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 채운 뒤 `grep -c '{{' .github/workflows/ci.yml`이 **0**이어야 한다.
 
-**`.gitignore` 보강** — `templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
+**`.gitignore` 보강** — `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
 ⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).
 
 ⚠️ **`rules/`는 `paths:` frontmatter를 반드시 단다**(`non-obvious-patterns.md`만 예외 — 상시). 붙이지 않으면 매 세션 전량 로드된다.

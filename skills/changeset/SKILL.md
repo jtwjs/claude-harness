@@ -6,12 +6,16 @@ disable-model-invocation: false
 
 git 변경사항을 분석해서 Changeset 파일을 자동으로 작성해줘.
 
+## 0단계: 대상인지 확인
+
+`.claude/harness.json`의 `release.tool`을 읽는다. `"changesets"`가 아니면(없거나 `null`) **여기서 멈추고 한 줄 보고한다** — `release.tool 이 changesets 가 아니라 changeset 을 건너뜀`. description이 "스스로 skip"이라고 약속하는데 본문에 이 단계가 없었다(2026-10-08).
+
 ## 1단계: 변경 내용 수집
 
 아래를 순서대로 실행해서 변경 내용을 파악한다:
 
 ```bash
-git log main..HEAD --oneline           # 현재 브랜치 커밋 목록
+git log <base>..HEAD --oneline         # <base> = harness.json git.baseBranch, 비었으면 origin/HEAD (pr-write 와 같은 규칙. main 하드코딩 금지)
 git diff HEAD --stat                   # 변경 파일 목록과 규모
 git diff HEAD                          # 실제 diff
 # 모노레포면 워크스페이스별로: git diff HEAD -- <workspace-dir>/

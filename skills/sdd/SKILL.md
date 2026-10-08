@@ -15,7 +15,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 | 답 | 트랙 | 무엇이 달라지나 |
 |---|---|---|
-| 예 (UI·화면) | **디자인 트랙** | DESIGN·PLAN·REVIEW에 디자인 3스킬이 각각 끼어든다 |
+| 예 (UI·화면) | **디자인 트랙** | DESIGN에 `design-brief`, REVIEW에 `design-reconcile` **2스킬**. PLAN은 `harness` §3-b가 핸드오프를 읽는다 |
 | 아니오 | **코어 트랙** | 아래 5단계 그대로 |
 
 애매하면 묻는다. 서버 내부 로직이어도 **운영 화면·대시보드가 딸려 오면 디자인 트랙**이다.
@@ -35,9 +35,10 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    - **GREEN**: `feature-builder` → `verify` 전체 통과 **AND** diff에 테스트 파일 없음
    - (🙋 정지: blocked / 파괴적 변경 / step `retries`가 3이 됨.)
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
+   위반이 나오면 **`feature-builder`로 수정하고 `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 코드→디자인 반영은 사람이 `/design-sync`로.
-5. **REFLECT** 🤖 — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
+5. **REFLECT** 🤖 + 🙋×3 — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
    🔴 **종착지는 하네스 3층으로 재지정한다** — 이 명령의 기본값은 CLAUDE.md라 그대로 두면 CLAUDE.md가 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*)로 가른다: 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.**
    플러그인이 없으면 건너뛰고 **건너뛴 사실을 한 줄 보고**한다(하드 의존 아님).
    그 다음 `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. **문서 한 줄은 고친 커밋과 같은 커밋에 태운다**(`rules/non-obvious-patterns.md` 자신의 규칙).
@@ -47,7 +48,13 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 
-① DESIGN(PRD·수용 조건) 확인 ② PLAN step 승인 ③ 파괴적 변경 ④ REVIEW 최종 판정 ⑤ blocked step ⑥ brain-sync 이관 ⑦ `revise-claude-md` diff 승인(종착지 판정 포함)
+① **DESIGN** — PRD·수용 조건 확인 · PRD 저장 경로(`grilling`) · 🎨 시안 URL 회수
+② **PLAN** — `harness` 범위 합의 → step 계획 승인(PLAN 안에서 두 번 멈춘다) · 🎨 DS 신규 컴포넌트 승인
+③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3
+④ **REVIEW** — 최종 판정
+⑤ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · brain-sync 이관 · task-observer 승격 판정
+
+> 이 목록 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 목록에 넣거나 스킬을 고친다. (2026-10-08: 선언 7곳 vs 실제 13곳이던 것을 맞춤)
 
 ## 재개
 

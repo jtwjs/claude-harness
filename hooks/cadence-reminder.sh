@@ -71,7 +71,7 @@ fi
 
 # ── 축 4: AI-Readiness 채점 공백 ─────────────────────────────────────────────
 # 채점기(weekly-readiness-check.sh → score.py)는 있는데 아무도 안 돌린다.
-# 🔴 여기서 채점을 실행하지 않는다 — Stop 훅은 읽기 전용이고(hooks/test.sh 케이스 4),
+# 🔴 여기서 채점을 실행하지 않는다 — 이 SessionStart 훅은 읽기 전용이고(validate-session-end Stop 훅과 같은 계약, hooks/test.sh 케이스 4),
 #    python3 + HTML 생성을 매 턴에 얹지 않는다. 환기만 하고 실행은 사람·모델이 한다.
 last_report=""
 [ -d .claude/reports ] && last_report=$(ls -1 .claude/reports 2>/dev/null \
