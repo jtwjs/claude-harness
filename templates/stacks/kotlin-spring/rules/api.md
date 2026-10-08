@@ -16,7 +16,7 @@ paths: ["**/controller/**", "**/dto/**", "**/presentation/**", "**/*Controller.k
 
 ## 계약 (OpenAPI)
 
-- `contracts/openapi.json`은 **생성물**이다(springdoc `/v3/api-docs`). 손으로 고치지 않는다. API를 바꾼 PR에는 재생성한 파일이 같이 들어가야 한다. 막는 것은 **스냅샷 테스트 `OpenApiContractTest`**다 — 어긋나면 `./gradlew test`가 실패한다. 재생성: `UPDATE_CONTRACTS=1 ./gradlew test --tests '*OpenApiContractTest'` (⚠️ kit 확정 후 맞출 것 — 앱별 레포면 앱 폴더에서)
+- `contracts/openapi.json`은 **생성물**이다(springdoc `/v3/api-docs`). 손으로 고치지 않는다. API를 바꾼 PR에는 재생성한 파일이 같이 들어가야 한다. 막는 것은 **스냅샷 테스트 `OpenApiContractTest`**다 — 어긋나면 `./gradlew test`가 실패한다. 재생성: `UPDATE_CONTRACTS=1 ./gradlew test --tests '*OpenApiContractTest'` (stack-kits v0.2.0 kotlin-spring · fullstack/apps/api 실측 — 앱별 레포면 앱 폴더에서)
 - 에러 응답도 계약이다. 컨트롤러에 `@ApiResponse(responseCode = "409", content = [Content(schema = Schema(implementation = ProblemDetail::class))])`처럼 **실제로 나는 에러 코드**를 적는다. 안 적으면 프론트 생성 타입에 에러 모양이 없다.
 - 응답 타입에 `Map<String, Any>`·`Any`를 쓰지 않는다 — 프론트 타입이 `unknown`이 된다.
 - 컨트롤러 메서드에 `@Operation(summary = …)`, DTO 필드에 `@Schema(description = …)`. 프론트가 읽는 문서다.

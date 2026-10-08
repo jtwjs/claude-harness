@@ -10,17 +10,17 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 
 ## 검증 명령 후보 — 하나씩 실행해 통과한 것만 `verify`에
 
-⚠️ kit 확정 후 맞출 것 — 스크립트 이름은 kit `apps/web/package.json`과 kit README 검증 표가 정본이다.
+스크립트 이름은 kit `apps/web/package.json`과 kit README 검증 표가 정본이다(stack-kits v0.2.0 실측: `format:check` · `lint`=`eslint .` · `typecheck`=`tsc --noEmit` · `test`=`vitest run` · `build`=`vite build`, 다섯을 묶은 `verify`).
 
 | 키 | 후보 (위에서부터 시도) | 비고 |
 |---|---|---|
 | format | `<pm> format:check` · `<pm> exec prettier --check .` | 읽기 전용만 |
 | lint | `<pm> lint` · `<pm> exec eslint .` | FSD 경계도 여기서 막힌다 |
-| typecheck | `<pm> typecheck` · `<pm> exec tsc -b --noEmit` | Vite 템플릿은 tsconfig가 project references라 `-b`가 필요하다 |
+| typecheck | `<pm> typecheck` · `<pm> exec tsc --noEmit` · `<pm> exec tsc -b --noEmit` | kit은 단일 tsconfig라 `tsc --noEmit`. `create-vite` 기본 템플릿은 project references라 `-b`가 필요하다 |
 | test | `<pm> test` (보통 `vitest run`) | E2E(Playwright)는 verify에 넣지 않고 CI 별도 잡으로 |
 | build | `<pm> build` | 번들 크기 경고(500 kB)를 보고 `rules/bundle.md` |
 
-- 계약 생성 타입(openapi-typescript)을 쓰면 CI에 "재생성 → `git diff --exit-code`" 스텝을 test 앞에 둔다. 재생성 명령은 kit의 스크립트를 쓴다(⚠️ kit 확정 후 맞출 것). 생성물은 손으로 고치지 않는다.
+- 계약 생성 타입(openapi-typescript)을 쓰면 CI에 "재생성 → `git diff --exit-code`" 스텝을 test 앞에 둔다. 재생성 명령은 kit의 `<pm> gen:api`(= `openapi-typescript ../api/contracts/openapi.json -o src/shared/api/generated.ts`), 검사는 `<pm> gen:api && git diff --exit-code src/shared/api/generated.ts`. 생성물은 손으로 고치지 않는다.
 - `<pm>`은 lock 파일로 정한다(nextjs 팩과 같다).
 
 ## test · tdd
