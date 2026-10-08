@@ -7,7 +7,7 @@
   },
 
   "stacks": {
-    "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음. kitRef 는 harness-new 가 degit 한 kit 과 고정 ref(예: \"jtwjs/stack-kits/fullstack#v0.2.0\"). kit 없이 깔았으면 비운다.",
+    "$comment": "harness-init 이 빌드 파일로 판정한 스택 팩. 예: [{ \"pack\": \"kotlin-spring\", \"root\": \".\" }]. 비어 있으면 팩 없음. kitRef 는 harness-new 가 degit 한 kit 과 고정 ref(예: \"jtwjs/stack-kits/fullstack#v0.2.1\"). kit 없이 깔았으면 비운다.",
     "packs": [],
     "kitRef": ""
   },

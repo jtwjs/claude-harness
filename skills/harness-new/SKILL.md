@@ -21,7 +21,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ## 2. 복사
 
 ```bash
-npx --yes degit jtwjs/stack-kits/<kit>#<ref> <대상 경로>    # ref 고정 — 예: jtwjs/stack-kits/fullstack#v0.2.0
+npx --yes degit jtwjs/stack-kits/<kit>#<ref> <대상 경로>    # ref 고정 — 예: jtwjs/stack-kits/fullstack#v0.2.1
 cd <대상 경로> && git init -q
 ```
 
