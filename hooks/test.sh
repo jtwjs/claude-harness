@@ -295,6 +295,11 @@ ROOT="$(cd "$HOOKS/.." && pwd)"
 left=$(grep -rnE '`(grilling|why-logictree|brain-intake|find-skills|harness-new)`|claude-harness:brain-recall|decisions/<기능>' \
   "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형')
 [ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
+# 설계 3장 → REFLECT 정리 (0.12.4): why-plan 은 _brain 에 직접 쓰지 않고, sdd REFLECT 가 세 장을 보고 옮긴다.
+direct=$(grep -nE '`why-plan`이 `?decisions|why-plan`?이 남긴다|→ `_brain/wiki/decisions/<주제>.md` · `_learn`' \
+  "$ROOT/skills" "$ROOT/templates" -r 2>/dev/null)
+grep -q '`_brain` 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$ROOT/skills/why-plan/SKILL.md" && [ -z "$direct" ] \
+  && ok "why-plan 은 세 장 · _brain 은 REFLECT 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 정리 또는 why-plan ARCHITECTURE 단계 없음}"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

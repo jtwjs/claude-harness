@@ -26,13 +26,11 @@ flowchart TD
   subgraph DESIGN["① DESIGN — why-plan"]
     WP{크기 판정} -->|작다| S[WHY 한 질문 + 수용 조건 1~3줄]
     WP -->|보통 이상| W1[날것 · 참고 자료] --> W2["WHY · 목표·진짜 문제·최적 행동<br/>(막히면 로직트리)"] --> W3[갈래별 한 질문씩] --> W4[So What / Why So]
-    W4 --> PRD["PRD.md (docs/feature-date/)"]
-    W4 --> ADR[기술 결정 → ADR.md]
-    W4 --> BD["제품·도메인 결정 → _brain/decisions/주제.md"]
+    W4 --> PRD["PRD.md (docs/feature-date/)<br/>제품·도메인 결정은 「결정」 절"] --> ARCH["ARCHITECTURE.md<br/>(구조 그대로면 한 줄)"] --> ADR["ADR.md (기술 결정이 있을 때)"]
     DB["UI면 design-brief → /design 시안"] -.-> PRD
   end
 
-  PRD --> H["② PLAN — harness: step 분해"]
+  ADR --> H["② PLAN — harness: step 분해"]
   H --> G1{🙋 step 승인}
   G1 -->|빈칸 많음| WP
   G1 --> RUN
@@ -47,7 +45,7 @@ flowchart TD
   RV --> RF
 
   subgraph REFLECT["⑤ REFLECT"]
-    RF[revise-claude-md] --> CS[changeset] --> CM[commit] --> PR["pr-write<br/>(큰 변경이면 explain-diff 제안)"]
+    RF[revise-claude-md] --> BR["_brain 정리 — 세 장을 읽고<br/>결정→decisions · 규칙→domain · 구조→brain-walk 문서"] --> CS[changeset] --> CM[commit] --> PR["pr-write<br/>(큰 변경이면 explain-diff 제안)"]
     PR --> BS["brain-sync → 통합 wiki"]
     PR --> TO["task-observer (반복 3회 승격)"]
     PR --> LC[이번 세션 학습 카드 n건 보고]
@@ -62,13 +60,15 @@ flowchart TD
 
 | 무엇 | 어디 | 커밋 | 누가 채우나 |
 |---|---|---|---|
-| 이번 기능의 스펙 | `docs/{feature-YYYY-MM-DD}/PRD.md` | ✓ | `why-plan` |
+| 이번 기능의 스펙 · 제품·도메인 결정(「결정」 절) | `docs/{feature-YYYY-MM-DD}/PRD.md` | ✓ | `why-plan` |
+| 이번 기능의 구조(층·데이터 흐름·경계) | 같은 폴더 `ARCHITECTURE.md` | ✓ | `why-plan` |
 | 기술 결정(구조·데이터·라이브러리) | 같은 폴더 `ADR.md` | ✓ | `why-plan` · 설계 |
-| 제품·도메인 결정(정책·고객 사정·지표·범위) · 규칙 · 용어 | `_brain/wiki/decisions/<주제>.md` · `domain/` · `glossary/` (`_brain`이 없으면 PRD 「결정」 절) | ✓ | `why-plan` · 작업 PR |
-| 코드 사실(입출구·테이블·생애·바뀔 값·막힌 질문) | `_brain/wiki/` 다섯 장 | ✓ | `brain-walk` |
+| 제품·도메인 결정(정책·고객 사정·지표·범위) · 규칙 · 용어 — 계속 고치는 정본 | `_brain/wiki/decisions/<주제>.md` · `domain/` · `glossary/` (`_brain`이 없으면 PRD 「결정」 절이 정본) | ✓ | `sdd` REFLECT 「`_brain` 정리」가 세 장을 보고 · SDD 밖은 작업 PR |
+| 코드 사실(입출구·테이블·생애·바뀔 값·막힌 질문) | `_brain/wiki/` 다섯 장 | ✓ | `brain-walk` · 구조가 바뀐 기능은 REFLECT에서 ARCHITECTURE를 보고 |
 | 내가 배울 기술·직무 지식(회사를 옮겨도 쓸모 있는 것) | 본 레포 `_learn/inbox.md` | ✗ (`.git/info/exclude`) | 작업 중 모델 — `learn-setup` 훅 지시 |
 
 - `_brain/`은 **팀 위키·인수인계용**이다. raw를 던지는 곳이 아니다 — 코드가 raw다.
+- 설계 중에는 `docs/{feature-date}/` 세 장 한 곳에만 쓰고, `_brain`은 구현·리뷰가 끝난 REFLECT에서 세 장을 보고 정리한다. 날짜 폴더는 그 시점의 기록이고 계속 고치는 정본은 `_brain`이다.
 - 통합 wiki로 가는 길은 둘이다. `_brain`의 흐름·결정·용어는 `brain-sync`(REFLECT), `_learn` 카드는 통합 wiki 쪽 주간 `/gauge week`.
 - 가르는 기준 한 줄: **회사를 옮겨도 쓸모 있나** → 예면 `_learn`, 아니면 `_brain`. 둘 다 걸치면 쪼갠다.
 
@@ -78,7 +78,7 @@ flowchart TD
 
 | 묶음 | 스킬 | 하는 일 |
 |---|---|---|
-| SDD 7 | `why-plan` | 정리 안 된 요청을 왜부터 캐물어 PRD·결정으로. 크기 판정 · 참고 자료 질문 · 한 번에 한 질문 |
+| SDD 7 | `why-plan` | 정리 안 된 요청을 왜부터 캐물어 PRD·ARCHITECTURE·ADR로. 크기 판정 · 참고 자료 질문 · 한 번에 한 질문 |
 | | `harness` | PRD·ADR을 자기완결 step 파일로 분해(PLAN) |
 | | `harness-run` | step마다 RED → GREEN 서브에이전트를 돌리고 검증·커밋 |
 | | `sdd` | DESIGN → PLAN → IMPLEMENT → REVIEW → REFLECT 오케스트레이터 |
@@ -137,7 +137,7 @@ flowchart TD
 >
 > **폴더 경계도 이 3층 안에서 푼다** — 디렉토리별 `CLAUDE.md`를 두지 않고 `rules/`의 `paths:` glob으로 표현한다.
 
-## 2026-10-11 정리 (0.10.7 → 0.12.3)
+## 2026-10-11 정리 (0.10.7 → 0.12.4)
 
 세션 로그 30일 호출 수와 인터뷰로 정리했다.
 - **합침:** `grilling` + `why-logictree` → `why-plan`
@@ -145,6 +145,7 @@ flowchart TD
 - **이름 변경:** `harness-new` → `project-new`
 - **incubator:** `brain-recall`
 - **신설:** `_learn` · readiness 자동 채점 · 상태줄 권고
+- **설계 3장:** `why-plan`이 PRD·ARCHITECTURE·ADR을 쓰고(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움), `_brain`은 REFLECT에서 세 장을 보고 정리
 
 ## 출처
 

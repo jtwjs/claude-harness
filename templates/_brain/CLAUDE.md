@@ -10,7 +10,7 @@
 
 - **코드가 raw다.** 첫 다섯 장은 `brain-walk`가 코드에서 만든다. 사람이 원문을 던지는 투입구(`raw/`)는 두지 않는다 — 실측 레포 16곳에서 raw 0~4건, 정리 스킬 30일 호출 0. 원문은 통합 wiki에 던진다.
 - **갱신은 세 때만**: 아래 「정해진 세 순간」의 같은 PR · 구조가 크게 바뀐 작업 뒤 `brain-walk` 갱신 모드 · 인계 직전.
-- **제품·도메인 결정(무엇을 왜 — 정책·고객 사정·지표·범위)은 `why-plan`이 `decisions/<주제>.md`로 남긴다** — 버린 방법이 없어도. 기술 결정(구조·데이터·라이브러리)은 `docs/{feature-YYYY-MM-DD}/ADR.md`에만 둔다(같은 결정을 두 곳에 쓰지 않는다). PRD·ADR은 링크만. 작업 중 알게 된 이 제품·회사의 규칙은 `domain/`·`glossary/`에, 같은 PR로.
+- **제품·도메인 결정(무엇을 왜 — 정책·고객 사정·지표·범위)은 `decisions/<주제>.md`로 남긴다** — 버린 방법이 없어도. SDD 기능이면 `why-plan`이 PRD 「결정」 절에 먼저 적고, `sdd` REFLECT 「`_brain` 정리」가 PRD·ARCHITECTURE·ADR 세 장을 보고 옮긴다(구조가 바뀌었으면 `brain-walk` 문서도 그때 고친다). SDD 밖 결정은 바로 쓴다. 기술 결정(구조·데이터·라이브러리)은 `docs/{feature-YYYY-MM-DD}/ADR.md`에만 둔다(같은 결정을 두 곳에 쓰지 않는다). PRD·ADR은 링크만. 작업 중 알게 된 이 제품·회사의 규칙은 `domain/`·`glossary/`에, 같은 PR로.
 - **내가 이해해야 할 것(개인 학습)은 여기 쓰지 않는다** — 커밋되지 않는 `_learn/`(하네스 `learn-setup` 훅이 만들고 `.git/info/exclude`로 뺀다)에 쌓이고, 통합 wiki가 주 1회 모아 간다.
 
 ## 2레이어
@@ -60,8 +60,8 @@ wiki는 정적 폴더가 아니라 **walk·query·lint 세 동작으로 자라�
 | **lint**   | **PR에서 5장 중 하나를 고칠 때** (❌ "정기"로 두지 않는다 — 실측에서 한 번도 안 돌았다) | 모순·stale 주장·고아 노드(링크 0)·끊긴 `[[wikilink]]`·index↔파일 불일치·커버리지 갭 점검 후 보고·수선. **코드 drift 점검은 `harness-doctor`·`/revise-claude-md` 몫** — 여기선 wiki 내부 정합만. `log.md` append. |
 
 - **개별 사용자 요청·VoC**는 triage→**GitHub 이슈(정본)**. wiki에 복제하지 않는다(이슈 트래커 중복·stale 방지). 반복 테마가 제품 판단으로 굳으면 그때 `decisions/` 1장. query 환류도 이 규칙을 따른다.
-- **`log.md` 포맷(파싱 가능)**: `## [YYYY-MM-DD] {walk|query|lint} | {요약}` 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 최신이 위.
-- walk/query 시 `wiki/index.md` 해당 섹션에 항목 추가·갱신하고, 소스 종합이 바뀌면 `overview.md`도 반영.
+- **`log.md` 포맷(파싱 가능)**: `## [YYYY-MM-DD] {walk|query|lint|reflect} | {요약}`(`reflect` = `sdd` REFLECT 「`_brain` 정리」) 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 최신이 위.
+- walk/query/reflect 시 `wiki/index.md` 해당 섹션에 항목 추가·갱신하고, 소스 종합이 바뀌면 `overview.md`도 반영.
 
 ## 🔴 언제 채우나 — 정해진 세 순간
 
@@ -69,7 +69,7 @@ wiki는 정적 폴더가 아니라 **walk·query·lint 세 동작으로 자라�
 
 | 순간 | 무엇을 | 왜 이 순간인가 |
 |---|---|---|
-| **제품·도메인 결정을 내렸을 때**(정책·고객 사정·지표·범위 — `why-plan`이 남긴다) | `decisions/<주제>.md` 1장 | 코드에는 **무엇을**만 남고 **왜**는 안 남는다. 버린 대안이 있으면 같이 — 지금 안 적으면 복원 불가다. 기술 결정은 `docs/{feature-YYYY-MM-DD}/ADR.md`에 |
+| **제품·도메인 결정을 내렸을 때**(정책·고객 사정·지표·범위 — SDD면 REFLECT에서 세 장을 보고) | `decisions/<주제>.md` 1장 | 코드에는 **무엇을**만 남고 **왜**는 안 남는다. 버린 대안이 있으면 같이 — 지금 안 적으면 복원 불가다. 기술 결정은 `docs/{feature-YYYY-MM-DD}/ADR.md`에 |
 | **장애를 닫을 때** | `infra/` 1장 | 회고 때가 아니라 **닫는 자리**에서 |
 | **같은 질문을 두 번 받았을 때** | `domain/` 또는 `glossary/` 1장 | 두 번은 우연이 아니다 |
 

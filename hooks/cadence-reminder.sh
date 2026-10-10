@@ -67,7 +67,7 @@ if [ -d "$REPO_ROOT/_brain/wiki" ]; then
   if [ -n "$banchor" ]; then
     n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
     if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
-      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 훑어 남길 것이 있으면 **초안을 만들어 제시할 것** — 제품·도메인 결정(정책·고객 사정·지표·범위)이면 _brain/wiki/decisions/<주제>.md, 장애를 닫았으면 infra/, 기술 결정(구조·데이터·라이브러리)은 docs/<feature-date>/ADR.md 에만(_brain 에 쓰지 않는다). 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 코드 사실 문서 갱신은 brain-walk, 이관은 brain-sync."
+      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 훑어(기능 폴더 docs/<feature-date>/ 의 PRD 결정 절·ARCHITECTURE·ADR 이 있으면 그것부터) 빠진 것이 있으면 **초안을 만들어 제시할 것** — 제품·도메인 결정(정책·고객 사정·지표·범위)이면 _brain/wiki/decisions/<주제>.md, 장애를 닫았으면 infra/, 기술 결정(구조·데이터·라이브러리)은 docs/<feature-date>/ADR.md 에만(_brain 에 쓰지 않는다). 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 코드 사실 문서 갱신은 brain-walk, 이관은 brain-sync."
       HINTS+=("brain-walk — feat/refactor ${n}건")
     fi
   fi
