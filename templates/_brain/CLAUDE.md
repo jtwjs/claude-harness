@@ -47,7 +47,7 @@ _brain/
 
 - 모든 wiki 페이지는 `[[wikilink]]`로 관련 페이지를 잇는다. 도메인 용어는 `glossary/` 단일 노드에 누적.
 - 낡은 노드는 **폴더로 옮기지 않고 `status:`만 바꾼다**(`superseded`·`archived`). 🔴 파일을 옮기면 `[[wikilink]]`가 깨지는데, 실측 4곳에서 `archived/` 폴더는 **한 번도 만들어지지 않았고** `superseded`도 0건이었다 — 옮길 사람이 없다는 뜻이다.
-- ⚠️ **각 노드는 간결하게** 유지한다(요지 우선, 상세는 링크·코드 경로로). `overview.md`도 짧은 종합만(상세는 노드 링크). 0.8 이전 `harness-init`이 깐 레포는 루트 `CLAUDE.md`가 `@_brain/wiki/`를 참조해 **노드 전부가 매 세션 로드**된다 — 그래서 간결해야 했다. 0.9부터 init은 이 줄을 넣지 않는다(`brain-sync` 머리글: 배출구 없는 레포가 33파일 72KB를 매 세션 로드했다). 노드는 `brain-walk`·`brain-intake`·`brain-sync`와 필요한 세션이 연다.
+- ⚠️ **각 노드는 간결하게** 유지한다(요지 우선, 상세는 링크·코드 경로로). `overview.md`도 짧은 종합만(상세는 노드 링크). 0.8 이전 `harness-init`이 깐 레포는 루트 `CLAUDE.md`가 `@_brain/wiki/`를 참조해 **노드 전부가 매 세션 로드**된다 — 그래서 간결해야 했다. 0.9부터 init은 이 줄을 넣지 않는다(`brain-sync` 머리글: 배출구 없는 레포가 33파일 72KB를 매 세션 로드했다). 노드는 `brain-walk`·`why-plan`·`brain-sync`와 필요한 세션이 연다.
 
 ## 3-operation (LLM wiki 워크플로우)
 
