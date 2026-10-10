@@ -50,7 +50,7 @@ disable-model-invocation: false
    - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`BACKLOG.md` 승격 조건)이 읽는 유일한 계수기다. **`retries`가 3이 되면 루프 중단**(= 첫 시도 + 재시도 3회, 최대 4회 실행. `sdd`·`task-observer`도 같은 문장을 쓴다) 하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
    - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
 
-## 4. 커밋 — RED 1회(tdd step만) + 코드 + 메타데이터
+## 4. 커밋 — RED 1회(tdd step만) + 코드 + 메타데이터 + 사람에게 3줄
 
 메시지 형식의 정본은 `commit` 스킬이다. 요약하면 `harness.json`의 `git.commitScope`가 `false`(기본)면 괄호 스코프 없이 **타입만** 쓰고 phase는 **본문**에 넣는다. `true`면 `feat({phase}): step N — {name}`.
 
@@ -63,6 +63,7 @@ disable-model-invocation: false
    - 커밋 전 `.claude/harness.json`의 `verify`를 순서대로 실행한다. **1회만** — 서브에이전트 자체 점검과 중복하지 않는다. 앱별(`{"<root>": {…}}`)이면 **root마다 그 폴더에서** 1회씩 — step이 만진 root만이 아니라 전부(계약을 거쳐 다른 앱이 깨질 수 있다)
 2. **메타데이터 커밋**
    - `phases/{task}/index.json` 변경분: `chore: update phase index for step N` (body: `phase: {task}`).
+3. **사람에게 3줄** — 커밋 직후 다음 step으로 넘어가기 전에 출력만 한다(멈추지 않는다): **무엇을 바꿨나 · 왜 이렇게 했나 · 어디가 위험한가(또는 실제로 안 돌려 본 것)**. 사람이 구현 도중에 따라오며 이해하게 하려는 것이다 — 리뷰·회고 때 처음 이해하려 하면 늦다. 파일 목록 나열이 아니라 동작과 이유로 쓴다
 
 - `--no-verify` 등 hook 우회 금지. 위험 명령 금지.
 

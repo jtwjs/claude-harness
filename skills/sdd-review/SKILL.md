@@ -1,6 +1,6 @@
 ---
 name: sdd-review
-description: SDD REVIEW 단계 — 루트 CLAUDE.md + 기능의 ARCHITECTURE.md·ADR.md를 읽고 최근 변경 diff를 아키텍처·기술스택/ADR·테스트·CRITICAL 규칙·빌드/테스트 통과 관점으로 대조해 결과 표와 수정 제안을 낸다. Use when 구현(harness-run) 후 머지·커밋 전에 변경분을 검증할 때. 깊은 리뷰는 code-reviewer 에이전트에 위임.
+description: SDD REVIEW 단계 — 루트 CLAUDE.md + 기능의 ARCHITECTURE.md·ADR.md를 읽고 최근 변경 diff를 아키텍처·기술스택/ADR·테스트·CRITICAL 규칙·빌드/테스트 통과·실제 동작 관점으로 대조해 결과 표와 수정 제안을 낸다. Use when 구현(harness-run) 후 머지·커밋 전에 변경분을 검증할 때. 깊은 리뷰는 code-reviewer 에이전트에 위임.
 disable-model-invocation: false
 ---
 
@@ -26,6 +26,7 @@ disable-model-invocation: false
 | 테스트 존재   | `harness.json.tdd.include` 범위의 변경 파일에 짝 테스트 존재. **동작 기준**으로 단언(구현 디테일 아님). 대상 판정은 `.claude/rules/testing.md` §0                         |
 | CRITICAL 규칙 | `CLAUDE.md`의 🔴 CRITICAL 각 항목을 **그대로 대조**. hook 미우회(`--no-verify`), 자동 생성물 미수정                                                                       |
 | 빌드·테스트   | `.claude/harness.json`의 `verify`를 **실제 실행**해 통과 확인. 앱별이면 root마다 그 폴더에서 돌리고 결과를 root 이름으로 적는다. 비어 있는 키는 그 사실을 보고한다          |
+| 실제 동작     | **verify 통과는 동작 증거가 아니다** — 목·스텁·MSW로 바꾼 경계는 계약 위반을 못 잡는다. UI·API·외부 연동을 바꿨으면 앱을 띄워(`run` 스킬·브라우저·실 백엔드) 바뀐 경로를 **한 번 실제로** 지나가 본다. 못 했으면 `확인필요 — 미실행: 이유`로 보고하고 통과로 적지 않는다. 디자인 트랙이면 시각 대조는 `design-reconcile`이 하고 여기는 동작만 본다 |
 
 ## 4. 출력 형식
 
