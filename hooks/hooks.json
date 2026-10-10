@@ -58,6 +58,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/learn-setup.sh\"",
             "timeout": 10,
             "statusMessage": "학습 수신함 준비"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/weekly-readiness-check.sh\"",
+            "timeout": 15,
+            "statusMessage": "AI-Readiness 점검"
           }
         ]
       }

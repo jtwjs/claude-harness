@@ -1,6 +1,6 @@
 # PR Component Patterns
 
-Component patterns specific to PR explainer documents. For the base design system (colors, typography, layout), see `../../plannotator-visual-plan/references/design-system.md`.
+Component patterns specific to PR explainer documents. For the base design system (colors, typography, layout), see `design-system.md`(같은 폴더).
 
 ## Table of Contents
 1. [PR Header](#pr-header)

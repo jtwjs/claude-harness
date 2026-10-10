@@ -1,6 +1,6 @@
 ---
 name: explain-diff-html
-description: Use when the user asks for a rich explanation of a code change, diff, branch, or PR. Produces HTML output.
+description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 퀴즈 5문항으로 풀어 한 장짜리 HTML로 만든다. "이 변경 풀어서 설명해줘"·"이해한 뒤 공유하게 정리해줘"·"리뷰어가 처음 보는 영역이야"·"그림으로 설명해줘"일 때, 또는 pr-write 뒤 변경이 크거나 설명할 자신이 없을 때 쓴다. 노션으로 낼 거면 explain-diff-notion.
 ---
 
 # Explain Diff

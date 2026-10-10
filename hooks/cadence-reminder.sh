@@ -32,11 +32,14 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
 cd "$REPO_ROOT" 2>/dev/null || exit 0
 
+HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
+HINT_KEY="$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
+TODAY="$(date +%F)"
+
 FIX_THRESHOLD=3
 WORK_THRESHOLD=5
 CLAUDE_MAX_LINES=80    # 템플릿 45줄 · README 목표 ~40줄의 2배
 RULES_MAX_LINES=400    # 템플릿 rules 4개 합계 180줄의 2배 + 여유
-READINESS_GAP_COMMITS=20
 
 # ── 축 1: 함정 freshness ─────────────────────────────────────────────────────
 # CLAUDE.md·rules 갱신 이후 fix: 가 쌓였다면 새 함정이 문서에 없을 가능성.
@@ -45,7 +48,15 @@ if [ -n "$anchor" ]; then
   fixes=$(git log --oneline "${anchor}..HEAD" --grep='^fix:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "${fixes:-0}" -ge "$FIX_THRESHOLD" ]; then
     say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (harness-doctor 로 점검)."
-    HINTS+=("harness-doctor")
+    HINTS+=("harness-doctor — fix ${fixes}건")
+    # 결과 먼저, 하루 한 번 (2026-10-11) — 권유만으로는 17세션 환기에 doctor 호출 0이었다.
+    # 조건은 CLAUDE.md·rules 를 고치기 전까지 안 풀리므로 매 세션 돌리면 반복 비용이 된다 → 레포마다 하루 첫 세션에만.
+    # 날짜 기록은 레포 밖(HINT_DIR). 레포는 건드리지 않는다.
+    stamp="$HINT_DIR/$HINT_KEY.doctor-date"
+    if [ "$(cat "$stamp" 2>/dev/null)" != "$TODAY" ]; then
+      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 harness-doctor 의 §2 참조 무결성 · §3 빈 축적소 두 검사만 돌려 결과를 3줄로 먼저 보여라. fix: 커밋 중 함정 후보가 있으면 non-obvious-patterns.md 한 줄 초안까지 낸다(쓰기는 승인 뒤)."
+      mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "$TODAY" > "$stamp" 2>/dev/null || true
+    fi
   fi
 fi
 
@@ -57,7 +68,7 @@ if [ -d "$REPO_ROOT/_brain/wiki" ]; then
     n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
     if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
       say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 근거로 decisions/ 또는 infra/ **초안을 만들어 제시할 것** — 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). _brain 은 팀 위키(인수인계용)라 코드가 raw 다 — 갱신은 brain-walk, 이관은 brain-sync."
-      HINTS+=("brain-walk")
+      HINTS+=("brain-walk — feat/refactor ${n}건")
     fi
   fi
 fi
@@ -70,34 +81,19 @@ c=0; r=0
 [ -d .claude/rules ] && r=$(find .claude/rules -name '*.md' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
 if [ "${c:-0}" -gt "$CLAUDE_MAX_LINES" ] || [ "${r:-0}" -gt "$RULES_MAX_LINES" ]; then
   say "CLAUDE.md ${c}줄(목표 ~40) · .claude/rules 합계 ${r}줄. claude-md-improver 로 등급·압축 제안을 받을 시점이다."
-  HINTS+=("claude-md-improver")
+  HINTS+=("claude-md-improver — CLAUDE.md ${c}줄")
 fi
 
-# ── 축 4: AI-Readiness 채점 공백 ─────────────────────────────────────────────
-# 채점기(weekly-readiness-check.sh → score.py)는 있는데 아무도 안 돌린다.
-# 🔴 여기서 채점을 실행하지 않는다 — 이 SessionStart 훅은 읽기 전용이고(validate-session-end Stop 훅과 같은 계약, hooks/test.sh 케이스 4),
-#    python3 + HTML 생성을 매 턴에 얹지 않는다. 환기만 하고 실행은 사람·모델이 한다.
-last_report=""
-[ -d .claude/reports ] && last_report=$(ls -1 .claude/reports 2>/dev/null \
-  | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | sort | tail -1)
-if [ -n "$last_report" ]; then
-  gap=$(git rev-list --count --since="$last_report 00:00" HEAD 2>/dev/null || echo 0)   # 날짜만 주면 시각이 현재로 채워져 당일 커밋이 들쭉날쭉하다
-  since_label="마지막 채점($last_report)"
-else
-  gap=$(git rev-list --count HEAD 2>/dev/null || echo 0)
-  since_label="이 머신에 채점 이력 없음(.claude/reports/ 는 gitignore 라 clone 마다 비어 있다) — 레포 시작"
-fi
-if [ "${gap:-0}" -ge "$READINESS_GAP_COMMITS" ]; then
-  say "${since_label} 이후 커밋 ${gap}건. ai-readiness-cartography 로 점수를 다시 잴 시점이다 — 떨어진 폭이 곧 「뭔가 들어왔는데 문서가 안 따라왔다」다."
-  HINTS+=("ai-readiness-cartography")
-fi
+# ── 축 4: AI-Readiness — 2026-10-11 이 훅에서 뺐다 ─────────────────────────────
+# 환기만 94세션 떴고 채점은 0번이었다(weekly-readiness-check.sh 가 어디에도 등록돼 있지 않았다).
+# 이제 weekly-readiness-check.sh 가 SessionStart 에서 조건부로 직접 채점하고, 떨어졌을 때만 알린다.
 
 # ── 상태줄 권고 칸 ───────────────────────────────────────────────────────────
 # 대화 속 환기는 묻힌다(실측 2026-10-10: 환기 17~94세션에 해당 스킬 호출 0).
 # 권고 스킬 이름을 레포 밖 파일에 남기면 상태줄 스크립트(dotfiles statusline-skill-hints.sh)가 색으로 상시 띄운다.
 # 레포는 건드리지 않는다(읽기 전용 계약). 권고가 없으면 파일을 지워 칸을 비운다.
-HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
-HINT_FILE="$HINT_DIR/$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
+# readiness 하락 권고는 weekly-readiness-check.sh 가 따로 $HINT_KEY.readiness 에 쓴다(서로 지우지 않게 파일을 나눈다).
+HINT_FILE="$HINT_DIR/$HINT_KEY"
 if [ "${#HINTS[@]}" -gt 0 ]; then
   mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "${HINTS[@]}" > "$HINT_FILE" 2>/dev/null || true
 else

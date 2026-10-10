@@ -124,18 +124,42 @@ python3 -c "print('x\n'*100, end='')" > "$TMP/on/CLAUDE.md"
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
 echo "$out" | grep -q 'claude-md-improver' && ok "임계 초과 — 환기" || bad "침묵" "101줄인데 아무 말이 없다 out=[$out]"
 
-# ── 케이스 6: cadence 축 4(readiness 채점 공백) — 커밋 수 게이트 ────────────
-printf '\n[6] cadence 축 4 — readiness 채점 공백\n'
-out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
-echo "$out" | grep -q 'ai-readiness-cartography' && bad "오탐" "커밋 1건인데 떠들었다" || ok "게이트 아래 — 조용"
+# ── 케이스 6: weekly-readiness-check — 자동 채점 · 하락 시만 알림 (2026-10-11) ──
+# cadence 축 4(환기만, 94세션에 채점 0)를 대체한다. 테스트는 CLAUDE_READINESS_SYNC 로 채점을 동기 실행한다.
+printf '\n[6] readiness — 게이트 · 첫 채점 무출력 · 하락 1회 알림 · git 흔적 0\n'
+export CLAUDE_READINESS_SYNC=1
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
+[ -z "$out" ] && [ ! -d "$TMP/on/.claude/reports" ] && ok "게이트 아래 — 채점 안 함·무출력" || bad "오탐" "커밋 몇 건인데 채점했다 out=[$out]"
 (cd "$TMP/on" && for i in $(seq 25); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
+ls "$TMP/on/.claude/reports"/*/ai-readiness-score.json >/dev/null 2>&1 && ok "게이트 초과 — 채점 리포트 생성" || bad "채점 안 됨" "리포트 없음"
+[ -z "$out" ] && ok "첫 채점은 비교 대상이 없어 무출력" || bad "소음" "out=[$out]"
+[ -z "$(cd "$TMP/on" && git status --porcelain -- .claude/reports)" ] && ok "리포트는 git 에 안 뜬다(exclude)" || bad "흔적" "reports 가 git status 에 뜬다"
+python3 - "$TMP/on/.claude/reports" <<'PY'
+import json, os, sys, glob
+d = sys.argv[1]; cur = json.load(open(glob.glob(os.path.join(d, "*", "ai-readiness-score.json"))[0]))
+old = json.loads(json.dumps(cur)); old["total"] = cur["total"] + 10
+k = next(iter(old["categories"])); old["categories"][k]["score"] = cur["categories"][k]["score"] + 10
+os.makedirs(os.path.join(d, "2000-01-01"), exist_ok=True); json.dump(old, open(os.path.join(d, "2000-01-01", "ai-readiness-score.json"), "w"))
+PY
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
+echo "$out" | grep -q '떨어졌다' && ok "하락 — 알림" || bad "침묵" "점수가 떨어졌는데 아무 말이 없다 out=[$out]"
+rf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/on" && git rev-parse --show-toplevel | tr '/' '-').readiness"
+grep -q '^ai-readiness — ' "$rf" 2>/dev/null && ok "하락 — 상태줄 권고 파일" || bad "권고 파일" "없음 [$rf]"
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
+[ -z "$out" ] && [ -f "$rf" ] && ok "같은 하락은 한 번만 알리고 상태줄은 유지" || bad "반복" "out=[$out]"
+unset CLAUDE_READINESS_SYNC
+
+# cadence 축 1 — doctor 결과 먼저는 레포마다 하루 한 번
+(cd "$TMP/on" && git add CLAUDE.md && git -c user.email=t@t -c user.name=t commit -qm "docs: claude" \
+  && for i in 1 2 3; do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "fix: f$i"; done)
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
-echo "$out" | grep -q 'ai-readiness-cartography' && ok "게이트 초과 — 환기" || bad "침묵" "커밋 26건인데 아무 말이 없다 out=[$out]"
-# 채점을 실행해선 안 된다 — 환기 훅(SessionStart)은 읽기 전용이다(케이스 4 Stop 훅과 같은 계약)
-[ -d "$TMP/on/.claude/reports" ] && bad "쓰기 발생" "환기 훅이 채점까지 돌렸다" || ok "채점은 실행하지 않는다"
-# 상태줄 권고 칸 — 권고가 있으면 레포 밖 파일에 스킬 이름, 없으면 파일을 지운다 (2026-10-10)
+echo "$out" | grep -q '오늘 이 레포 첫 세션' && ok "doctor 지시 — 하루 첫 세션" || bad "침묵" "fix 3건인데 지시가 없다 out=[$out]"
+out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q '오늘 이 레포 첫 세션' && bad "반복" "같은 날 두 번째 세션에도 지시" || ok "doctor 지시 — 같은 날 두 번째는 생략"
+# 상태줄 권고 칸 — 권고가 있으면 레포 밖 파일에 '이름 — 이유', 없으면 파일을 지운다 (2026-10-10 · 이유 2026-10-11)
 hf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/on" && git rev-parse --show-toplevel | tr '/' '-')"
-grep -qx 'ai-readiness-cartography' "$hf" 2>/dev/null && ok "권고 스킬을 상태줄 파일에 남긴다" || bad "권고 파일" "없거나 이름이 없다 [$hf]"
+grep -q '^harness-doctor — fix 3건$' "$hf" 2>/dev/null && ok "권고를 '이름 — 이유'로 남긴다" || bad "권고 파일" "$(cat "$hf" 2>/dev/null) [$hf]"
 [ -e "$TMP/on/.claude/skill-hints" ] && bad "레포에 씀" "권고 파일이 레포 안에 생겼다" || ok "권고 파일은 레포 밖"
 mkdir -p "$TMP/quiet/.claude" && (cd "$TMP/quiet" && git init -q && printf '{}' > .claude/harness.json && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init)
 qf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/quiet" && git rev-parse --show-toplevel | tr '/' '-')"

@@ -16,7 +16,6 @@
 | **품질 골든셋 + LLM-as-judge 채점** | `.claude/observations.md`의 **`닫힌 것` 행 5개** 누적 (`task-observer`). **그 5개가 곧 첫 골든셋이다** — 새로 만들지 않는다 |
 | `InstructionsLoaded` 훅 계측 | `harness-doctor` 검사 5의 바이트 계측으로 부족해진 뒤 |
 | `task-observer` 상시 관찰 훅 | REFLECT 되짚기가 **놓친 반복 3건**이 나중에 뒤늦게 발견된 뒤 (`.claude/observations.md`의 `마지막` 날짜가 실제 발생일보다 늦은 경우) |
-| `hooks/test.sh` find-skills 회귀 케이스 | 스캔 수가 조용히 0 또는 급감한 사례 **1건** (실패가 침묵이라 3의 법칙 예외) |
 | `feature-builder` opus 승격 | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
 
 > ⚠️ `evals/` 행과 **품질 골든셋** 행은 이름이 비슷하지만 **다른 물건**이다 — `evals/`는 *스킬이 불리나*(트리거 회귀), 골든셋은 *산출물이 좋아졌나*(품질 점수). 한쪽을 깔았다고 다른 쪽이 덮이지 않는다.

@@ -23,11 +23,11 @@
 
 | 칸 | 성격 | 내용 |
 |---|---|---|
-| `skills/` | **부르면** 도는 것 | 25개. 하네스 자체 5(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`·`find-skills`) · 지식 파이프라인 2(`brain-walk`·`brain-sync`. raw 투입구 `brain-intake`는 30일 호출 0으로 2026-10-11 삭제. vault 판단 원칙 읽기는 전역 CLAUDE.md 명함 절이 맡는다 — `brain-recall`은 incubator) · SDD 7(`why-plan`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 병렬 트랙 1(`conductor`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
+| `skills/` | **부르면** 도는 것 | 24개. 하네스 자체 4(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`) · 지식 파이프라인 2(`brain-walk`·`brain-sync`. raw 투입구 `brain-intake`는 30일 호출 0으로 2026-10-11 삭제. vault 판단 원칙 읽기는 전역 CLAUDE.md 명함 절이 맡는다 — `brain-recall`은 incubator) · SDD 7(`why-plan`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 병렬 트랙 1(`conductor`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
 | 의존 플러그인 | 같이 **켜지는** 것 | `understand-anything` — 코드베이스 지식 그래프. 스킬 복사로는 안 돌아서(빌드된 플러그인 루트 필요) `dependencies`로 건다 |
 | 짝 플러그인 | **있으면** 쓰는 것 | 공식 `claude-md-management` — `/revise-claude-md`(REFLECT 세션 학습 회수) · `claude-md-improver`(2주 audit). CLAUDE.md 품질 감사는 `harness-doctor`가 **일부러 안 하고 여기로 넘긴다.** `dependencies`가 아니라 **없으면 그 칸만 건너뛴다** |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |
-| `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) · **개인 학습 수신함 `_learn/`**(harness.json 있는 레포에 자동 생성 · `.git/info/exclude`로 커밋 제외 · 작업 중 설명한 개념을 카드로 쌓으라는 지시 주입) · **cadence 환기 4축**(함정 freshness · 지식 자본화 · CLAUDE.md 비대 · readiness 채점 공백). 주기는 날짜가 아니라 **커밋 수·줄 수**로 잰다. 권고 스킬 이름은 `~/.claude/skill-hints/`에도 남겨 상태줄이 색으로 띄운다(상태줄 스크립트는 개인 dotfiles) |
+| `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) · **개인 학습 수신함 `_learn/`**(harness.json 있는 레포에 자동 생성 · `.git/info/exclude`로 커밋 제외 · 작업 중 설명한 개념을 카드로 쌓으라는 지시 주입) · **cadence 환기 3축**(함정 freshness — harness-doctor 결과를 레포마다 하루 한 번 먼저 보임 · 지식 자본화 · CLAUDE.md 비대) · **AI-Readiness 자동 채점**(7일+커밋 20건이면 백그라운드 채점, 점수가 떨어졌을 때만 알림). 주기는 날짜가 아니라 **커밋 수·줄 수**로 잰다. 권고는 `스킬 — 이유`로 `~/.claude/skill-hints/`에도 남겨 상태줄이 색으로 띄운다(상태줄 스크립트는 개인 dotfiles) |
 | `templates/` | 플러그인엔 없고 **프로젝트에 남는** 것 | `CLAUDE.md` · `.claude/{harness.json, README.md, rules/, references/}` · `.github/`(CI 워크플로 · PR 템플릿 · Dependabot) · `_brain/`(⑤) · `stacks/`(판정된 팩의 rules) · `.gitignore.append` |
 | `incubator/` | 지금은 **자는** 것 | 로드 경로 밖. 필요해지면 `mv` 한 번 |
 
@@ -59,8 +59,7 @@ why-plan(왜부터 캐묻기 → PRD · _brain 맥락 · _learn 카드) → harn
 
 | 스킬 | 원본 | 라이선스 |
 |---|---|---|
-| `plannotator-visual-explainer` | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) 원문 그대로 | MIT (스킬 폴더 `LICENSE`) |
-| `find-skills` | [obra/superpowers](https://github.com/obra/superpowers)의 `superpowers-codex find-skills` 서브커맨드를 스킬로 옮김 | MIT (원본) |
+| `plannotator-visual-explainer` | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) 원문 그대로. **직접 호출 전용**(`/plannotator-visual-explainer`), `plannotator` CLI 필요 — 플러그인 `plannotator@plannotator` + `install.sh --minimal`(바이너리). 계획 승인(ExitPlanMode)도 그 플러그인이 브라우저 검토로 바꾼다 | MIT (스킬 폴더 `LICENSE`) |
 | `explain-diff-html` · `explain-diff-notion` | Geoffrey Litt의 gist(`a29df1b5f9865506e8952488eac3d524`) 원문 | ⚠️ 원본에 라이선스 표기 없음 — 공개 배포 전 확인 필요 |
 | `ai-readiness-cartography` | `jha0313/skills_repo`의 상위 버전을 바탕으로 | ⚠️ 원본 라이선스 미확인 |
 | `conductor` | 아이디어만 빌림: [obra/superpowers](https://github.com/obra/superpowers) `subagent-driven-development`(지휘는 디스패치·판정·기록만) · mattpocock `wayfinder`(결정은 티켓 하나에 한 번, 차단 관계로 진행 가능한 것 조회) · warpdotdev `saga`(선의보다 빈틈없는 계약). 본문은 새로 씀 | 이 레포 MIT |

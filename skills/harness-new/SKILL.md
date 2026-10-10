@@ -10,7 +10,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 - kit 목록은 **레포에서 읽는다** — 기억으로 적지 않는다: `gh api repos/jtwjs/stack-kits/contents --jq '.[] | select(.type=="dir" and (.name|startswith(".")|not)) | .name'`
 - 고정할 ref(태그)도 레포에서 읽는다: `gh api repos/jtwjs/stack-kits/tags --jq '.[].name'`. 최신 태그를 제안하고, 태그가 없으면 그 사실을 보고하고 묻는다(브랜치 이름으로 대신하지 않는다)
-- 사용자에게 kit · ref · 대상 경로를 묻는다. 대상 경로가 이미 있고 비어 있지 않으면 **멈춘다**(덮어쓰지 않는다).
+- 사용자에게 kit · ref · 대상 경로를 묻는다. 대상 경로가 이미 있고 비어 있지 않으면 **멈춘다**(덮어쓰지 않는다). 대상 경로나 그 상위에 이미 `.git`이 있으면(`git -C <상위> rev-parse` 성공) 역시 **멈추고** 묻는다.
+- ⚠️ **web + server 는 `fullstack` kit 하나로 받는다.** 단일 kit 두 개(예: `nextjs` + `kotlin-spring`)를 한 폴더에 겹쳐 받지 않는다 — §2 가 kit 마다 `git init`을 해 레포 안에 레포가 생긴다(2026-09-29 실측).
 
 | kit | 모양 | 팩 |
 |---|---|---|

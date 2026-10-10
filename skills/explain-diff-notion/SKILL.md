@@ -1,6 +1,6 @@
 ---
 name: explain-diff-notion
-description: Use when the user asks for a rich explanation of a code change, diff, branch, or PR. Produces a Notion page.
+description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 퀴즈 5문항으로 풀어 노션 페이지로 만든다. "이 변경 노션으로 정리해줘"·"팀에 공유할 변경 설명 써줘"·"이해한 뒤 공유하게 정리해줘"일 때 쓴다. 한 장짜리 HTML이면 explain-diff-html.
 ---
 
 # Explain Diff
