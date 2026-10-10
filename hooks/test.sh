@@ -9,6 +9,7 @@ set -uo pipefail
 
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
+export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
 pass=0; fail=0
 
@@ -131,6 +132,15 @@ out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
 echo "$out" | grep -q 'ai-readiness-cartography' && ok "게이트 초과 — 환기" || bad "침묵" "커밋 26건인데 아무 말이 없다 out=[$out]"
 # 채점을 실행해선 안 된다 — 환기 훅(SessionStart)은 읽기 전용이다(케이스 4 Stop 훅과 같은 계약)
 [ -d "$TMP/on/.claude/reports" ] && bad "쓰기 발생" "환기 훅이 채점까지 돌렸다" || ok "채점은 실행하지 않는다"
+# 상태줄 권고 칸 — 권고가 있으면 레포 밖 파일에 스킬 이름, 없으면 파일을 지운다 (2026-10-10)
+hf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/on" && git rev-parse --show-toplevel | tr '/' '-')"
+grep -qx 'ai-readiness-cartography' "$hf" 2>/dev/null && ok "권고 스킬을 상태줄 파일에 남긴다" || bad "권고 파일" "없거나 이름이 없다 [$hf]"
+[ -e "$TMP/on/.claude/skill-hints" ] && bad "레포에 씀" "권고 파일이 레포 안에 생겼다" || ok "권고 파일은 레포 밖"
+mkdir -p "$TMP/quiet/.claude" && (cd "$TMP/quiet" && git init -q && printf '{}' > .claude/harness.json && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init)
+qf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/quiet" && git rev-parse --show-toplevel | tr '/' '-')"
+printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다고 치고
+(cd "$TMP/quiet" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" >/dev/null 2>&1)
+[ -e "$qf" ] && bad "남은 권고" "권고가 없는데 파일이 남았다" || ok "권고가 없으면 칸을 비운다"
 
 # ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
 printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'

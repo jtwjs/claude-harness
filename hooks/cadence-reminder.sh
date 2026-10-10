@@ -22,6 +22,7 @@ set -uo pipefail
 cat >/dev/null 2>&1 || true   # hook 입력(JSON) 소비
 
 MSGS=()
+HINTS=()   # 상태줄에 띄울 권고 스킬 이름
 # ⚠️ 메시지에 큰따옴표를 쓰지 않는다 — 아래에서 JSON 으로 직접 싸므로 이스케이프를 피한다.
 say() { MSGS+=("$1"); }
 
@@ -44,6 +45,7 @@ if [ -n "$anchor" ]; then
   fixes=$(git log --oneline "${anchor}..HEAD" --grep='^fix:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "${fixes:-0}" -ge "$FIX_THRESHOLD" ]; then
     say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (harness-doctor 로 점검)."
+    HINTS+=("harness-doctor")
   fi
 fi
 
@@ -55,6 +57,7 @@ if [ -d "$REPO_ROOT/_brain/wiki" ]; then
     n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
     if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
       say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 근거로 decisions/ 또는 infra/ **초안을 만들어 제시할 것** — 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 정리는 brain-intake, 이관은 brain-sync."
+      HINTS+=("brain-intake")
     fi
   fi
 fi
@@ -67,6 +70,7 @@ c=0; r=0
 [ -d .claude/rules ] && r=$(find .claude/rules -name '*.md' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
 if [ "${c:-0}" -gt "$CLAUDE_MAX_LINES" ] || [ "${r:-0}" -gt "$RULES_MAX_LINES" ]; then
   say "CLAUDE.md ${c}줄(목표 ~40) · .claude/rules 합계 ${r}줄. claude-md-improver 로 등급·압축 제안을 받을 시점이다."
+  HINTS+=("claude-md-improver")
 fi
 
 # ── 축 4: AI-Readiness 채점 공백 ─────────────────────────────────────────────
@@ -85,6 +89,19 @@ else
 fi
 if [ "${gap:-0}" -ge "$READINESS_GAP_COMMITS" ]; then
   say "${since_label} 이후 커밋 ${gap}건. ai-readiness-cartography 로 점수를 다시 잴 시점이다 — 떨어진 폭이 곧 「뭔가 들어왔는데 문서가 안 따라왔다」다."
+  HINTS+=("ai-readiness-cartography")
+fi
+
+# ── 상태줄 권고 칸 ───────────────────────────────────────────────────────────
+# 대화 속 환기는 묻힌다(실측 2026-10-10: 환기 17~94세션에 해당 스킬 호출 0).
+# 권고 스킬 이름을 레포 밖 파일에 남기면 상태줄 스크립트(dotfiles statusline-skill-hints.sh)가 색으로 상시 띄운다.
+# 레포는 건드리지 않는다(읽기 전용 계약). 권고가 없으면 파일을 지워 칸을 비운다.
+HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
+HINT_FILE="$HINT_DIR/$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
+if [ "${#HINTS[@]}" -gt 0 ]; then
+  mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "${HINTS[@]}" > "$HINT_FILE" 2>/dev/null || true
+else
+  rm -f "$HINT_FILE" 2>/dev/null || true
 fi
 
 # ── 출력: SessionStart 는 stdout JSON 의 additionalContext 를 컨텍스트로 넣는다 ─────

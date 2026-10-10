@@ -27,7 +27,7 @@
 | 의존 플러그인 | 같이 **켜지는** 것 | `understand-anything` — 코드베이스 지식 그래프. 스킬 복사로는 안 돌아서(빌드된 플러그인 루트 필요) `dependencies`로 건다 |
 | 짝 플러그인 | **있으면** 쓰는 것 | 공식 `claude-md-management` — `/revise-claude-md`(REFLECT 세션 학습 회수) · `claude-md-improver`(2주 audit). CLAUDE.md 품질 감사는 `harness-doctor`가 **일부러 안 하고 여기로 넘긴다.** `dependencies`가 아니라 **없으면 그 칸만 건너뛴다** |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |
-| `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) · **cadence 환기 4축**(함정 freshness · 지식 자본화 · CLAUDE.md 비대 · readiness 채점 공백). 주기는 날짜가 아니라 **커밋 수·줄 수**로 잰다 |
+| `hooks/` | **안 불러도** 도는 것 | 위험 명령 차단 · 포맷 · TDD 가드 · 세션 종료 검증(읽기 전용) · **cadence 환기 4축**(함정 freshness · 지식 자본화 · CLAUDE.md 비대 · readiness 채점 공백). 주기는 날짜가 아니라 **커밋 수·줄 수**로 잰다. 권고 스킬 이름은 `~/.claude/skill-hints/`에도 남겨 상태줄이 색으로 띄운다(상태줄 스크립트는 개인 dotfiles) |
 | `templates/` | 플러그인엔 없고 **프로젝트에 남는** 것 | `CLAUDE.md` · `.claude/{harness.json, README.md, rules/, references/}` · `.github/`(CI 워크플로 · PR 템플릿 · Dependabot) · `_brain/`(⑤) · `stacks/`(판정된 팩의 rules) · `.gitignore.append` |
 | `incubator/` | 지금은 **자는** 것 | 로드 경로 밖. 필요해지면 `mv` 한 번 |
 
