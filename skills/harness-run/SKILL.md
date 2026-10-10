@@ -46,7 +46,7 @@ disable-model-invocation: false
    - 메인 세션에는 결과 코드를 재출력하지 말고 짧게 보고.
 
 3. **판정 = index.json 재읽기**(서브에이전트 stdout 아님):
-   - `completed` → 메인이 **GREEN 게이트**를 한 번 더 확인한다: `verify` 전체 통과 **AND** `git diff --name-only`에 테스트 파일이 없다(`tdd: true`면 RED가 만든 테스트 파일은 **RED 직후 따로 커밋**해 두므로 여기 섞이지 않는다 — 아래 4). 테스트 파일이 섞였으면 그 변경을 되돌리고 step을 `error`, `error_message: "GREEN: 구현 단계가 테스트 파일을 수정함"`. 통과하면 **커밋(4)** 후 다음 step.
+   - `completed` → 메인이 **GREEN 게이트**를 한 번 더 확인한다: `verify` 전체 통과 **AND** `git diff --name-only`에 테스트 파일이 없다(`tdd: true`면 RED가 만든 테스트 파일은 **RED 직후 따로 커밋**해 두므로 여기 섞이지 않는다 — 아래 4). 테스트 파일이 섞였으면 그 변경을 되돌리고 step을 `error`, `error_message: "GREEN: 구현 단계가 테스트 파일을 수정함"`. **「completed」 보고를 그대로 믿지 않는다** — `git diff --name-only`가 비어 있으면(아무것도 안 바뀜) `error`, `error_message: "GREEN: completed 보고인데 변경 없음"`. stepN.md의 `작업`과 무관한 파일이 섞였으면 그 목록을 사람에게 한 줄로 보이고 진행한다. 서브에이전트가 이미 커밋해 버렸으면(`git log`에 메인이 안 만든 커밋) 멈추고 보고한다. 통과하면 **커밋(4)** 후 다음 step.
    - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`BACKLOG.md` 승격 조건)이 읽는 유일한 계수기다. **`retries`가 3이 되면 루프 중단**(= 첫 시도 + 재시도 3회, 최대 4회 실행. `sdd`·`task-observer`도 같은 문장을 쓴다) 하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
    - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
 
