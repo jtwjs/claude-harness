@@ -59,3 +59,16 @@
 ## 8. 플러그인을 나누는 기준
 
 BE/FE 전용 플러그인을 따로 두지 않는다. 절차 스킬은 스택과 무관하게 공통이고 템플릿은 상시 비용이 0이다. 나누는 신호는 **다른 사람이 설치하겠다고 할 때**이고, 그때 팩이 디렉터리 단위라 `git mv` 한 번이면 된다.
+
+## 9. 변경 이력: 2026-10-11 정리 (0.10.7 → 0.12.6)
+
+세션 로그 30일 호출 수와 인터뷰로 정리했다. README에서 옮겨 왔다.
+
+- 합침: `grilling` + `why-logictree` → `why-plan`
+- 삭제: `brain-intake`(30일 0회, raw는 통합 wiki에 던진다), 하네스판 `find-skills`(전역 find-skills와 이름 충돌)
+- 이름 변경: `harness-new` → `project-new`
+- incubator: `brain-recall`
+- 신설: `_learn`, readiness 자동 채점, 상태줄 권고
+- 설계 3장: `why-plan`이 PRD·ARCHITECTURE·ADR을 쓴다(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움). `_brain`은 REFLECT에서 세 장을 보고 정리한다
+- 도구화: `task-observer`가 「반복 절차」도 세어 `scripts/`로 승격을 제안한다. 첫 사례 `scripts/release.sh`
+- 질문 순서: 종류(제품·기술) 대신 "팀장이 왜냐고 물으면 내가 답해야 하나?"로 가른다. 예면 사용자 생각 먼저, 사소한 것만 추천 먼저. PRD 결정 절에도 결정 주체 칸
