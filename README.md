@@ -167,17 +167,3 @@ scripts/release.sh             # push → 마켓플레이스 갱신 → 플러�
 ```
 
 사전 확인(main, 깨끗한 트리, plugin.json과 marketplace.json 버전 일치, `hooks/test.sh` 통과)에서 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다. 갱신 명령의 "성공" 문구는 믿지 않는다. 계정이 틀리면 clone이 실패해도 성공으로 보고하고 캐시에 가짜 버전 폴더를 만들기 때문이다.
-
-## 출처·라이선스
-
-직접 만들지 않은 스킬과 그 원본이다. 원본 라이선스를 따른다.
-
-| 스킬 | 원본 | 라이선스 |
-|---|---|---|
-| `plannotator-visual-explainer` | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) 원문 그대로. `plannotator` CLI 필요 | MIT (스킬 폴더 `LICENSE`) |
-| `explain-diff-html` · `explain-diff-notion` | Geoffrey Litt의 gist(`a29df1b5f9865506e8952488eac3d524`) 원문. description만 한국어 트리거로 바꿈 | ⚠️ 원본에 라이선스 표기 없음, 확인 필요 |
-| `ai-readiness-cartography` | `jha0313/skills_repo`의 상위 버전을 바탕으로 | ⚠️ 원본 라이선스 미확인 |
-| `conductor` | 아이디어만 빌림: [obra/superpowers](https://github.com/obra/superpowers) `subagent-driven-development`, mattpocock `wayfinder`, warpdotdev `saga`. 본문은 새로 씀 | 이 레포 MIT |
-| `systematic-debugging` · `why-plan` | 전역 `~/.claude/skills/`에 있던 공개 스킬에서 출발(why-plan은 `grill-me` → `grilling` 재작성 → 2026-10-11 `why-logictree`와 합침) | ⚠️ 원본 저장소 미확인 |
-
-그 밖의 스킬·에이전트·훅·템플릿은 이 레포의 MIT 라이선스(`LICENSE`)를 따른다.
