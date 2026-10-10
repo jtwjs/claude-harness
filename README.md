@@ -137,7 +137,7 @@ flowchart TD
 >
 > **폴더 경계도 이 3층 안에서 푼다** — 디렉토리별 `CLAUDE.md`를 두지 않고 `rules/`의 `paths:` glob으로 표현한다.
 
-## 2026-10-11 정리 (0.10.7 → 0.12.4)
+## 2026-10-11 정리 (0.10.7 → 0.12.5)
 
 세션 로그 30일 호출 수와 인터뷰로 정리했다.
 - **합침:** `grilling` + `why-logictree` → `why-plan`
@@ -146,6 +146,7 @@ flowchart TD
 - **incubator:** `brain-recall`
 - **신설:** `_learn` · readiness 자동 채점 · 상태줄 권고
 - **설계 3장:** `why-plan`이 PRD·ARCHITECTURE·ADR을 쓰고(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움), `_brain`은 REFLECT에서 세 장을 보고 정리
+- **질문 순서:** 종류(제품·기술) 대신 「팀장이 왜냐고 물으면 내가 답해야 하나?」로 가른다 — 예면 사용자 생각 먼저, 사소한 것만 추천 먼저. PRD 결정 절에도 결정 주체 칸
 
 ## 출처
 
