@@ -87,7 +87,7 @@ flowchart TD
 | 하네스 4 | `project-new` | 스택 키트로 새 프로젝트 생성 → `harness-init` |
 | | `harness-init` | 기존 레포에 하네스 설치(명령·규칙·CI·`_brain`) |
 | | `harness-doctor` | 하네스가 썩었는지 8가지 검사 |
-| | `task-observer` | 반복된 재지시·재교정을 세어 3회면 승격 제안 |
+| | `task-observer` | 반복된 재지시·재교정·수작업 절차를 세어 3회면 승격 제안(절차는 `scripts/`로) |
 | 지식 2 | `brain-walk` | 코드를 훑어 `_brain` 다섯 장(인계용 사실) |
 | | `brain-sync` | `_brain`의 흐름·결정·용어를 통합 wiki로 이관 |
 | 병렬 1 | `conductor` | worktree 병렬 트랙 지휘(결정 전파·ADR 번호 발급) |
@@ -137,7 +137,16 @@ flowchart TD
 >
 > **폴더 경계도 이 3층 안에서 푼다** — 디렉토리별 `CLAUDE.md`를 두지 않고 `rules/`의 `paths:` glob으로 표현한다.
 
-## 2026-10-11 정리 (0.10.7 → 0.12.5)
+## 릴리스 (이 레포 관리자용)
+
+```bash
+scripts/release.sh --dry-run   # 무엇을 할지만 보여 준다
+scripts/release.sh             # push → 마켓플레이스 갱신 → 플러그인 갱신 → 설치본 버전·스킬 수 확인 → gh 계정 원복
+```
+
+사전 확인(main · 깨끗한 트리 · plugin.json과 marketplace.json 버전 일치 · `hooks/test.sh` 통과)에서 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다. 갱신 명령의 "성공" 문구는 믿지 않는다 — 계정이 틀리면 clone이 실패해도 성공으로 보고하고 캐시에 가짜 버전 폴더를 만든다.
+
+## 2026-10-11 정리 (0.10.7 → 0.12.6)
 
 세션 로그 30일 호출 수와 인터뷰로 정리했다.
 - **합침:** `grilling` + `why-logictree` → `why-plan`
@@ -146,6 +155,7 @@ flowchart TD
 - **incubator:** `brain-recall`
 - **신설:** `_learn` · readiness 자동 채점 · 상태줄 권고
 - **설계 3장:** `why-plan`이 PRD·ARCHITECTURE·ADR을 쓰고(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움), `_brain`은 REFLECT에서 세 장을 보고 정리
+- **도구화:** `task-observer`가 「반복 절차」도 세어 `scripts/`로 승격 제안 · 첫 사례 `scripts/release.sh`
 - **질문 순서:** 종류(제품·기술) 대신 「팀장이 왜냐고 물으면 내가 답해야 하나?」로 가른다 — 예면 사용자 생각 먼저, 사소한 것만 추천 먼저. PRD 결정 절에도 결정 주체 칸
 
 ## 출처

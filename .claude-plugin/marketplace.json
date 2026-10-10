@@ -13,7 +13,7 @@
       "name": "claude-harness",
       "source": "./",
       "description": "신규 프로젝트에 까는 개인 표준 하네스 — SDD·RED/GREEN·컨텍스트 3층·brain 파이프라인",
-      "version": "0.12.5",
+      "version": "0.12.6",
       "author": {
         "name": "jtwjs"
       },
