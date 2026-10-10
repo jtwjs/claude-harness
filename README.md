@@ -23,7 +23,7 @@
 
 | 칸 | 성격 | 내용 |
 |---|---|---|
-| `skills/` | **부르면** 도는 것 | 28개. 하네스 자체 5(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`·`find-skills`) · 지식 파이프라인 4(`brain-walk`·`brain-sync`·`brain-recall`·`brain-intake` — 마지막은 raw 투입 레포용 레거시) · SDD 7(`grilling`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 병렬 트랙 1(`conductor`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 기획 1(`why-logictree`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
+| `skills/` | **부르면** 도는 것 | 27개. 하네스 자체 5(`harness-new`·`harness-init`·`harness-doctor`·`task-observer`·`find-skills`) · 지식 파이프라인 3(`brain-walk`·`brain-sync`·`brain-intake` — 마지막은 raw 투입 레포용 레거시. vault 판단 원칙 읽기는 전역 CLAUDE.md 명함 절이 맡는다 — `brain-recall`은 incubator) · SDD 7(`grilling`·`harness`·`harness-run`·`sdd`·`sdd-review`·`design-brief`·`design-reconcile`) · 병렬 트랙 1(`conductor`) · 품질 2(`systematic-debugging`·`ai-readiness-cartography`) · 마무리 3(`commit`·`changeset`·`pr-write`) · 기획 1(`why-logictree`) · 글쓰기 2(`slack-writing`·`notion-writing`, SDD 밖) · 코드 이해 3(`explain-diff-html`·`explain-diff-notion`·`plannotator-visual-explainer`, 외부 원문 그대로) |
 | 의존 플러그인 | 같이 **켜지는** 것 | `understand-anything` — 코드베이스 지식 그래프. 스킬 복사로는 안 돌아서(빌드된 플러그인 루트 필요) `dependencies`로 건다 |
 | 짝 플러그인 | **있으면** 쓰는 것 | 공식 `claude-md-management` — `/revise-claude-md`(REFLECT 세션 학습 회수) · `claude-md-improver`(2주 audit). CLAUDE.md 품질 감사는 `harness-doctor`가 **일부러 안 하고 여기로 넘긴다.** `dependencies`가 아니라 **없으면 그 칸만 건너뛴다** |
 | `agents/` | 일을 **맡기는** 것 | `test-writer` · `feature-builder` · `code-reviewer` · `root-cause-debugger` |

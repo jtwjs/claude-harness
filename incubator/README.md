@@ -13,7 +13,9 @@ mv incubator/ready/skills/<이름> skills/
 
 ## 지금 들어 있는 것
 
-없다.
+| 이름 | 들어온 날 | 왜 | 꺼낼 조건 |
+|---|---|---|---|
+| `brain-recall` | 2026-10-11 (0.10.9) | 전역 `~/.claude/CLAUDE.md` 「나를 아는 동료로 일하기」 절이 매 세션 들어가며 같은 일을 한다(principles.md를 Read로 직접 열기 · vault index 카탈로그 먼저 · 반출 금지). 스킬 본문 2,183자만큼 덜 읽는다 | 11월 /gauge 재집계에서 다른 레포 세션의 principles.md 열람이 0이면, 스킬+sdd 연결안으로 재검토 |
 
 ## 나간 것
 
