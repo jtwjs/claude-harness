@@ -152,6 +152,7 @@ out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
 [ -f "$TMP/learn/_learn/inbox.md" ] && ok "수신함 생성" || bad "수신함" "_learn/inbox.md 없음"
 echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "_learn/inbox.md" in d["hookSpecificOutput"]["additionalContext"]' 2>/dev/null \
   && ok "기록 지시를 additionalContext 로" || bad "지시" "JSON 이 아니거나 지시가 없다 out=[$out]"
+echo "$out" | grep -q '_brain/wiki/' && ok "지시가 도메인은 _brain 으로 가른다" || bad "분기" "지시에 _brain 행선지가 없다"
 echo "$out" | grep -q '안 옮긴 카드 0장' && ok "새 수신함은 0장(형식 예시는 세지 않는다)" || bad "카운트" "새 수신함인데 0장이 아니다"
 (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
 n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"

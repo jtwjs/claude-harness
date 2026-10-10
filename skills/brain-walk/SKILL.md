@@ -12,7 +12,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 왜 이 스킬이 따로 있나
 
-`harness-init`은 **명령·규칙·CI**를 깐다. `brain-intake`는 **사람이 `raw/`에 던진 것**을 정리한다. 그 사이가 비어 있었다 — 아무도 raw를 던지지 않으면 `_brain/`은 영원히 스캐폴드로 남는다(실측: `raw` 0건인 레포는 콘텐츠 0~1장, 4건인 레포는 31장).
+`harness-init`은 **명령·규칙·CI**를 깐다. `brain-intake`(2026-10-11 삭제)는 **사람이 `raw/`에 던진 것**을 정리했다. 그 사이가 비어 있었다 — 아무도 raw를 던지지 않으면 `_brain/`은 영원히 스캐폴드로 남는다(실측: `raw` 0건인 레포는 콘텐츠 0~1장, 4건인 레포는 31장).
 
 **`brain-walk`의 트리거는 사람의 결심이 아니라 레포 자체다.** 코드가 raw다.
 
@@ -20,7 +20,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 harness-init(스택 판정·명령·규칙·CI) → brain-walk(코드→5장) → brain-sync(레포→vault)
 ```
 
-> 2026-10-11부터 `_brain/`은 **팀 위키·인수인계용**이다. raw 투입구(`brain-intake`)는 실측 30일 호출 0이라 흐름에서 뺐다(스킬 파일은 raw를 쓰는 레포용으로 남김). 사람이 이해해야 할 것은 커밋되지 않는 `_learn/`에 따로 쌓인다(`learn-setup` 훅).
+> 2026-10-11부터 `_brain/`은 **팀 위키·인수인계용**이다. raw 투입구(`brain-intake`)는 실측 30일 호출 0이라 흐름에서 뺐고 스킬도 삭제했다. 사람이 이해해야 할 것은 커밋되지 않는 `_learn/`에 따로 쌓인다(`learn-setup` 훅).
 
 ## 0. 스택 판정 — 먼저 무엇을 grep할지 고른다
 

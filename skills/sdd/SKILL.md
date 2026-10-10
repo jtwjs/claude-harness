@@ -7,7 +7,7 @@ disable-model-invocation: false
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/harness` 등으로 직접 호출도 가능.)
 
 > **한 줄 흐름**
-> **코어 트랙** — `grilling`(스펙 인터뷰 → PRD) → `harness`(분해) → 🙋(빈칸이 많으면 `grilling` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
+> **코어 트랙** — `why-plan`(왜부터 캐물어 → PRD · `_brain` 맥락) → `harness`(분해) → 🙋(빈칸이 많으면 `why-plan` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
 > **디자인 트랙** — 위 흐름에 둘이 끼어든다: DESIGN에 `design-brief`(→ `/design`), REVIEW에 `design-reconcile`. PLAN은 `harness`가 핸드오프를 읽는다
 
 ## 0. 트랙 판단
@@ -26,12 +26,12 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 ## 단계 진행 (🤖 자동 위임 / 🙋 사람 체크포인트)
 
 1. **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   **PRD가 없거나 과제가 아직 막연하면 `grilling`으로 먼저 만든다**(WHY → 3질문 → 갈래별 한 질문씩 → So What/Why So → PRD). → 🙋 확인.
+   **PRD가 없거나 과제가 아직 막연하면 `why-plan`으로 먼저 만든다**(날것 → WHY 트리 → 3질문 → 참고 자료 → 갈래별 한 질문씩 → So What/Why So → PRD · `_brain/wiki/decisions/<기능>.md` · `_learn` 카드). → 🙋 확인.
    ⚠️ PRD의 **수용 조건**이 `test-writer`의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 **시안 전에** 권한·상태·데이터 결정을 끝내고 `.claude/design/`에 브리프를 만든다 →
    사람이 `/design`으로 시안 생성(상태 화면까지) → 프로젝트 URL 회수. → 🙋 확인.
 2. **PLAN** — `harness`로 step 분해(각 step에 `tdd: true|false` 판정 포함).
-   step 파일에 `⚠️`·`TBD`·미해결 가정이 **3개 이상**이거나 사람이 요청하면 `grilling`으로 빈칸을 캐묻는다. → 🙋 step 계획 승인.
+   step 파일에 `⚠️`·`TBD`·미해결 가정이 **3개 이상**이거나 사람이 요청하면 `why-plan`으로 빈칸을 캐묻는다. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `harness` §3-b가 시안(핸드오프)을 읽어 step마다 디자인 파일·화면·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
 3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 2단으로 돈다. hands-off.
    - **RED**: `test-writer` → `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
@@ -52,7 +52,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 
-① **DESIGN** — PRD·수용 조건 확인 · PRD 저장 경로(`grilling`) · 🎨 시안 URL 회수
+① **DESIGN** — PRD·수용 조건 확인 · PRD·`_brain` 맥락 저장 경로(`why-plan`) · 🎨 시안 URL 회수
 ② **PLAN** — `harness` 범위 합의 → step 계획 승인(PLAN 안에서 두 번 멈춘다) · 🎨 DS 신규 컴포넌트 승인
 ③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3
 ④ **REVIEW** — 최종 판정

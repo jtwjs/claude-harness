@@ -109,4 +109,4 @@ UI 작업이고 `/design`·claude.ai/design 시안(또는 핸드오프 프롬프
 
 ## 설계문서가 없을 때
 
-`docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없으면 `grilling`으로 **PRD부터 만든 뒤** 이 스킬로 돌아온다. 세 문서의 항목 정의는 `grilling` SKILL.md 「설계문서 3장」이 정본이다(2026-10-08 — DESIGN 산출물 정의가 PLAN 스킬에 붙어 있던 것을 옮김).
+`docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없으면 `why-plan`으로 **PRD부터 만든 뒤** 이 스킬로 돌아온다. 세 문서의 항목 정의는 `why-plan` SKILL.md 「설계문서 3장」이 정본이다(2026-10-08 — DESIGN 산출물 정의가 PLAN 스킬에 붙어 있던 것을 옮김).
