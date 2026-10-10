@@ -41,13 +41,14 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    위반이 나오면 **`feature-builder`로 수정하고 `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 코드→디자인 반영은 사람이 `/design-sync`로.
-5. **REFLECT** 🤖 + 🙋×3 — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
+5. **REFLECT** 🤖 + 🙋×3(+리허설 제안 시 1) — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**
    🔴 **종착지는 하네스 3층으로 재지정한다** — 이 명령의 기본값은 CLAUDE.md라 그대로 두면 CLAUDE.md가 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*)로 가른다: 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.**
    플러그인이 없으면 건너뛰고 **건너뛴 사실을 한 줄 보고**한다(하드 의존 아님).
    그 다음 `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. **문서 한 줄은 고친 커밋과 같은 커밋에 태운다**(`rules/non-obvious-patterns.md` 자신의 규칙).
    그 다음 **지식 환류**: `_brain/`이 있으면 `brain-intake` → **`brain-sync`로 통합 wiki 이관**(🙋 확인 후).
    마지막에 `task-observer` — 이번 작업에서 **반복된 것**(재지시·재교정·불발)을 `.claude/observations.md`에 세고, 3회에 닿은 것만 승격 제안한다. 🙋 판정은 사람이.
    ⚖️ 앞의 `revise-claude-md`(매 세션·자동 수집)와 뒤의 `task-observer`(3회부터·손으로 승격)는 **다른 층**이다 — 앞은 흘린 컨텍스트를 줍고, 뒤는 반복을 센다.
+   🎤 **설명 리허설**(설계 결정이 있던 작업이면 제안, 거절하면 건너뛴다) — ADR의 `결정 주체: AI 추천 수용` 결정부터 골라, 회의 참석자(팀장·옆 파트 동료) 역할로 질문 5개를 **하나씩** 던진다. 사람은 문서를 안 보고 자기 말로 답한다. 막힌 질문은 **사람의 학습 목록**으로 돌려준다(레포에 쓰지 않는다). 리허설은 이해를 만드는 일이라 에이전트가 대신 답하지 않는다.
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 
@@ -55,7 +56,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 ② **PLAN** — `harness` 범위 합의 → step 계획 승인(PLAN 안에서 두 번 멈춘다) · 🎨 DS 신규 컴포넌트 승인
 ③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3
 ④ **REVIEW** — 최종 판정
-⑤ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · brain-sync 이관 · task-observer 승격 판정
+⑤ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · brain-sync 이관 · task-observer 승격 판정 · 🎤 설명 리허설(제안 시)
 
 > 이 목록 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 목록에 넣거나 스킬을 고친다. (2026-10-08: 선언 7곳 vs 실제 13곳이던 것을 맞춤)
 
