@@ -79,7 +79,9 @@ case "$cmp_line" in
 esac
 
 # ── 2. 채점할 때가 됐으면 백그라운드로 ──────────────────────────────────────
-last="$(ls -1 "$OUT_DIR" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | sort | tail -1)"
+# 결과 파일이 있는 날짜만 센다 — 채점이 중간에 죽어 빈 폴더가 남으면 7일 동안 다시 안 재는 일이 생긴다(2026-10-11 리뷰).
+last="$(for x in "$OUT_DIR"/*/ai-readiness-score.json; do [ -f "$x" ] && basename "$(dirname "$x")"; done 2>/dev/null \
+  | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | sort | tail -1)"
 due=0
 if [ -z "$last" ]; then
   [ "$(git rev-list --count HEAD 2>/dev/null || echo 0)" -ge "$GAP_COMMITS" ] && due=1
@@ -88,7 +90,7 @@ else
   commits=$(git rev-list --count --since="$last 00:00" HEAD 2>/dev/null || echo 0)
   [ "${days:-0}" -ge "$GAP_DAYS" ] && [ "${commits:-0}" -ge "$GAP_COMMITS" ] && due=1
 fi
-if [ "$due" = 1 ] && [ ! -d "$OUT_DIR/$DATE" ]; then
+if [ "$due" = 1 ] && [ ! -d "$OUT_DIR/$DATE" ]; then   # 같은 날 두 번 띄우지 않는다(백그라운드 채점 중일 수 있다)
   mkdir -p "$OUT_DIR/$DATE" 2>/dev/null || exit 0
   run() {
     # score.py 인자는 repo · --json · --markdown · --quiet 뿐이다. 실패하면 빈 날짜 폴더를 지운다(채점했다고 믿지 않게).

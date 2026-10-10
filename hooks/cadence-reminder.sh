@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SessionStart — cadence 4축 환기. 읽기 전용·비차단(exit 0).
+# SessionStart — cadence 3축 환기(축 4 readiness 는 2026-10-11 weekly-readiness-check.sh 로 옮겼다). 읽기 전용·비차단(exit 0).
 #
 # 🔴 왜 Stop 이 아니라 SessionStart 인가 (2026-09-28 실측으로 옮겼다):
 #   Stop 은 세션이 **끝나는** 시점이라 "이제 회고 쓰세요"를 받을 사람이 이미 나간다.

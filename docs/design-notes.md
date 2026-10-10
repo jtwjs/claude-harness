@@ -53,7 +53,7 @@
 
 - AI 환경(규칙·훅·검증 명령·CI 게이트)의 정본은 이 플러그인의 **스택 팩**(`templates/stacks/`).
 - 코드 뼈대는 별도 공개 레포 [`jtwjs/stack-kits`](https://github.com/jtwjs/stack-kits) — kit마다 CI로 스스로 초록이어야 한다. 플러그인 캐시 안의 템플릿은 빌드·의존성 갱신을 검증할 수 없어서다.
-- 둘은 `harness-new`가 잇는다. kit에는 `.claude/`를 넣지 않는다 — 정본이 둘이면 버전이 어긋난다.
+- 둘은 `project-new`가 잇는다. kit에는 `.claude/`를 넣지 않는다 — 정본이 둘이면 버전이 어긋난다.
 - 팩 규칙은 kit에서 **실측한 것**으로 쓴다(예: springdoc 3.x는 Kotlin non-null을 `required`로 옮기지 않는다).
 
 ## 8. 플러그인을 나누는 기준

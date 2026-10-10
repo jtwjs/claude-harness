@@ -3,7 +3,7 @@
 `harness-init`이 판정한 스택마다 `.claude/rules/`에 덧붙이는 규칙과, 검증 명령 후보·CI 셋업을 담는다.
 **자동 로드되지 않는다** — `harness-init`이 판정 뒤 이 폴더에서 골라 복사한다. 평소 컨텍스트 비용은 0이다.
 
-코드 뼈대는 여기 없다 — 공개 레포 `jtwjs/stack-kits`가 kit마다 디렉터리로 갖고 있고, 스킬 `harness-new`가 kit 복사 → `harness-init`을 잇는다. 팩 규칙의 근거는 그 kit에서 실측한 것이다.
+코드 뼈대는 여기 없다 — 공개 레포 `jtwjs/stack-kits`가 kit마다 디렉터리로 갖고 있고, 스킬 `project-new`가 kit 복사 → `harness-init`을 잇는다. 팩 규칙의 근거는 그 kit에서 실측한 것이다.
 
 ## 판정 — 빌드 파일로만
 

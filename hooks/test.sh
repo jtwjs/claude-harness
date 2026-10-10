@@ -144,10 +144,23 @@ os.makedirs(os.path.join(d, "2000-01-01"), exist_ok=True); json.dump(old, open(o
 PY
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
 echo "$out" | grep -q '떨어졌다' && ok "하락 — 알림" || bad "침묵" "점수가 떨어졌는데 아무 말이 없다 out=[$out]"
+echo "$out" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null && ok "하락 알림은 유효한 JSON" || bad "JSON" "파싱 실패 out=[$out]"
 rf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/on" && git rev-parse --show-toplevel | tr '/' '-').readiness"
 grep -q '^ai-readiness — ' "$rf" 2>/dev/null && ok "하락 — 상태줄 권고 파일" || bad "권고 파일" "없음 [$rf]"
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
 [ -z "$out" ] && [ -f "$rf" ] && ok "같은 하락은 한 번만 알리고 상태줄은 유지" || bad "반복" "out=[$out]"
+# 리포트가 있을 때 분기 — 7일 이상 + 커밋 20건 이상이면 다시 잰다
+mkdir -p "$TMP/rd/.claude" && (cd "$TMP/rd" && git init -q && printf '{}' > .claude/harness.json && git add -A \
+  && for i in $(seq 22); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+mkdir -p "$TMP/rd/.claude/reports/2000-01-01" && cp "$(ls "$TMP"/on/.claude/reports/*/ai-readiness-score.json | head -1)" "$TMP/rd/.claude/reports/2000-01-01/"
+(cd "$TMP/rd" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" >/dev/null 2>&1)
+[ -f "$TMP/rd/.claude/reports/$(date +%F)/ai-readiness-score.json" ] && ok "리포트 있음 + 7일·20건 — 다시 채점" || bad "재채점 안 됨" "$(ls "$TMP/rd/.claude/reports")"
+# 채점이 실패하면 빈 날짜 폴더를 남기지 않는다 — 가짜 플러그인 루트(실패하는 score.py)로 돌린다
+FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/ai-readiness-cartography/scripts"
+cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/ai-readiness-cartography/scripts/score.py"
+rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
+(cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
+[ -d "$TMP/rd/.claude/reports/$(date +%F)" ] && bad "빈 폴더" "채점 실패인데 날짜 폴더가 남았다" || ok "채점 실패 — 빈 날짜 폴더를 지운다"
 unset CLAUDE_READINESS_SYNC
 
 # cadence 축 1 — doctor 결과 먼저는 레포마다 하루 한 번
@@ -185,6 +198,17 @@ n=$(grep -c . "$CLAUDE_LEARN_REPOS" 2>/dev/null); [ "$n" = "1" ] && ok "레포 �
 printf '## 2026-10-11 · 예시\n- vault: [[x]]\n' >> "$TMP/learn/_learn/inbox.md"; before=$(cat "$TMP/learn/_learn/inbox.md")
 (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
 [ "$before" = "$(cat "$TMP/learn/_learn/inbox.md")" ] && ok "있는 수신함은 건드리지 않는다" || bad "덮어씀" "기존 카드가 바뀌었다"
+printf '## 2026-10-11 · 빈 카드\n- vault:\n' >> "$TMP/learn/_learn/inbox.md"
+out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+echo "$out" | grep -q '안 옮긴 카드 1장' && ok "옮기지 않은 카드만 센다(vault 칸 빈 것 1장)" || bad "카운트" "1장이 아니다"
+# 워크트리 — 수신함·목록은 본 레포 기준(워크트리를 지워도 카드가 남는다)
+(cd "$TMP/learn" && git worktree add -q "$TMP/learn-wt" 2>/dev/null)
+mkdir -p "$TMP/learn-wt/.claude" && printf '{}' > "$TMP/learn-wt/.claude/harness.json"
+out=$(cd "$TMP/learn-wt" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+[ ! -e "$TMP/learn-wt/_learn" ] && echo "$out" | grep -q "$TMP/learn/_learn/inbox.md" && ok "워크트리 — 본 레포 수신함을 가리킨다" || bad "워크트리" "워크트리에 _learn 이 생겼거나 경로가 다르다"
+grep -qxF "$TMP/learn-wt" "$CLAUDE_LEARN_REPOS" && bad "목록" "워크트리 경로가 목록에 들어갔다" || ok "워크트리 — 목록엔 본 레포만"
+(cd "$TMP/learn" && git worktree remove --force "$TMP/learn-wt" 2>/dev/null)
+[ -f "$TMP/learn/_learn/inbox.md" ] && ok "워크트리를 지워도 카드가 남는다" || bad "유실" "수신함이 사라졌다"
 
 # ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
 printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'

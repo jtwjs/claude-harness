@@ -1,5 +1,5 @@
 ---
-name: harness-new
+name: project-new
 description: 새 프로젝트를 stack-kits 보일러플레이트(kotlin-spring·nextjs·fullstack 등)로 만들고 바로 harness-init 까지 돌린다. "새 프로젝트 만들어줘", "Spring/Next 보일러플레이트로 시작"일 때 쓴다. 기존 레포에 하네스만 깔 때는 harness-init 을 쓴다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
