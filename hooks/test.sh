@@ -9,7 +9,8 @@ set -uo pipefail
 
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
-export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
+export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
+export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
 pass=0; fail=0
 
@@ -21,7 +22,7 @@ bad()  { printf '  🔴 %s — %s\n' "$1" "$2"; fail=$((fail+1)); }
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
 mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q)
 payload='{"tool_input":{"file_path":"'"$TMP"'/none/src/a.ts","command":"npm test"}}'
-for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check; do
+for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup; do
   out=$(cd "$TMP/none" && printf '%s' "$payload" | bash "$HOOKS/$h.sh" 2>&1); code=$?
   if [ "$code" = "0" ] && [ -z "$out" ]; then ok "$h"; else bad "$h" "exit=$code out=[$out]"; fi
 done
@@ -141,6 +142,24 @@ qf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/quiet" && git rev-parse --show-toplevel |
 printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다고 치고
 (cd "$TMP/quiet" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" >/dev/null 2>&1)
 [ -e "$qf" ] && bad "남은 권고" "권고가 없는데 파일이 남았다" || ok "권고가 없으면 칸을 비운다"
+
+# ── 케이스 6-b: learn-setup — 개인 학습 수신함 _learn/ (2026-10-11) ──────────
+# 레포에 쓰는 훅이라 경계를 다 건다: 하네스 없는 레포 무동작(케이스 1) · .gitignore 무변경 · 두 번 돌려도 한 줄.
+printf '\n[6-b] learn-setup — _learn/ 수신함 · 로컬 제외 · 목록\n'
+mkdir -p "$TMP/learn/.claude" && (cd "$TMP/learn" && git init -q && printf '{}' > .claude/harness.json && printf 'node_modules/\n' > .gitignore \
+  && git add -A && git -c user.email=t@t -c user.name=t commit -qm init)
+out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+[ -f "$TMP/learn/_learn/inbox.md" ] && ok "수신함 생성" || bad "수신함" "_learn/inbox.md 없음"
+echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "_learn/inbox.md" in d["hookSpecificOutput"]["additionalContext"]' 2>/dev/null \
+  && ok "기록 지시를 additionalContext 로" || bad "지시" "JSON 이 아니거나 지시가 없다 out=[$out]"
+echo "$out" | grep -q '안 옮긴 카드 0장' && ok "새 수신함은 0장(형식 예시는 세지 않는다)" || bad "카운트" "새 수신함인데 0장이 아니다"
+(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
+n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"
+[ -z "$(cd "$TMP/learn" && git status --porcelain)" ] && ok "git status 깨끗 — .gitignore 무변경" || bad "흔적" "$(cd "$TMP/learn" && git status --porcelain | head -3)"
+n=$(grep -c . "$CLAUDE_LEARN_REPOS" 2>/dev/null); [ "$n" = "1" ] && ok "레포 목록 등록(중복 없이)" || bad "목록" "줄 수=$n"
+printf '## 2026-10-11 · 예시\n- vault: [[x]]\n' >> "$TMP/learn/_learn/inbox.md"; before=$(cat "$TMP/learn/_learn/inbox.md")
+(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
+[ "$before" = "$(cat "$TMP/learn/_learn/inbox.md")" ] && ok "있는 수신함은 건드리지 않는다" || bad "덮어씀" "기존 카드가 바뀌었다"
 
 # ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
 printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'

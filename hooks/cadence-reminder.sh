@@ -56,8 +56,8 @@ if [ -d "$REPO_ROOT/_brain/wiki" ]; then
   if [ -n "$banchor" ]; then
     n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
     if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
-      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 근거로 decisions/ 또는 infra/ **초안을 만들어 제시할 것** — 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 정리는 brain-intake, 이관은 brain-sync."
-      HINTS+=("brain-intake")
+      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 근거로 decisions/ 또는 infra/ **초안을 만들어 제시할 것** — 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). _brain 은 팀 위키(인수인계용)라 코드가 raw 다 — 갱신은 brain-walk, 이관은 brain-sync."
+      HINTS+=("brain-walk")
     fi
   fi
 fi

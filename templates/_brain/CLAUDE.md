@@ -4,21 +4,26 @@
 >
 > 📌 **의도된 하위 `CLAUDE.md`.** 하네스는 하위 CLAUDE.md 대신 `.claude/rules/` + `paths:`를 쓰지만, `_brain/`은 **코드가 import하지 않는 폴더**라 이 폴더를 만질 때만 로드된다 — 무관한 세션에는 비용 0이다(`harness-init` §5의 예외 조건).
 
-## 3레이어
+## 역할 — 팀 위키·인수인계용 (2026-10-11)
+
+이 폴더는 **이 레포를 다음에 맡을 사람**을 위한 것이다. 맡자마자 빠르고 깊게 파악하게 한다.
+
+- **코드가 raw다.** 첫 다섯 장은 `brain-walk`가 코드에서 만든다. 사람이 원문을 던지는 투입구(`raw/`)는 두지 않는다 — 실측 레포 16곳에서 raw 0~4건, 정리 스킬 30일 호출 0. 원문은 통합 wiki에 던진다.
+- **갱신은 세 때만**: 아래 「정해진 세 순간」의 같은 PR · 구조가 크게 바뀐 작업 뒤 `brain-walk` 갱신 모드 · 인계 직전.
+- **내가 이해해야 할 것(개인 학습)은 여기 쓰지 않는다** — 커밋되지 않는 `_learn/`(하네스 `learn-setup` 훅이 만들고 `.git/info/exclude`로 뺀다)에 쌓이고, 통합 wiki가 주 1회 모아 간다.
+
+## 2레이어
 
 ```
 _brain/
-├── raw/            # append-only 원본 투입구 (사람은 여기 던지기만)
-│   └── _processed/ # 처리 완료된 raw
-├── wiki/           # agent(brain-intake)가 생성·관리
+├── wiki/           # brain-walk 가 만들고, 기능 PR 이 갱신
 │   ├── overview.md # 전 소스 종합 synthesis (프로젝트가 뭘 아는가)
 │   ├── index.md    # 전체 노드 카탈로그 (링크+한줄+카테고리)
 │   └── log.md      # 변경 이력 (append-only, operation 파싱 가능)
 └── CLAUDE.md       # 이 파일 = 운영규칙 + schema
 ```
 
-- **raw/**: 회의록·ADR·PR 설명·결정 기록·**Slack 스레드·Notion·VoC·사용자 요청**을 raw markdown으로 던진다(사람은 던지기만). 처리분은 `raw/_processed/`로 이동.
-- **wiki/**: `brain-intake` 스킬이 raw를 분류·인덱싱·링크·정리. 노드는 `[[wikilink]]`로 연결.
+- **wiki/**: 노드는 `[[wikilink]]`로 연결한다. 옛 레포에 남은 `raw/`는 지우지 않아도 된다 — 파일이 있으면 `brain-intake`(레거시)로 한 번 정리할 수 있다.
 
 ## 카테고리 — 다섯 개
 
@@ -45,18 +50,17 @@ _brain/
 
 ## 3-operation (LLM wiki 워크플로우)
 
-wiki는 정적 폴더가 아니라 **ingest·query·lint 세 동작으로 자라는 살아있는 아티팩트**다. 사람은 소스 큐레이션·질문에 집중하고, 부기(링크·요약·정합)는 agent가 한다.
+wiki는 정적 폴더가 아니라 **walk·query·lint 세 동작으로 자라는 살아있는 아티팩트**다. 사람은 소스 큐레이션·질문에 집중하고, 부기(링크·요약·정합)는 agent가 한다.
 
 | operation  | 트리거                        | 하는 일                                                                                                                                                                                            |
 | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **walk** ⭐ | **레포를 맡았을 때 · `_brain/`이 비었을 때** | **`brain-walk` 스킬**이 코드를 R1~R7로 훑어 다섯 장을 만든다(입출구 · 테이블 · 생애 · 바뀔 수 있는 값 · 막힌 질문). **raw가 필요 없다 — 코드가 raw다.** |
-| **ingest** | `raw/`에 자료 투입            | **`brain-intake` 스킬**로 분류→노드 생성·갱신, 관련 노드 cross-link, `overview.md`·`index.md` 갱신, `log.md` append. 처리 raw는 `raw/_processed/`로 이동.                                          |
 | **query**  | 사람이 wiki에 질문            | index에서 관련 노드 검색→읽고 **인용과 함께** 답한다. 답이 **재사용 가능한 분석·비교**면 새 노드로 환류(⚠️ 개별 VoC·요청은 복제 금지 — 이슈가 정본). `log.md` append.                              |
 | **lint**   | **PR에서 5장 중 하나를 고칠 때** (❌ "정기"로 두지 않는다 — 실측에서 한 번도 안 돌았다) | 모순·stale 주장·고아 노드(링크 0)·끊긴 `[[wikilink]]`·index↔파일 불일치·커버리지 갭 점검 후 보고·수선. **코드 drift 점검은 `harness-doctor`·`/revise-claude-md` 몫** — 여기선 wiki 내부 정합만. `log.md` append. |
 
-- **개별 사용자 요청·VoC**는 raw→triage→**GitHub 이슈(정본)**. wiki에 복제하지 않는다(이슈 트래커 중복·stale 방지). 반복 테마가 제품 판단으로 굳으면 그때 `decisions/` 1장. query 환류도 이 규칙을 따른다.
-- **`log.md` 포맷(파싱 가능)**: `## [YYYY-MM-DD] {walk|ingest|query|lint} | {요약}` 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 최신이 위.
-- ingest/query 시 `wiki/index.md` 해당 섹션에 항목 추가·갱신하고, 소스 종합이 바뀌면 `overview.md`도 반영.
+- **개별 사용자 요청·VoC**는 triage→**GitHub 이슈(정본)**. wiki에 복제하지 않는다(이슈 트래커 중복·stale 방지). 반복 테마가 제품 판단으로 굳으면 그때 `decisions/` 1장. query 환류도 이 규칙을 따른다.
+- **`log.md` 포맷(파싱 가능)**: `## [YYYY-MM-DD] {walk|query|lint} | {요약}` 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 최신이 위.
+- walk/query 시 `wiki/index.md` 해당 섹션에 항목 추가·갱신하고, 소스 종합이 바뀌면 `overview.md`도 반영.
 
 ## 🔴 언제 채우나 — 정해진 세 순간
 
@@ -74,7 +78,7 @@ wiki는 정적 폴더가 아니라 **ingest·query·lint 세 동작으로 자라
 
 ## 노드 템플릿
 
-모든 wiki 노드는 아래 골격을 따른다(Obsidian 호환·일관성). `brain-intake`가 이 템플릿으로 생성한다.
+모든 wiki 노드는 아래 골격을 따른다(Obsidian 호환·일관성). `brain-walk`와 기능 PR이 이 템플릿으로 쓴다.
 
 **Frontmatter (YAML):**
 
@@ -117,7 +121,7 @@ status: active # 필수 — active | archived | superseded
 
 ## 관계
 
-- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`·`brain-intake`다. **회고 정본은 `_brain/wiki/infra/`** 다.
+- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`다. **회고 정본은 `_brain/wiki/infra/`** 다.
 
 ## 🔴 회고의 집은 하나다 — `docs/LEARNED.md` 를 접었다 (2026-09-28)
 
@@ -131,8 +135,8 @@ status: active # 필수 — active | archived | superseded
 | 레포 D | 훅은 설치됐는데 **대상 파일이 없어 anchor 가 빈 값** → 구조적으로 절대 발화하지 않았다 |
 | 형식 | 헤딩형 2곳 · 표형 1곳 — 단순 grep 은 표형을 0으로 오판한다 |
 
-반면 `_brain/wiki/infra/` 는 같은 기간 **6장이 살아 있었다.** 붙은 경로가 셋(`brain-walk`·`brain-intake`·`brain-sync`)이라 갱신될 이유가 있고, LEARNED 는 붙은 경로가 훅 환기 하나뿐이었다.
+반면 `_brain/wiki/infra/` 는 같은 기간 **6장이 살아 있었다.** 붙은 경로가 셋(`brain-walk`·`brain-intake`·`brain-sync`, 당시 기준)이라 갱신될 이유가 있고, LEARNED 는 붙은 경로가 훅 환기 하나뿐이었다.
 
 **그래서 인프라 회고는 `infra/` 한 곳에 쓴다.** 기존 `docs/LEARNED.md` 가 있는 레포는 포인터 한 줄만 남기고 내용을 옮긴다 — 두 곳에 두면 둘 다 썩는다.
 - 팀이 커밋해 공유하는 지식은 `_brain/` 한 곳이다. 통합 wiki로 흘려보내는 배출구는 `brain-sync`.
-- 세션 auto-recall memory(`~/.claude/projects/.../memory/`)는 **개인 로컬 레이어**로 별도 유지(커밋 안 함).
+- 개인 로컬 레이어는 둘이다(둘 다 커밋 안 함): 세션 auto-recall memory(`~/.claude/projects/.../memory/` — 일하는 방식) · `_learn/`(이 레포에서 내가 이해해야 할 것).

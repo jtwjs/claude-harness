@@ -52,6 +52,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/cadence-reminder.sh\"",
             "timeout": 15,
             "statusMessage": "cadence 점검"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/learn-setup.sh\"",
+            "timeout": 10,
+            "statusMessage": "학습 수신함 준비"
           }
         ]
       }

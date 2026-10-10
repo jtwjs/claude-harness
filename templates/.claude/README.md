@@ -13,7 +13,7 @@
 | 하네스가 썩었는지 점검 | `harness-doctor` |
 | 같은 지시·같은 교정이 반복된다 | `task-observer` (3회부터 승격 후보. 원장은 `observations.md`) |
 | 인수인계 없이 맡은 레포 / `_brain/`이 비어 있다 | `brain-walk` (코드만 읽어 첫 다섯 장) |
-| 프로젝트 지식을 통합 wiki로 | `brain-intake` → `brain-sync` |
+| 프로젝트 지식을 통합 wiki로 | `brain-sync` (팀 `_brain`). 개인 학습 `_learn/`은 통합 wiki의 주간 통합이 가져간다 |
 | 세션에서 말로 설명하고 흘린 것 | `/revise-claude-md` (세션 끝마다. 종착지는 CLAUDE.md가 아니라 **아래 판정**을 따른다) |
 
 ## 이 폴더의 구조

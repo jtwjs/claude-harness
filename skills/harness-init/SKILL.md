@@ -48,7 +48,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ② **처음 온 사람이 당하는 함정은?** → `non-obvious-patterns.md` 첫 항목
 ③ **이 서비스를 한 줄로?** → CLAUDE.md 첫 줄
 ④ **TDD를 강제할 경로는?** (후보 제시) → `tdd.include`/`exclude`. 없으면 `enabled: false` + **감점 보고**
-⑤ **`_brain/`을 둘까?** → 지식 파이프라인. 예면 「사실을 바꾸는 코드 경로」(마이그레이션 · 컨트롤러 · 스케줄러 · 설정 · 라우트 · CI)를 후보로 보여 주고 `rules/brain.md`의 `paths:`와 표를 채운다
+⑤ **`_brain/`을 둘까?** → 팀 위키·인수인계용(코드가 raw, `brain-walk`가 첫 다섯 장). 개인 학습 폴더 `_learn/`은 묻지 않는다 — `learn-setup` 훅이 harness.json 있는 레포에 자동으로 만들고 `.git/info/exclude`로 뺀다. 예면 「사실을 바꾸는 코드 경로」(마이그레이션 · 컨트롤러 · 스케줄러 · 설정 · 라우트 · CI)를 후보로 보여 주고 `rules/brain.md`의 `paths:`와 표를 채운다
 ⑥ **CI에 테스트 게이트가 있나?** → 없으면 `ci.test: "deferred"`
 ⑦ **릴리스를 Changesets로 관리할까?** → 예면 **없어도 깔아준다**(6단계)
 ⑧ **병렬 트랙(worktree 세션 여러 개)으로 진행하나?** → 예면 트랙 표를 묻는다(트랙 이름 · 소유 경로 · 공유 구역 · 계약 경로). `tracks.md`·`track-brief.md`를 깔고 지휘 세션 하나는 `conductor`로 돈다고 안내한다. 아니오면 깔지 않는다
