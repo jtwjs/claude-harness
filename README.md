@@ -25,7 +25,7 @@
 /plugin install claude-md-management@claude-plugins-official   # 선택. REFLECT의 세션 학습 회수
 ```
 
-기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
+기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 이미 깔린 레포에서 `/harness-init`을 다시 부르면 업그레이드 모드로 템플릿 사본(라우팅·`_brain/CLAUDE.md`·버전)만 새 버전에 맞춘다. 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
 
 ## 무엇이 들었나
 

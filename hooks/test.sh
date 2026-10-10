@@ -293,7 +293,7 @@ c='cd apps/api && mytool verify-all'
 printf '\n[10] 문서 정합\n'
 ROOT="$(cd "$HOOKS/.." && pwd)"
 left=$(grep -rnE '`(grilling|why-logictree|brain-intake|find-skills|harness-new)`|claude-harness:brain-recall|decisions/<기능>' \
-  "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형')
+  "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형|2026-10-11 \|')   # 업그레이드 이름표 행(| 날짜 |)은 옛 이름이 정상
 [ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
 # 설계 3장 → REFLECT 정리 (0.12.4): why-plan 은 _brain 에 직접 쓰지 않고, sdd REFLECT 가 세 장을 보고 옮긴다.
 direct=$(grep -nE '`why-plan`이 `?decisions|why-plan`?이 남긴다|→ `_brain/wiki/decisions/<주제>.md` · `_learn`' \

@@ -1,12 +1,39 @@
 ---
 name: harness-init
-description: 이 레포에 하네스를 깐다. 레포를 진단하고, 검증 명령을 실제로 돌려보고, 기계가 모를 것만 인터뷰한 뒤 CLAUDE.md·.claude/{harness.json,rules,references}·CI를 생성한다. 신규 프로젝트를 시작할 때나 기존 레포에 처음 하네스를 적용할 때 한 번 실행한다. 이미 harness.json이 있으면 이 스킬 대신 harness-doctor 를 쓴다.
+description: 이 레포에 하네스를 깐다. 레포를 진단하고, 검증 명령을 실제로 돌려보고, 기계가 모를 것만 인터뷰한 뒤 CLAUDE.md·.claude/{harness.json,rules,references}·CI를 생성한다. 신규 프로젝트를 시작할 때나 기존 레포에 처음 하네스를 적용할 때 한 번 실행한다. 이미 깔린 레포(harness.json·_brain/CLAUDE.md·.claude/README.md 중 하나라도 있음)면 업그레이드 모드로 템플릿 사본만 새 버전에 맞춘다("하네스 업그레이드해줘"). 점검만 할 때는 harness-doctor.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 
 레포를 진단해 **사실로 채우고**, 기계가 모르는 것만 묻는다. **추측으로 빈칸을 채우지 않는다.**
 
 > 🔴 **이 스킬의 유일한 실패 모드는 "돌지 않는 명령을 적는 것"이다.** 명령은 전부 **실제로 실행해 보고 통과한 것만** 기록한다.
+
+## 0. 이미 깔린 레포: 업그레이드 모드
+
+`.claude/harness.json`·`_brain/CLAUDE.md`·`.claude/README.md` 중 하나라도 있으면 아래만 하고 끝낸다. 진단·명령 실측·인터뷰·rules·CI는 다시 하지 않는다(그건 사람이 고친 것을 덮는다). 손대는 것은 **템플릿이 주인인 사본**뿐이다.
+
+| 대상 | 어떻게 |
+|---|---|
+| 지운·바뀐 스킬 이름 | 아래 이름표대로 그 자리만 고친다 |
+| `.claude/README.md` 라우팅 표 | `${CLAUDE_PLUGIN_ROOT}/templates/.claude/README.md` 표와 대조해 빠진 행만 넣는다. 레포가 직접 넣은 행은 둔다 |
+| `_brain/CLAUDE.md` | 템플릿과 diff. 레포 고유 절(역할 단락·레포별 표·레포 고유 규칙)은 지키고 템플릿 절만 새 것으로 |
+| `_brain/raw/` | `.gitkeep`뿐이면 지운다. 내용이 있으면 멈추고 묻는다 |
+| `harness.json` | `harness.version`을 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 버전으로. 템플릿에만 있는 최상위 키는 목록만 보여 주고 넣지 않는다(`harness-doctor` §0과 같은 판정) |
+| `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |
+
+이름표 (옛 이름 → 지금, 날짜):
+
+| 옛 이름 | 지금 | 언제 |
+|---|---|---|
+| `grilling` · `why-logictree` | `why-plan` | 2026-10-11 |
+| `harness-new` | `project-new` | 2026-10-11 |
+| `brain-intake` | 행 삭제(raw 투입구 폐지, `_brain`은 팀 위키·인수인계용) | 2026-10-11 |
+| `brain-recall` · 하네스판 `find-skills` | 행 삭제 | 2026-10-11 |
+
+- 전체 diff를 보여 주고 🙋 승인을 받은 뒤 쓴다. 커밋은 `chore: harness <버전> 업그레이드` 한 건, push는 하지 않는다.
+- 작업 트리가 더럽거나 기능 브랜치 위면 기본 브랜치에서 `git worktree add`로 따로 만들어 한다.
+- `harness.json`이 없는 레포는 있는 사본만 고친다. `harness.json`을 새로 만들면 훅이 켜지는 전체 설치가 되므로, 끝에 "전체 설치는 이 스킬을 처음부터"라고 한 줄 안내한다.
+- 끝나면 옛 이름 grep 0건과 `harness.version`을 확인한다.
 
 ## 1. 진단 (7축)
 

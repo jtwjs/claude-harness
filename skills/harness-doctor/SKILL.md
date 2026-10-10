@@ -8,7 +8,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 ## 0. 버전·스키마 표류
 
-`.claude/harness.json`의 `harness.version` ↔ `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`. 다르거나 비어 있으면 ⚠️와 함께 **키 차이**를 두 줄로 보고한다 — ① `${CLAUDE_PLUGIN_ROOT}/templates/.claude/harness.json`에 있는데 레포에 없는 최상위 키 ② 레포에만 있는 키(`$comment` 제외). 고치지는 않는다 — 어느 키를 받아들일지는 사람이 정한다.
+`.claude/harness.json`의 `harness.version` ↔ `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`. 다르거나 비어 있으면 ⚠️와 함께 **키 차이**를 두 줄로 보고한다 — ① `${CLAUDE_PLUGIN_ROOT}/templates/.claude/harness.json`에 있는데 레포에 없는 최상위 키 ② 레포에만 있는 키(`$comment` 제외). 고치지는 않는다 — 어느 키를 받아들일지는 사람이 정한다. 버전이 다르면 `harness-init` 업그레이드 모드(§0)를 권한다.
 
 > 2026-10-08 실측: 레포 9개의 키 모양이 4종이었다(`git`·`stacks`는 셋만, `docs`·`project`는 둘만, `brainSync.sensitivePolicy`는 하나만·템플릿에 없음). 버전 키가 없어서 이게 표류인지 의도인지 아무도 몰랐다.
 
