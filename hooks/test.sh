@@ -161,7 +161,12 @@ cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; printf 'import sys; sys.ex
 rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
 (cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
 [ -d "$TMP/rd/.claude/reports/$(date +%F)" ] && bad "빈 폴더" "채점 실패인데 날짜 폴더가 남았다" || ok "채점 실패 — 빈 날짜 폴더를 지운다"
+# 비동기 경로 — SYNC 없이 돌리면 채점을 기다리지 않고 바로 끝난다(세션 시작을 막지 않는다)
 unset CLAUDE_READINESS_SYNC
+rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
+s=$(python3 -c 'import time;print(time.time())'); (cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
+e=$(python3 -c "import time;print(time.time()-$s)")
+python3 -c "import sys; sys.exit(0 if $e < 3 else 1)" && ok "비동기 — 훅은 바로 끝난다(${e%.*}s)" || bad "막힘" "훅이 ${e}s 걸렸다"
 
 # cadence 축 1 — doctor 결과 먼저는 레포마다 하루 한 번
 (cd "$TMP/on" && git add CLAUDE.md && git -c user.email=t@t -c user.name=t commit -qm "docs: claude" \
@@ -281,6 +286,15 @@ llm() { (cd "$TMP/multi" && printf '{"session_id":"m1","tool_input":{"command":"
 c='cd apps/api && mytool verify-all'
 [ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "2" ] \
   && ok "loop-lock — 중첩 verify 명령 3회째 exit 2" || bad "loop-lock 중첩" "앱별 verify 명령을 추적하지 못했다"
+
+
+# ── 케이스 10: 문서 정합 — 지운·바꾼 스킬 이름과 옛 결정 경로가 지시문에 남지 않는다 (2026-10-11) ──
+# 규칙을 한 곳만 바꾸고 둘레(sdd·훅 지시문)에 옛 규칙이 남던 것을 리뷰가 두 번 잡았다.
+printf '\n[10] 문서 정합\n'
+ROOT="$(cd "$HOOKS/.." && pwd)"
+left=$(grep -rnE '`(grilling|why-logictree|brain-intake|find-skills|harness-new)`|claude-harness:brain-recall|decisions/<기능>' \
+  "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형')
+[ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

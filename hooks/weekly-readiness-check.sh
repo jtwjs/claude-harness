@@ -23,6 +23,10 @@ command -v git >/dev/null 2>&1 || exit 0
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -n "$REPO_ROOT" ] || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
+# 본 레포(메인 워크트리) 기준으로 잰다 — 워크트리마다 재면 새 워크트리 첫 세션마다 채점이 돌고,
+# 리포트가 워크트리와 함께 지워져 하락 비교가 쌓이지 않는다(2026-10-11 리뷰).
+COMMON="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+case "$COMMON" in */.git) [ -d "${COMMON%/.git}" ] && REPO_ROOT="${COMMON%/.git}" ;; esac
 cd "$REPO_ROOT" 2>/dev/null || exit 0
 command -v python3 >/dev/null 2>&1 || exit 0
 

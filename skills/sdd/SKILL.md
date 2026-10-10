@@ -26,7 +26,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 ## 단계 진행 (🤖 자동 위임 / 🙋 사람 체크포인트)
 
 1. **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   **PRD가 없거나 과제가 아직 막연하면 `why-plan`으로 먼저 만든다**(날것 → WHY 트리 → 3질문 → 참고 자료 → 갈래별 한 질문씩 → So What/Why So → PRD · `_brain/wiki/decisions/<기능>.md` · `_learn` 카드). → 🙋 확인.
+   **PRD가 없거나 과제가 아직 막연하면 `why-plan`으로 먼저 만든다**(크기 판정 → 날것·참고 자료 → WHY·3질문(필요하면 로직트리) → 갈래별 한 질문씩 → So What/Why So → PRD · 기술 결정은 `ADR.md` · 제품·도메인 결정은 `_brain/wiki/decisions/<주제>.md` · `_learn` 카드). → 🙋 확인.
    ⚠️ PRD의 **수용 조건**이 `test-writer`의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 **시안 전에** 권한·상태·데이터 결정을 끝내고 `.claude/design/`에 브리프를 만든다 →
    사람이 `/design`으로 시안 생성(상태 화면까지) → 프로젝트 URL 회수. → 🙋 확인.
