@@ -7,7 +7,7 @@ disable-model-invocation: false
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/harness` 등으로 직접 호출도 가능.)
 
 > **한 줄 흐름**
-> **코어 트랙** — `why-plan`(왜부터 캐물어 → PRD·ARCHITECTURE·ADR) → `harness`(분해) → 🙋(빈칸이 많으면 `why-plan` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → `sdd-review` → `code-reviewer` → REFLECT
+> **코어 트랙** — `why-plan`(왜부터 캐물어 → PRD·ARCHITECTURE·ADR) → `harness`(분해) → 🙋(빈칸이 많으면 `why-plan` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → 🙋빈틈 3곳 → `sdd-review` → `code-reviewer` → REFLECT
 > **디자인 트랙** — 위 흐름에 둘이 끼어든다: DESIGN에 `design-brief`(→ `/design`), REVIEW에 `design-reconcile`. PLAN은 `harness`가 핸드오프를 읽는다
 
 ## 0. 트랙 판단
@@ -37,6 +37,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    - **RED**: `test-writer` → `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
    - **GREEN**: `feature-builder` → `verify` 전체 통과 **AND** diff에 테스트 파일 없음
    - (🙋 정지: blocked / 파괴적 변경 / step `retries`가 3이 됨.)
+   - 🙋 **빈틈 3곳** — 모든 step이 GREEN이 된 직후, REVIEW 전에 한 번. 이번 diff에서 사람이 **모를 수 있는 지점 3개**를 한 줄씩(`파일:줄` + 왜 헷갈릴 만한가) 낸다 → 사람이 고른 것만 12살 설명(+ React/TS 비유 하나) → 사람이 **자기 말 한 줄**. 답은 `_learn/inbox.md`에 `출처: 빈틈 3곳` 카드. "pass"면 건너뛰고 한 줄 보고. step마다 묻지 않는다 — IMPLEMENT는 hands-off다. 만든 직후에 묻는 이유: PR 때 처음 보면 이미 늦어 퀴즈만 남는다
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
    위반이 나오면 **`feature-builder`로 수정하고 `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
@@ -64,7 +65,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ① **DESIGN** — PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로(`why-plan`) · 🎨 시안 URL 회수
 ② **PLAN** — `harness` 범위 합의 → step 계획 승인(PLAN 안에서 두 번 멈춘다) · 🎨 DS 신규 컴포넌트 승인
-③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3
+③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3 · 빈틈 3곳(전 step GREEN 직후)
 ④ **REVIEW** — 최종 판정
 ⑤ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · `_brain` 정리 초안 · brain-sync 이관 · task-observer 승격 판정 · 🎤 설명 리허설(제안 시)
 
