@@ -67,7 +67,7 @@ BE/FE 전용 플러그인을 따로 두지 않는다. 절차 스킬은 스택과
 - 합침: `grilling` + `why-logictree` → `why-plan`
 - 삭제: `brain-intake`(30일 0회, raw는 통합 wiki에 던진다), 하네스판 `find-skills`(전역 find-skills와 이름 충돌)
 - 이름 변경: `harness-new` → `project-new`
-- incubator: `brain-recall`
+- incubator: 비어 있음 (`brain-recall`은 2026-10-12 삭제 — 전역 CLAUDE.md가 대신)
 - 신설: `_learn`, readiness 자동 채점, 상태줄 권고
 - 설계 3장: `why-plan`이 PRD·ARCHITECTURE·ADR을 쓴다(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움). `_brain`은 REFLECT에서 세 장을 보고 정리한다
 - 도구화: `task-observer`가 「반복 절차」도 세어 `scripts/`로 승격을 제안한다. 첫 사례 `scripts/release.sh`

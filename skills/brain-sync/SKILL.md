@@ -13,7 +13,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 `.claude/harness.json`의 `brainSync`를 읽는다:
 
 ```json
-"brainSync": { "wikiPath": "…", "targetFolder": "wiki/projects/<name>" }
+"brainSync": { "wikiPath": "…", "targetFolder": "2_LLMWiki/wiki/projects/<name>" }
 ```
 
 없으면 **묻는다** — ① 통합 wiki 경로 ② 어느 폴더에 넣을지. 답을 `harness.json`에 캐시한다. **경로를 추측하지 않는다.**
@@ -55,7 +55,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 5. 폴더 이름 충돌 주의
 
-통합 wiki에 이력서용 `work/projects/` 같은 폴더가 이미 있으면, 이 스킬이 쓰는 `wiki/projects/`와 **역할이 다르다**(전자는 경력 기술, 후자는 도메인 지식). 양쪽 인덱스에 **서로를 가리키는 한 줄**을 남긴다.
+통합 wiki에 이력서용 `work/projects/` 같은 폴더가 이미 있으면, 이 스킬이 쓰는 `2_LLMWiki/wiki/projects/`와 **역할이 다르다**(전자는 경력 기술, 후자는 도메인 지식). 양쪽 인덱스에 **서로를 가리키는 한 줄**을 남긴다.
 
 ## 금지
 

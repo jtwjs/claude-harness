@@ -35,7 +35,7 @@
 | 에이전트 4개 | `test-writer`(RED) `feature-builder`(GREEN) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
 | 훅 9개 | Bash 전: `block-dangerous-bash` `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후: `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` · 세션 끝: `validate-session-end` |
 | `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `_brain/`, `stacks/` |
-| `incubator/` | 로드 경로 밖 대기 스킬(`brain-recall`) |
+| `incubator/` | 로드 경로 밖 대기 스킬(지금 비어 있음 — 이력은 `incubator/README.md`) |
 
 각 스킬·훅이 하는 일은 `skills/*/SKILL.md`와 `hooks/*.sh` 머리에 있다.
 
