@@ -80,7 +80,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ⑦ **릴리스를 Changesets로 관리할까?** → 예면 **없어도 깔아준다**(6단계)
 ⑧ **병렬 트랙(worktree 세션 여러 개)으로 진행하나?** → 예면 트랙 표를 묻는다(트랙 이름 · 소유 경로 · 공유 구역 · 계약 경로). `tracks.md`·`track-brief.md`를 깔고 지휘 세션 하나는 `conductor`로 돈다고 안내한다. 아니오면 깔지 않는다
 ⑨ **LLM을 부르는 코드가 있나?**(`grep -rlE 'anthropic|openai|bedrock|messages\.create'` 등으로 후보를 먼저 찾는다) → 예면 그 경로로 `rules/llm-pipeline.md`의 `paths:`를 채워 깐다. 경로가 안 정해지면 깔지 않는다(`paths: []`로 두면 아무 데도 안 걸린다)
-⑩ **운영 DB에 붙는 설정이 레포에 있나?**(`grep -rlE 'datasource|DATABASE_URL|jdbc:' --include='*.yml' --include='*.yaml' --include='*.properties' --include='.env.example'`로 후보를 먼저 찾고 **호스트를 실제 설정 파일에서 읽어 보인다** — 프로필 이름만 보고 판단하지 않는다. stage 프로필이 운영 DB를 가리킨 레포가 있었다) → 예면 `harness.json`에 `"guard": {"prodDb": {"hosts": [...], "profiles": [...]}}`. `block-dangerous-bash`가 운영 호스트에 쓰기 SQL·SQL 파일 실행과, 그 프로필로 앱·마이그레이션·테스트를 띄우는 명령을 막는다. 조회(SELECT)는 막지 않는다. 비밀번호·접속 문자열 전체는 적지 않는다(호스트 이름만)
+⑩ **운영 DB 주소가 디스크의 설정 파일에 있나?**(`application-*.yml|properties`의 datasource url · `.env*`의 DB 키를 **키 이름만** 보여 준다. 🔴 값은 출력하지 않는다) → 있으면 `harness.json`에 `"guard": {"prodDb": {"from": ["spring:<운영 프로필>", "env:<파일>:<키>"], "switches": [...]}}`. **값이 아니라 위치만 적는다** — 훅(`hooks/lib/prod_db.py`)이 실행 때 디스크에서 읽는다. 같은 호스트를 가리키는 다른 Spring 프로필(예: stage)은 자동으로 운영 취급이라 적지 않는다. `switches`는 Node처럼 프로필이 없는 레포에서 운영으로 바꾸는 표시(`NODE_ENV=production` 등)를 **코드에서 확인해** 적는다. 운영 주소가 배포 환경 변수로만 들어가 디스크에 없으면 적지 않는다 — 에이전트도 붙을 정보가 없고, 적으면 세션마다 '꺼짐' 알림이 뜬다. 막는 것: 운영 DB에 쓰기 SQL·SQL 파일 실행, 운영 프로필·스위치로 실행. 조회(SELECT)는 막지 않는다
 
 ## 4. 생성
 

@@ -33,7 +33,7 @@
 |---|---|
 | 스킬 25개 | SDD: `why-plan` `harness` `harness-run` `sdd` `sdd-review` `design-brief` `design-critique` `design-reconcile`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `systematic-debugging` `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff-html` `explain-diff-notion` `plannotator-visual-explainer` |
 | 에이전트 4개 | `test-writer`(RED) `feature-builder`(GREEN) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
-| 훅 9개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 쓰기·운영 프로필 실행) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후: `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` · 세션 끝: `validate-session-end` |
+| 훅 9개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 쓰기·운영 프로필 실행) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후: `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` · 세션 끝: `validate-session-end` |
 | `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `_brain/`, `stacks/` |
 | `incubator/` | 로드 경로 밖 대기 스킬(지금 비어 있음 — 이력은 `incubator/README.md`) |
 

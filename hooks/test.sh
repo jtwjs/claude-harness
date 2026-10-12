@@ -31,7 +31,7 @@ spread_commits() {
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
 mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q)
 payload='{"tool_input":{"file_path":"'"$TMP"'/none/src/a.ts","command":"npm test"}}'
-for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup brain-sync-auto; do
+for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup brain-sync-auto prod-db-check; do
   out=$(cd "$TMP/none" && printf '%s' "$payload" | bash "$HOOKS/$h.sh" 2>&1); code=$?
   if [ "$code" = "0" ] && [ -z "$out" ]; then ok "$h"; else bad "$h" "exit=$code out=[$out]"; fi
 done
@@ -68,33 +68,56 @@ check_deny 2 'git push -f origin main'
 
 # ── 케이스 3: tdd-guard 는 harness.json 만으로 판정한다 ──────────────────────
 # ── 케이스 2-c: 운영 DB — harness.json guard.prodDb 가 있을 때만 (2026-10-13) ──
-# 이름(PROD)이 아니라 호스트·프로필 목록으로 판별한다. stage 프로필이 운영 DB 를 가리킨 레포가 있었다.
-printf '\n[2-c] 운영 DB — 쓰기 SQL · 운영 프로필 실행 차단, 조회 허용\n'
-mkdir -p "$TMP/prod/.claude" && (cd "$TMP/prod" && git init -q)
+# 이름(PROD)이 아니라 디스크의 설정 파일에서 호스트를 읽어 가른다. harness.json 에는 파일·키 위치만 적고 값은 옮기지 않는다.
+# stage 프로필이 운영 DB 를 가리킨 레포가 있었다 → 같은 호스트를 가리키는 프로필은 자동으로 운영 취급.
+printf '\n[2-c] 운영 DB — 쓰기 SQL · 운영 프로필·스위치 실행 차단, 조회 허용\n'
+R="$TMP/prod/src/main/resources"; mkdir -p "$R" "$TMP/prod/.claude" && (cd "$TMP/prod" && git init -q)
+printf 'spring:\n  datasource:\n    url: jdbc:mysql://prod-db.example.com:3306/app\n' > "$R/application-prod.yml"
+printf 'spring:\n  datasource:\n    url: jdbc:mysql://prod-db.example.com:3306/app\n' > "$R/application-stage.yml"
+printf 'spring:\n  datasource:\n    url: jdbc:mysql://localhost:3306/app\n' > "$R/application-local.yml"
+printf 'DEV_X_HOST=dev-db.example.com\nPROD_X_HOST=prod2.example.com\n' > "$TMP/prod/.env"
 cat > "$TMP/prod/.claude/harness.json" <<JSON
-{ "guard": { "prodDb": { "hosts": ["prod-db.example.com"], "profiles": ["stage", "prod"] } } }
+{ "guard": { "prodDb": { "from": ["spring:prod", "env:.env:PROD_X_HOST"], "switches": ["NODE_ENV=production"] } } }
 JSON
 bdb() { # $1=dir $2=command → exit code
   python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$2" \
     | (cd "$1" && bash "$HOOKS/block-dangerous-bash.sh" >/dev/null 2>&1); echo $?
 }
 for c in 'mysql -h prod-db.example.com -e "DELETE FROM users WHERE id=1"' \
-         'psql "host=prod-db.example.com dbname=app" -c "drop table t"' \
+         'psql "host=prod2.example.com dbname=app" -c "drop table t"' \
+         'mysql -h "$PROD_X_HOST" -e "UPDATE t SET a=1"' \
          'mysql -h prod-db.example.com app < fix.sql' \
          "./gradlew bootRun --args='--spring.profiles.active=stage'" \
          'SPRING_PROFILES_ACTIVE=prod ./gradlew test' \
-         'java -Dspring.profiles.active=dev,stage -jar app.jar'; do
+         'java -Dspring.profiles.active=dev,stage -jar app.jar' \
+         'NODE_ENV=production npm run migrate'; do
   [ "$(bdb "$TMP/prod" "$c")" = "2" ] && ok "차단: $c" || bad "운영 DB 통과" "$c"
 done
 for c in 'mysql -h prod-db.example.com -e "SELECT count(*) FROM users"' \
          'mysql -h prod-db.example.com -e "SELECT * FROM t WHERE n < 3"' \
          'mysql -h localhost -e "DROP TABLE t"' \
+         'mysql -h "$DEV_X_HOST" -e "DELETE FROM t"' \
          "./gradlew bootRun --args='--spring.profiles.active=local'" \
          'git commit -m "stage 프로필 설명"'; do
   [ "$(bdb "$TMP/prod" "$c")" = "0" ] && ok "허용: $c" || bad "오탐" "$c"
 done
 [ "$(bdb "$TMP/none" 'mysql -h prod-db.example.com -e "DELETE FROM users"')" = "0" ] \
   && ok "guard 없는 레포 — 판별 근거가 없어 통과" || bad "오탐" "guard 없는 레포에서 막았다"
+# yml 이 값 대신 \${VAR} 를 쓰고 값은 .env 에 있는 Spring 레포
+R2="$TMP/prod2/server/src/main/resources"; mkdir -p "$R2" "$TMP/prod2/.claude" && (cd "$TMP/prod2" && git init -q)
+printf 'spring:\n  datasource:\n    url: ${SPRING_DATASOURCE_URL}\n' > "$R2/application-prod.yml"
+printf 'SPRING_DATASOURCE_URL=jdbc:postgresql://pg-prod.example.com:5432/x\n' > "$TMP/prod2/server/.env"
+echo '{ "guard": { "prodDb": { "from": ["spring:prod"] } } }' > "$TMP/prod2/.claude/harness.json"
+[ "$(bdb "$TMP/prod2" 'psql -h pg-prod.example.com -c "delete from t"')" = "2" ] \
+  && ok "yml 의 \${VAR} 를 .env 에서 풀어 차단" || bad "env 주입 통과" "SPRING_DATASOURCE_URL 을 못 풀었다"
+# 세션 시작 — 못 읽으면 소리 내서 꺼짐을 알린다. 값은 출력하지 않는다
+ss() { (cd "$1" && printf '{}' | bash "$HOOKS/prod-db-check.sh" 2>/dev/null); }
+[ -z "$(ss "$TMP/prod")" ] && ok "세션 시작 — 다 읽히면 무출력" || bad "소음" "$(ss "$TMP/prod")"
+echo '{ "guard": { "prodDb": { "from": ["spring:nope", "env:.env:NOPE"] } } }' > "$TMP/prod2/.claude/harness.json"
+out=$(ss "$TMP/prod2")
+echo "$out" | grep -q '꺼짐' && ok "세션 시작 — 못 읽으면 '꺼짐' 알림" || bad "조용히 꺼짐" "out=[$out]"
+echo "$out" | grep -q 'example.com' && bad "값 노출" "알림에 호스트가 찍혔다" || ok "알림에 호스트 값 없음"
+[ -z "$(ss "$TMP/none")" ] && ok "guard 없는 레포 — 세션 시작 무출력" || bad "소음" "guard 없는 레포에서 떠든다"
 
 # ── 케이스 2-d: phases_status — 상태 값 4개 · after 선행 점검 (2026-10-13) ──
 printf '\n[2-d] phases_status — 허용 밖 상태 · 선행 미완료면 exit 1\n'

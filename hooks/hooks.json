@@ -70,6 +70,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/brain-sync-auto.sh\"",
             "timeout": 15,
             "statusMessage": "brain-sync 자동 이관 점검"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prod-db-check.sh\"",
+            "timeout": 10,
+            "statusMessage": "운영 DB 차단 점검"
           }
         ]
       }
