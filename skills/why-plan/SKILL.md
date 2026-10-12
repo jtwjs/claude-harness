@@ -65,6 +65,8 @@ argument-hint: <정리되지 않은 요청·아이디어·기존 PRD 경로>
 
 step 승인 직전에 불렸으면(계획에 `⚠️`·TBD가 3개 이상) PRD를 새로 쓰지 않고, 푼 결정을 해당 step 파일에 반영한다. 같은 결정을 기술이면 ADR에, 제품·도메인이면 PRD 「결정」 절에도 남긴다 — step 파일은 기능이 끝나면 아무도 읽지 않는 작업 메모라 「한 곳에만」의 예외다. PRD가 없으면 「결정」 절만 있는 PRD를 만든다.
 
+**sdd 밖에서 불렸고 산출물이 기능·버그 구현이면**, 저장 직후 "sdd로 이어갈까요? (PLAN부터)" 한 줄 묻는다. 예면 `sdd`를 PLAN 단계부터 진행한다 — DESIGN은 끝났다. 문서가 목적이면 묻지 않는다.
+
 ## 설계문서 3장 (`docs/{feature-YYYY-MM-DD}/`) — DESIGN 단계 산출물의 정의
 
 이 스킬이 PRD → ARCHITECTURE → ADR 순으로 쓴다(ADR은 기술 결정이 있을 때만). `harness`(PLAN)·`harness-run`·`sdd-review`가 이 세 파일을 읽는다.
