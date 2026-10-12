@@ -12,6 +12,7 @@ TMP="$(mktemp -d)"
 export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
+unset CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_AUTO_SKIP CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_SYNC   # 사용자 settings env 가 새어 들어오면 opt-in 판정이 틀어진다
 pass=0; fail=0
 
 ok()   { printf '  ✓ %s\n' "$1"; pass=$((pass+1)); }
