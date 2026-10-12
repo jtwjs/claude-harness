@@ -211,6 +211,7 @@ printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다�
 # ── 케이스 6-c: brain-sync-auto — opt-in · 경로 · 활발한 레포 · _brain/wiki 변경 (2026-10-12) ──
 printf '\n[6-c] brain-sync-auto — 조건을 다 넘을 때만 띄운다\n'
 export CLAUDE_BRAIN_SYNC_SYNC=1
+export CLAUDE_BRAIN_SYNC_LOG_DIR="$TMP"   # 실제 /tmp 에 테스트 로그를 남기지 않는다
 FAKECL="$TMP/fake-claude"; printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s/claude-calls"\n' "$TMP" > "$FAKECL"; chmod +x "$FAKECL"
 export CLAUDE_BRAIN_SYNC_BIN="$FAKECL"
 calls() { wc -l < "$TMP/claude-calls" 2>/dev/null | tr -d ' ' || echo 0; }
@@ -238,7 +239,7 @@ printf '{"brainSync":{"wikiPath":"%s","targetFolder":"2_LLMWiki/wiki/projects/bs
 mkdir -p "$TMP/bsq/.claude" "$TMP/bsq/_brain/wiki" && cp "$TMP/bs/.claude/harness.json" "$TMP/bsq/.claude/" \
   && (cd "$TMP/bsq" && git init -q && echo a > _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm one)
 (cd "$TMP/bsq" && printf '{}' | bash "$HOOKS/brain-sync-auto.sh" >/dev/null 2>&1); [ "$(calls)" = "2" ] && ok "비활성 레포 — 안 띄움" || bad "활발 게이트" "calls=$(calls)"
-unset CLAUDE_BRAIN_SYNC_SYNC CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_BIN
+unset CLAUDE_BRAIN_SYNC_SYNC CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_LOG_DIR
 
 printf '\n[6-b] learn-setup — _learn/ 수신함 · 로컬 제외 · 목록\n'
 mkdir -p "$TMP/learn/.claude" && (cd "$TMP/learn" && git init -q && printf '{}' > .claude/harness.json && printf 'node_modules/\n' > .gitignore \

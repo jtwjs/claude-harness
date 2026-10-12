@@ -14,7 +14,7 @@
 #   2. 활발한 레포 (lib/active-repo.sh)
 #   3. 마지막 이관 뒤 _brain/wiki/ 를 건드린 커밋이 있다 (마지막 이관 커밋은 레포 밖 HINT_DIR 에 둔다)
 #
-# 결과: 로그는 /tmp/brain-sync-auto-<레포키>.log. 성공하면 그때의 HEAD 를 기록한다(실패하면 다음 세션에 다시 시도).
+# 결과: 로그는 /tmp/brain-sync-auto-<레포키>.log (CLAUDE_BRAIN_SYNC_LOG_DIR 로 바꿀 수 있다). 성공하면 그때의 HEAD 를 기록한다(실패하면 다음 세션에 다시 시도).
 set -uo pipefail
 cat >/dev/null 2>&1 || true   # hook 입력(JSON) 소비
 
@@ -66,7 +66,7 @@ fi
 [ "$(cat "$RUN_FILE" 2>/dev/null)" = "$(date +%F)" ] && exit 0
 date +%F > "$RUN_FILE" 2>/dev/null || true
 
-LOG="${TMPDIR:-/tmp}/brain-sync-auto-$HINT_KEY.log"
+LOG="${CLAUDE_BRAIN_SYNC_LOG_DIR:-/tmp}/brain-sync-auto-$HINT_KEY.log"   # /tmp 고정 — 다른 자동화 로그와 같은 자리(macOS $TMPDIR 는 /var/folders/… 라 찾기 어렵다)
 CLAUDE_BIN="${CLAUDE_BRAIN_SYNC_BIN:-claude}"
 run() {
   {
