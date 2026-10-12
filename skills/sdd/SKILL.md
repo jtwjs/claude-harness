@@ -7,7 +7,7 @@ disable-model-invocation: false
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/harness` 등으로 직접 호출도 가능.)
 
 > **한 줄 흐름**
-> **코어 트랙** — `why-plan`(왜부터 캐물어 → PRD·ARCHITECTURE·ADR) → `harness`(분해) → 🙋(빈칸이 많으면 `why-plan` 한 번 더) → **`test-writer`(RED) → `feature-builder`(GREEN)** → 🙋빈틈 3곳 → `sdd-review` → `code-reviewer` → REFLECT
+> **코어 트랙** — `why-plan`(왜부터 캐물어 → PRD·ARCHITECTURE·ADR) → `harness`(분해) → 🙋(빈칸이 많으면 `why-plan` 한 번 더) → **`harness-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → 🙋빈틈 3곳 → `sdd-review` → `code-reviewer` → REFLECT
 > **디자인 트랙** — 위 흐름에 셋이 끼어든다: DESIGN에 `design-brief`(→ 레포 캔버스에 시안) → `design-critique`(시안 평가 루프), REVIEW에 `design-reconcile`. PLAN은 `harness`가 레포 캔버스를 읽는다
 
 ## 0. 트랙 판단
@@ -27,7 +27,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 1. **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
    **세 장이 없거나 과제가 아직 막연하면 `why-plan`으로 만든다**(크기 판정 → 날것·참고 자료 → WHY·3질문(필요하면 로직트리) → 갈래별 한 질문씩 → So What/Why So → PRD(제품·도메인 결정은 「결정」 절) → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). `_brain`에는 아직 쓰지 않는다 — REFLECT에서 세 장을 보고 정리한다. → 🙋 확인.
-   ⚠️ PRD의 **수용 조건**이 `test-writer`의 입력이다. 여기가 비면 뒤가 전부 빈다.
+   ⚠️ PRD의 **수용 조건**이 각 step의 **먼저 쓰는 테스트**의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 레퍼런스부터 정하고, **시안 전에** 권한·상태·데이터 결정(+ 닐슨 렌즈)을 끝내 `.claude/design/`에 브리프를 만든다 → 🙋 브리프 승인 →
    Claude가 **레포당 하나인 캔버스**의 `작업: <기능>` 탭에 시안을 그린다(제작 체크리스트 · `.claude/design/canvas/` 커밋) →
    `design-critique`로 시안 평가(페르소나 · 닐슨 휴리스틱 · 레퍼런스 실측 독립 병렬) → 체크포인트 `verdict: 변경`이면 반영 후 다시 → 🙋 `verdict: 승인`.
@@ -35,12 +35,12 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    step 파일에 `⚠️`·`TBD`·미해결 가정이 **3개 이상**이거나 사람이 요청하면 `why-plan`으로 빈칸을 캐묻는다. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `harness` §3-b가 레포 캔버스의 작업 탭을 읽어 step마다 보드·뷰포트·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
 3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 2단으로 돈다. hands-off.
-   - **RED**: `test-writer` → `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
-   - **GREEN**: `feature-builder` → `verify` 전체 통과 **AND** diff에 테스트 파일 없음
+   - **RED**: 테스트만 담긴 커밋이 먼저 있고, 그 시점으로 돌려 `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
+   - **GREEN**: `verify` 전체 통과 **AND** RED 커밋 뒤 테스트 파일 무변경 — 둘 다 `sdd_runner.py judge`가 본다. 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스)
    - (🙋 정지: blocked / 파괴적 변경 / step `retries`가 3이 됨.)
    - 🙋 **빈틈 3곳** — 모든 step이 GREEN이 된 직후, REVIEW 전에 한 번. 이번 diff에서 사람이 **모를 수 있는 지점 3개**를 한 줄씩(`파일:줄` + 왜 헷갈릴 만한가) 낸다 → 사람이 고른 것만 12살 설명(+ React/TS 비유 하나) → 사람이 **자기 말 한 줄**. 답은 `_learn/inbox.md`에 `출처: 빈틈 3곳` 카드. "pass"면 건너뛰고 한 줄 보고. step마다 묻지 않는다 — IMPLEMENT는 hands-off다. 만든 직후에 묻는 이유: PR 때 처음 보면 이미 늦어 퀴즈만 남는다
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
-   위반이 나오면 **`feature-builder`로 수정하고 `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
+   위반이 나오면 **수정 step을 하나 더 만들어 `harness-run`으로 고치고(작은 수정은 `feature-builder`) `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 🙋 통과 판정 뒤에만 작업 탭을 `현행` 탭에 반영하고 작업 탭을 지운다(캔버스 커밋).
 5. **REFLECT** 🤖 + 🙋×3(+리허설 제안 시 1) — 먼저 **세션 학습 회수**: `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 세션에서 말로 설명하고 흘려버린 것을 찾아 개념당 한 줄로 제안한다. **매 세션, 커밋 전.**

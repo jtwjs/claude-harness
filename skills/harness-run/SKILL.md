@@ -1,81 +1,61 @@
 ---
 name: harness-run
-description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 test-writer(RED) → feature-builder(GREEN) 서브에이전트를 띄워 구현·검증하고, index.json 재읽기로 상태를 판정해 커밋/재시도/중단한다. Use when harness 스킬로 만든 계획을 실제로 구현할 때. 세션 내 서브에이전트로 동작해 step 컨텍스트가 메인 세션에 쌓이지 않는다.
+description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록(RED 커밋 순서·RED가 실제로 실패하나·테스트 파일 수정·verify)으로 판정해 커밋/재시도/중단한다. 사람이 자리에 없을 때는 같은 규칙의 헤드리스 러너(sdd_runner.py run)를 쓴다. Use when harness 스킬로 만든 계획을 실제로 구현할 때.
 disable-model-invocation: false
 ---
 
-`harness_framework`의 `execute.py` 루프를 **세션 내 스킬**로 이식한 것. 핵심: **메인 세션은 오케스트레이션 + index.json 읽기(값싼 작업)만** 하고, **실제 step 작업은 `test-writer`(RED)·`feature-builder`(GREEN) 서브에이전트**가 처리한다 → step 컨텍스트가 메인에서 격리된다. (과금 차이는 없다 — `claude -p`도 구독 로그인으로 돈다. 2026-10-12 실측, `docs/design-notes.md`. 세션 안에서 도는 대신 사람이 step마다 3줄 보고(§4-3)를 따라올 수 있다.)
+강의 `harness_framework`의 `execute.py` 뼈대(step당 호출 1번 · 직전 에러를 붙여 재시도 · 시간 기록)에 우리 검사를 더한 러너다. **규칙의 정본은 `scripts/sdd_runner.py` 하나다** — 세션 안에서는 이 스킬이 그 스크립트의 `start`·`prompt`·`judge`를 부르고, 사람이 없을 때는 같은 스크립트의 `run`이 `claude -p`로 끝까지 돈다. 판정 표·섞은 근거는 `docs/sdd-runner.md`.
+
+```
+세션 안 (이 스킬)                                  헤드리스 (터미널에 걸어 두고 떠남)
+start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …/sdd_runner.py run {task}
+```
+
+> TDD 2단계 도구(`test-writer` → `feature-builder`)는 러너가 부르지 않는다. 강의처럼 TDD와 SDD 러너를 따로 둔다 — 엄격하게 분리해서 쓰고 싶은 부분에 사람이 직접 부른다(2026-10-13).
 
 ## 0. 입력
 
 - `task` slug(= `phases/{task}/` 존재). 없으면 사용자에게 확인.
 - 설계문서 경로는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`harness`가 채운다). 없으면 묻는다 — `docs/` 아래를 뒤져 추측하지 않는다.
-- **시작 전 점검** — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py" --check {task}`. 종료 코드 1이면(상태 값이 4개 밖 · `after`의 선행 phase가 `completed`가 아님) 돌리지 않고 출력을 그대로 사용자에게 보인다. 전체 현황은 인자 없이 실행
+- 여러 phase 현황은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py"`(같은 PRD로 묶고 `after` 순서로). 시작 전 점검은 §1 `start`가 이 스크립트의 `--check`와 같은 검사를 한다
 
-## 1. 브랜치 (a)
+## 1. 시작 — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" start {task}`
 
-- `feat-{task}` 브랜치를 checkout(없으면 생성). 위험 명령 금지, hook 우회 금지.
+선행 phase(`after`)·상태 값·error/blocked 남은 step·작업 트리 깨끗함을 보고 `feat-{task}` 브랜치로 옮긴다. 0이 아니면 출력을 그대로 사람에게 보이고 멈춘다. 작업 트리가 더러우면 판정이 git 기록을 못 믿으니 먼저 커밋·stash 한다.
 
-## 2. 가드레일 로드 (b) — 이 파일들만
+## 2. 루프 — pending step이 없을 때까지
 
-- 루트 `CLAUDE.md` + `{index.json.docs}/{PRD,ARCHITECTURE,ADR}.md`. (그 외 docs 미열람.)
-- 이 텍스트를 **preamble 재료**로 보관.
+1. `BASE=$(git rev-parse HEAD)` — 이 step이 시작하기 전 커밋
+2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" prompt {task}` 의 출력을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
+   - **병렬 트랙이면** 지시문 뒤에 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈 목록 한 번(`gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`)을 붙인다. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 사람에게 묻는다
+3. 서브에이전트가 끝나면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" judge {task} --base $BASE` — 결과 코드대로:
+   - **0 완료** → index.json(시간·usage)을 메타데이터 커밋까지 끝낸 상태다. **사람에게 3줄**(무엇을 바꿨나 · 왜 · 어디가 위험한가/안 돌려 본 것)을 출력하고 다음 step. 멈추지 않는다 — 사람이 구현 도중에 따라오게 하려는 것이다
+   - **10 재시도** → 실패 사유가 index.json `last_error`에 남았고 `retries` +1. 2로 돌아간다(지시문에 사유가 붙는다)
+   - **1 실패로 멈춤** → `retries`가 3인데 또 실패(첫 시도 + 재시도 3 = 최대 4회). 사유를 보고하고 멈춘다. 근본 원인성이면 `root-cause-debugger` / `systematic-debugging`
+   - **2 blocked** → `blocked_reason`을 사람에게 보고하고 멈춘다(사람 체크포인트)
 
-## 3. 루프 (c) — `index.json`의 pending step을 번호순으로
+`judge`가 보는 것(위에서부터, 첫 실패에서 멈춤 — 정본은 `sdd_runner.py` `check`):
+| # | 검사 | 실패 사유 |
+|---|---|---|
+| 1 | step status | error·pending(갱신 안 함)·허용 밖 값 → 재시도 / blocked → 멈춤 |
+| 2 | (`tdd: true`) 테스트 파일만 담긴 커밋이 구현 커밋보다 먼저 | "RED: 테스트 커밋이 없다 / 먼저가 아니다" |
+| 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test` → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" |
+| 4 | (`tdd: true`) 그 뒤 테스트 파일이 안 바뀜 — 바뀌었으면 되돌리고 실패 | "GREEN: 테스트 파일을 고쳤다(되돌림)" |
+| 5 | 이 step에서 커밋된 변경이 있다(남은 변경은 러너가 `feat:` 커밋으로 묶는다) | "completed 보고인데 변경 없음" |
+| 6 | `verify` 전부(앱별이면 root마다) 통과 | "verify 실패: <이름>" |
+헤드리스 `run`은 여기에 **0. 실행 결과**(종료 코드 · JSON `is_error` · 타임아웃 1800초)를 먼저 본다.
 
-각 step:
+## 3. 커밋
 
-1. **preamble 구성**(서브에이전트에 넘길 컨텍스트):
-   - 가드레일(위 2)
-   - **완료 step 요약**: index.json의 각 completed step `summary`(누적 문맥)
-   - **재시도라면** 직전 `error_message`(무엇이 왜 실패했는지)
-   - 대상 `phases/{task}/stepN.md` 전문
-   - **병렬 트랙이면** — 레포에 `conductor` 라벨이 있으면(`gh label list --search conductor`) 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈를 **한 번** 조회해 목록(번호·제목)을 넣는다: `gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 `blocked`
-
-2. **서브에이전트 실행 — step의 `tdd` 값에 따라 1단 또는 2단.** step 에 `model` 이 있으면 Agent 도구의 `model` 로 **그 값만** 넘기고, 없으면 넘기지 않는다(에이전트 정의값).
-
-   **2-a. RED — `tdd: true`인 step만.** Agent 도구로 **`test-writer`**를 띄우고 preamble + `{index.json.docs}/PRD.md`의 수용 조건을 전달한다. 지시:
-   - 구현 파일을 열지 않고, step의 수용 조건을 **실패하는 테스트**로 쓴다(짝 테스트 위치는 `tdd-guard`가 보는 자리 — TS `*.test.ts(x)`, JVM `src/test/…/FooTest.kt`).
-   - 끝나면 메인이 `verify.test`를 **실제 실행**한다(앱별 verify면 step이 만지는 root의 `test`를 그 폴더에서). **실패해야 RED 통과.** 전부 통과하면 잡는 게 없다는 뜻이다 → step `error`, `error_message: "RED: 테스트가 아무것도 잡지 않음"`. 2-b로 넘어가지 않는다.
-   - `verify.test`가 비어 있으면 RED를 돌 수 없다 → step `blocked`, `blocked_reason: "verify.test 없음 — tdd:true step을 돌릴 수 없다"`.
-
-   **2-b. GREEN — 모든 step.** Agent 도구로 **`feature-builder`**를 띄우고 preamble을 전달한다. 지시:
-   - stepN.md의 `읽어야 할 파일`을 먼저 읽고, `작업`을 시그니처대로 구현.
-   - `Acceptance Criteria` 쉘 명령을 **실제 실행**해 통과시킨다. 명령은 step 파일에 적힌 것(= `.claude/harness.json`의 `verify`)을 쓴다.
-   - TDD: 짝 테스트는 **RED 단계(test-writer) 산출물**이다. `tdd: true`인데 구현 파일에 짝 테스트가 없으면 구현하지 말고 `blocked`, `blocked_reason: "짝 테스트 없음 — RED 미실행"`으로 보고한다. **테스트 파일은 쓰지도 고치지도 않는다**(feature-builder 「테스트 불가침」).
-   - 완료 후 **반드시 `phases/{task}/index.json`의 해당 step 상태를 갱신**(completed+summary / error+error_message / blocked+blocked_reason).
-   - 메인 세션에는 결과 코드를 재출력하지 말고 짧게 보고.
-
-3. **판정 = index.json 재읽기**(서브에이전트 stdout 아님):
-   - `completed` → 메인이 **GREEN 게이트**를 한 번 더 확인한다: `verify` 전체 통과 **AND** `git diff --name-only`에 테스트 파일이 없다(`tdd: true`면 RED가 만든 테스트 파일은 **RED 직후 따로 커밋**해 두므로 여기 섞이지 않는다 — 아래 4). 테스트 파일이 섞였으면 그 변경을 되돌리고 step을 `error`, `error_message: "GREEN: 구현 단계가 테스트 파일을 수정함"`. **「completed」 보고를 그대로 믿지 않는다** — `git diff --name-only`가 비어 있으면(아무것도 안 바뀜) `error`, `error_message: "GREEN: completed 보고인데 변경 없음"`. stepN.md의 `작업`과 무관한 파일이 섞였으면 그 목록을 사람에게 한 줄로 보이고 진행한다. 서브에이전트가 이미 커밋해 버렸으면(`git log`에 메인이 안 만든 커밋) 멈추고 보고한다. 통과하면 **커밋(4)** 후 다음 step.
-   - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`BACKLOG.md` 승격 조건)이 읽는 유일한 계수기다. **`retries`가 3이 되면 루프 중단**(= 첫 시도 + 재시도 3회, 최대 4회 실행. `sdd`·`task-observer`도 같은 문장을 쓴다) 하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
-   - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
-   - **`pending` 그대로** (서브에이전트가 상태를 안 고치고 끝났거나 중간에 죽었다) → `error`와 같이 다룬다: `status:"error"`, `error_message: "서브에이전트가 status를 갱신하지 않음"`을 메인이 적고 `retries` +1 후 재시도. 🔴 `pending`인 채로 다음 step으로 넘어가지 않는다 — 넘어가면 그 step은 아무도 모르게 빠진다. execute.py도 같은 경우를 `"Step did not update status"`로 재시도한다
-
-## 4. 커밋 — RED 1회(tdd step만) + 코드 + 메타데이터 + 사람에게 3줄
-
-메시지 형식의 정본은 `commit` 스킬이다. 요약하면 `harness.json`의 `git.commitScope`가 `false`(기본)면 괄호 스코프 없이 **타입만** 쓰고 phase는 **본문**에 넣는다. `true`면 `feat({phase}): step N — {name}`.
-
-0. **RED 커밋** (`tdd: true` step, 2-a 통과 직후)
-   - subject: `test: step N — {name} (red)`
-   - body: `phase: {task}` + 어떤 수용 조건을 잡는지 1줄. 이 커밋 뒤에 GREEN이 돌아야 3의 "diff에 테스트 파일 없음" 판정이 성립한다.
-1. **코드 커밋**
-   - subject: `feat: step N — {name}` (구현이 리팩터/수정이면 `refactor:`/`fix:`)
-   - body: `phase: {task}` + step 요약 1줄
-   - 커밋 전 `.claude/harness.json`의 `verify`를 순서대로 실행한다. **1회만** — 서브에이전트 자체 점검과 중복하지 않는다. 앱별(`{"<root>": {…}}`)이면 **root마다 그 폴더에서** 1회씩 — step이 만진 root만이 아니라 전부(계약을 거쳐 다른 앱이 깨질 수 있다)
-2. **메타데이터 커밋**
-   - `phases/{task}/index.json` 변경분: `chore: update phase index for step N` (body: `phase: {task}`).
-3. **사람에게 3줄** — 커밋 직후 다음 step으로 넘어가기 전에 출력만 한다(멈추지 않는다): **무엇을 바꿨나 · 왜 이렇게 했나 · 어디가 위험한가(또는 실제로 안 돌려 본 것)**. 사람이 구현 도중에 따라오며 이해하게 하려는 것이다 — 리뷰·회고 때 처음 이해하려 하면 늦다. 파일 목록 나열이 아니라 동작과 이유로 쓴다
-
-- `--no-verify` 등 hook 우회 금지. 위험 명령 금지.
+에이전트가 `test: step N — {name} (red)`(tdd step) → `feat: step N — {name}`을 커밋하고, 러너가 남은 변경 `feat:`과 메타데이터 `chore: update phase index for step N`(body `phase: {task}`)을 커밋한다. 커밋 메시지 형식의 정본은 `commit` 스킬이다. `--no-verify` 등 훅 우회 금지 · push 하지 않는다. `stepN-output.json`(헤드리스 원문 로그)은 `.git/info/exclude`로 커밋에서 빠진다.
 
 ## 5. 마무리 (d)
 
 - 모든 step이 `completed`면: 요약 표(step·상태·summary)를 출력하고 **`sdd-review` 스킬**로 검증하도록 안내.
 - error/blocked로 멈췄으면: 멈춘 step·사유·재개 방법을 보고.
-- **재개 절차** (`sdd` 「재개」와 같은 문장): 원인이 확정되고 사람이 승인하면 **메인이** 그 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 §3 루프를 다시 돈다. **`retries`는 0으로 되돌리지 않는다** — 승격 판단의 계수기라서다. blocked는 `blocked_reason`이 해소됐을 때만 `pending`으로.
+- **재개 절차** (`sdd` 「재개」와 같은 문장): 원인이 확정되고 사람이 승인하면 **메인이** 그 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 §2 루프를 다시 돈다(`start`가 error·blocked step이 남아 있으면 멈추기 때문). **`retries`는 0으로 되돌리지 않는다** — 승격 판단의 계수기라서다. blocked는 `blocked_reason`이 해소됐을 때만 `pending`으로.
 
 ## 비용 메모
 
-- 메인 세션이 하는 일: 브랜치·가드레일·preamble 조립·index.json 읽기·커밋 = 저렴.
-- step 구현/테스트/빌드의 무거운 컨텍스트는 전부 `test-writer`·`feature-builder` 서브에이전트 안에서 소비된다. `tdd: true` step은 서브에이전트 호출이 2회라 `tdd: false`보다 비싸다 — 그래서 `harness` §3이 step마다 tdd 여부를 판정하고 false면 사유를 적는다.
+- step당 서브에이전트(또는 `claude -p`) **1번**. 예전 RED·GREEN 2번에서 줄였다 — 강의 execute.py와 같은 단위. 테스트 먼저는 `tdd-guard` 훅 + 판정 2~4가 지킨다
+- 헤드리스는 호출마다 JSON `usage`를 그 step의 `usage`에 더한다. 사용량을 처음으로 셀 수 있는 자리다(BACKLOG "1회 → 2회로 되돌리는 조건"이 이 숫자를 쓴다)

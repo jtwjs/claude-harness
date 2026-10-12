@@ -21,7 +21,8 @@
 | 다른 모델 교차 리뷰 (Codex 등) | `review-code` 행과 같은 계수 — 그때 차원별 병렬과 다른 모델 중 고른다 |
 | `harness-run` 독립 phase 병렬 (Fan-out) | `after`로 서로 묶이지 않은 pending phase 둘 이상을 순차로 돌려 기다린 사례 **3건** (`phases_status.py` 현황으로 센다) |
 | `ai-readiness-cartography` Sanity 단계(죽은 코드 먼저) | 지도(`CODEBASE_MAP`·`_brain`)가 가리킨 경로가 죽은 코드였던 사례 **3건** (`task-observer`) |
-| `feature-builder` opus 승격 | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
+| step `model` 승격 (기본 → opus) | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
+| 러너 step을 1회 → 2회 호출(TDD 도구 test-writer → feature-builder)로 되돌리기 | 러너로 통과한 `tdd: true` step에서 머지 뒤 `fix:` 커밋이 나온 사례 **3건** — 같은 머리가 테스트와 구현을 다 써서 테스트가 구현에 맞춰진 신호. 사용량 차이는 step `usage`로 잰다 |
 
 > ⚠️ `evals/` 행과 **품질 골든셋** 행은 이름이 비슷하지만 **다른 물건**이다 — `evals/`는 *스킬이 불리나*(트리거 회귀), 골든셋은 *산출물이 좋아졌나*(품질 점수). 한쪽을 깔았다고 다른 쪽이 덮이지 않는다.
 >

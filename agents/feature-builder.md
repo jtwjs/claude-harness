@@ -1,6 +1,6 @@
 ---
 name: "feature-builder"
-description: "SDD IMPLEMENT, GREEN half. Call when failing tests exist and must pass, or a step file specifies what to build. Never edits test files; stops and asks when a decision is needed."
+description: "TDD tool, GREEN half (not called by the SDD runner, which runs one call per step). Call when failing tests exist and must pass, or for a small agreed fix. Never edits test files; stops and asks when a decision is needed."
 model: sonnet
 color: red
 tools: Read, Write, Edit, Grep, Glob, Bash

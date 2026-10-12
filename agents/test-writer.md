@@ -1,6 +1,6 @@
 ---
 name: "test-writer"
-description: "SDD IMPLEMENT, RED half. Call before implementation exists to turn acceptance criteria into failing tests, edge cases included. Never opens implementation files; stops if the spec is too thin."
+description: "TDD tool, RED half (not called by the SDD runner — use when a person wants strict test/impl separation). Call before implementation exists to turn acceptance criteria into failing tests, edge cases included. Never opens implementation files; stops if the spec is too thin."
 model: opus
 color: yellow
 tools: Read, Write, Edit, Grep, Glob, Bash

@@ -1,6 +1,6 @@
 # claude-harness
 
-레포에서 AI와 일하는 방식을 까는 Claude Code 플러그인이다. 대상 레포에서 `/harness-init`을 한 번 돌리면 스펙 우선 개발(SDD) 흐름, 테스트 먼저(RED/GREEN) 규칙, 컨텍스트 3층, 팀 위키(`_brain/`)가 갖춰진다.
+레포에서 AI와 일하는 방식을 까는 Claude Code 플러그인이다. 대상 레포에서 `/harness-init`을 한 번 돌리면 스펙 우선 개발(SDD) 흐름, 테스트 먼저(RED/GREEN — 러너가 git 기록으로 확인) 규칙, 컨텍스트 3층, 팀 위키(`_brain/`)가 갖춰진다.
 
 ## 세 레포의 관계
 
@@ -32,7 +32,8 @@
 | 칸 | 내용 |
 |---|---|
 | 스킬 25개 | SDD: `why-plan` `harness` `harness-run` `sdd` `sdd-review` `design-brief` `design-critique` `design-reconcile`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `systematic-debugging` `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff-html` `explain-diff-notion` `plannotator-visual-explainer` |
-| 에이전트 4개 | `test-writer`(RED) `feature-builder`(GREEN) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
+| 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
+| SDD 러너 | `skills/harness-run/scripts/sdd_runner.py` — 세션 안(`harness-run`)·헤드리스(`run`) 같은 규칙. step당 1번 호출 + git 기록 판정. 설계 `docs/sdd-runner.md` |
 | 훅 9개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 쓰기·운영 프로필 실행) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후: `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` · 세션 끝: `validate-session-end` |
 | `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `_brain/`, `stacks/` |
 | `incubator/` | 로드 경로 밖 대기 스킬(지금 비어 있음 — 이력은 `incubator/README.md`) |
@@ -47,7 +48,7 @@ flowchart TD
   D --> H["② PLAN · harness: step 분해"]
   H --> G{🙋 step 승인}
   G -->|빈칸 많음| D
-  G --> R["③ IMPLEMENT · harness-run<br/>test-writer RED → feature-builder GREEN → verify"]
+  G --> R["③ IMPLEMENT · harness-run / sdd_runner run<br/>step당 1번: 테스트 먼저 → 구현 → git 기록 판정"]
   R --> V["④ REVIEW · sdd-review"]
   V -->|위반| R
   V --> F["⑤ REFLECT<br/>🙋 _brain 정리 → changeset → commit → pr-write → brain-sync"]

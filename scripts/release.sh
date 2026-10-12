@@ -30,6 +30,7 @@ mver="$(python3 -c 'import json;d=json.load(open(".claude-plugin/marketplace.jso
 [ "$ver" = "$mver" ] || die "버전 불일치: plugin.json $ver · marketplace.json $mver"
 skills=$(ls -d skills/*/ | wc -l | tr -d ' ')
 bash hooks/test.sh >/dev/null 2>&1 || die "hooks/test.sh 실패 — 먼저 고친다"
+python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py >/dev/null 2>&1 || die "SDD 러너 테스트 실패 — 먼저 고친다"
 ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')
 printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · 훅 테스트 통과\n' "$ver" "$skills" "$ahead"
 

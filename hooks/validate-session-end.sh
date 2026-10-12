@@ -5,7 +5,7 @@
 #    (포맷 '적용'은 auto-format.sh 가 편집 직후에 한다. 여기서는 검사만.)
 #    → verify.format 에는 --check 계열(읽기)만 들어간다. harness-init 이 그렇게 기록한다.
 #
-# non-blocking: 실패해도 exit 0. 진짜 게이트는 CI 와 feature-builder 자체 점검이다.
+# non-blocking: 실패해도 exit 0. 진짜 게이트는 CI 와 SDD 러너 판정(sdd_runner.py judge)이다.
 # 루프 가드: 같은 변경 상태면 재실행하지 않는다.
 # 출력: stdout JSON 의 systemMessage. exit 0 의 stderr 는 디버그 로그에만 남아 아무도 못 본다
 #   (2026-10-08 공식 문서 확인 — 그 전까지 이 훅의 🟢/🔴 결과는 한 번도 전달된 적이 없다).

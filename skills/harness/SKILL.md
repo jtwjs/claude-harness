@@ -29,7 +29,7 @@ disable-model-invocation: false
 - **관련 파일 강제 열람**: 따라야 할 기존 패턴 파일 경로를 `## 읽어야 할 파일`에 못박는다.
 - **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다. **단 멱등성·보안·데이터 무결성처럼 벗어나면 안 되는 규칙은 반드시 명시한다** — 시그니처만 주면 에이전트가 그 규칙을 모른다.
 - **AC = 실행 가능한 쉘 명령**: 통과 여부를 기계가 판정할 수 있게. 명령은 **지어내지 말고 `.claude/harness.json`의 `verify`에서 가져온다.**
-- **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 `test-writer`(RED) → `feature-builder`(GREEN) 2단으로 돌고, `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
+- **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 러너가 그 step을 **한 호출 안에서 테스트 먼저 → 구현**으로 돌리고 git 기록으로 확인한다(테스트만 담긴 커밋이 먼저 · 그 시점에 테스트가 실패 · 그 뒤 테스트 파일 무변경 — `harness-run` §2), `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
 - **금지사항 명시**: CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 2026-10 병렬 트랙 실측: step md 111개 중 49개가 ADR 내용을 복사했고, ADR이 바뀐 뒤 step 값이 옛 값으로 남아 지시문으로 덮어써야 했다(재지시 2회).
 - step 이름은 **kebab-case**.
 
@@ -62,8 +62,8 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 - **`after`** — 이 phase보다 먼저 끝나야 하는 phase의 `task` slug 배열(같은 PRD를 여러 phase로 나눴을 때. 예: `fe-cp-name`의 `after: ["be-cp-name"]`). 선행이 없으면 `[]`. 같은 PRD 묶음은 `docs`가 같아서 알 수 있다 — **상위 `phases/index.json`(전체 현황 파일)은 만들지 않는다.** 상태가 두 곳에 적히면 어긋난다(2026-10-13 결정). 전체 현황은 `phases_status.py`가 phase별 `index.json`에서 계산한다(`harness-run` §0)
 - `status` ∈ `pending | completed | error | blocked` **4개만**. 최초 전부 `pending`. 🔴 `done`·`complete` 같은 다른 값은 쓰지 않는다 — 2026-10 실측: 한 레포 phase 22개 중 7개가 `done`을 써서 `completed`를 기준으로 판정하는 러너가 끝난 phase를 안 끝났다고 본다. `phases_status.py`가 다른 값을 오류로 잡는다
 - `summary`·`error_message`·`blocked_reason`·`retries`·timestamp는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
-- **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 에이전트 정의값(`feature-builder` = sonnet)으로 돈다.
-  - 🔴 **어렵겠다는 느낌으로 적지 않는다.** feature-builder 가 sonnet 인 건 "정해진 것을 만드는 일"이라는 판단이고, step 이 자기완결적이면 그 판단이 맞다. 올리는 근거는 느낌이 아니라 `index.json` 에 쌓인 그 step 의 `retries` 기록이다(승격 조건은 `BACKLOG.md`)
+- **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 기본 모델로 돈다(세션 안은 Agent 도구 기본값, 헤드리스는 `claude -p` 기본값).
+  - 🔴 **어렵겠다는 느낌으로 적지 않는다.** step 이 자기완결적이면 정해진 것을 만드는 일이라 기본 모델로 충분하다. 올리는 근거는 느낌이 아니라 `index.json` 에 쌓인 그 step 의 `retries` 기록이다(승격 조건은 `BACKLOG.md`)
   - 올리기 전에 **step 파일이 자기완결적인지 먼저 의심한다.** 모델을 올려야 풀리는 step 은 대개 **분해가 덜 된 step** 이다
 
 ### `phases/{task}/stepN.md` — 5개 섹션 고정
