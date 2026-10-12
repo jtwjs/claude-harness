@@ -9,7 +9,8 @@
 # 동작
 #   1. 직전 두 리포트를 비교한다(빠르다). 떨어졌으면 그 리포트에 대해 한 번만 additionalContext 로 알리고,
 #      상태줄 권고 파일($HINT_KEY.readiness)은 다음 채점까지 남긴다. 떨어지지 않았으면 권고 파일을 지운다.
-#   2. 마지막 채점 뒤 7일 이상 + 커밋 20건 이상(리포트가 없으면 커밋 20건 이상)이면 채점을 **백그라운드로** 시작한다.
+#   2. 마지막 채점 뒤 14일 이상 + 활발한 레포(lib/active-repo.sh: 최근 14일 커밋 20건·활동일 3일)면 채점을 **백그라운드로** 시작한다.
+#      리포트가 없으면 활발한 레포인지만 본다. (2026-10-12: 7일·커밋 20건 → 2주·활발한 레포만)
 #      큰 레포는 5초가 걸려(실측: creator-cms-v2 5.17s, bv-builder 0.85s) 세션 시작을 막지 않는다. 결과 비교는 다음 세션.
 #
 # 레포에 쓰는 것: .claude/reports/<날짜>/ai-readiness-score.json 뿐이다. .claude/reports/ 는 .git/info/exclude 에도 넣어
@@ -34,8 +35,9 @@ SCORER="$PLUGIN_ROOT/skills/ai-readiness-cartography/scripts/score.py"
 [ -f "$SCORER" ] || exit 0
 OUT_DIR=".claude/reports"
 DATE="$(date +%F)"
-GAP_DAYS=7
-GAP_COMMITS=20
+GAP_DAYS=14
+# shellcheck source=lib/active-repo.sh
+. "$SCRIPT_DIR/lib/active-repo.sh" 2>/dev/null || exit 0
 HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
 HINT_KEY="$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
 HINT_FILE="$HINT_DIR/$HINT_KEY.readiness"
@@ -83,16 +85,17 @@ case "$cmp_line" in
 esac
 
 # ── 2. 채점할 때가 됐으면 백그라운드로 ──────────────────────────────────────
-# 결과 파일이 있는 날짜만 센다 — 채점이 중간에 죽어 빈 폴더가 남으면 7일 동안 다시 안 재는 일이 생긴다(2026-10-11 리뷰).
+# 결과 파일이 있는 날짜만 센다 — 채점이 중간에 죽어 빈 폴더가 남으면 14일 동안 다시 안 재는 일이 생긴다(2026-10-11 리뷰).
 last="$(for x in "$OUT_DIR"/*/ai-readiness-score.json; do [ -f "$x" ] && basename "$(dirname "$x")"; done 2>/dev/null \
   | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' | sort | tail -1)"
 due=0
-if [ -z "$last" ]; then
-  [ "$(git rev-list --count HEAD 2>/dev/null || echo 0)" -ge "$GAP_COMMITS" ] && due=1
-else
-  days=$(python3 -c "import datetime,sys; print((datetime.date.today()-datetime.date.fromisoformat(sys.argv[1])).days)" "$last" 2>/dev/null || echo 0)
-  commits=$(git rev-list --count --since="$last 00:00" HEAD 2>/dev/null || echo 0)
-  [ "${days:-0}" -ge "$GAP_DAYS" ] && [ "${commits:-0}" -ge "$GAP_COMMITS" ] && due=1
+if active_repo "$REPO_ROOT"; then
+  if [ -z "$last" ]; then
+    due=1
+  else
+    days=$(python3 -c "import datetime,sys; print((datetime.date.today()-datetime.date.fromisoformat(sys.argv[1])).days)" "$last" 2>/dev/null || echo 0)
+    [ "${days:-0}" -ge "$GAP_DAYS" ] && due=1
+  fi
 fi
 if [ "$due" = 1 ] && [ ! -d "$OUT_DIR/$DATE" ]; then   # 같은 날 두 번 띄우지 않는다(백그라운드 채점 중일 수 있다)
   mkdir -p "$OUT_DIR/$DATE" 2>/dev/null || exit 0

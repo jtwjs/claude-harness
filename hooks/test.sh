@@ -16,13 +16,21 @@ pass=0; fail=0
 
 ok()   { printf '  ✓ %s\n' "$1"; pass=$((pass+1)); }
 bad()  { printf '  🔴 %s — %s\n' "$1" "$2"; fail=$((fail+1)); }
+# 빈 커밋 N건을 최근 3일에 나눠 찍는다 — 활발한 레포 게이트(14일·20건·활동일 3일)를 넘기려면 날짜가 퍼져 있어야 한다
+spread_commits() {
+  local n="$1" i d
+  for i in $(seq "$n"); do
+    d="$(python3 -c "import datetime,sys; print((datetime.datetime.now()-datetime.timedelta(days=int(sys.argv[1])%3)).strftime('%Y-%m-%dT%H:%M:%S'))" "$i")"
+    GIT_AUTHOR_DATE="$d" GIT_COMMITTER_DATE="$d" git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"
+  done
+}
 
 # ── 케이스 1: 하네스가 없는 레포에서는 전부 조용해야 한다 ────────────────────
 # 오탐 1건 = 신뢰 10건 손실. 남의 레포에서 떠드는 훅은 즉시 꺼진다.
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
 mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q)
 payload='{"tool_input":{"file_path":"'"$TMP"'/none/src/a.ts","command":"npm test"}}'
-for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup; do
+for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup brain-sync-auto; do
   out=$(cd "$TMP/none" && printf '%s' "$payload" | bash "$HOOKS/$h.sh" 2>&1); code=$?
   if [ "$code" = "0" ] && [ -z "$out" ]; then ok "$h"; else bad "$h" "exit=$code out=[$out]"; fi
 done
@@ -130,7 +138,12 @@ printf '\n[6] readiness — 게이트 · 첫 채점 무출력 · 하락 1회 알
 export CLAUDE_READINESS_SYNC=1
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
 [ -z "$out" ] && [ ! -d "$TMP/on/.claude/reports" ] && ok "게이트 아래 — 채점 안 함·무출력" || bad "오탐" "커밋 몇 건인데 채점했다 out=[$out]"
-(cd "$TMP/on" && for i in $(seq 25); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+# 커밋 25건이 하루에 몰리면 활발한 레포가 아니다(활동일 3일 미만) — 채점하지 않는다
+mkdir -p "$TMP/burst/.claude" && (cd "$TMP/burst" && git init -q && printf '{}' > .claude/harness.json && git add -A \
+  && for i in $(seq 25); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+(cd "$TMP/burst" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" >/dev/null 2>&1)
+[ ! -d "$TMP/burst/.claude/reports" ] && ok "커밋이 하루에 몰림 — 채점 안 함" || bad "오탐" "활동일 1일인데 채점했다"
+(cd "$TMP/on" && spread_commits 25)
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1)
 ls "$TMP/on/.claude/reports"/*/ai-readiness-score.json >/dev/null 2>&1 && ok "게이트 초과 — 채점 리포트 생성" || bad "채점 안 됨" "리포트 없음"
 [ -z "$out" ] && ok "첫 채점은 비교 대상이 없어 무출력" || bad "소음" "out=[$out]"
@@ -151,13 +164,20 @@ out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" 2>&1
 [ -z "$out" ] && [ -f "$rf" ] && ok "같은 하락은 한 번만 알리고 상태줄은 유지" || bad "반복" "out=[$out]"
 # 리포트가 있을 때 분기 — 7일 이상 + 커밋 20건 이상이면 다시 잰다
 mkdir -p "$TMP/rd/.claude" && (cd "$TMP/rd" && git init -q && printf '{}' > .claude/harness.json && git add -A \
-  && for i in $(seq 22); do git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "c$i"; done)
+  && spread_commits 22)
 mkdir -p "$TMP/rd/.claude/reports/2000-01-01" && cp "$(ls "$TMP"/on/.claude/reports/*/ai-readiness-score.json | head -1)" "$TMP/rd/.claude/reports/2000-01-01/"
 (cd "$TMP/rd" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" >/dev/null 2>&1)
-[ -f "$TMP/rd/.claude/reports/$(date +%F)/ai-readiness-score.json" ] && ok "리포트 있음 + 7일·20건 — 다시 채점" || bad "재채점 안 됨" "$(ls "$TMP/rd/.claude/reports")"
+[ -f "$TMP/rd/.claude/reports/$(date +%F)/ai-readiness-score.json" ] && ok "리포트 있음 + 14일 지남·활발한 레포 — 다시 채점" || bad "재채점 안 됨" "$(ls "$TMP/rd/.claude/reports")"
+# 마지막 채점이 14일 안이면 활발해도 다시 재지 않는다
+recent="$(python3 -c "import datetime; print(datetime.date.today()-datetime.timedelta(days=5))")"
+rm -rf "$TMP/rd/.claude/reports/$(date +%F)" && mkdir -p "$TMP/rd/.claude/reports/$recent" \
+  && cp "$TMP/rd/.claude/reports/2000-01-01/ai-readiness-score.json" "$TMP/rd/.claude/reports/$recent/"
+(cd "$TMP/rd" && printf '{}' | bash "$HOOKS/weekly-readiness-check.sh" >/dev/null 2>&1)
+[ ! -d "$TMP/rd/.claude/reports/$(date +%F)" ] && ok "마지막 채점 5일 전 — 14일 전이라 다시 안 잰다" || bad "조기 재채점" "14일 안인데 다시 쟀다"
+rm -rf "$TMP/rd/.claude/reports/$recent"
 # 채점이 실패하면 빈 날짜 폴더를 남기지 않는다 — 가짜 플러그인 루트(실패하는 score.py)로 돌린다
 FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/ai-readiness-cartography/scripts"
-cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/ai-readiness-cartography/scripts/score.py"
+cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; cp -R "$HOOKS/lib" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/ai-readiness-cartography/scripts/score.py"
 rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
 (cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
 [ -d "$TMP/rd/.claude/reports/$(date +%F)" ] && bad "빈 폴더" "채점 실패인데 날짜 폴더가 남았다" || ok "채점 실패 — 빈 날짜 폴더를 지운다"
@@ -187,6 +207,38 @@ printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다�
 
 # ── 케이스 6-b: learn-setup — 개인 학습 수신함 _learn/ (2026-10-11) ──────────
 # 레포에 쓰는 훅이라 경계를 다 건다: 하네스 없는 레포 무동작(케이스 1) · .gitignore 무변경 · 두 번 돌려도 한 줄.
+# ── 케이스 6-c: brain-sync-auto — opt-in · 경로 · 활발한 레포 · _brain/wiki 변경 (2026-10-12) ──
+printf '\n[6-c] brain-sync-auto — 조건을 다 넘을 때만 띄운다\n'
+export CLAUDE_BRAIN_SYNC_SYNC=1
+FAKECL="$TMP/fake-claude"; printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s/claude-calls"\n' "$TMP" > "$FAKECL"; chmod +x "$FAKECL"
+export CLAUDE_BRAIN_SYNC_BIN="$FAKECL"
+calls() { wc -l < "$TMP/claude-calls" 2>/dev/null | tr -d ' ' || echo 0; }
+bs() { (cd "$TMP/bs" && printf '{}' | bash "$HOOKS/brain-sync-auto.sh" 2>&1); }
+mkdir -p "$TMP/vault/2_LLMWiki/wiki/projects" "$TMP/bs/.claude" "$TMP/bs/_brain/wiki"
+printf '{"brainSync":{"wikiPath":"%s","targetFolder":"2_LLMWiki/wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
+(cd "$TMP/bs" && git init -q && echo a > _brain/wiki/a.md && git add -A && spread_commits 22)
+out=$(bs); [ -z "$out" ] && [ "$(calls)" = "0" ] && ok "opt-in 안 함 — 안 띄움·무출력" || bad "opt-in" "calls=$(calls) out=[$out]"
+export CLAUDE_BRAIN_SYNC_AUTO=1
+out=$(bs); [ -z "$out" ] && [ "$(calls)" = "1" ] && ok "첫 실행 — 띄움·무출력" || bad "첫 실행" "calls=$(calls) out=[$out]"
+grep -q -- "brain-sync auto.*--add-dir $(cd "$TMP/vault" && pwd -P)" "$TMP/claude-calls" 2>/dev/null && ok "auto 인자 + vault --add-dir" || bad "인자" "$(cat "$TMP/claude-calls")"
+rm -f "$CLAUDE_SKILL_HINTS_DIR"/*brain-sync-run
+bs >/dev/null; [ "$(calls)" = "1" ] && ok "_brain/wiki 변경 없음 — 안 띄움" || bad "변경 없음" "calls=$(calls)"
+(cd "$TMP/bs" && echo b > src.txt && git add -A && git -c user.email=t@t -c user.name=t commit -qm "code only")
+bs >/dev/null; [ "$(calls)" = "1" ] && ok "코드만 바뀜 — 안 띄움" || bad "코드만" "calls=$(calls)"
+(cd "$TMP/bs" && echo b >> _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm "brain")
+bs >/dev/null; [ "$(calls)" = "2" ] && ok "_brain/wiki 바뀜 — 띄움" || bad "변경 감지" "calls=$(calls)"
+(cd "$TMP/bs" && echo c >> _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm "brain2")
+bs >/dev/null; [ "$(calls)" = "2" ] && ok "같은 날 두 번째 — 안 띄움" || bad "중복" "calls=$(calls)"
+rm -f "$CLAUDE_SKILL_HINTS_DIR"/*brain-sync-run
+CLAUDE_BRAIN_SYNC_AUTO_SKIP="x:bs" bs >/dev/null; [ "$(calls)" = "2" ] && ok "SKIP 목록 — 안 띄움" || bad "SKIP" "calls=$(calls)"
+printf '{"brainSync":{"wikiPath":"%s","targetFolder":"wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
+bs >/dev/null; [ "$(calls)" = "2" ] && ok "옛 폴더 구조(부모 없음) — 안 띄움" || bad "경로 확인" "calls=$(calls)"
+printf '{"brainSync":{"wikiPath":"%s","targetFolder":"2_LLMWiki/wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
+mkdir -p "$TMP/bsq/.claude" "$TMP/bsq/_brain/wiki" && cp "$TMP/bs/.claude/harness.json" "$TMP/bsq/.claude/" \
+  && (cd "$TMP/bsq" && git init -q && echo a > _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm one)
+(cd "$TMP/bsq" && printf '{}' | bash "$HOOKS/brain-sync-auto.sh" >/dev/null 2>&1); [ "$(calls)" = "2" ] && ok "비활성 레포 — 안 띄움" || bad "활발 게이트" "calls=$(calls)"
+unset CLAUDE_BRAIN_SYNC_SYNC CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_BIN
+
 printf '\n[6-b] learn-setup — _learn/ 수신함 · 로컬 제외 · 목록\n'
 mkdir -p "$TMP/learn/.claude" && (cd "$TMP/learn" && git init -q && printf '{}' > .claude/harness.json && printf 'node_modules/\n' > .gitignore \
   && git add -A && git -c user.email=t@t -c user.name=t commit -qm init)

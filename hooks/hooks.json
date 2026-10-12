@@ -64,6 +64,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/weekly-readiness-check.sh\"",
             "timeout": 15,
             "statusMessage": "AI-Readiness 점검"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/brain-sync-auto.sh\"",
+            "timeout": 15,
+            "statusMessage": "brain-sync 자동 이관 점검"
           }
         ]
       }
