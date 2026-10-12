@@ -16,6 +16,11 @@
 | **품질 골든셋 + LLM-as-judge 채점** | `.claude/observations.md`의 **`닫힌 것` 행 5개** 누적 (`task-observer`). **그 5개가 곧 첫 골든셋이다** — 새로 만들지 않는다 |
 | `InstructionsLoaded` 훅 계측 | `harness-doctor` 검사 5의 바이트 계측으로 부족해진 뒤 |
 | `task-observer` 상시 관찰 훅 | REFLECT 되짚기가 **놓친 반복 3건**이 나중에 뒤늦게 발견된 뒤 (`.claude/observations.md`의 `마지막` 날짜가 실제 발생일보다 늦은 경우) |
+| 세션 handoff 파일 규약 (강의 Harness Engineering 맥락 축) | 압축·`/clear` 뒤 맥락을 잃어 같은 작업을 다시 한 사례 **3건** (`task-observer`·재작업) |
+| `harness-doctor` 안 쓰는 스킬·MCP 검사 | 30일 호출 0인 스킬을 손으로 지운 일 **3회** (`git log --grep='삭제'` 중 스킬 삭제 커밋) |
+| 다른 모델 교차 리뷰 (Codex 등) | `review-code` 행과 같은 계수 — 그때 차원별 병렬과 다른 모델 중 고른다 |
+| `harness-run` 독립 phase 병렬 (Fan-out) | `after`로 서로 묶이지 않은 pending phase 둘 이상을 순차로 돌려 기다린 사례 **3건** (`phases_status.py` 현황으로 센다) |
+| `ai-readiness-cartography` Sanity 단계(죽은 코드 먼저) | 지도(`CODEBASE_MAP`·`_brain`)가 가리킨 경로가 죽은 코드였던 사례 **3건** (`task-observer`) |
 | `feature-builder` opus 승격 | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
 
 > ⚠️ `evals/` 행과 **품질 골든셋** 행은 이름이 비슷하지만 **다른 물건**이다 — `evals/`는 *스킬이 불리나*(트리거 회귀), 골든셋은 *산출물이 좋아졌나*(품질 점수). 한쪽을 깔았다고 다른 쪽이 덮이지 않는다.

@@ -67,6 +67,48 @@ check_deny 2 'cat .env'
 check_deny 2 'git push -f origin main'
 
 # ── 케이스 3: tdd-guard 는 harness.json 만으로 판정한다 ──────────────────────
+# ── 케이스 2-c: 운영 DB — harness.json guard.prodDb 가 있을 때만 (2026-10-13) ──
+# 이름(PROD)이 아니라 호스트·프로필 목록으로 판별한다. stage 프로필이 운영 DB 를 가리킨 레포가 있었다.
+printf '\n[2-c] 운영 DB — 쓰기 SQL · 운영 프로필 실행 차단, 조회 허용\n'
+mkdir -p "$TMP/prod/.claude" && (cd "$TMP/prod" && git init -q)
+cat > "$TMP/prod/.claude/harness.json" <<JSON
+{ "guard": { "prodDb": { "hosts": ["prod-db.example.com"], "profiles": ["stage", "prod"] } } }
+JSON
+bdb() { # $1=dir $2=command → exit code
+  python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$2" \
+    | (cd "$1" && bash "$HOOKS/block-dangerous-bash.sh" >/dev/null 2>&1); echo $?
+}
+for c in 'mysql -h prod-db.example.com -e "DELETE FROM users WHERE id=1"' \
+         'psql "host=prod-db.example.com dbname=app" -c "drop table t"' \
+         'mysql -h prod-db.example.com app < fix.sql' \
+         "./gradlew bootRun --args='--spring.profiles.active=stage'" \
+         'SPRING_PROFILES_ACTIVE=prod ./gradlew test' \
+         'java -Dspring.profiles.active=dev,stage -jar app.jar'; do
+  [ "$(bdb "$TMP/prod" "$c")" = "2" ] && ok "차단: $c" || bad "운영 DB 통과" "$c"
+done
+for c in 'mysql -h prod-db.example.com -e "SELECT count(*) FROM users"' \
+         'mysql -h localhost -e "DROP TABLE t"' \
+         "./gradlew bootRun --args='--spring.profiles.active=local'" \
+         'git commit -m "stage 프로필 설명"'; do
+  [ "$(bdb "$TMP/prod" "$c")" = "0" ] && ok "허용: $c" || bad "오탐" "$c"
+done
+[ "$(bdb "$TMP/none" 'mysql -h prod-db.example.com -e "DELETE FROM users"')" = "0" ] \
+  && ok "guard 없는 레포 — 판별 근거가 없어 통과" || bad "오탐" "guard 없는 레포에서 막았다"
+
+# ── 케이스 2-d: phases_status — 상태 값 4개 · after 선행 점검 (2026-10-13) ──
+printf '\n[2-d] phases_status — 허용 밖 상태 · 선행 미완료면 exit 1\n'
+PS="$HOOKS/../skills/harness-run/scripts/phases_status.py"
+mkdir -p "$TMP/ph/phases/be-a" "$TMP/ph/phases/fe-a" "$TMP/ph/phases/old" && (cd "$TMP/ph" && git init -q)
+echo '{"phase":"be-a","docs":"docs/x","after":[],"steps":[{"step":1,"status":"completed"}]}' > "$TMP/ph/phases/be-a/index.json"
+echo '{"phase":"fe-a","docs":"docs/x","after":["be-a"],"steps":[{"step":1,"status":"pending"}]}' > "$TMP/ph/phases/fe-a/index.json"
+echo '{"phase":"old","steps":[{"step":1,"status":"done"}]}' > "$TMP/ph/phases/old/index.json"
+(cd "$TMP/ph" && python3 "$PS" --check fe-a >/dev/null) && ok "선행 completed — 점검 통과" || bad "점검" "선행이 끝났는데 막았다"
+(cd "$TMP/ph" && python3 "$PS" --check old >/dev/null) && bad "done 통과" "허용 밖 상태를 못 잡았다" || ok "status 'done' — exit 1"
+echo '{"phase":"be-a","docs":"docs/x","after":[],"steps":[{"step":1,"status":"error"}]}' > "$TMP/ph/phases/be-a/index.json"
+(cd "$TMP/ph" && python3 "$PS" --check fe-a >/dev/null) && bad "선행 미완료 통과" "be-a 가 error 인데 fe-a 를 허용했다" || ok "선행 미완료 — exit 1"
+out=$(cd "$TMP/ph" && python3 "$PS")
+printf '%s' "$out" | grep -A2 '^docs/x' | head -3 | sed -n 2p | grep -q 'be-a' && ok "현황 — docs 로 묶고 선행이 먼저" || bad "현황 순서" "$out"
+
 printf '\n[3] tdd-guard — include/exclude 판정\n'
 mkdir -p "$TMP/on/.claude" "$TMP/on/src/features" && (cd "$TMP/on" && git init -q)
 cat > "$TMP/on/.claude/harness.json" <<JSON
@@ -283,6 +325,18 @@ ll() { # $1=session $2=command → exit code
 [ "$(ll s2 'pnpm test')" = "0" ] && ok "세션이 바뀌면 count 리셋" || bad "세션 리셋" "다른 세션 첫 호출이 차단됐다"
 rm -f "$TMP/on/.claude/.last-loop-lock"
 ll s3 'ls build/' >/dev/null; [ ! -f "$TMP/on/.claude/.last-loop-lock" ] && ok "ls build/ 는 추적하지 않는다" || bad "오탐 추적" "ls build/ 가 stamp 를 만들었다"
+
+# 코드 상태가 같을 때만 센다 (2026-10-13) — 코드를 고치고 다시 돌리는 건 정상 수정 루프라 리셋한다.
+# 성공·실패는 구분하지 않는다: PostToolUse 는 성공한 도구 호출에만 돈다는 것이 문서 예시로 보이는 동작이라 실패를 셀 수 없다.
+rm -f "$TMP/on/.claude/.last-loop-lock"
+[ "$(ll s4 'pnpm test')" = "0" ] && [ "$(ll s4 'pnpm test')" = "0" ] || bad "준비" "같은 상태 2회가 막혔다"
+printf 'edit\n' >> "$TMP/on/loop-edit.ts"
+[ "$(ll s4 'pnpm test')" = "0" ] && ok "코드가 바뀌면 리셋 — 고친 뒤 3번째 실행은 통과" || bad "수정 루프 차단" "코드가 바뀌었는데 막았다"
+[ "$(ll s4 'pnpm test')" = "0" ] && [ "$(ll s4 'pnpm test')" = "2" ] \
+  && ok "같은 코드로 3번째 — exit 2" || bad "무의미 반복" "코드가 그대로인데 3번째를 안 막았다"
+printf 'edit2\n' >> "$TMP/on/loop-edit.ts"
+[ "$(ll s4 'pnpm test')" = "0" ] && ok "추적 안 되는 파일 내용이 바뀌어도 리셋" || bad "untracked 변경" "새 파일 내용 변경을 못 봤다"
+rm -f "$TMP/on/loop-edit.ts" "$TMP/on/.claude/.last-loop-lock"
 
 # ── 케이스 8: todo-warn — stdout JSON 으로 낸다 (stderr 는 아무도 못 본다) ─────
 printf '\n[8] todo-warn — stdout JSON\n'

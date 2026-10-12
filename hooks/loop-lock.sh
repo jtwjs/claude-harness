@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Loop Lock — PostToolUse[Bash]
-# 같은 검증성 명령(test/typecheck/build/lint)이 N회 연속 반복되면 자기수정 루프로 보고
+# 코드가 그대로인 채 같은 검증성 명령(test/typecheck/build/lint)이 N회 연속 반복되면 의미 없는 반복으로 보고
 # 모델에 stop 신호(exit 2 = stderr 를 차단 피드백으로 전달). 무한 루프·토큰 낭비 방지.
 # 다른 명령이 끼면 카운터 리셋. 검증성 명령이 아니면 무시.
 #
@@ -65,7 +65,27 @@ if [ "$is_verify" != "1" ]; then
   exit 0
 fi
 
-hash=$(printf '%s' "$cmd" | git hash-object --stdin 2>/dev/null || printf '%s' "$cmd" | cksum | awk '{print $1}')
+# 판단 단위 = 명령 + 그 시점 코드 상태 (2026-10-13). 코드가 그대로인데 같은 검증을 다시 돌리는 것만 의미 없는 반복이다.
+# 코드를 고치고 다시 돌리는 건 정상 수정 루프라 리셋한다(그 루프의 상한은 harness-run 의 retries 3).
+# 성공·실패는 가르지 않는다 — PostToolUse 는 성공한 도구 호출에만 도는 것으로 보여(문서 예시: 실패한 npm test 는
+# PostToolUseFailure) 실패만 세는 방식은 이 이벤트로 만들 수 없다.
+# 상태 = tracked 변경(git diff HEAD) + untracked 파일 내용. .claude/.last-* 같은 훅 흔적은 뺀다.
+state=$(cd "$REPO_ROOT" && python3 - <<'PY' 2>/dev/null
+import hashlib, subprocess
+h = hashlib.sha1()
+h.update(subprocess.run(["git", "diff", "HEAD", "--", ".", ":(exclude).claude/.last-*", ":(exclude).claude/reports"],
+                        capture_output=True).stdout)
+files = subprocess.run(["git", "ls-files", "-o", "--exclude-standard", "-z"], capture_output=True).stdout.split(b"\0")
+for f in sorted(x for x in files if x and not x.startswith(b".claude/.last-") and not x.startswith(b".claude/reports")):
+    h.update(f)
+    try:
+        h.update(open(f.decode(), "rb").read())
+    except OSError:
+        pass
+print(h.hexdigest())
+PY
+)
+hash=$(printf '%s\n%s' "$cmd" "$state" | git hash-object --stdin 2>/dev/null || printf '%s\n%s' "$cmd" "$state" | cksum | awk '{print $1}')
 
 prev_hash=""; prev_count=0; prev_session=""
 if [ -f "$stamp" ]; then
@@ -82,7 +102,7 @@ fi
 printf '%s\n%s\n%s\n' "$hash" "$count" "$session" >"$stamp" 2>/dev/null || true
 
 if [ "$count" -ge "$THRESHOLD" ]; then
-  printf '🔁 LOOP LOCK: 같은 검증 명령을 %s회 연속 실행했습니다. 자기수정 루프로 보입니다.\n   접근을 바꾸거나(가설 재검토·다른 파일 확인) 사람에게 상황을 보고하세요. 같은 명령 반복 금지.\n' "$count" >&2
+  printf '🔁 LOOP LOCK: 코드가 그대로인 채 같은 검증 명령을 %s회 연속 실행했습니다. 다시 돌려도 결과가 같습니다.\n   접근을 바꾸거나(가설 재검토·다른 파일 확인) 사람에게 상황을 보고하세요. 같은 명령 반복 금지.\n' "$count" >&2
   exit 2
 fi
 exit 0

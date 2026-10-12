@@ -91,4 +91,37 @@ if [ -n "$matched" ]; then
   exit 2
 fi
 
+# 운영 DB — 레포의 .claude/harness.json guard.prodDb 가 있을 때만 (2026-10-13).
+# 이름(PROD)으로는 못 가른다: stage 프로필이 운영 DB 를 가리킨 레포가 있었다. 그래서 레포가 적은 호스트·프로필로 가른다.
+#   ① 명령에 운영 호스트가 있고 쓰기 SQL 이 있거나, SQL 을 파일로 넘긴다(내용을 볼 수 없다) → 차단. 조회(SELECT)는 허용
+#   ② 운영을 가리키는 프로필로 앱·마이그레이션·테스트를 띄운다 → 차단. 연결만 되면 SQL 없이도 운영 데이터가 바뀐다
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+CFG="$REPO_ROOT/.claude/harness.json"
+[ -f "$CFG" ] || exit 0
+prod=$(CMD="$cmd" python3 - "$CFG" <<'PY'
+import json, os, re, sys
+cmd = os.environ["CMD"]
+try:
+    g = (json.load(open(sys.argv[1], encoding="utf-8")).get("guard") or {}).get("prodDb") or {}
+except Exception:
+    sys.exit(0)
+hosts = [h for h in g.get("hosts", []) if isinstance(h, str) and h]
+profiles = {p for p in g.get("profiles", []) if isinstance(p, str) and p}
+if any(h in cmd for h in hosts):
+    if re.search(r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE)\b", cmd, re.I):
+        print("운영 DB 쓰기|운영 호스트에 쓰기 SQL 이 있다. 조회(SELECT)만 허용한다. 고쳐야 하면 사람이 직접 실행한다"); sys.exit(0)
+    if re.search(r"(^|[^<])<[^<(]|\bsource\b|\\\.", cmd):
+        print("운영 DB 에 SQL 파일 실행|파일 내용을 볼 수 없어 쓰기인지 가를 수 없다. 조회면 -e/-c 로 SELECT 를 직접 쓴다"); sys.exit(0)
+if profiles:
+    for m in re.finditer(r"(?:spring[._]profiles[._]active|SPRING_PROFILES_ACTIVE)\s*[=\s]\s*['\"]?([\w,-]+)", cmd):
+        hit = profiles & {p.strip() for p in m.group(1).split(",")}
+        if hit:
+            print(f"운영 프로필로 실행 ({', '.join(sorted(hit))})|이 레포의 harness.json 이 운영 DB 를 가리킨다고 적은 프로필이다. 앱이 뜨면 SQL 없이도 운영 데이터가 바뀐다. 필요하면 사람이 터미널에서 직접 실행한다"); sys.exit(0)
+PY
+)
+if [ -n "$prod" ]; then
+  printf '🚫 차단됨: %s\n   사유: %s\n' "${prod%%|*}" "${prod#*|}" >&2
+  exit 2
+fi
+
 exit 0

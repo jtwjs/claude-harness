@@ -69,7 +69,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
 별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. `test-writer`가 중첩 `describe`로 대체한다.
 
-## 3. 인터뷰 (기계가 모르는 것만, 9개)
+## 3. 인터뷰 (기계가 모르는 것만, 10개)
 
 ① **절대 금기가 있나?** → CLAUDE.md 🔴 CRITICAL
 ② **처음 온 사람이 당하는 함정은?** → `non-obvious-patterns.md` 첫 항목
@@ -80,6 +80,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ⑦ **릴리스를 Changesets로 관리할까?** → 예면 **없어도 깔아준다**(6단계)
 ⑧ **병렬 트랙(worktree 세션 여러 개)으로 진행하나?** → 예면 트랙 표를 묻는다(트랙 이름 · 소유 경로 · 공유 구역 · 계약 경로). `tracks.md`·`track-brief.md`를 깔고 지휘 세션 하나는 `conductor`로 돈다고 안내한다. 아니오면 깔지 않는다
 ⑨ **LLM을 부르는 코드가 있나?**(`grep -rlE 'anthropic|openai|bedrock|messages\.create'` 등으로 후보를 먼저 찾는다) → 예면 그 경로로 `rules/llm-pipeline.md`의 `paths:`를 채워 깐다. 경로가 안 정해지면 깔지 않는다(`paths: []`로 두면 아무 데도 안 걸린다)
+⑩ **운영 DB에 붙는 설정이 레포에 있나?**(`grep -rlE 'datasource|DATABASE_URL|jdbc:' --include='*.yml' --include='*.yaml' --include='*.properties' --include='.env.example'`로 후보를 먼저 찾고 **호스트를 실제 설정 파일에서 읽어 보인다** — 프로필 이름만 보고 판단하지 않는다. stage 프로필이 운영 DB를 가리킨 레포가 있었다) → 예면 `harness.json`에 `"guard": {"prodDb": {"hosts": [...], "profiles": [...]}}`. `block-dangerous-bash`가 운영 호스트에 쓰기 SQL·SQL 파일 실행과, 그 프로필로 앱·마이그레이션·테스트를 띄우는 명령을 막는다. 조회(SELECT)는 막지 않는다. 비밀번호·접속 문자열 전체는 적지 않는다(호스트 이름만)
 
 ## 4. 생성
 

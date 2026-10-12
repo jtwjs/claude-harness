@@ -1,15 +1,16 @@
 ---
 name: harness-run
-description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 test-writer(RED) → feature-builder(GREEN) 서브에이전트를 띄워 구현·검증하고, index.json 재읽기로 상태를 판정해 커밋/재시도/중단한다. Use when harness 스킬로 만든 계획을 실제로 구현할 때. claude -p 없이 세션 내 서브에이전트로만 동작(API 과금 없음).
+description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 test-writer(RED) → feature-builder(GREEN) 서브에이전트를 띄워 구현·검증하고, index.json 재읽기로 상태를 판정해 커밋/재시도/중단한다. Use when harness 스킬로 만든 계획을 실제로 구현할 때. 세션 내 서브에이전트로 동작해 step 컨텍스트가 메인 세션에 쌓이지 않는다.
 disable-model-invocation: false
 ---
 
-`harness_framework`의 `execute.py` 루프를 **세션 내 스킬**로 이식한 것. 핵심: **메인 세션은 오케스트레이션 + index.json 읽기(값싼 작업)만** 하고, **실제 step 작업은 `test-writer`(RED)·`feature-builder`(GREEN) 서브에이전트**가 처리한다 → step 컨텍스트가 메인에서 격리되고 구독으로 실행(`claude -p`/API 미사용).
+`harness_framework`의 `execute.py` 루프를 **세션 내 스킬**로 이식한 것. 핵심: **메인 세션은 오케스트레이션 + index.json 읽기(값싼 작업)만** 하고, **실제 step 작업은 `test-writer`(RED)·`feature-builder`(GREEN) 서브에이전트**가 처리한다 → step 컨텍스트가 메인에서 격리된다. (과금 차이는 없다 — `claude -p`도 구독 로그인으로 돈다. 2026-10-12 실측, `docs/design-notes.md`. 세션 안에서 도는 대신 사람이 step마다 3줄 보고(§4-3)를 따라올 수 있다.)
 
 ## 0. 입력
 
 - `task` slug(= `phases/{task}/` 존재). 없으면 사용자에게 확인.
 - 설계문서 경로는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`harness`가 채운다). 없으면 묻는다 — `docs/` 아래를 뒤져 추측하지 않는다.
+- **시작 전 점검** — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py" --check {task}`. 종료 코드 1이면(상태 값이 4개 밖 · `after`의 선행 phase가 `completed`가 아님) 돌리지 않고 출력을 그대로 사용자에게 보인다. 전체 현황은 인자 없이 실행
 
 ## 1. 브랜치 (a)
 
@@ -49,6 +50,7 @@ disable-model-invocation: false
    - `completed` → 메인이 **GREEN 게이트**를 한 번 더 확인한다: `verify` 전체 통과 **AND** `git diff --name-only`에 테스트 파일이 없다(`tdd: true`면 RED가 만든 테스트 파일은 **RED 직후 따로 커밋**해 두므로 여기 섞이지 않는다 — 아래 4). 테스트 파일이 섞였으면 그 변경을 되돌리고 step을 `error`, `error_message: "GREEN: 구현 단계가 테스트 파일을 수정함"`. **「completed」 보고를 그대로 믿지 않는다** — `git diff --name-only`가 비어 있으면(아무것도 안 바뀜) `error`, `error_message: "GREEN: completed 보고인데 변경 없음"`. stepN.md의 `작업`과 무관한 파일이 섞였으면 그 목록을 사람에게 한 줄로 보이고 진행한다. 서브에이전트가 이미 커밋해 버렸으면(`git log`에 메인이 안 만든 커밋) 멈추고 보고한다. 통과하면 **커밋(4)** 후 다음 step.
    - `error` → 같은 step 재시도. 재시도할 때 index.json 의 그 step `retries` 를 +1 해서 남긴다 — 모델 승격 판단(`BACKLOG.md` 승격 조건)이 읽는 유일한 계수기다. **`retries`가 3이 되면 루프 중단**(= 첫 시도 + 재시도 3회, 최대 4회 실행. `sdd`·`task-observer`도 같은 문장을 쓴다) 하고 사용자에게 보고. 근본 원인성 실패면 `root-cause-debugger` 에이전트 / `systematic-debugging` 스킬로 전환.
    - `blocked` → 즉시 **중단**, `blocked_reason`을 사용자에게 보고(사람 체크포인트).
+   - **`pending` 그대로** (서브에이전트가 상태를 안 고치고 끝났거나 중간에 죽었다) → `error`와 같이 다룬다: `status:"error"`, `error_message: "서브에이전트가 status를 갱신하지 않음"`을 메인이 적고 `retries` +1 후 재시도. 🔴 `pending`인 채로 다음 step으로 넘어가지 않는다 — 넘어가면 그 step은 아무도 모르게 빠진다. execute.py도 같은 경우를 `"Step did not update status"`로 재시도한다
 
 ## 4. 커밋 — RED 1회(tdd step만) + 코드 + 메타데이터 + 사람에게 3줄
 
