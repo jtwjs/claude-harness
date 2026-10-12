@@ -110,7 +110,8 @@ profiles = {p for p in g.get("profiles", []) if isinstance(p, str) and p}
 if any(h in cmd for h in hosts):
     if re.search(r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE)\b", cmd, re.I):
         print("운영 DB 쓰기|운영 호스트에 쓰기 SQL 이 있다. 조회(SELECT)만 허용한다. 고쳐야 하면 사람이 직접 실행한다"); sys.exit(0)
-    if re.search(r"(^|[^<])<[^<(]|\bsource\b|\\\.", cmd):
+    bare = re.sub(r"'[^']*'|\"[^\"]*\"", "''", cmd)   # 따옴표 안의 < 는 SQL 비교 연산자다
+    if re.search(r"(^|[^<])<[^<(]|\bsource\b|\\\.", bare):
         print("운영 DB 에 SQL 파일 실행|파일 내용을 볼 수 없어 쓰기인지 가를 수 없다. 조회면 -e/-c 로 SELECT 를 직접 쓴다"); sys.exit(0)
 if profiles:
     for m in re.finditer(r"(?:spring[._]profiles[._]active|SPRING_PROFILES_ACTIVE)\s*[=\s]\s*['\"]?([\w,-]+)", cmd):

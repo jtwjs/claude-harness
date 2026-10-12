@@ -87,6 +87,7 @@ for c in 'mysql -h prod-db.example.com -e "DELETE FROM users WHERE id=1"' \
   [ "$(bdb "$TMP/prod" "$c")" = "2" ] && ok "차단: $c" || bad "운영 DB 통과" "$c"
 done
 for c in 'mysql -h prod-db.example.com -e "SELECT count(*) FROM users"' \
+         'mysql -h prod-db.example.com -e "SELECT * FROM t WHERE n < 3"' \
          'mysql -h localhost -e "DROP TABLE t"' \
          "./gradlew bootRun --args='--spring.profiles.active=local'" \
          'git commit -m "stage 프로필 설명"'; do
