@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Loop Lock — PostToolUse[Bash]
+# Loop Lock — PostToolUse[Bash] + PostToolUseFailure[Bash]
 # 코드가 그대로인 채 같은 검증성 명령(test/typecheck/build/lint)이 N회 연속 반복되면 의미 없는 반복으로 보고
 # 모델에 stop 신호(exit 2 = stderr 를 차단 피드백으로 전달). 무한 루프·토큰 낭비 방지.
 # 다른 명령이 끼면 카운터 리셋. 검증성 명령이 아니면 무시.
@@ -67,8 +67,8 @@ fi
 
 # 판단 단위 = 명령 + 그 시점 코드 상태 (2026-10-13). 코드가 그대로인데 같은 검증을 다시 돌리는 것만 의미 없는 반복이다.
 # 코드를 고치고 다시 돌리는 건 정상 수정 루프라 리셋한다(그 루프의 상한은 harness-run 의 retries 3).
-# 성공·실패는 가르지 않는다 — PostToolUse 는 성공한 도구 호출에만 돈다(2026-10-13 실측: `false` 실행 시 PostToolUseFailure 3 · PostToolUse 0. 실패한 npm test 는
-# PostToolUseFailure 로 간다) 실패만 세는 방식은 이 이벤트로 만들 수 없다.
+# 성공·실패는 가르지 않는다. PostToolUse 는 성공한 호출에만 돈다(2026-10-13 실측: `false` 실행 시 PostToolUseFailure 3 · PostToolUse 0)
+# → 이 훅을 PostToolUse 와 PostToolUseFailure 둘 다에 건다(0.18.1). 실패한 npm test 반복도 같은 카운터로 센다.
 # 상태 = tracked 변경(git diff HEAD) + untracked 파일 내용. .claude/.last-* 같은 훅 흔적은 뺀다.
 state=$(cd "$REPO_ROOT" && python3 - <<'PY' 2>/dev/null
 import hashlib, subprocess
@@ -79,7 +79,7 @@ files = subprocess.run(["git", "ls-files", "-o", "--exclude-standard", "-z"], ca
 for f in sorted(x for x in files if x and not x.startswith(b".claude/.last-") and not x.startswith(b".claude/reports")):
     h.update(f)
     try:
-        h.update(open(f.decode(), "rb").read())
+        h.update(open(f, "rb").read())   # bytes 경로 그대로 — UTF-8 아닌 파일명에서 decode 가 죽었다(10-13 리뷰)
     except OSError:
         pass
 print(h.hexdigest())

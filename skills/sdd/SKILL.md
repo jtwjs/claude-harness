@@ -34,10 +34,10 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 2. **PLAN** — `harness`로 step 분해(각 step에 `tdd: true|false` 판정 포함).
    step 파일에 `⚠️`·`TBD`·미해결 가정이 **3개 이상**이거나 사람이 요청하면 `why-plan`으로 빈칸을 캐묻는다. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `harness` §3-b가 레포 캔버스의 작업 탭을 읽어 step마다 보드·뷰포트·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
-3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 2단으로 돈다. hands-off.
+3. **IMPLEMENT** 🤖 — `harness-run`이 step마다 호출 1번(테스트 먼저 → 구현)으로 돌리고 `sdd_runner.py judge`가 git 기록으로 판정한다. hands-off.
    - **RED**: 테스트만 담긴 커밋이 먼저 있고, 그 시점으로 돌려 `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
    - **GREEN**: `verify` 전체 통과 **AND** RED 커밋 뒤 테스트 파일 무변경 — 둘 다 `sdd_runner.py judge`가 본다. 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스)
-   - (🙋 정지: blocked / 파괴적 변경 / step `retries`가 3이 됨.)
+   - (🙋 정지: blocked / 파괴적 변경 / 재시도 3번 뒤에도 실패(최대 4회).)
    - 🙋 **빈틈 3곳** — 모든 step이 GREEN이 된 직후, REVIEW 전에 한 번. 이번 diff에서 사람이 **모를 수 있는 지점 3개**를 한 줄씩(`파일:줄` + 왜 헷갈릴 만한가) 낸다 → 사람이 고른 것만 12살 설명(+ React/TS 비유 하나) → 사람이 **자기 말 한 줄**. 답은 `_learn/inbox.md`에 `출처: 빈틈 3곳` 카드. "pass"면 건너뛰고 한 줄 보고. step마다 묻지 않는다 — IMPLEMENT는 hands-off다. 만든 직후에 묻는 이유: PR 때 처음 보면 이미 늦어 퀴즈만 남는다
 4. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정.
    위반이 나오면 **수정 step을 하나 더 만들어 `harness-run`으로 고치고(작은 수정은 `feature-builder`) `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
@@ -66,7 +66,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ① **DESIGN** — PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로(`why-plan`) · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict`
 ② **PLAN** — `harness` 범위 합의 → step 계획 승인(PLAN 안에서 두 번 멈춘다) · 🎨 DS 신규 컴포넌트 승인
-③ **IMPLEMENT** — blocked step · 파괴적 변경 · step `retries`가 3 · 빈틈 3곳(전 step GREEN 직후)
+③ **IMPLEMENT** — blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패 · 빈틈 3곳(전 step GREEN 직후)
 ④ **REVIEW** — 최종 판정 · 🎨 reconcile 통과 판정(현행 반영)
 ⑤ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · `_brain` 정리 초안 · brain-sync 이관 · task-observer 승격 판정 · 🎤 설명 리허설(제안 시)
 
@@ -74,7 +74,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 재개
 
-중단 지점(`phases/{task}/index.json`의 status·현재 단계)을 읽고 이어서 진행한다. 디버깅이 필요하면 `root-cause-debugger`(`systematic-debugging` 규율). 원인이 확정되고 사람이 승인하면 **메인이** 해당 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 루프를 재개한다.
+중단 지점(`phases/{task}/index.json`의 status·현재 단계)을 읽고 이어서 진행한다. 디버깅이 필요하면 `root-cause-debugger`(`systematic-debugging` 규율). 원인이 확정되고 사람이 승인하면 **메인이** 해당 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 루프를 재개한다. 그 한 줄은 다음 지시문 머리에 들어가고, 재개한 실행은 재시도 한도를 새로 센다(`retries` 누계는 그대로).
 
 > 디자인 트랙은 `design-brief`·`design-critique`(DESIGN) · `design-reconcile`(REVIEW) **3스킬**이다 — 2026-09-01에 3스킬(`design-plan` 포함)로 설치됐다가 `design-plan`이 **0.9.0에서 삭제**됐고(PLAN 자리는 `harness`), 0.15.0에서 시안 평가용 `design-critique`가 들어왔다. 산출물 종착지는
 > `.claude/design/` — `brief.md`(내용)·`DESIGN.md`(스타일)·`design-system-map.md`(레지스트리)·`canvas/`(레포당 캔버스 하나, 커밋)·`checkpoints/`·`references/`(로컬 전용, README만 커밋).

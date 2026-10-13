@@ -7,7 +7,8 @@ command -v python3 >/dev/null 2>&1 || exit 0
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-lines=$(python3 "$SCRIPT_DIR/lib/prod_db.py" status "$REPO_ROOT" 2>/dev/null)
+lines=$(python3 "$SCRIPT_DIR/lib/prod_db.py" status "$REPO_ROOT" 2>/dev/null) \
+  || lines="판별 스크립트가 죽음(종료 코드 $?) — 이 상태면 Bash 명령마다 차단된다"
 [ -n "$lines" ] || exit 0
 MSG="🔴 운영 DB 차단(guard.prodDb): $(printf '%s' "$lines" | paste -sd'·' -). harness.json 의 from 항목을 고친다" python3 -c '
 import json, os

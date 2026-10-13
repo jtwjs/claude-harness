@@ -65,6 +65,13 @@ check_deny 2 'git commit --no-verify -m x'
 check_deny 2 'git commit -m "x" -n'
 check_deny 2 'cat .env'
 check_deny 2 'git push -f origin main'
+# PR 머지 → 사람 확인(ask). 자동 머지 판정이 dry-run 인 동안 (2026-10-13)
+for c in 'gh pr merge 12 --squash --delete-branch' 'gh pr merge --auto --squash'; do
+  out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$c" | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
+  echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: $c" || bad "머지 무확인" "$c → [$out]"
+done
+out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' 'git commit -m "gh pr merge 문서"' | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
+[ -z "$out" ] && ok "따옴표 안 gh pr merge 는 그냥 통과" || bad "오탐" "커밋 메시지에서 ask"
 
 # ── 케이스 3: tdd-guard 는 harness.json 만으로 판정한다 ──────────────────────
 # ── 케이스 2-c: 운영 DB — harness.json guard.prodDb 가 있을 때만 (2026-10-13) ──
@@ -90,7 +97,21 @@ for c in 'mysql -h prod-db.example.com -e "DELETE FROM users WHERE id=1"' \
          "./gradlew bootRun --args='--spring.profiles.active=stage'" \
          'SPRING_PROFILES_ACTIVE=prod ./gradlew test' \
          'java -Dspring.profiles.active=dev,stage -jar app.jar' \
-         'NODE_ENV=production npm run migrate'; do
+         'NODE_ENV=production npm run migrate' \
+         'psql -h prod-db.example.com -f fix.sql' \
+         'cat fix.sql | mysql -h prod-db.example.com app' \
+         'mysql -h prod-db.example.com app <<EOF' \
+         'mysql -h prod-db.example.com app' \
+         'mysql -h PROD-DB.example.com -e "REPLACE INTO t VALUES (1)"' \
+         'mysql -h prod-db.example.com -e "CREATE TABLE x (a int)"' \
+         'mysql -h prod-db.example.com -e "DEL""ETE FROM t"' \
+         'mysql -h prod-db.example.com -e "source fix.sql"' \
+         'mysql -h prod-db.example.com -e "SELECT 1; DELETE FROM t"' \
+         "mysql -h prod-db.example.com -e \"SELECT * FROM t INTO OUTFILE '/tmp/x'\"" \
+         'mysql -h prod-db.example.com -e "SELECT * FROM t FOR UPDATE"' \
+         'SPRING_DATASOURCE_URL=jdbc:mysql://prod-db.example.com:3306/app ./gradlew bootRun' \
+         'SPRING_PROFILES_INCLUDE=stage ./gradlew bootRun' \
+         'NODE_ENV="production" npm run migrate'; do
   [ "$(bdb "$TMP/prod" "$c")" = "2" ] && ok "차단: $c" || bad "운영 DB 통과" "$c"
 done
 for c in 'mysql -h prod-db.example.com -e "SELECT count(*) FROM users"' \
@@ -98,7 +119,13 @@ for c in 'mysql -h prod-db.example.com -e "SELECT count(*) FROM users"' \
          'mysql -h localhost -e "DROP TABLE t"' \
          'mysql -h "$DEV_X_HOST" -e "DELETE FROM t"' \
          "./gradlew bootRun --args='--spring.profiles.active=local'" \
-         'git commit -m "stage 프로필 설명"'; do
+         'git commit -m "stage 프로필 설명"' \
+         "mysql -h prod-db.example.com -e \"SELECT * FROM logs WHERE action='delete'\"" \
+         'mysql -h prod-db.example.com -e "SHOW TABLES"' \
+         'mysql -h prod-db.example.com -e "SELECT 1" | head -5' \
+         'git commit -m "drop spring.profiles.active=prod default"' \
+         'grep -rn "NODE_ENV=production" src' \
+         'grep -rn PROD_X_HOST src'; do
   [ "$(bdb "$TMP/prod" "$c")" = "0" ] && ok "허용: $c" || bad "오탐" "$c"
 done
 [ "$(bdb "$TMP/none" 'mysql -h prod-db.example.com -e "DELETE FROM users"')" = "0" ] \
@@ -110,6 +137,19 @@ printf 'SPRING_DATASOURCE_URL=jdbc:postgresql://pg-prod.example.com:5432/x\n' > 
 echo '{ "guard": { "prodDb": { "from": ["spring:prod"] } } }' > "$TMP/prod2/.claude/harness.json"
 [ "$(bdb "$TMP/prod2" 'psql -h pg-prod.example.com -c "delete from t"')" = "2" ] \
   && ok "yml 의 \${VAR} 를 .env 에서 풀어 차단" || bad "env 주입 통과" "SPRING_DATASOURCE_URL 을 못 풀었다"
+# jdbc-url(Hikari)·앞에 외부 API url 이 있는 yml — 외부 url 을 운영 DB 로 잡지 않는다
+printf 'api:\n  url: https://api.example.org/v1\nspring:\n  datasource:\n    hikari:\n      jdbc-url: jdbc:mysql://hk-prod.example.com/x\n' > "$R2/application-prod.yml"
+[ "$(bdb "$TMP/prod2" 'mysql -h hk-prod.example.com -e "DELETE FROM t"')" = "2" ] \
+  && ok "jdbc-url 을 읽어 차단" || bad "jdbc-url 통과" "hikari jdbc-url 을 못 읽었다"
+[ "$(bdb "$TMP/prod2" 'curl -X DELETE https://api.example.org/v1/x')" = "0" ] \
+  && ok "외부 API url 은 운영 DB 로 안 본다" || bad "오탐" "외부 API url 을 운영 DB 로 잡았다"
+# 판별 스크립트가 죽으면 막는다(fail-closed) — 10-13 리뷰: 조용히 통과했다
+cp "$TMP/prod2/.claude/harness.json" "$TMP/prod2/hj.bak"
+echo '{ "guard": { "prodDb": { "from": 123 } } }' > "$TMP/prod2/.claude/harness.json"
+[ "$(bdb "$TMP/prod2" 'ls')" = "2" ] && ok "가드 오류 → 차단" || bad "fail-open" "prod_db.py 가 죽었는데 통과했다"
+out=$(cd "$TMP/prod2" && printf '{}' | bash "$HOOKS/prod-db-check.sh" 2>/dev/null)
+echo "$out" | grep -q '죽음' && ok "세션 시작 — 가드 오류를 알린다" || bad "조용히 꺼짐" "out=[$out]"
+mv "$TMP/prod2/hj.bak" "$TMP/prod2/.claude/harness.json"
 # 세션 시작 — 못 읽으면 소리 내서 꺼짐을 알린다. 값은 출력하지 않는다
 ss() { (cd "$1" && printf '{}' | bash "$HOOKS/prod-db-check.sh" 2>/dev/null); }
 [ -z "$(ss "$TMP/prod")" ] && ok "세션 시작 — 다 읽히면 무출력" || bad "소음" "$(ss "$TMP/prod")"
@@ -337,6 +377,9 @@ grep -qxF "$TMP/learn-wt" "$CLAUDE_LEARN_REPOS" && bad "목록" "워크트리 �
 
 # ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
 printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'
+# 실패한 명령은 PostToolUseFailure 로만 온다(10-13 실측) → 두 이벤트 모두에 걸려 있어야 실패 반복도 센다
+python3 -c 'import json,sys; h=json.load(open(sys.argv[1]))["hooks"]; sys.exit(0 if all(any("loop-lock" in x["command"] for e in h.get(k,[]) if e.get("matcher")=="Bash" for x in e["hooks"]) for k in ("PostToolUse","PostToolUseFailure")) else 1)' "$HOOKS/hooks.json" \
+  && ok "loop-lock 이 PostToolUse·PostToolUseFailure 둘 다에 등록" || bad "실패 반복 미추적" "PostToolUseFailure 에 loop-lock 이 없다"
 cat > "$TMP/on/.claude/harness.json" <<JSON
 { "verify": { "test": "pnpm test" } }
 JSON

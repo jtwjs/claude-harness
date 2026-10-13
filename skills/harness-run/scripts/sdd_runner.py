@@ -10,8 +10,8 @@
 
   sdd_runner.py run TASK [--timeout 1800] [--max-retries 3]   헤드리스: claude -p 로 끝까지
   sdd_runner.py start TASK                                    시작 전 점검 + 브랜치 (세션 안)
-  sdd_runner.py prompt TASK                                   다음 pending step 의 지시문 출력 (세션 안)
-  sdd_runner.py judge TASK --base SHA [--max-retries 3]       방금 끝난 step 판정·기록 (세션 안)
+  sdd_runner.py prompt TASK                                   다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안)
+  sdd_runner.py judge TASK --step N --base SHA                step N 판정·기록 (세션 안. BASE 는 그 step 시작 전 HEAD)
 
 종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만)
 claude 실행 파일은 SDD_RUNNER_CLAUDE 로 바꿀 수 있다(테스트용 가짜).
@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -35,6 +36,7 @@ VALID = {"pending", "completed", "error", "blocked"}
 # 테스트 파일 판별 — tdd-guard 의 짝 테스트 자리와 같은 계열(TS *.test/*.spec · __tests__ · tests/ · JVM *Test.kt · py test_*)
 TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|/)src/test/|Tests?\.(kt|java)$|(^|/)test_[^/]+\.py$|_test\.(py|go)$)")
 OUTPUT_GLOB = "phases/*/step*-output.json"
+HOOK_STAMPS = ":(exclude).claude/.last-*"   # 훅 기록 파일 — .gitignore 가 없는 레포에서도 커밋에 섞지 않는다(10-13 실가동)
 
 
 def stamp() -> str:
@@ -43,6 +45,10 @@ def stamp() -> str:
 
 class Fail(Exception):
     """판정 실패 — 재시도 대상."""
+
+
+class RedFail(Fail):
+    """RED 순서·RED 가 아무것도 안 잡음 — 이 시도의 커밋을 버리고 BASE 에서 다시 해야 고칠 수 있다."""
 
 
 class Runner:
@@ -91,13 +97,16 @@ class Runner:
         return [c for c in out if only is None or c[1] == only]
 
     def run_cmd(self, root: str, cmd: str) -> bool:
-        return subprocess.run(cmd, shell=True, cwd=self.root / root, capture_output=True).returncode == 0
+        cwd = self.root / root
+        if not cwd.is_dir():   # 그 시점에 앱 폴더가 아직 없으면 실행할 수 없다 = 통과 아님
+            return False
+        return subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True).returncode == 0
 
     def commit(self, msg: str, paths=None):
         if paths:
             self.git("add", "-f", "--", *paths)
         else:  # 진행 중인 index.json 은 메타데이터 커밋만 담는다
-            self.git("add", "-A", "--", ".", f":(exclude)phases/{self.task}")
+            self.git("add", "-A", "--", ".", f":(exclude)phases/{self.task}", HOOK_STAMPS)
         if self.git("diff", "--cached", "--quiet").returncode != 0:
             self.git("commit", "-q", "-m", msg, "-m", f"phase: {self.task}", check=True)
 
@@ -125,12 +134,20 @@ class Runner:
             exclude.parent.mkdir(parents=True, exist_ok=True)
             with exclude.open("a") as f:
                 f.write(f"\n{OUTPUT_GLOB}\n")
-        if self.git("status", "--porcelain").stdout.strip():
+        # 이 phase 의 index.json 은 빼고 본다 — 재개할 때 사람이 status·error_message 를 고친 채로 온다
+        if self.git("status", "--porcelain", "--", ".", f":(exclude)phases/{self.task}", HOOK_STAMPS).stdout.strip():
             print("작업 트리가 깨끗하지 않다 — 커밋하거나 stash 한 뒤 실행한다(판정이 git 기록을 본다)")
             return 1
+        steps = self.read()["steps"]
+        if any(s.get("tdd") for s in steps) and not self.verify_cmds("test"):
+            print("tdd: true step 이 있는데 harness.json verify.test 가 없다 — RED 를 확인할 수 없어 돌리지 않는다")
+            return 1
         tdd_on = (self.cfg.get("tdd") or {}).get("enabled", False)
-        if not tdd_on and any(s.get("tdd") for s in self.read()["steps"]):
+        if not tdd_on and any(s.get("tdd") for s in steps):
             print("⚠️ tdd.enabled 가 false 다 — tdd-guard 훅 없이 돈다. 테스트 먼저는 러너의 사후 검사로만 확인한다")
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            print("⚠️ ANTHROPIC_API_KEY 가 설정돼 있다 — 헤드리스 claude -p 는 이 키가 있으면 항상 API 로 과금된다(공식 문서). "
+                  "구독으로 돌리려면 unset 후 실행")
         branch = f"feat-{self.task}"
         if self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip() != branch:
             exists = self.git("rev-parse", "--verify", "--quiet", branch).returncode == 0
@@ -138,6 +155,13 @@ class Runner:
             if r.returncode != 0:
                 print(f"브랜치 {branch} 로 못 옮김: {r.stderr.strip()}")
                 return 1
+        # 재개: 멈췄던 step 을 사람이 pending 으로 되돌렸으면 이번 실행의 재시도 한도를 새로 센다(retries 계수기는 그대로)
+        idx = self.read()
+        for s in idx["steps"]:
+            stopped = max(s.get("failed_at", ""), s.get("blocked_at", ""))
+            if s.get("status") == "pending" and stopped and stopped > s.get("resumed_at", ""):
+                s["resumed_at"] = stamp()
+                self.write(idx)
         return 0
 
     # ── 지시문 ─────────────────────────────────────────────────────────────
@@ -162,11 +186,16 @@ class Runner:
             tdd = (f"4. 테스트 먼저(TDD): ① 수용 조건을 **실패하는 테스트**로 먼저 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
                    f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋 ② 구현한다. 테스트 파일은 다시 고치지 않는다 "
                    f"③ 구현을 `feat: step {n} — {name}` 로 커밋")
+            if (self.cfg.get("test") or {}).get("runner"):
+                tdd += (". 테스트 구조는 `.claude/harness.json` 의 `test.runner`·`test.bddAlias` 를 따른다"
+                        "(bddAlias 가 false 면 별칭 파일을 만들지 않고 중첩 describe 로 3계층)")
         else:
             tdd = f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋"
         retry = ""
         if step.get("last_error"):
             retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}\n\n---\n\n"
+        elif step.get("error_message"):   # 재개: 사람이 되돌리며 적은 근본 원인
+            retry = f"## ⚠ 이전 실행이 멈춘 원인(사람이 적음) — 반드시 반영한다\n\n{step['error_message']}\n\n---\n\n"
         cmds = " · ".join(f"`{c}`" + (f"({r} 에서)" if r != "." else "") for r, _, c in self.verify_cmds()) or "(verify 없음)"
         return Template((HERE / "preamble.md").read_text(encoding="utf-8")).safe_substitute(
             project=idx.get("project", self.root.name), task=self.task, step=n,
@@ -196,8 +225,7 @@ class Runner:
         if st not in VALID:
             raise Fail(f"허용 밖 status '{st}'")
         # 남은 코드 변경은 러너가 구현 커밋으로 묶는다(강의 execute.py 의 2단계 커밋 중 코드 쪽).
-        # 훅 기록 파일(.claude/.last-*)은 .gitignore 가 없는 레포에서도 빼낸다(10-13 실가동에서 섞임)
-        rest = [".", f":(exclude)phases/{self.task}", ":(exclude).claude/.last-*"]
+        rest = [".", f":(exclude)phases/{self.task}", HOOK_STAMPS]
         if self.git("status", "--porcelain", "--", *rest).stdout.strip():
             self.git("add", "-A", "--", *rest)
             self.git("commit", "-q", "-m", f"feat: step {step['step']} — {step['name']}", "-m", f"phase: {self.task}")
@@ -205,17 +233,19 @@ class Runner:
         if step.get("tdd"):
             red = next((c for c in commits if any(TEST_FILE.search(f) for f in c[1])), None)
             if red is None:
-                raise Fail("RED: 테스트 커밋이 없다")
+                raise RedFail("RED: 테스트 커밋이 없다")
             before = commits[:commits.index(red)]
             impl_in_red = [f for f in red[1] if not TEST_FILE.search(f)]
             if before or impl_in_red:
-                raise Fail("RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다"
+                raise RedFail("RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다"
                            + (f" (같이 커밋된 구현: {', '.join(impl_in_red[:3])})" if impl_in_red else ""))
             tests = self.verify_cmds("test")
             if not tests:
                 raise Fail("RED: verify.test 가 없어 테스트를 돌릴 수 없다")
-            if self.red_passes(red[0], tests):
-                raise Fail("RED: 테스트가 아무것도 잡지 않음 — 테스트 커밋 시점에 이미 통과한다")
+            # 앱별 verify 면 테스트 파일이 들어간 앱의 test 만 본다 — 상관없는 앱의 실패가 RED 로 잡히지 않게
+            mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in red[1])]
+            if self.red_passes(red[0], mine or tests):
+                raise RedFail("RED: 테스트가 아무것도 잡지 않음 — 테스트 커밋 시점에 이미 통과한다")
             changed = [f for f in self.git("diff", "--name-only", f"{red[0]}..HEAD").stdout.split()
                        if TEST_FILE.search(f) and not f.startswith("phases/")]
             if changed:
@@ -245,17 +275,35 @@ class Runner:
             try:
                 return all(self.run_cmd(root, cmd) for root, _, cmd in tests)
             finally:
-                self.git("checkout", "-q", head, check=True)
+                # 테스트가 만든 산출물이 돌아가는 체크아웃을 막지 않게 -f. 그래도 실패하면 사람이 볼 수 있게 크게 멈춘다
+                if self.git("checkout", "-q", "-f", head).returncode != 0:
+                    sys.exit(f"✗ RED 확인 뒤 {head} 로 못 돌아옴 — `git checkout {head}`"
+                             + (" 후 `git stash pop`(진행 중 index.json)" if stashed else "") + " 으로 복구")
         finally:
-            if stashed:
-                self.git("stash", "pop", "-q", check=True)
+            if stashed and self.git("stash", "pop", "-q").returncode != 0:
+                sys.exit("✗ 진행 중 index.json 을 stash 에서 못 꺼냄 — `git stash list` 확인 후 `git stash pop`")
+
+    def discard_attempt(self, n: int, base: str):
+        """RED 위반 시도의 커밋을 브랜치에서 빼고 백업 브랜치로 남긴다. 진행 중 index.json 은 보존."""
+        tries = len(self.find(self.read(), n).get("attempts", [])) + 1
+        if self.git("rev-parse", "HEAD").stdout.strip() == base:
+            return
+        keep = self.index_file.read_text(encoding="utf-8")
+        self.git("branch", "-f", f"sdd-discard/{self.task}/step{n}-try{tries}", "HEAD")
+        self.git("reset", "-q", "--hard", base, check=True)
+        self.index_file.write_text(keep, encoding="utf-8")
 
     def record(self, n: int, base: str, run_failure=None, usage=None) -> int:
         """판정하고 index.json 에 기록·커밋. 0 완료 · 10 재시도 · 1 실패로 멈춤 · 2 blocked."""
         try:
-            if run_failure:
+            st = self.find(self.read(), n).get("status")
+            if run_failure and st != "blocked":   # 에이전트가 blocked 를 적었으면 실행 실패보다 그게 먼저다
                 raise Fail(run_failure)
             res = self.check(self.find(self.read(), n), base)
+        except RedFail as e:
+            res, reason = "fail", str(e)
+            self.discard_attempt(n, base)
+            reason += " (이 시도의 커밋은 버렸다 — BASE 에서 테스트부터 다시)"
         except Fail as e:
             res, reason = "fail", str(e)
         idx = self.read()
@@ -268,22 +316,27 @@ class Runner:
         if res == "blocked":
             s["blocked_at"] = stamp()
             self.write(idx)
+            self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
             self.commit_index(n)
             print(f"⏸ step {n} blocked: {s.get('blocked_reason', '')}")
             return 2
         if res is None:
             s["completed_at"] = stamp()
-            s.pop("last_error", None)
+            s.pop("last_error", None)   # 실패 사유 이력은 attempts 에 남는다(REFLECT 재료)
             s.pop("error_message", None)
             self.write(idx)
             self.commit_index(n)
             print(f"✓ step {n} {s['name']}: {s.get('summary', '')}")
             return 0
-        # retries = 지금까지 한 재시도 수. 3이면 더 재시도하지 않는다(첫 시도 + 재시도 3 = 최대 4회 — harness-run·sdd 와 같은 문장)
-        if s.get("retries", 0) >= self.max_retries:
-            s.update(status="error", error_message=f"[{s.get('retries', 0) + 1}회 시도 후 실패] {reason}", failed_at=stamp())
+        # retries = 누적 재시도 수(승격 계수기, 0으로 안 돌림). 한도는 이번 실행(재개 이후)의 실패 수로 센다:
+        # 첫 시도 + 재시도 3 = 최대 4회 — harness-run·sdd 와 같은 문장
+        s.setdefault("attempts", []).append({"at": stamp(), "error": reason})
+        fails_now = sum(1 for a in s["attempts"] if a["at"] >= s.get("resumed_at", ""))
+        if fails_now > self.max_retries:
+            s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
             self.write(idx)
+            self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
             self.commit_index(n)
             print(f"✗ step {n} 실패로 멈춤: {reason}")
             return 1
@@ -303,25 +356,34 @@ class Runner:
             cmd += ["--model", step["model"]]
         cmd.append(self.prompt(step))
         out = {"step": step["step"], "attempt": step.get("retries", 0) + 1, "started_at": stamp()}
+        # 새 프로세스 그룹 — 타임아웃이면 claude 가 띄운 자식(테스트 watch·서버)까지 같이 끈다
+        p = subprocess.Popen(cmd, cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                             start_new_session=True)
         try:
-            p = subprocess.run(cmd, cwd=self.root, capture_output=True, text=True, timeout=self.timeout)
-            out.update(exitCode=p.returncode, stdout=p.stdout, stderr=p.stderr)
-        except subprocess.TimeoutExpired as e:
-            out.update(timeout=self.timeout, stdout=(e.stdout or b"").decode() if isinstance(e.stdout, bytes) else (e.stdout or ""))
+            stdout, stderr = p.communicate(timeout=self.timeout)
+            out.update(exitCode=p.returncode, stdout=stdout, stderr=stderr)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(p.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            stdout, _ = p.communicate()
+            out.update(timeout=self.timeout, stdout=stdout or "")
             self.save_output(step, out)
             return f"실행 실패: 타임아웃 {self.timeout}초", None
         self.save_output(step, out)
         try:
-            res = json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout.strip() else {}
+            res = json.loads(stdout.strip().splitlines()[-1]) if stdout.strip() else {}
         except (json.JSONDecodeError, IndexError):
             res = {}
+        res = res if isinstance(res, dict) else {}
         usage = dict(res.get("usage") or {})
         for k in ("num_turns", "duration_ms", "total_cost_usd"):
             if isinstance(res.get(k), (int, float)):
                 usage[k] = res[k]
         if p.returncode != 0 or res.get("is_error") or not res:
             why = "is_error" if res.get("is_error") else f"종료 코드 {p.returncode}" if p.returncode else "결과 JSON 없음"
-            return f"실행 실패: {why} — {str(res.get('result', p.stderr))[:200]}", usage
+            return f"실행 실패: {why} — {str(res.get('result', stderr))[:200]}", usage
         return None, usage
 
     def save_output(self, step: dict, out: dict):
@@ -362,22 +424,28 @@ def main(argv=None) -> int:
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--max-retries", type=int, default=3)
     ap.add_argument("--base")
+    ap.add_argument("--step", type=int)
     a = ap.parse_args(argv)
     r = Runner(a.task, a.max_retries, a.timeout)
     if a.mode == "run":
         return r.run()
     if a.mode == "start":
         return r.start()
-    step = r.next_pending()
-    if step is None:
-        print("pending step 없음")
-        return 0
     if a.mode == "prompt":
+        step = r.find(r.read(), a.step) if a.step else r.next_pending()
+        if step is None:
+            print("pending step 없음")
+            return 0
+        idx = r.read()
+        r.find(idx, step["step"]).setdefault("started_at", stamp())
+        r.write(idx)
+        print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
         print(r.prompt(step))
         return 0
-    if not a.base:
-        ap.error("judge 는 --base <step 시작 전 HEAD> 가 필요하다")
-    return r.record(step["step"], a.base)
+    # judge: 판정 대상은 번호로 받는다 — '첫 pending' 으로 고르면 방금 completed 로 바뀐 step 을 건너뛴다(10-13 리뷰)
+    if not a.base or not a.step:
+        ap.error("judge 는 --step N --base <그 step 시작 전 HEAD> 가 필요하다")
+    return r.record(a.step, a.base)
 
 
 if __name__ == "__main__":

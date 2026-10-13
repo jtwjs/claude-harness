@@ -67,7 +67,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `packageManager` ← lock 파일로 판정한다: `pnpm-lock.yaml`→`pnpm` · `yarn.lock`→`yarn` · `package-lock.json`→`npm` · `bun.lockb`→`bun` · JVM은 `gradlew`/`mvnw` 유무. 둘 이상이면 묻는다. (§6 릴리스 세팅이 이 값을 읽는데 채우는 단계가 없었다 — 2026-10-08)
 
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
-별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. `test-writer`가 중첩 `describe`로 대체한다.
+별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. 러너 step(`harness-run` 지시문)과 `test-writer`가 중첩 `describe`로 대체한다.
 
 ## 3. 인터뷰 (기계가 모르는 것만, 10개)
 

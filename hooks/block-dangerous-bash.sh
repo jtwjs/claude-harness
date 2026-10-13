@@ -91,13 +91,26 @@ if [ -n "$matched" ]; then
   exit 2
 fi
 
+# PR 머지는 사람 확인으로 — pr-write 4.6 자동 머지 판정이 dry-run 인 동안(2026-10-13, PR 10건 오판 0 이면 따로 결정).
+# 막지(exit 2) 않고 묻는다(ask): 사람이 "머지해"라고 한 머지는 그대로 승인하면 된다. 문장 하나로만 막던 것을 장치로(10-13 리뷰)
+unq=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+if printf '%s' "$unq" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+merge\b'; then
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 판정은 아직 dry-run(pr-write 4.6)"}}\n'
+  exit 0
+fi
+
 # 운영 DB — 레포의 .claude/harness.json guard.prodDb 가 있을 때만 (2026-10-13). 판별은 lib/prod_db.py:
 # harness.json 에 적힌 위치(spring:<프로필> · env:<파일>:<키>)에서 호스트를 디스크로 읽는다. 값은 어디에도 옮기지 않는다.
 #   ① 운영 DB 를 가리키는 명령(호스트·그 값을 담은 변수 이름)에 쓰기 SQL·SQL 파일 실행 → 차단. 조회(SELECT)는 허용
 #   ② 운영을 가리키는 Spring 프로필(같은 호스트면 자동) · switches(Node) 로 실행 → 차단
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
-prod=$(python3 "$SCRIPT_DIR/lib/prod_db.py" check "$REPO_ROOT" "$cmd" 2>/dev/null)
+prod=$(python3 "$SCRIPT_DIR/lib/prod_db.py" check "$REPO_ROOT" "$cmd" 2>/dev/null); prc=$?
+# 판별이 죽으면 막는다(fail-closed). guard.prodDb 가 없는 레포는 설정을 읽자마자 끝나 여기 올 일이 없다 — 10-13 리뷰: 조용히 통과했다
+if [ "$prc" -ne 0 ]; then
+  printf '🚫 차단됨: 운영 DB 가드 오류\n   사유: lib/prod_db.py 가 종료 코드 %s 로 죽었다 — 판별 못 한 명령은 통과시키지 않는다. harness.json guard.prodDb 와 설정 파일을 확인한다\n' "$prc" >&2
+  exit 2
+fi
 if [ -n "$prod" ]; then
   printf '🚫 차단됨: %s\n   사유: %s\n' "${prod%%|*}" "${prod#*|}" >&2
   exit 2

@@ -229,6 +229,17 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual((self.repo / "tests/a.expect").read_text(), "hello", "테스트 수정은 되돌린다")
         self.assertIn("테스트 파일", self.prompt(1))
 
+    def test_red_violation_recovers_on_retry(self):
+        # 리뷰(10-13): 재시도에도 기준이 같아 1회차의 잘못된 RED 커밋이 계속 판정 대상이었다 → 위반 시도는 버리고 다시
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        rc = self.run_runner([{"step": 1, "ops": [RED, IMPL, ["commit", "feat: a 테스트와 함께"], DONE]},
+                              {"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertNotIn("테스트와 함께", self.log(), "위반한 시도의 커밋은 브랜치에서 빠진다")
+        self.assertIn("sdd-discard/t1/step1-try1", git(self.repo, "branch", "--list", "sdd-discard/*").stdout,
+                      "버린 시도는 백업 브랜치로 남는다")
+        self.assertEqual(len(self.step()["attempts"]), 1)
+
     # ── 판정 5·6 ────────────────────────────────────────────────────────────
     def test_completed_without_change(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
@@ -269,6 +280,89 @@ class RunnerCase(unittest.TestCase):
             {"step": 2, "ops": [["write", "src/c.txt", "2"], ["commit", "feat: c"], ["status", "completed", {"summary": "c"}]]}])
         self.assertEqual(rc, 0, self.out)
         self.assertIn("a 구현", self.prompt(1))           # 완료 step 의 summary 가 다음 step 프롬프트에
+
+    def test_tdd_without_verify_test_refuses(self):
+        (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"lint": "true"}}))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "lint만")
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        rc = self.run_runner([{"step": 1, "ops": [DONE]}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertEqual(self.calls_made(), 0)
+        self.assertIn("verify.test", self.out)
+
+    def test_blocked_survives_exit_error(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "exit": 1, "ops": [["status", "blocked", {"blocked_reason": "키"}]]}])
+        self.assertEqual(rc, 2, self.out)
+        self.assertEqual(self.calls_made(), 1)
+
+    def test_attempts_history_kept_after_pass(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": []},
+                              {"step": 1, "ops": [["write", "src/c.txt", "y"], ["commit", "feat: c"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        a = self.step()["attempts"]
+        self.assertEqual(len(a), 1)
+        self.assertIn("status", a[0]["error"])
+
+    # ── 멈춘 뒤 재개 ────────────────────────────────────────────────────────
+    def test_resume_after_stop(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        bad = {"step": 1, "ops": [["write", "src/half.txt", "wip"], ["status", "error", {"error_message": "모름"}]]}
+        good = {"step": 1, "ops": [["write", "src/c.txt", "y"], ["commit", "feat: c"], DONE]}
+        calls = [bad] * 4 + [good]
+        self.assertEqual(self.run_runner(calls), 1, self.out)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "",
+                         "멈출 때 남은 코드도 커밋한다(재개 때 start 가 거부하지 않게)")
+        # 사람이 원인을 적고 pending 으로 되돌린다 — retries 는 그대로
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        d["steps"][0].update(status="pending", error_message="원인: 설정 파일 경로가 틀림")
+        f.write_text(json.dumps(d))
+        rc = self.run_runner(calls)
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("설정 파일 경로가 틀림", self.prompt(4), "사람이 적은 원인이 지시문에 들어간다")
+        self.assertEqual(self.step()["retries"], 3)
+
+    # ── 세션 경로 (start → prompt → 서브에이전트 → judge) ────────────────────
+    def session(self, *args):
+        p = subprocess.run([sys.executable, str(RUNNER), *args], cwd=self.repo, env=self.env,
+                           capture_output=True, text=True)
+        self.out = p.stdout + p.stderr
+        return p
+
+    def act(self, ops, n=1):
+        """서브에이전트 흉내 — 가짜 claude 의 동작을 그대로 쓴다."""
+        (self.tmp / "scenario.json").write_text(json.dumps([{"step": n, "ops": ops}] * 99))
+        subprocess.run([str(self.tmp / "claude"), "-p", "x"], cwd=self.repo, env=self.env, capture_output=True)
+
+    def test_session_judge_targets_given_step(self):
+        # 리뷰(10-13): judge 가 '첫 pending' 을 골라 방금 끝난 step 이 아니라 다음 step 을 판정했다
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                    {"step": 2, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+        p = self.session("prompt", "t1")
+        self.assertIn("step 1", p.stderr)
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.act([RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1", "--base", base).returncode, 0, self.out)
+        self.assertIn("completed_at", self.step(1))
+        self.assertIn("started_at", self.step(1))
+        self.assertNotIn("retries", self.step(2))
+        self.assertIn("chore: update phase index for step 1", self.log())
+
+    def test_session_judge_last_step_is_checked(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.act([DONE])                                  # 변경 없이 completed 만 보고
+        self.assertEqual(self.session("judge", "t1", "--step", "1", "--base", base).returncode, 10, self.out)
+        self.assertIn("변경 없음", self.step()["last_error"])
+
+    def test_session_judge_requires_step(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.assertNotEqual(self.session("judge", "t1", "--base", "HEAD").returncode, 0)
 
 
 if __name__ == "__main__":

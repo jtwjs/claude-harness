@@ -61,7 +61,7 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 - **`docs`** — §0에서 합의한 설계문서 폴더. `task` slug와 `feature-YYYY-MM-DD`는 별개 식별자라 **이 필드가 없으면 `harness-run`·`sdd-review`가 PRD·ARCHITECTURE·ADR을 찾을 방법이 없다.** 반드시 채운다.
 - **`after`** — 이 phase보다 먼저 끝나야 하는 phase의 `task` slug 배열(같은 PRD를 여러 phase로 나눴을 때. 예: `fe-cp-name`의 `after: ["be-cp-name"]`). 선행이 없으면 `[]`. 같은 PRD 묶음은 `docs`가 같아서 알 수 있다 — **상위 `phases/index.json`(전체 현황 파일)은 만들지 않는다.** 상태가 두 곳에 적히면 어긋난다(2026-10-13 결정). 전체 현황은 `phases_status.py`가 phase별 `index.json`에서 계산한다(`harness-run` §0)
 - `status` ∈ `pending | completed | error | blocked` **4개만**. 최초 전부 `pending`. 🔴 `done`·`complete` 같은 다른 값은 쓰지 않는다 — 2026-10 실측: 한 레포 phase 22개 중 7개가 `done`을 써서 `completed`를 기준으로 판정하는 러너가 끝난 phase를 안 끝났다고 본다. `phases_status.py`가 다른 값을 오류로 잡는다
-- `summary`·`error_message`·`blocked_reason`·`retries`·timestamp는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
+- `summary`·`error_message`·`blocked_reason`·`retries`·`last_error`(직전 실패 사유)·`attempts`(실패 이력, REFLECT 재료)·`resumed_at`·timestamp·`usage`는 **구현 단계(harness-run)**가 채운다. 여기선 비워둔다.
 - **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 기본 모델로 돈다(세션 안은 Agent 도구 기본값, 헤드리스는 `claude -p` 기본값).
   - 🔴 **어렵겠다는 느낌으로 적지 않는다.** step 이 자기완결적이면 정해진 것을 만드는 일이라 기본 모델로 충분하다. 올리는 근거는 느낌이 아니라 `index.json` 에 쌓인 그 step 의 `retries` 기록이다(승격 조건은 `BACKLOG.md`)
   - 올리기 전에 **step 파일이 자기완결적인지 먼저 의심한다.** 모델을 올려야 풀리는 step 은 대개 **분해가 덜 된 step** 이다
