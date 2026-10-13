@@ -195,9 +195,11 @@ class Runner:
             raise Fail("에이전트가 index.json 의 status 를 갱신하지 않음")
         if st not in VALID:
             raise Fail(f"허용 밖 status '{st}'")
-        # 남은 코드 변경은 러너가 구현 커밋으로 묶는다(강의 execute.py 의 2단계 커밋 중 코드 쪽)
-        if self.git("status", "--porcelain", "--", ".", f":(exclude)phases/{self.task}").stdout.strip():
-            self.git("add", "-A", "--", ".", f":(exclude)phases/{self.task}")
+        # 남은 코드 변경은 러너가 구현 커밋으로 묶는다(강의 execute.py 의 2단계 커밋 중 코드 쪽).
+        # 훅 기록 파일(.claude/.last-*)은 .gitignore 가 없는 레포에서도 빼낸다(10-13 실가동에서 섞임)
+        rest = [".", f":(exclude)phases/{self.task}", ":(exclude).claude/.last-*"]
+        if self.git("status", "--porcelain", "--", *rest).stdout.strip():
+            self.git("add", "-A", "--", *rest)
             self.git("commit", "-q", "-m", f"feat: step {step['step']} — {step['name']}", "-m", f"phase: {self.task}")
         commits = self.commits_since(base)
         if step.get("tdd"):

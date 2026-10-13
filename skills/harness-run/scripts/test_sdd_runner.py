@@ -143,6 +143,15 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "feat-t1")
         self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "작업 트리가 깨끗해야 한다")
 
+    def test_hook_stamps_not_committed(self):
+        # 실가동(10-13)에서 .gitignore 없는 레포의 훅 기록 파일이 feat 커밋으로 하나 더 묶였다
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        rc = self.run_runner([{"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"],
+                                                  ["write", ".claude/.last-loop-lock", "x"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertNotIn("feat: step 1", self.log())
+        self.assertEqual(git(self.repo, "ls-files", ".claude/.last-loop-lock").stdout.strip(), "")
+
     def test_tdd_false_step(self):
         self.phase([{"step": 1, "name": "b", "status": "pending", "tdd": False}])
         rc = self.run_runner([{"step": 1, "ops": [["write", "src/c.txt", "y"], ["commit", "feat: c"], DONE]}])

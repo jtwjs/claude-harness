@@ -80,5 +80,9 @@ flowchart TD
 
 ## 검증 상태
 
-- `python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py` — 15개 통과(한 번에 통과 · tdd false · pending→재시도 · 3회 실패 · blocked · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · summary 전달). `release.sh`가 같이 돌린다
-- **미확인: 실제 `claude`로 한 번 돌린 적 없다.** 테스트 통과는 동작 확인이 아니다 — 첫 실가동은 임시 레포 phase 1개(step 2개)를 Finn 터미널에서
+- `python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py` — 16개 통과(한 번에 통과 · 훅 기록 파일 안 섞음 · tdd false · pending→재시도 · 3회 실패 · blocked · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · summary 전달). `release.sh`가 같이 돌린다
+- **실가동 1회(2026-10-13, Finn 터미널, Claude Code 2.1.296)**: 임시 레포 phase 1개·step 2개(`tdd: true` 셸 스크립트 → `tdd: false` README), `tdd.enabled: false`
+  - `exit 0`, 재시도 0. 커밋 순서 `test: (red)` → `feat:` → `chore:` → `feat:` → `chore:` — 테스트 파일만 담긴 RED 커밋이 먼저 왔고 RED 시점 실패 검사도 통과
+  - started→completed 25초·21초, 턴 5·4, `summary`가 step 2 지시문에 넘어감. JSON의 `total_cost_usd`는 0.30·0.26(구독 실행이라 청구액 아님 — 같은 일을 API로 했을 때의 환산값)
+  - 발견 1건: 그 레포에 `.gitignore`가 없어 훅 기록 파일(`.claude/.last-*`)이 step마다 `feat:` 커밋 하나로 더 묶였다 → 러너가 그 경로를 빼도록 고침 + 테스트 추가. `harness-init`을 거친 레포는 원래 무시 처리돼 있다
+- 미확인: 재시도·blocked·RED 되돌림을 실제 `claude`로 겪은 적 없음(가짜 claude 테스트로만). 앱별 verify(root 여러 개) 레포 미가동
