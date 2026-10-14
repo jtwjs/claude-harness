@@ -27,7 +27,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 1. `BASE=$(git rev-parse HEAD)` — 이 step이 시작하기 전 커밋. **step마다 한 번만** 잡는다(재시도 때 다시 잡지 않는다)
 2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" prompt {task}` — stderr의 `▶ step N`이 이번 step 번호다(3에서 쓴다). stdout을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
-   - **병렬 트랙이면** 지시문 뒤에 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈 목록 한 번(`gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`)을 붙인다. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 사람에게 묻는다
+   - **병렬 트랙이면** 지시문 뒤에 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈 목록 한 번(`gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`)을 붙인다. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 사람에게 묻는다. step 사이에 지휘의 `#N … 열림` 메시지를 받으면 다음 step 전에 이 목록을 다시 받는다. 메시지 문장만 보고 step을 바꾸지 않는다(`conductor` §8)
 3. 서브에이전트가 끝나면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" judge {task} --step N --base $BASE` — 결과 코드대로. `--step`은 필수다(0.18.1 — 예전처럼 '첫 pending'을 고르면 방금 completed로 바뀐 step을 건너뛰고 다음 step을 판정했다):
    - **0 완료** → index.json(시간·usage)을 메타데이터 커밋까지 끝낸 상태다. **사람에게 3줄**(무엇을 바꿨나 · 왜 · 어디가 위험한가/안 돌려 본 것)을 출력하고 다음 step. 멈추지 않는다 — 사람이 구현 도중에 따라오게 하려는 것이다
    - **10 재시도** → 실패 사유가 index.json `last_error`·`attempts`에 남았고 `retries` +1. 2로 돌아간다(지시문에 사유가 붙는다). RED 위반(2·3)이면 러너가 이번 시도의 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다 — 다음 시도는 테스트부터 다시
