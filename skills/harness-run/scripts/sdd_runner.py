@@ -148,8 +148,20 @@ class Runner:
         if os.environ.get("ANTHROPIC_API_KEY"):
             print("⚠️ ANTHROPIC_API_KEY 가 설정돼 있다 — 헤드리스 claude -p 는 이 키가 있으면 항상 API 로 과금된다(공식 문서). "
                   "구독으로 돌리려면 unset 후 실행")
-        branch = f"feat-{self.task}"
-        if self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip() != branch:
+        # 브랜치 이름은 레포 규칙(harness.json git.branchPattern)을 따른다. 없으면 feat-{task} (#4, 2026-10-15)
+        gcfg = self.cfg.get("git") or {}
+        pattern = gcfg.get("branchPattern") or "feat-{task}"
+        if "{task}" not in pattern:
+            print(f"git.branchPattern 에 {{task}} 가 없다: {pattern!r}")
+            return 1
+        branch = pattern.replace("{task}", self.task)
+        cur = self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        prefix = pattern.split("{task}")[0]
+        # 규칙을 적은 레포에서 이미 규칙에 맞는 브랜치(트랙 worktree 등)에 있으면 그대로 쓴다 — 주제 이름이 task 와 달라도
+        if gcfg.get("branchPattern") and prefix and cur != branch and cur.startswith(prefix) \
+                and cur not in (gcfg.get("baseBranch") or "", "main", "master"):
+            print(f"현재 브랜치 {cur} 가 규칙({pattern})에 맞아 그대로 쓴다")
+        elif cur != branch:
             exists = self.git("rev-parse", "--verify", "--quiet", branch).returncode == 0
             r = self.git("checkout", "-q", branch) if exists else self.git("checkout", "-q", "-b", branch)
             if r.returncode != 0:

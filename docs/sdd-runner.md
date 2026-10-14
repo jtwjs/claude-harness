@@ -19,7 +19,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" run <ta
 flowchart TD
     S([run task]) --> P{start<br/>after 완료? 상태 값 4개?<br/>error·blocked 없음? 트리 깨끗?}
     P -- 아니오 --> X1([exit 1·2])
-    P -- 예 --> B[feat-task 브랜치]
+    P -- 예 --> B[branchPattern 브랜치<br/>기본 feat-task]
     B --> N{다음 pending step?}
     N -- 없음 --> DONE([exit 0 phase 완료])
     N -- 있음 --> BASE[BASE = HEAD<br/>started_at]

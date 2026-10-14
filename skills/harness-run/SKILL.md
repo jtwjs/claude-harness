@@ -21,7 +21,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 ## 1. 시작 — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" start {task}`
 
-선행 phase(`after`)·상태 값·error/blocked 남은 step·작업 트리 깨끗함을 보고 `feat-{task}` 브랜치로 옮긴다. 0이 아니면 출력을 그대로 사람에게 보이고 멈춘다. 작업 트리가 더러우면 판정이 git 기록을 못 믿으니 먼저 커밋·stash 한다.
+선행 phase(`after`)·상태 값·error/blocked 남은 step·작업 트리 깨끗함을 보고 브랜치로 옮긴다 — 이름은 `harness.json` `git.branchPattern`(예: `feature/{task}`), 없으면 `feat-{task}`. 규칙을 적은 레포에서 이미 규칙에 맞는 브랜치(트랙 worktree)에 있으면 그대로 쓴다. 0이 아니면 출력을 그대로 사람에게 보이고 멈춘다. 작업 트리가 더러우면 판정이 git 기록을 못 믿으니 먼저 커밋·stash 한다.
 
 ## 2. 루프 — pending step이 없을 때까지
 

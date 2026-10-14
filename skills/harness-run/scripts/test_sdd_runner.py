@@ -281,6 +281,36 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(rc, 0, self.out)
         self.assertIn("a 구현", self.prompt(1))           # 완료 step 의 summary 가 다음 step 프롬프트에
 
+    def set_cfg(self, cfg):
+        (self.repo / ".claude/harness.json").write_text(json.dumps(cfg))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "cfg")
+
+    def test_branch_pattern(self):
+        # #4 — 레포 브랜치 규칙을 따른다
+        self.set_cfg({"verify": {"test": "sh check.sh"}, "git": {"branchPattern": "feature/{task}"}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "feature/t1")
+
+    def test_branch_pattern_keeps_matching_branch(self):
+        # 트랙 worktree 처럼 이미 규칙에 맞는 다른 이름의 브랜치면 새로 만들지 않는다
+        self.set_cfg({"verify": {"test": "sh check.sh"}, "git": {"branchPattern": "feature/{task}"}})
+        git(self.repo, "checkout", "-q", "-b", "feature/be-reviews")
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "feature/be-reviews")
+        self.assertIn("그대로 쓴다", self.out)
+
+    def test_branch_pattern_without_task_refuses(self):
+        self.set_cfg({"verify": {"test": "sh check.sh"}, "git": {"branchPattern": "feature/x"}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [DONE]}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertEqual(self.calls_made(), 0)
+
     def test_tdd_without_verify_test_refuses(self):
         (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"lint": "true"}}))
         git(self.repo, "add", "-A")

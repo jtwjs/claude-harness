@@ -9,7 +9,7 @@ disable-model-invocation: false
 ## 0. 대상 기능 확인 (필수)
 
 - 사용자에게 **어느 기능/날짜 폴더**인지 묻는다 → `docs/{feature-YYYY-MM-DD}/`.
-- `task` slug를 합의한다(kebab, 예: `article-draft-autosave`). 이것이 `phases/{task}/`·`feat-{task}` 브랜치 이름이 된다.
+- `task` slug를 합의한다(kebab, 예: `article-draft-autosave`). 이것이 `phases/{task}/` 이름이 되고, 러너 브랜치 이름에 들어간다(`git.branchPattern`, 기본 `feat-{task}`).
 
 ## 1. 가드레일 로드 (토큰 효율 — 이 파일들만)
 

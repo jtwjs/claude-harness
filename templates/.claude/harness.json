@@ -13,8 +13,9 @@
   },
 
   "git": {
-    "$comment": "baseBranch 는 harness-init 이 git symbolic-ref refs/remotes/origin/HEAD 에서 채운다. commitScope=false 면 'feat(x):' 괄호 스코프를 쓰지 않고 영역은 본문에 적는다.",
+    "$comment": "baseBranch 는 harness-init 이 git symbolic-ref refs/remotes/origin/HEAD 에서 채운다. commitScope=false 면 'feat(x):' 괄호 스코프를 쓰지 않고 영역은 본문에 적는다. branchPattern 은 SDD 러너가 만드는 브랜치 이름 규칙({task} 필수, 예: feature/{task}). 비우면 feat-{task}. 적어 두면 이미 규칙 앞부분(feature/)에 맞는 브랜치에 있을 때 그대로 쓴다.",
     "baseBranch": "",
+    "branchPattern": "",
     "commitScope": false
   },
 
