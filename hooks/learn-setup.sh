@@ -27,6 +27,10 @@ case "$COMMON" in */.git) MAIN_ROOT="${COMMON%/.git}" ;; *) MAIN_ROOT="$REPO_ROO
 [ -d "$MAIN_ROOT" ] || MAIN_ROOT="$REPO_ROOT"
 INBOX="$MAIN_ROOT/_learn/inbox.md"
 
+# 제외 목록 — 여기 적힌 본 레포 경로에서는 아무것도 하지 않는다(수신함·exclude·목록·지시 전부). 회사 레포를 건드리지 않고 끄는 길(2026-10-15)
+SKIP="${CLAUDE_LEARN_SKIP:-$HOME/.claude/learn-skip.txt}"
+grep -qxF "$MAIN_ROOT" "$SKIP" 2>/dev/null && exit 0
+
 # ── 1. 폴더·수신함 ───────────────────────────────────────────────────────────
 if [ ! -f "$INBOX" ]; then
   mkdir -p "$MAIN_ROOT/_learn" 2>/dev/null || exit 0

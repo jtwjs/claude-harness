@@ -10,6 +10,7 @@ set -uo pipefail
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
 export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
+export CLAUDE_LEARN_SKIP="$TMP/learn-skip.txt"   # learn-setup 이 실제 제외 목록을 읽지 않게
 export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
@@ -368,6 +369,11 @@ printf 'not json' > "$CLAUDE_LEARNING_LEVEL_FILE"
 out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
 echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner' && ok "깨진 레벨 파일 — beginner로" || bad "깨진 파일" "beginner이 아니다"
 rm -f "$CLAUDE_LEARNING_LEVEL_FILE"
+mkdir -p "$TMP/learnskip/.claude" && (cd "$TMP/learnskip" && git init -q && printf '{}' > .claude/harness.json)
+printf '%s\n' "$(cd "$TMP/learnskip" && git rev-parse --show-toplevel)" > "$CLAUDE_LEARN_SKIP"
+out=$(cd "$TMP/learnskip" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+[ -z "$out" ] && [ ! -e "$TMP/learnskip/_learn" ] && ! grep -q learnskip "$CLAUDE_LEARN_REPOS" && ok "제외 목록 레포 — 무출력·수신함·목록 없음" || bad "제외" "out=[$out]"
+rm -f "$CLAUDE_LEARN_SKIP"
 (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
 n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"
 [ -z "$(cd "$TMP/learn" && git status --porcelain)" ] && ok "git status 깨끗 — .gitignore 무변경" || bad "흔적" "$(cd "$TMP/learn" && git status --porcelain | head -3)"
