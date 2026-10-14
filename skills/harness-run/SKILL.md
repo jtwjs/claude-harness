@@ -42,7 +42,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 | 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test`(앱별이면 테스트가 든 앱만) → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" → 이번 시도 버림 |
 | 4 | (`tdd: true`) 그 뒤 테스트 파일이 안 바뀜 — 바뀌었으면 되돌리고 실패 | "GREEN: 테스트 파일을 고쳤다(되돌림)" |
 | 5 | 이 step에서 커밋된 변경이 있다(남은 변경은 러너가 `feat:` 커밋으로 묶는다) | "completed 보고인데 변경 없음" |
-| 6 | `verify` 전부(앱별이면 root마다) 통과 | "verify 실패: <이름>" |
+| 6 | `verify` 통과. 앱별이면 **바뀐 파일이 든 앱 + `verifyAffects`에 걸린 앱만** — 앱 밖 파일이 있거나 phase 마지막 step이면 전부(#5) | "verify 실패: <이름>" |
 헤드리스 `run`은 여기에 **0. 실행 결과**(종료 코드 · JSON `is_error` · 타임아웃 1800초, 타임아웃이면 자식 프로세스까지 끈다)를 먼저 본다. `start`는 `tdd: true` step이 있는데 `verify.test`가 없으면 돌리지 않고, 환경에 `ANTHROPIC_API_KEY`가 있으면 경고한다(헤드리스 `claude -p`는 그 키로 API 과금된다 — 공식 문서).
 
 ## 3. 커밋

@@ -63,7 +63,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - **앱이 둘 이상**(모노레포 · `stacks.packs`에 root가 여럿)이면 앱별 형태로 적는다: `{"apps/api": {"test": "…"}, "apps/web": {…}}`. 키는 `stacks.packs[].root`와 같은 값이고, 명령은 **그 폴더에서** 실행해 본다(`cd <root> && …`). 앱별이면 단일 앱 키(`format`·`lint`…)는 지운다. `validate-session-end`·`loop-lock` 훅과 `harness-doctor`가 두 형태를 다 읽는다
 - `verify.format`에는 **읽기 전용(`--check` 계열)만** 넣는다. 포맷 적용은 `auto-format` 훅이 편집 직후에 한다.
 - 없는 키는 **비워 둔다.** 지어내지 않는다.
-- `git.baseBranch` ← `git symbolic-ref --short refs/remotes/origin/HEAD`(`origin/` 제거). 리모트가 없으면 비우고 보고한다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다. `git.branchPattern`은 최근 원격 브랜치 이름(`git branch -r`)·`CLAUDE.md`·rules의 브랜치 규칙을 보고 `{task}`를 넣은 형태로 제안한다(예: `feature/{task}`). 규칙이 안 보이면 비운다(러너 기본 `feat-{task}`)
+- `git.baseBranch` ← `git symbolic-ref --short refs/remotes/origin/HEAD`(`origin/` 제거). 리모트가 없으면 비우고 보고한다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다. `git.branchPattern`은 최근 원격 브랜치 이름(`git branch -r`)·`CLAUDE.md`·rules의 브랜치 규칙을 보고 `{task}`를 넣은 형태로 제안한다(예: `feature/{task}`). 규칙이 안 보이면 비운다(러너 기본 `feat-{task}`). `verify`가 앱별이면 `verifyAffects`(경로 glob → 같이 돌릴 앱)를 제안한다 — 트랙 표의 계약 경로, CI `paths` 필터, 앱끼리 import 하는 공유 경로를 보고. 확신이 없으면 비운다(마지막 step 전체 verify가 잡는다)
 - `packageManager` ← lock 파일로 판정한다: `pnpm-lock.yaml`→`pnpm` · `yarn.lock`→`yarn` · `package-lock.json`→`npm` · `bun.lockb`→`bun` · JVM은 `gradlew`/`mvnw` 유무. 둘 이상이면 묻는다. (§6 릴리스 세팅이 이 값을 읽는데 채우는 단계가 없었다 — 2026-10-08)
 
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.

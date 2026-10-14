@@ -17,6 +17,7 @@
 claude 실행 파일은 SDD_RUNNER_CLAUDE 로 바꿀 수 있다(테스트용 가짜).
 """
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -270,10 +271,38 @@ class Runner:
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
         if not commits:
             raise Fail("completed 보고인데 변경 없음")
-        for root, name, cmd in self.verify_cmds():
+        for root, name, cmd in self.verify_scope(step, commits):
             if not self.run_cmd(root, cmd):
                 raise Fail(f"verify 실패: {name} (`{cmd}`)")
         return None
+
+    def verify_scope(self, step: dict, commits: list) -> list:
+        """판정 6에서 돌릴 verify (#5, 2026-10-15). 앱별 verify 일 때만 좁힌다.
+        바뀐 파일이 든 앱 + verifyAffects 에 걸린 앱. 앱 폴더 밖 파일이 있거나 phase 마지막 step 이면 전부."""
+        cmds = self.verify_cmds()
+        roots = sorted({r for r, _, _ in cmds if r != "."}, key=len, reverse=True)
+        if not roots or any(r == "." for r, _, _ in cmds):
+            return cmds
+        others = [s for s in self.read()["steps"] if s["step"] != step["step"]]
+        if all(s.get("status") == "completed" for s in others):
+            print("verify 범위: 전부 — phase 마지막 step", file=sys.stderr)
+            return cmds
+        files = {f for _, fs in commits for f in fs}
+        affects = {k: v for k, v in (self.cfg.get("verifyAffects") or {}).items() if not k.startswith("$")}
+        picked = set()
+        for f in files:
+            own = next((r for r in roots if f.startswith(r.rstrip("/") + "/")), None)
+            if own is None:
+                print(f"verify 범위: 전부 — 앱 밖 파일 {f}", file=sys.stderr)
+                return cmds
+            picked.add(own)
+            for pat, extra in affects.items():
+                if fnmatch.fnmatch(f, pat):
+                    picked.update(extra if isinstance(extra, list) else [extra])
+        skipped = [r for r in roots if r not in picked]
+        print(f"verify 범위: {', '.join(sorted(picked))}" + (f" (건너뜀: {', '.join(skipped)})" if skipped else ""),
+              file=sys.stderr)
+        return [c for c in cmds if c[0] in picked]
 
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""

@@ -332,6 +332,42 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(rc, 1, self.out)
         self.assertEqual(self.calls_made(), 0)
 
+    # ── #5 판정 6 범위 — 앱별 verify ─────────────────────────────────────────
+    def apps_cfg(self, affects=None):
+        (self.repo / "web").mkdir(exist_ok=True)
+        (self.repo / "server").mkdir(exist_ok=True)
+        (self.repo / "web/ok").write_text("x")
+        (self.repo / "server/ok").write_text("x")
+        cfg = {"verify": {"web": {"lint": "test -f ok"}, "server": {"test": "exit 1"}}}
+        if affects:
+            cfg["verifyAffects"] = affects
+        self.set_cfg(cfg)
+
+    def two_steps(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False},
+                    {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+
+    def test_scope_only_changed_app(self):
+        self.apps_cfg()
+        self.two_steps()
+        rc = self.run_runner([{"step": 1, "ops": [["write", "web/a.txt", "1"], ["commit", "feat: a"], DONE]},
+                             ] + [{"step": 2, "ops": [["write", "web/b.txt", "1"], ["commit", "feat: b"], DONE]}] * 4)
+        self.assertEqual(self.step(1)["status"], "completed", self.out)   # server(실패하는 명령)를 안 돌렸다
+        self.assertIn("건너뜀: server", self.out)
+        self.assertIn("verify 실패: test", self.step(2).get("error_message", ""), "마지막 step 은 전부 돌려 server 실패를 잡는다")
+
+    def test_scope_affects(self):
+        self.apps_cfg({"web/api/*": ["server"]})
+        self.two_steps()
+        self.run_runner([{"step": 1, "ops": [["write", "web/api/x.ts", "1"], ["commit", "feat: a"], DONE]}] * 4)
+        self.assertIn("verify 실패: test", self.step(1).get("error_message", ""), "영향 표에 걸리면 server 도 돈다")
+
+    def test_scope_outside_apps_runs_all(self):
+        self.apps_cfg()
+        self.two_steps()
+        self.run_runner([{"step": 1, "ops": [["write", "package.json", "{}"], ["commit", "feat: a"], DONE]}] * 4)
+        self.assertIn("verify 실패: test", self.step(1).get("error_message", ""), "앱 밖 파일이면 전부")
+
     def test_tdd_without_verify_test_refuses(self):
         (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"lint": "true"}}))
         git(self.repo, "add", "-A")
