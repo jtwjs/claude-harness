@@ -1,6 +1,6 @@
 ---
 name: conductor
-description: 병렬 트랙(worktree 세션 2개 이상)으로 한 레포를 진행할 때 지휘 세션이 쓴다. 결정·계약 변경을 GitHub 이슈로 받아 전파 후속 이슈로 쪼개고 의존을 건 뒤, 다 닫히면 ADR로 옮긴다. ADR 번호는 여기서만 발급한다. 트랙 지시문을 채워 넘기고 예외를 판정한다. 트랙이 하나면 쓰지 않는다.
+description: 병렬 트랙(worktree 세션 2개 이상)으로 한 레포를 진행할 때 지휘 세션이 쓴다. 결정·계약 변경을 GitHub 이슈로 받아 전파 후속 이슈로 쪼개고 의존을 건 뒤, 다 닫히면 ADR로 옮긴다. ADR 번호는 여기서만 발급한다. 트랙 지시문을 채워 넘기고 예외를 판정한다. 사용자가 "너는 지휘 세션"·"지휘 맡아"라고 하면 쓴다. 트랙이 하나면 쓰지 않는다.
 allowed-tools: [Read, Write, Bash, Glob, Grep]
 ---
 
@@ -40,6 +40,7 @@ gh repo view --json nameWithOwner,viewerPermission -q '.nameWithOwner+" "+.viewe
 gh label list --limit 200 --json name -q '.[].name'
 ```
 
+- **세션 이름부터 맞춘다.** `ListAgents` 결과 첫 줄 `This session is <이름>`이 `<레포>-conductor`와 다르면, 사용자에게 `/rename <레포>-conductor` 한 줄을 그대로 보여 주고 다음 단계로 가지 않는다. 세션은 자기 이름을 스스로 바꾸지 못한다(`/rename`은 사용자 입력 명령). `<레포>`는 `gh repo view --json name -q .name`의 값이다. 같은 이름이 목록에 이미 있으면 그 세션이 살아 있는 지휘 세션인지 먼저 묻는다
 - `viewerPermission`이 `WRITE`·`MAINTAIN`·`ADMIN`이 아니면 멈추고 보고한다. 계정을 바꿀지는 사용자가 정한다
 - 트랙 이름은 레포 `.claude/references/tracks.md`의 트랙 표에서 읽는다. 없으면 묻는다(지어내지 않는다)
 - 아래 라벨 중 없는 것을 목록으로 보여 주고 **물은 뒤** 만든다
