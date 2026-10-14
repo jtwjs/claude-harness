@@ -91,6 +91,26 @@ if [ -n "$matched" ]; then
   exit 2
 fi
 
+# GitHub 쓰기 계정 — ~/.claude/gh-accounts.txt 에 「owner 계정」 줄이 있으면, 그 owner 레포에 이슈·PR·릴리스를 쓰는 명령은
+# 활성 gh 계정이 그 계정일 때만 통과(2026-10-15). 다른 계정이면 에러 없이 그 계정 이름으로 올라간다(jtwjs/claude-harness #1~3·#7 실측).
+# 같은 명령 안에 gh auth switch -u <계정> 이 먼저 있으면 통과. 목록 파일이 없으면 아무것도 안 한다.
+GH_ACCOUNTS="${CLAUDE_GH_ACCOUNTS:-$HOME/.claude/gh-accounts.txt}"
+if [ -f "$GH_ACCOUNTS" ]; then
+  unqg=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+  if printf '%s' "$unqg" | grep -Eq 'gh[[:space:]]+(issue|pr|release)[[:space:]]+(create|comment|edit|close|reopen|review|delete|merge)\b'; then
+    owner=$(printf '%s' "$unqg" | grep -Eo '(-R|--repo)[[:space:]=]+[^[:space:]/]+/' | head -1 | sed -E 's/^(-R|--repo)[[:space:]=]+//; s#/$##')
+    [ -z "$owner" ] && owner=$(git remote get-url origin 2>/dev/null | sed -E 's#^(https://[^/]+/|git@[^:]+:)##; s#/.*##')
+    need=$(awk -v o="$owner" '$1==o{print $2; exit}' "$GH_ACCOUNTS" 2>/dev/null)
+    if [ -n "$owner" ] && [ -n "$need" ] && ! printf '%s' "$unqg" | grep -Eq "gh[[:space:]]+auth[[:space:]]+switch[[:space:]].*-u[[:space:]]+$need\b"; then
+      active="${CLAUDE_GH_ACTIVE:-$(gh config get -h github.com user 2>/dev/null)}"
+      if [ "$active" != "$need" ]; then
+        printf '🚫 차단됨: %s 레포는 %s 계정으로 쓴다\n   사유: 지금 gh 활성 계정은 %s — 그대로 두면 그 이름으로 올라간다. gh auth switch -u %s 로 바꾸고(같은 명령 앞에 붙여도 된다) 끝나면 원래 계정으로 되돌린다 (%s)\n' "$owner" "$need" "${active:-알 수 없음}" "$need" "$GH_ACCOUNTS" >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
 # PR 머지는 사람 확인으로 — pr-write 4.6 자동 머지 판정이 dry-run 인 동안(2026-10-13, PR 10건 오판 0 이면 따로 결정).
 # 막지(exit 2) 않고 묻는다(ask): 사람이 "머지해"라고 한 머지는 그대로 승인하면 된다. 문장 하나로만 막던 것을 장치로(10-13 리뷰)
 unq=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")

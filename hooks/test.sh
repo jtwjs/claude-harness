@@ -10,6 +10,7 @@ set -uo pipefail
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
 export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
+export CLAUDE_GH_ACCOUNTS="$TMP/gh-accounts.txt"   # block-dangerous-bash 가 실제 계정 목록을 읽지 않게
 export CLAUDE_LEARN_SKIP="$TMP/learn-skip.txt"   # learn-setup 이 실제 제외 목록을 읽지 않게
 export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
@@ -74,6 +75,23 @@ for c in 'gh pr merge 12 --squash --delete-branch' 'gh pr merge --auto --squash'
 done
 out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' 'git commit -m "gh pr merge 문서"' | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
 [ -z "$out" ] && ok "따옴표 안 gh pr merge 는 그냥 통과" || bad "오탐" "커밋 메시지에서 ask"
+
+# GitHub 쓰기 계정 — 목록에 있는 owner 레포에 쓰는 명령은 그 계정일 때만 (2026-10-15)
+printf '\n[2-e] gh 쓰기 계정 — owner 별 계정이 아니면 차단\n'
+check_deny 0 'gh issue create -R jtwjs/x --title t'          # 목록 파일 없음 → 아무것도 안 함
+printf 'jtwjs jtwjs\n' > "$CLAUDE_GH_ACCOUNTS"
+export CLAUDE_GH_ACTIVE=jtw-219
+check_deny 2 'gh issue create -R jtwjs/claude-harness --title "t" --body-file b'
+check_deny 2 'gh pr comment 3 --repo jtwjs/x --body "hi"'
+check_deny 0 'gh auth switch -u jtwjs && gh issue create -R jtwjs/x --title t'
+check_deny 0 'gh issue create -R sellermill/x --title t'     # 목록에 없는 owner
+check_deny 0 'gh issue list -R jtwjs/x'                       # 읽기
+check_deny 0 'git commit -m "gh issue create -R jtwjs/x"'     # 따옴표 안
+mkdir -p "$TMP/ghrepo" && (cd "$TMP/ghrepo" && git init -q && git remote add origin https://github.com/jtwjs/r.git)
+out=$(cd "$TMP/ghrepo" && printf '{"tool_input":{"command":"gh issue create --title t"}}' | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
+[ "$code" = "2" ] && ok "-R 없으면 origin owner 로 판정" || bad "origin 판정" "exit=$code"
+CLAUDE_GH_ACTIVE=jtwjs check_deny 0 'gh issue create -R jtwjs/x --title t'
+unset CLAUDE_GH_ACTIVE; rm -f "$CLAUDE_GH_ACCOUNTS"
 
 # ── 케이스 3: tdd-guard 는 harness.json 만으로 판정한다 ──────────────────────
 # ── 케이스 2-c: 운영 DB — harness.json guard.prodDb 가 있을 때만 (2026-10-13) ──
