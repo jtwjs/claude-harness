@@ -60,7 +60,8 @@ flowchart TD
 |---|---|
 | 기능 스펙·설계(PRD·ARCHITECTURE·ADR) | `docs/{feature-YYYY-MM-DD}/` |
 | 계속 고치는 결정·규칙·용어, 코드 인계 문서 | `_brain/wiki/` |
-| 내가 배울 기술 지식(커밋 안 함) | `_learn/inbox.md` |
+| 내가 배울 기술·도메인 지식(커밋 안 함) | `_learn/inbox.md` |
+| 분야별 학습 레벨(FE·BE·인프라·도메인 × beginner/intermediate/advanced) | `~/.claude/learning-level.json` — 없으면 전부 beginner. 형식은 `docs/learning-level.md` |
 
 컨텍스트는 3층이다. `CLAUDE.md`(항상 로드, 짧게), `.claude/rules/`(`paths:` 매칭 시 로드), `.claude/references/`(필요할 때 수동).
 

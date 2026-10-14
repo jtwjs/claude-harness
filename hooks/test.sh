@@ -10,6 +10,7 @@ set -uo pipefail
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
 export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
+export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
 unset CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_AUTO_SKIP CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_SYNC   # 사용자 settings env 가 새어 들어오면 opt-in 판정이 틀어진다
@@ -356,6 +357,17 @@ echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "_lear
   && ok "기록 지시를 additionalContext 로" || bad "지시" "JSON 이 아니거나 지시가 없다 out=[$out]"
 echo "$out" | grep -q '_brain/wiki/' && ok "지시가 도메인은 _brain 으로 가른다" || bad "분기" "지시에 _brain 행선지가 없다"
 echo "$out" | grep -q '안 옮긴 카드 0장' && ok "새 수신함은 0장(형식 예시는 세지 않는다)" || bad "카운트" "새 수신함인데 0장이 아니다"
+echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner · 인프라 beginner · 도메인 beginner' && ok "레벨 파일 없음 — 전부 beginner" || bad "레벨 기본값" "beginner 문구가 없다"
+echo "$out" | grep -q 'docs/learning-level.md' && ok "레벨 형식 정본 경로를 넣는다" || bad "레벨 정본" "docs/learning-level.md 경로가 없다"
+echo "$out" | grep -q '종류: 도메인' && ok "도메인 카드를 _learn 에 허용" || bad "도메인 카드" "지시에 종류: 도메인 이 없다"
+printf '{"levels":{"fe":"intermediate","be":"advanced","infra":"이상한값"}}' > "$CLAUDE_LEARNING_LEVEL_FILE"
+out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+echo "$out" | grep -q '학습 레벨: FE intermediate · BE advanced · 인프라 beginner · 도메인 beginner' && ok "레벨 파일 — 값 반영·빠진/틀린 값은 beginner" || bad "레벨 반영" "$(echo "$out" | grep -o '학습 레벨: [^(]*')"
+echo "$out" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null && ok "레벨 넣어도 JSON 유효" || bad "레벨 JSON" "출력이 JSON 이 아니다"
+printf 'not json' > "$CLAUDE_LEARNING_LEVEL_FILE"
+out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner' && ok "깨진 레벨 파일 — beginner로" || bad "깨진 파일" "beginner이 아니다"
+rm -f "$CLAUDE_LEARNING_LEVEL_FILE"
 (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
 n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"
 [ -z "$(cd "$TMP/learn" && git status --porcelain)" ] && ok "git status 깨끗 — .gitignore 무변경" || bad "흔적" "$(cd "$TMP/learn" && git status --porcelain | head -3)"

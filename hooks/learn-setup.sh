@@ -33,13 +33,14 @@ if [ ! -f "$INBOX" ]; then
   cat > "$INBOX" <<'MD'
 # 학습 수신함 — 이 레포를 하며 내가 이해해야 할 것
 
-> 개인용이다. git 에서 빠져 있다(.git/info/exclude). 여기엔 회사를 옮겨도 쓸모 있는 기술·직무 학습만 — 이 프로젝트의 도메인·규칙·제품 결정은 팀 위키 _brain/ 으로, 기술 결정은 ADR 로 간다.
+> 개인용이다. git 에서 빠져 있다(.git/info/exclude). 여기엔 내가 이해할 것 — 기술·직무 학습과 도메인 이해(층: 회사 | 산업). 팀이 알아야 할 제품 결정·규칙은 팀 위키 _brain/ 으로, 기술 결정은 ADR 로 간다.
 > 작업 중인 모델이 아래 형식으로 한 장씩 덧붙인다. 통합 wiki 의 주간 /gauge week 가 모아 vault 로 옮기고 vault: 칸을 채운다.
 > 상태: 모름 → 설명 들음 → 내 말로 설명 가능
 
 <!-- 카드 형식
 ## YYYY-MM-DD · 제목
-- 종류: 기술 | 직무 | 막힌 질문 · 출처: AI 설명 | 내가 물음 | 리허설
+- 종류: 기술 | 직무 | 도메인 | 막힌 질문 · 출처: AI 설명 | 내가 물음 | 리허설 | PR 퀴즈 | 빈틈 3곳
+- (도메인이면) 층: 회사 | 산업 — 회사를 옮겨도 쓸모 있으면 산업
 - 이 레포 어디: `경로`
 - 요지: 2~3줄
 - 상태: 설명 들음
@@ -67,7 +68,23 @@ INBOX_J="$(printf '%s' "$INBOX" | sed 's/\\/\\\\/g; s/"/\\"/g')"
 # 머리글 주석(<!-- 카드 형식 -->) 안의 예시 줄은 세지 않는다
 pending=$(awk '/<!--/{c=1} !c && /^- vault:[[:space:]]*$/{n++} /-->/{c=0} END{print n+0}' "$INBOX" 2>/dev/null || true)
 pending=${pending:-0}
+# 학습 레벨 — 분야마다 beginner/intermediate/advanced(형식 정본 docs/learning-level.md). 파일·값이 없으면 beginner(2026-10-14).
+LEVEL_FILE="${CLAUDE_LEARNING_LEVEL_FILE:-$HOME/.claude/learning-level.json}"
+LEVEL_DOC="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)/docs/learning-level.md"
+levels=$(python3 - "$LEVEL_FILE" 2>/dev/null <<'PY2'
+import json, sys
+try:
+    lv = json.load(open(sys.argv[1])).get("levels") or {}
+except Exception:
+    lv = {}
+ok = {"beginner", "intermediate", "advanced"}
+names = [("fe", "FE"), ("be", "BE"), ("infra", "인프라"), ("domain", "도메인")]
+print(" · ".join(f"{n} {lv.get(k) if lv.get(k) in ok else 'beginner'}" for k, n in names))
+PY2
+)
+levels=${levels:-FE beginner · BE beginner · 인프라 beginner · 도메인 beginner}
+LEVEL_DOC_J="$(printf '%s' "$LEVEL_DOC" | sed 's/\\/\\\\/g; s/"/\\"/g')"
 # ⚠️ 큰따옴표를 쓰지 않는다 — JSON 으로 직접 싼다.
-msg="이 세션에서 배운 것은 그 자리에서 나눠 적는다. 기준은 회사를 옮겨도 쓸모 있나. ① 예(기술·개발자 직무 학습) → 개인 학습 수신함 ${INBOX_J}(본 레포 기준 절대 경로 — 워크트리에서도 이 파일에, 커밋 안 됨, 아직 vault 로 안 옮긴 카드 ${pending}장)에 파일 머리의 카드 형식으로 한 장(요지 2~3줄, 이 레포 코드 경로, 상태). 같은 제목이 있으면 상태만 올린다. ② 아니오 → 결정의 종류로 한 곳에만: 제품·도메인 결정(정책·고객 사정·지표·범위)과 이 제품의 규칙·용어는 SDD 기능 작업이면 그 기능 PRD 의 결정 절에 적고 REFLECT 에서 세 장(PRD·ARCHITECTURE·ADR)을 보고 _brain/wiki/ 로 정리한다. SDD 밖 작업이면 바로 _brain/wiki/ 의 decisions/<주제>.md·domain/·glossary/ 에 같은 PR 로(_brain 이 없으면 PRD 결정 절). 기술 결정(구조·데이터·라이브러리)은 docs/<feature-date>/ADR.md 에만. 둘 다 걸치면 쪼갠다(기술 개념은 _learn, 이 프로젝트의 쓰임과 이유는 _brain). 대상은 사용자가 몰랐던 것을 설명했을 때, 사용자가 이게 뭐냐고 물었을 때, 설명 리허설에서 막힌 질문. 작업을 마무리할 때 이번 세션 학습 카드 n건 을 한 줄 보고한다. 사람 이름·비밀값·사내 대화 원문은 적지 않는다."
+msg="학습 레벨: ${levels} (~/.claude/learning-level.json, 없으면 beginner). 개념을 설명하거나 이해를 확인할 때(PR 이해 게이트·빈틈 3곳·리허설·explain-diff) 그 분야 레벨 형식을 따른다 — 정본 ${LEVEL_DOC_J}. beginner 분야는 키워드 정의부터, 확인은 빈칸, 도메인 한 줄을 붙인다. 이 세션에서 배운 것은 그 자리에서 나눠 적는다. 기준은 회사를 옮겨도 쓸모 있나. ① 예(기술·개발자 직무 학습) → 개인 학습 수신함 ${INBOX_J}(본 레포 기준 절대 경로 — 워크트리에서도 이 파일에, 커밋 안 됨, 아직 vault 로 안 옮긴 카드 ${pending}장)에 파일 머리의 카드 형식으로 한 장(요지 2~3줄, 이 레포 코드 경로, 상태). 같은 제목이 있으면 상태만 올린다. ② 아니오 → 결정의 종류로 한 곳에만: 제품·도메인 결정(정책·고객 사정·지표·범위)과 이 제품의 규칙·용어는 SDD 기능 작업이면 그 기능 PRD 의 결정 절에 적고 REFLECT 에서 세 장(PRD·ARCHITECTURE·ADR)을 보고 _brain/wiki/ 로 정리한다. SDD 밖 작업이면 바로 _brain/wiki/ 의 decisions/<주제>.md·domain/·glossary/ 에 같은 PR 로(_brain 이 없으면 PRD 결정 절). 기술 결정(구조·데이터·라이브러리)은 docs/<feature-date>/ADR.md 에만. 둘 다 걸치면 쪼갠다(기술 개념은 _learn, 이 프로젝트의 쓰임과 이유는 _brain). 단 내가 이해할 도메인 설명(이 기능이 사업·사용자에게 왜 필요한가, 업계 구조)은 _learn 에 종류: 도메인 · 층: 회사|산업 카드로도 한 장 — 팀 _brain 과 겹쳐도 된다(목적이 다르다: 팀 인수인계 vs 내 학습). 대상은 사용자가 몰랐던 것을 설명했을 때, 사용자가 이게 뭐냐고 물었을 때, 설명 리허설에서 막힌 질문. 작업을 마무리할 때 이번 세션 학습 카드 n건 을 한 줄 보고한다. 사람 이름·비밀값·사내 대화 원문은 적지 않는다."
 printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$msg"
 exit 0

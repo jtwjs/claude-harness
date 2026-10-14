@@ -1,6 +1,6 @@
 ---
 name: explain-diff-notion
-description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 퀴즈 5문항으로 풀어 노션 페이지로 만든다. "이 변경 노션으로 정리해줘"·"팀에 공유할 변경 설명 써줘"·"이해한 뒤 공유하게 정리해줘"일 때 쓴다. 한 장짜리 HTML이면 explain-diff-html.
+description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 레벨별 퀴즈 블록(분야마다 beginner 빈칸 · intermediate 객관식 · advanced 서술)으로 풀어 노션 페이지로 만든다. "이 변경 노션으로 정리해줘"·"팀에 공유할 변경 설명 써줘"·"이해한 뒤 공유하게 정리해줘"일 때 쓴다. 한 장짜리 HTML이면 explain-diff-html.
 ---
 
 # Explain Diff
@@ -26,6 +26,7 @@ It should have these sections:
   2. Question
      ...
   ```
+  - **Level blocks (overrides the five-question default)**: read `~/.claude/learning-level.json` and follow `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md` — one block per area the diff touches (FE · BE · infra by file path) plus one domain block, each at that area's level. Missing file or value = beginner. beginner blocks are keyword definitions → 3~5 fill-in-the-blank sentences with the answers in a toggle → one domain line; intermediate keeps the multiple-choice toggles above (2~3 per block, 5 if only one area); advanced is 1~2 "why this way?" prompts with the key reason in a toggle.
   
 Format:
 
