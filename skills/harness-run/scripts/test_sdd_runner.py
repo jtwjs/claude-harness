@@ -240,6 +240,27 @@ class RunnerCase(unittest.TestCase):
                       "버린 시도는 백업 브랜치로 남는다")
         self.assertEqual(len(self.step()["attempts"]), 1)
 
+    def test_red_check_leaves_shared_stash_alone(self):
+        # 10-15 실측: stash 목록은 worktree 끼리 공유 — RED 확인 중 다른 worktree 가 stash 를 넣으면 남의 것을 꺼냈다
+        wt = self.tmp / "wt2"
+        git(self.repo, "worktree", "add", "-q", "-b", "other", str(wt))
+        (self.repo / "src/b.txt").write_text("mine")
+        git(self.repo, "stash", "push", "-q", "-m", "mine", "--", "src/b.txt")   # 판정 전부터 있던 stash
+        (wt / "src/b.txt").write_text("theirs")
+        # 테스트가 도는 사이 다른 worktree 세션이 stash 를 넣는다
+        self.set_cfg({"verify": {"test": f"sh check.sh; rc=$?; git -C {wt} stash push -q -m theirs -- src/b.txt; exit $rc"},
+                      "tdd": {"enabled": True}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        rc = self.run_runner([{"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed", "진행 중 index.json 내용이 보존된다")
+        stashes = git(self.repo, "stash", "list", "--format=%s").stdout
+        self.assertIn("mine", stashes)
+        self.assertIn("theirs", stashes, "다른 worktree 의 stash 를 꺼내지 않는다")
+        self.assertEqual(len(stashes.splitlines()), 2, stashes)
+        self.assertEqual((self.repo / "src/b.txt").read_text(), "x")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "")
+
     # ── 판정 5·6 ────────────────────────────────────────────────────────────
     def test_completed_without_change(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])

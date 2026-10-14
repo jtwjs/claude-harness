@@ -279,9 +279,15 @@ class Runner:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
         head = self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
         idx_rel = str(self.index_file.relative_to(self.root))
-        stashed = bool(self.git("status", "--porcelain", "--", idx_rel).stdout.strip())
-        if stashed:  # 진행 중인 index.json(아직 커밋 전)이 체크아웃을 막지 않게 잠깐 치운다
-            self.git("stash", "push", "-q", "--", idx_rel, check=True)
+        # 진행 중인 index.json(아직 커밋 전)이 체크아웃을 막지 않게 HEAD 내용으로 잠깐 돌린다.
+        # stash 는 쓰지 않는다 — stash 목록은 모든 worktree 가 공유해 병렬 세션의 것을 꺼낼 수 있다
+        keep = backup = None
+        if self.git("status", "--porcelain", "--", idx_rel).stdout.strip():
+            keep = self.index_file.read_text(encoding="utf-8")
+            git_dir = Path(self.root, self.git("rev-parse", "--git-dir").stdout.strip())  # worktree 전용 git dir
+            backup = git_dir / f"sdd-index-{self.task}.json"
+            backup.write_text(keep, encoding="utf-8")   # 프로세스가 죽어도 복구할 수 있게
+            self.git("checkout", "-q", "--", idx_rel, check=True)
         try:
             self.git("checkout", "-q", "--detach", sha, check=True)
             try:
@@ -289,11 +295,13 @@ class Runner:
             finally:
                 # 테스트가 만든 산출물이 돌아가는 체크아웃을 막지 않게 -f. 그래도 실패하면 사람이 볼 수 있게 크게 멈춘다
                 if self.git("checkout", "-q", "-f", head).returncode != 0:
+                    keep = None   # 엉뚱한 트리에 쓰지 않고 백업을 남긴다
                     sys.exit(f"✗ RED 확인 뒤 {head} 로 못 돌아옴 — `git checkout {head}`"
-                             + (" 후 `git stash pop`(진행 중 index.json)" if stashed else "") + " 으로 복구")
+                             + (f" 후 `cp {backup} {idx_rel}`(진행 중 index.json)" if backup else "") + " 으로 복구")
         finally:
-            if stashed and self.git("stash", "pop", "-q").returncode != 0:
-                sys.exit("✗ 진행 중 index.json 을 stash 에서 못 꺼냄 — `git stash list` 확인 후 `git stash pop`")
+            if keep is not None:
+                self.index_file.write_text(keep, encoding="utf-8")
+                backup.unlink(missing_ok=True)
 
     def discard_attempt(self, n: int, base: str):
         """RED 위반 시도의 커밋을 브랜치에서 빼고 백업 브랜치로 남긴다. 진행 중 index.json 은 보존."""
