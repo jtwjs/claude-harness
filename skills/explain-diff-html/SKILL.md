@@ -1,6 +1,6 @@
 ---
 name: explain-diff-html
-description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 레벨별 퀴즈 블록(분야마다 beginner 빈칸 · intermediate 객관식 · advanced 서술)으로 풀어 한 장짜리 HTML로 만든다. "이 변경 풀어서 설명해줘"·"이해한 뒤 공유하게 정리해줘"·"리뷰어가 처음 보는 영역이야"·"그림으로 설명해줘"일 때, 또는 pr-write 뒤 변경이 크거나 설명할 자신이 없을 때 쓴다. 노션으로 낼 거면 explain-diff-notion.
+description: 코드 변경(diff·브랜치·PR) 하나를 배경 → 핵심 직관(예시 데이터·그림) → 코드 순회 → 레벨별 블록(분야마다 beginner 설명만 · intermediate 객관식 · advanced 서술)으로 풀어 한 장짜리 HTML로 만든다. "이 변경 풀어서 설명해줘"·"이해한 뒤 공유하게 정리해줘"·"리뷰어가 처음 보는 영역이야"·"그림으로 설명해줘"일 때, 또는 pr-write 뒤 변경이 크거나 설명할 자신이 없을 때 쓴다. 노션으로 낼 거면 explain-diff-notion.
 ---
 
 # Explain Diff
@@ -13,7 +13,7 @@ It should have these sections:
 - Intuition: Explain the core intuition for the code change. The focus here is to explain the essence, not the full details. Use concrete examples with toy data. Use figures and diagrams liberally.
 - Code: Do a high-level walkthrough of the changes to the code. Group/order the changes in an understandable way.
 - Quiz: Come up with five questions that test the reader's knowledge of this PR. This should be medium difficulty, difficult enough that you actually need to understand the substance of the PR to answer them, but not gotchas. The goal is to help the reader make sure that they've actually understood. These should be presented as interactive multiple-choice questions, and when the user clicks, it tells them whether they were correct and gives feedback.
-  - **Level blocks (overrides the five-question default)**: read `~/.claude/learning-level.json` and follow `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md` — one block per area the diff touches (FE · BE · infra by file path) plus one domain block, each at that area's level. Missing file or value = beginner. beginner blocks are keyword definitions → 3~5 fill-in-the-blank sentences (an input per blank, reveal answer + one-line why on submit) → one domain line; intermediate keeps the multiple-choice above (2~3 per block, 5 if only one area); advanced is 1~2 free-text "why this way?" prompts with a reveal of the key reason.
+  - **Level blocks (overrides the five-question default)**: read `~/.claude/learning-level.json` and follow `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md` — one block per area the diff touches (FE · BE · infra by file path) plus one domain block, each at that area's level. Missing file or value = beginner. beginner blocks are explanation only, no quiz and no blanks: keyword definitions → 3~5 plain sentences explaining the change → one domain line; intermediate keeps the multiple-choice above (2~3 per block, 5 if only one area); advanced is 1~2 free-text "why this way?" prompts with a reveal of the key reason.
 
 Format:
 
