@@ -268,6 +268,26 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(rc, 1, self.out)
         self.assertIn("변경 없음", self.step()["error_message"])
 
+    def test_measure_step_passes_without_change(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False, "kind": "measure"}])
+        rc = self.run_runner([{"step": 1, "ops": [["status", "completed", {"summary": "`sh check.sh` → rc 0 · 3건 일치"}]]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed")
+        self.assertIn("측정 전용", self.prompt(0))
+
+    def test_measure_step_requires_measurement_summary(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False, "kind": "measure"}])
+        rc = self.run_runner([{"step": 1, "ops": [DONE]}] * 4)
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("측정 명령", self.step()["error_message"])
+
+    def test_measure_step_with_tdd_refuses(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True, "kind": "measure"}])
+        rc = self.run_runner([])
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("measure", self.out)
+        self.assertEqual(self.calls_made(), 0)
+
     def test_verify_fails(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
         (self.repo / "tests").mkdir()

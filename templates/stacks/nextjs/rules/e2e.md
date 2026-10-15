@@ -1,10 +1,20 @@
 ---
-paths: ["e2e/**", "tests/e2e/**", "playwright.config.*"]
+paths: ["e2e/**", "tests/e2e/**", "playwright.config.*", "playwright.*.config.*"]
 ---
 
 # E2E 규칙 (Playwright)
 
 > react-vite 팩의 `rules/e2e.md`와 같은 내용이다. 다른 곳만 표시한다.
+
+## 구조 · 이름
+
+- 폴더: `e2e/specs`(실행 스펙만, `testDir`) · `e2e/pom/<화면>.page.ts`(FSD `pages` 이름과 맞춤) · `e2e/fixtures/index.ts`(`test.extend`로 POM 주입) · `e2e/setup`(인증·초기화) · `e2e/.auth`(git 제외). `testDir`가 스펙만 보게 해서 pom·fixtures가 테스트로 수집되지 않는다
+- 스펙은 `e2e/fixtures`에서만 import 한다. 셀렉터가 두 스펙에서 겹치면 POM으로 올리고, `data-testid`는 역할·레이블로 부족할 때만
+- 제목: `test.describe("Feature: …")` > `test.describe("Scenario: …")` > `test("…된다")`. Given/When/Then 접두는 쓰지 않는다(`testing.md` §1 BDD 3계층과 같은 이유)
+- fixture 함수의 두 번째 인자는 `use` 대신 `provide`로 쓴다 — `use`면 react-hooks 린트가 훅 규칙 위반으로 막는다(2026-10-15 실측)
+- 범위: 회귀 비용이 큰 페이지 흐름만, 개수는 적게. 화면 하나의 상태는 단위 테스트로
+
+> 2026-10-16 #6 — 리뷰 앱 레포(#19, PR #50)에서 먼저 적용해 스펙 2 · POM 4 · fixtures 1로 돌린 뒤 문구를 확정했다.
 
 ## API 가로채기
 
@@ -25,3 +35,4 @@ paths: ["e2e/**", "tests/e2e/**", "playwright.config.*"]
 
 - E2E는 `verify`에 넣지 않는다. CI 별도 잡(비용이 크면 기준 브랜치 push에서만)으로 돌리고, PR에서는 로컬 실행 결과를 본문에 적는다.
 - 로컬 `reuseExistingServer`는 **다른 worktree의 서버를 재사용**할 수 있다. 병렬 worktree에서는 포트를 나눈다.
+- web 서버는 `reuseExistingServer: false` + 전용 포트로 띄운다. 다른 프로젝트 dev 서버가 그 포트를 쓰고 있으면 테스트가 **엉뚱한 앱을 테스트하고 통과**한다(2026-10-15 실측: 3000·3100을 다른 프로젝트가 쓰고 있었다)

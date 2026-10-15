@@ -34,6 +34,7 @@ import phases_status  # noqa: E402
 
 TZ = timezone(timedelta(hours=9))
 VALID = {"pending", "completed", "error", "blocked"}
+MEASURE_SUMMARY = re.compile(r"`[^`]+`")   # kind: measure step 의 summary 에 있어야 하는 측정 명령(백틱) — #8
 # 테스트 파일 판별 — tdd-guard 의 짝 테스트 자리와 같은 계열(TS *.test/*.spec · __tests__ · tests/ · JVM *Test.kt · py test_*)
 TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|/)src/test/|Tests?\.(kt|java)$|(^|/)test_[^/]+\.py$|_test\.(py|go)$)")
 OUTPUT_GLOB = "phases/*/step*-output.json"
@@ -143,6 +144,10 @@ class Runner:
         if any(s.get("tdd") for s in steps) and not self.verify_cmds("test"):
             print("tdd: true step 이 있는데 harness.json verify.test 가 없다 — RED 를 확인할 수 없어 돌리지 않는다")
             return 1
+        bad = [s["step"] for s in steps if s.get("kind") == "measure" and s.get("tdd")]
+        if bad:
+            print(f"kind: measure step 은 tdd: true 를 가질 수 없다(코드 변경이 없는 step 이다): step {bad}")
+            return 1
         tdd_on = (self.cfg.get("tdd") or {}).get("enabled", False)
         if not tdd_on and any(s.get("tdd") for s in steps):
             print("⚠️ tdd.enabled 가 false 다 — tdd-guard 훅 없이 돈다. 테스트 먼저는 러너의 사후 검사로만 확인한다")
@@ -195,7 +200,10 @@ class Runner:
         done = [f"- Step {s['step']} ({s['name']}): {s['summary']}" for s in idx["steps"]
                 if s.get("status") == "completed" and s.get("summary")]
         n, name = step["step"], step["name"]
-        if step.get("tdd"):
+        if step.get("kind") == "measure":
+            tdd = ("4. 이 step 은 **측정 전용(kind: measure)** 이다 — 코드를 바꾸지 않는다. 측정·실측·대조만 하고, 실행한 **명령(백틱)과 결과**를 "
+                   "`summary` 에 적는다. 그것이 이 step 의 산출물이라 summary 에 명령이 없으면 실패로 판정된다. 커밋할 것은 없다")
+        elif step.get("tdd"):
             tdd = (f"4. 테스트 먼저(TDD): ① 수용 조건을 **실패하는 테스트**로 먼저 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
                    f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋 ② 구현한다. 테스트 파일은 다시 고치지 않는다 "
                    f"③ 구현을 `feat: step {n} — {name}` 로 커밋")
@@ -270,7 +278,13 @@ class Runner:
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
         if not commits:
-            raise Fail("completed 보고인데 변경 없음")
+            if step.get("kind") != "measure":
+                raise Fail("completed 보고인데 변경 없음")
+            # 측정·실측·대조 전용 step(#8): 변경 0 이 정상이고 산출물은 summary 의 측정 명령 + 결과다
+            if not MEASURE_SUMMARY.search(step.get("summary") or ""):
+                raise Fail("measure: summary 에 측정 명령(백틱)과 결과가 없다 — 코드 변경이 없는 step 은 측정 출력이 산출물이다")
+            print("measure step: 코드 변경 없음 — summary 의 측정 결과로 통과, verify 생략", file=sys.stderr)
+            return None
         for root, name, cmd in self.verify_scope(step, commits):
             if not self.run_cmd(root, cmd):
                 raise Fail(f"verify 실패: {name} (`{cmd}`)")
