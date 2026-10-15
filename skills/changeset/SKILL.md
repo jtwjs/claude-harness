@@ -1,6 +1,6 @@
 ---
 name: changeset
-description: git 변경사항을 분석해서 Changeset 파일을 자동으로 작성해줘. 사용자 영향이 있는 기능 변경·이슈 해결이면 REFLECT 단계에서 모델이 직접 호출. harness.json의 release.tool이 changesets 가 아니면 스스로 skip 한다.
+description: git 변경사항을 분석해서 Changeset 파일을 자동으로 작성해줘. 사용자 영향이 있는 기능 변경·이슈 해결이면 sdd ⑤ 마무리(SHIP) 단계에서 모델이 직접 호출(REFLECT 출구 조건 뒤). harness.json의 release.tool이 changesets 가 아니면 스스로 skip 한다.
 allowed-tools: Bash(git *), Bash(node *), Read, Write
 disable-model-invocation: false
 ---

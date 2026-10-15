@@ -1,6 +1,6 @@
 ---
 name: pr-write
-description: git 변경 내용을 분석해서 PR을 GitHub에 실제로 생성해줘. Reflect 완료 후 PR이 필요할 때 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
+description: git 변경 내용을 분석해서 PR을 GitHub에 실제로 생성해줘. sdd ⑤ 마무리(SHIP) — REFLECT 출구 조건 뒤 PR이 필요할 때 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
 disable-model-invocation: false
 ---
 

@@ -21,6 +21,7 @@ disable-model-invocation: false
 
 - 설계문서에서 **구현 대상 유즈케이스·수용 조건**을 뽑아 bullet로 요약한다.
 - 모호·누락은 **추측 말고 질문**한다(karpathy: 가정 명시). 승인 전 step 파일을 쓰지 않는다.
+- step을 쪼개다 생기는 `⚠️`·`TBD`·미해결 가정은 **이 자리에서 묻는다** — DESIGN으로 되돌아가지 않는다(2026-10-15, 옛 why-plan 재호출 경로는 실사용 0건). 질문 규칙은 `why` SKILL.md 「질문 규칙」 그대로: 한 번에 한 질문 · "왜?"를 받을 결정은 사람 생각 먼저·추천은 뒤 · 선택지마다 앞으로의 영향. 푼 결정은 기술이면 `ADR.md`, 제품·도메인이면 `PRD.md` 「결정」 절에 **지금** 적는다 — step 파일은 기능이 끝나면 아무도 읽지 않는 메모라 거기에만 두면 사라진다. §5 승인 시점에 step 파일의 미해결 `⚠️`는 0개다.
 
 ## 3. Step 분해 원칙
 
@@ -111,4 +112,4 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 
 ## 설계문서가 없을 때
 
-`docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE가 없으면 `why-plan`으로 **세 장(ADR은 기술 결정이 있을 때)을 만든 뒤** 이 스킬로 돌아온다. 세 문서의 항목 정의는 `why-plan` SKILL.md 「설계문서 3장」이 정본이다(2026-10-08 — DESIGN 산출물 정의가 PLAN 스킬에 붙어 있던 것을 옮김).
+`docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE가 없으면 `sdd` ① 계획 DESIGN(`skills/sdd/references/design.md` 절차)으로 **세 장(ADR은 기술 결정이 있을 때)을 만든 뒤** 이 스킬로 돌아온다. 세 문서의 항목 정의는 그 파일 「설계문서 3장」이 정본이다(2026-10-08 — DESIGN 산출물 정의가 PLAN 스킬에 붙어 있던 것을 옮김. 2026-10-16 why-plan을 sdd에 내장).

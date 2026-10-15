@@ -31,7 +31,7 @@
 
 | 칸 | 내용 |
 |---|---|
-| 스킬 25개 | SDD: `why-plan` `harness` `harness-run` `sdd` `sdd-review` `design-brief` `design-critique` `design-reconcile`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `systematic-debugging` `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff-html` `explain-diff-notion` `plannotator-visual-explainer` |
+| 스킬 25개 | SDD: `sdd` `harness` `harness-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `systematic-debugging` `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff-html` `explain-diff-notion` `plannotator-visual-explainer` |
 | 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
 | SDD 러너 | `skills/harness-run/scripts/sdd_runner.py` — 세션 안(`harness-run`)·헤드리스(`run`) 같은 규칙. step당 1번 호출 + git 기록 판정. 설계 `docs/sdd-runner.md` |
 | 훅 11개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` `brain-sync-auto` · 세션 끝: `validate-session-end` |
@@ -44,17 +44,32 @@
 
 ```mermaid
 flowchart TD
-  A([요청]) --> D["① DESIGN · why-plan<br/>PRD · ARCHITECTURE · ADR"]
-  D --> H["② PLAN · harness: step 분해"]
+  A([요청]) --> D["① 계획 · DESIGN<br/>sdd references/design.md: 왜 → PRD · ARCHITECTURE · ADR"]
+  D --> RD{🙋 Readiness}
+  RD --> H["① 계획 · PLAN<br/>harness: step 분해 · 빈칸은 그 자리에서"]
   H --> G{🙋 step 승인}
-  G -->|빈칸 많음| D
-  G --> R["③ IMPLEMENT · harness-run / sdd_runner run<br/>step당 1번: 테스트 먼저 → 구현 → git 기록 판정"]
-  R --> V["④ REVIEW · sdd-review"]
+  G --> R["② IMPLEMENT · harness-run / sdd_runner run<br/>step당 1번: 테스트 먼저 → 구현 → git 기록 판정"]
+  R --> V["③ REVIEW · sdd-review"]
   V -->|위반| R
-  V --> F["⑤ REFLECT<br/>🙋 _brain 정리 → changeset → commit → pr-write → brain-sync"]
+  V --> F["④ REFLECT<br/>회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명"]
+  F --> X{🙋 출구 조건}
+  X --> P["⑤ 마무리 · changeset → commit → pr-write<br/>REFLECT 산출물과 같은 PR"]
 ```
 
 `sdd`가 이 흐름을 이어 돌리고, 🙋에서만 사람 승인을 받는다. 각 단계 스킬은 따로 불러도 된다.
+
+하네스 엔지니어링 6축(구조→맥락→계획→실행→검증→개선)과는 이렇게 포개진다 — 앞 두 축은 레포당 한 번, 뒤 네 축이 ①~④이고 ⑤ 마무리는 축 밖 릴리스다(2026-10-16).
+
+| 축 | 스킬 | 주기 |
+|---|---|---|
+| 구조 | `project-new` `harness-init` `harness-doctor` `ai-readiness-cartography` | 레포당 1회 · 점검 격주 |
+| 맥락 | `brain-walk` `brain-sync` (CLAUDE.md·rules·references는 `harness-init`이 깐다) | 레포당 1회 · 주기 |
+| 계획 | ① 계획 = DESIGN(`sdd` 내장 절차 + `why`) → PLAN(`harness`) · 🎨 `design-brief` `design-critique` | 기능마다 |
+| 실행 | ② IMPLEMENT `harness-run` `conductor` (`test-writer`·`feature-builder`) | 기능마다 |
+| 검증 | ③ REVIEW `sdd-review` `code-reviewer` `design-reconcile` `root-cause-debugger` `systematic-debugging` | 기능마다 |
+| 개선 | ④ REFLECT 회고 1장 · `revise-claude-md` · `task-observer` · `brain-sync` · 리허설 | 기능마다 |
+| (축 밖·마무리) | ⑤ 마무리 `changeset` `commit` `pr-write` — 작업이 끝났을 때만 | 기능마다 |
+| 축 밖 | `slack-writing` `notion-writing` `explain-diff-*` `plannotator-visual-explainer` | 필요할 때 |
 
 | 무엇 | 어디 |
 |---|---|

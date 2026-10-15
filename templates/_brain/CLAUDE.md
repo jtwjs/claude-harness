@@ -10,7 +10,7 @@
 
 - **코드가 raw다.** 첫 다섯 장은 `brain-walk`가 코드에서 만든다. 사람이 원문을 던지는 투입구(`raw/`)는 두지 않는다 — 실측 레포 16곳에서 raw 0~4건, 정리 스킬 30일 호출 0. 원문은 통합 wiki에 던진다.
 - **갱신은 세 때만**: 아래 「정해진 세 순간」의 같은 PR · 구조가 크게 바뀐 작업 뒤 `brain-walk` 갱신 모드 · 인계 직전.
-- **제품·도메인 결정(무엇을 왜 — 정책·고객 사정·지표·범위)은 `decisions/<주제>.md`로 남긴다** — 버린 방법이 없어도. SDD 기능이면 `why-plan`이 PRD 「결정」 절에 먼저 적고, `sdd` REFLECT 「`_brain` 정리」가 PRD·ARCHITECTURE·ADR 세 장을 보고 옮긴다(구조가 바뀌었으면 `brain-walk` 문서도 그때 고친다). SDD 밖 결정은 바로 쓴다. 기술 결정(구조·데이터·라이브러리)은 `docs/{feature-YYYY-MM-DD}/ADR.md`에만 둔다(같은 결정을 두 곳에 쓰지 않는다). PRD·ADR은 링크만. 작업 중 알게 된 이 제품·회사의 규칙은 `domain/`·`glossary/`에, 같은 PR로.
+- **제품·도메인 결정(무엇을 왜 — 정책·고객 사정·지표·범위)은 `decisions/<주제>.md`로 남긴다** — 버린 방법이 없어도. SDD 기능이면 `sdd` ① 계획 DESIGN이 PRD 「결정」 절에 먼저 적고, `sdd` ④ REFLECT 「지식 정리」가 PRD·ARCHITECTURE·ADR 세 장을 보고 옮긴다(구조가 바뀌었으면 `brain-walk` 문서도 그때 고친다). SDD 밖 결정은 바로 쓴다. 기술 결정(구조·데이터·라이브러리)은 `docs/{feature-YYYY-MM-DD}/ADR.md`에만 둔다(같은 결정을 두 곳에 쓰지 않는다). PRD·ADR은 링크만. 작업 중 알게 된 이 제품·회사의 규칙은 `domain/`·`glossary/`에, 같은 PR로.
 - **내가 이해해야 할 것(개인 학습)은 여기 쓰지 않는다** — 커밋되지 않는 `_learn/`(하네스 `learn-setup` 훅이 만들고 `.git/info/exclude`로 뺀다)에 쌓이고, 통합 wiki가 주 1회 모아 간다.
 
 ## 2레이어
@@ -47,7 +47,7 @@ _brain/
 
 - 모든 wiki 페이지는 `[[wikilink]]`로 관련 페이지를 잇는다. 도메인 용어는 `glossary/` 단일 노드에 누적.
 - 낡은 노드는 **폴더로 옮기지 않고 `status:`만 바꾼다**(`superseded`·`archived`). 🔴 파일을 옮기면 `[[wikilink]]`가 깨지는데, 실측 4곳에서 `archived/` 폴더는 **한 번도 만들어지지 않았고** `superseded`도 0건이었다 — 옮길 사람이 없다는 뜻이다.
-- ⚠️ **각 노드는 간결하게** 유지한다(요지 우선, 상세는 링크·코드 경로로). `overview.md`도 짧은 종합만(상세는 노드 링크). 0.8 이전 `harness-init`이 깐 레포는 루트 `CLAUDE.md`가 `@_brain/wiki/`를 참조해 **노드 전부가 매 세션 로드**된다 — 그래서 간결해야 했다. 0.9부터 init은 이 줄을 넣지 않는다(`brain-sync` 머리글: 배출구 없는 레포가 33파일 72KB를 매 세션 로드했다). 노드는 `brain-walk`·`why-plan`·`brain-sync`와 필요한 세션이 연다.
+- ⚠️ **각 노드는 간결하게** 유지한다(요지 우선, 상세는 링크·코드 경로로). `overview.md`도 짧은 종합만(상세는 노드 링크). 0.8 이전 `harness-init`이 깐 레포는 루트 `CLAUDE.md`가 `@_brain/wiki/`를 참조해 **노드 전부가 매 세션 로드**된다 — 그래서 간결해야 했다. 0.9부터 init은 이 줄을 넣지 않는다(`brain-sync` 머리글: 배출구 없는 레포가 33파일 72KB를 매 세션 로드했다). 노드는 `brain-walk`·`sdd`·`brain-sync`와 필요한 세션이 연다.
 
 ## 3-operation (LLM wiki 워크플로우)
 
@@ -122,7 +122,7 @@ status: active # 필수 — active | archived | superseded
 
 ## 관계
 
-- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`다. **회고 정본은 `_brain/wiki/infra/`** 다.
+- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`다. **회고 정본은 `_brain/wiki/infra/`** 다. 기능 회고는 `infra/retro.md` 한 파일에 `sdd` ④ REFLECT가 append한다(최신이 위 · 막힌 지점 / 원인 축 / 남긴 자산 / 다음 후보 — 형식은 `sdd` SKILL.md ④-1). 막힌 지점이 있는데 남긴 자산이 비면 그 회고는 미완이다.
 
 ## 🔴 회고의 집은 하나다 — `docs/LEARNED.md` 를 접었다 (2026-09-28)
 

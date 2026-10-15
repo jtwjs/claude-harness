@@ -503,14 +503,21 @@ c='cd apps/api && mytool verify-all'
 # 규칙을 한 곳만 바꾸고 둘레(sdd·훅 지시문)에 옛 규칙이 남던 것을 리뷰가 두 번 잡았다.
 printf '\n[10] 문서 정합\n'
 ROOT="$(cd "$HOOKS/.." && pwd)"
-left=$(grep -rnE '`(grilling|why-logictree|brain-intake|find-skills|harness-new)`|claude-harness:brain-recall|decisions/<기능>' \
+left=$(grep -rnE '`(grilling|why-logictree|why-plan|brain-intake|find-skills|harness-new)`|claude-harness:(brain-recall|why-plan)|decisions/<기능>' \
   "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형|2026-10-11 \|')   # 업그레이드 이름표 행(| 날짜 |)은 옛 이름이 정상
 [ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
-# 설계 3장 → REFLECT 정리 (0.12.4): why-plan 은 _brain 에 직접 쓰지 않고, sdd REFLECT 가 세 장을 보고 옮긴다.
-direct=$(grep -nE '`why-plan`이 `?decisions|why-plan`?이 남긴다|→ `_brain/wiki/decisions/<주제>.md` · `_learn`' \
+# 설계 3장 → REFLECT 정리 (0.12.4 · 0.22.0 sdd 내장): DESIGN 절차는 _brain 에 직접 쓰지 않고, sdd REFLECT 가 세 장을 보고 옮긴다.
+direct=$(grep -nE 'DESIGN`?이 `?decisions|→ `_brain/wiki/decisions/<주제>.md` · `_learn`' \
   "$ROOT/skills" "$ROOT/templates" -r 2>/dev/null)
-grep -q '`_brain` 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$ROOT/skills/why-plan/SKILL.md" && [ -z "$direct" ] \
-  && ok "why-plan 은 세 장 · _brain 은 REFLECT 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 정리 또는 why-plan ARCHITECTURE 단계 없음}"
+grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$ROOT/skills/sdd/references/design.md" && [ -z "$direct" ] \
+  && ok "DESIGN 절차는 세 장 · _brain 은 REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
+# 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
+cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
+for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 append:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'infra/retro.md:templates/_brain/CLAUDE.md'; do
+  grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
+없음: ${need}"
+done
+[ -z "$cross" ] && ok "① 계획 두 게이트 · why 는 화면만 · REFLECT 회고+출구 조건 · ⑤ 마무리" || bad "0.22.0 흐름" "$cross"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1

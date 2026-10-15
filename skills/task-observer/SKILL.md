@@ -69,7 +69,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 6. 언제 도나
 
-- **SDD REFLECT 끝** — 순서는 `sdd` SKILL.md REFLECT 절이 정본(… → `pr-write` → `brain-sync` → **여기**). 방금 끝난 작업에서 무엇을 반복했는지 되짚는다
+- **SDD ④ REFLECT 「하네스 되돌림」의 반복 칸** — 순서는 `sdd` SKILL.md REFLECT 절이 정본(회고 1장 → 되돌림: 흘린 것·사고·**반복(여기)** → 지식 정리 → 이해 증명 → ⑤ 마무리). 커밋 전이라 `observations.md`가 같은 PR에 실린다. 방금 끝난 작업에서 무엇을 반복했는지 되짚는다
 - **`harness-doctor`와 같이** — 승격 판정 쪽
 - 사람이 "반복되는 거 없나" 물을 때
 

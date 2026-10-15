@@ -4,9 +4,11 @@
 
 | 상황 | 부를 것 |
 |---|---|
-| 과제가 막연하다 / PRD가 없다 | `why-plan` (왜부터 캐묻기 → PRD·ARCHITECTURE·ADR) |
+| 과제가 막연하다 / PRD가 없다 | `sdd` ① 계획 DESIGN이 인터뷰로 세 장을 만든다(절차 `skills/sdd/references/design.md`) |
+| 이유·근거만 확인한다(결정 전 · 슬랙 답 · 기획 검토) | `why` — 파일 없이 WHY 트리·근거 판정표만 |
 | 설계는 끝났고 구현 계획을 세운다 | `harness` |
-| 계획에 빈칸이 많다 | `why-plan` |
+| step 계획에 빈칸이 많다 | `harness` §2가 그 자리에서 캐묻는다(DESIGN으로 되돌아가지 않음) |
+| 화면이 있는 기능(시안·디자인) | `sdd` 디자인 트랙: `design-brief`(DESIGN, 브리프→시안) → `design-critique`(시안 평가) → `design-reconcile`(REVIEW, 구현 화면 대조) |
 | 기능·버그 작업을 처음부터 끝까지 | `sdd` (위 단계를 알아서 넘긴다) |
 | 병렬 트랙을 조율한다 | `conductor` (worktree 세션 2개 이상일 때 지휘 세션 하나) |
 | 원인 모를 버그·간헐적 실패 | `root-cause-debugger` |

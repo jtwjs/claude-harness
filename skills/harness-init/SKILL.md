@@ -25,7 +25,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 | 옛 이름 | 지금 | 언제 |
 |---|---|---|
-| `grilling` · `why-logictree` | `why-plan` | 2026-10-11 |
+| `grilling` · `why-logictree` · `why-plan` | 세 장을 만드는 자리는 `sdd`(① 계획 DESIGN). 이유·근거만 보는 자리는 `why` | 2026-10-11 합침 → 2026-10-16 삭제 |
+| `design-plan` | 행 삭제(PLAN은 `harness`, 화면 시안은 `sdd` 디자인 트랙 `design-brief`·`design-critique`·`design-reconcile` — 라우팅 표에 그 행이 없으면 템플릿 행을 넣는다) | 0.9.0 삭제 (2026-10-15 이름표 추가 — 레포 사본에 남아 있었다) |
 | `harness-new` | `project-new` | 2026-10-11 |
 | `brain-intake` | 행 삭제(raw 투입구 폐지, `_brain`은 팀 위키·인수인계용) | 2026-10-11 |
 | `brain-recall` · 하네스판 `find-skills` | 행 삭제 | 2026-10-11 |
