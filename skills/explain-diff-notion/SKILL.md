@@ -26,7 +26,7 @@ It should have these sections:
   2. Question
      ...
   ```
-  - **Level blocks (overrides the five-question default)**: read `~/.claude/learning-level.json` and follow `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md` — one block per area the diff touches (FE · BE · infra by file path) plus one domain block, each at that area's level. Missing file or value = beginner. beginner blocks are explanation only, no quiz and no blanks: keyword definitions → 3~5 plain sentences explaining the change → one domain line; intermediate keeps the multiple-choice toggles above (2~3 per block, 5 if only one area); advanced is 1~2 "why this way?" prompts with the key reason in a toggle.
+  - **Level blocks (overrides the five-question default)**: read `~/.claude/learning-level.json` and follow `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md` — one block per area the diff touches (FE · BE · infra by file path) plus one domain block, each at that area's level. Missing file or value = beginner. beginner blocks are 2~3 technology cards (each: keyword in words a 12-year-old gets → where this technology is normally used → why this project uses it here, with file:line → what breaks without it → pitfalls → one small flow diagram) plus one fill-in-the-blank at the end with the answer in a toggle, no scoring; a technology that already has a `종류: 기술` card in `_learn/inbox.md` gets only the "why here" and "pitfalls" lines; intermediate is multiple-choice toggles on the big picture of the technologies used (2) plus how this project applies them (1), 3+2 if only one area; advanced is 1~2 "why this way?" prompts with the key reason in a toggle.
   
 Format:
 
