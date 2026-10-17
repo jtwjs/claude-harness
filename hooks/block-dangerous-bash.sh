@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash) — 같은 폴더 deny-patterns.yaml 의 사고 패턴 차단
+# PreToolUse(Bash) — ① 같은 폴더 deny-patterns.yaml 의 사고 패턴 차단 ② owner별 gh 쓰기 계정 확인(~/.claude/gh-accounts.txt)
+#   ③ gh pr merge 는 사람 확인(ask) ④ harness.json guard.prodDb 운영 DB 조회 밖 SQL·운영 프로필 실행 차단
 # stdin: { tool_input: { command: "..." } }
 # exit 2 = 차단 (Claude가 stderr 메시지를 deny 사유로 인식)
 set -uo pipefail

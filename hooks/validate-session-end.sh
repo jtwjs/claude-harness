@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Stop — 세션 종료 시 harness.json 의 verify 를 순서대로 실행해 상태만 보고한다.
+# Stop — 응답이 끝날 때마다(세션 종료가 아니다) harness.json 의 verify 를 순서대로 실행해 상태만 보고한다.
 #
-# 🔴 전부 읽기 전용이다. 세션 끝에 파일을 조용히 다시 쓰지 않는다.
+# 🔴 전부 읽기 전용이다. 응답 끝에 파일을 조용히 다시 쓰지 않는다.
 #    (포맷 '적용'은 auto-format.sh 가 편집 직후에 한다. 여기서는 검사만.)
 #    → verify.format 에는 --check 계열(읽기)만 들어간다. harness-init 이 그렇게 기록한다.
 #

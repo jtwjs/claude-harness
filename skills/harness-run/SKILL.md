@@ -49,7 +49,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 에이전트가 `test: step N — {name} (red)`(tdd step) → `feat: step N — {name}`을 커밋하고, 러너가 남은 변경 `feat:`과 메타데이터 `chore: update phase index for step N`(body `phase: {task}`)을 커밋한다. 커밋 메시지 형식의 정본은 `commit` 스킬이다. `--no-verify` 등 훅 우회 금지 · push 하지 않는다. `stepN-output.json`(헤드리스 원문 로그)은 `.git/info/exclude`로 커밋에서 빠진다.
 
-## 5. 마무리 (d)
+## 4. 마무리
 
 - 모든 step이 `completed`면: 요약 표(step·상태·summary)를 출력하고 **`sdd-review` 스킬**로 검증하도록 안내.
 - error/blocked로 멈췄으면: 멈춘 step·사유·재개 방법을 보고.

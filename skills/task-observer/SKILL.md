@@ -1,6 +1,6 @@
 ---
 name: task-observer
-description: 반복된 것을 세어 승격 후보를 판정한다. 같은 지시를 다시 친 것·같은 교정을 다시 한 것·스킬이 있는데 안 불린 것·에이전트에 못 맡긴 것·같은 수작업 절차를 다시 밟은 것 5종만 본다. REFLECT 끝이나 harness-doctor와 같이 돈다. 3회부터 후보이고 판정까지만 한다.
+description: 반복된 것을 세어 승격 후보를 판정한다. 같은 지시를 다시 친 것·같은 교정을 다시 한 것·스킬이 있는데 안 불린 것·에이전트에 못 맡긴 것·같은 수작업 절차를 다시 밟은 것 5종만 본다. REFLECT 「하네스 되돌림」이나 harness-doctor와 같이 돈다. 3회부터 후보이고 판정까지만 한다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 

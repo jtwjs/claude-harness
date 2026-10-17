@@ -1,6 +1,6 @@
 ---
 name: harness
-description: SDD PLAN 단계 — docs/{feature-date}/ 설계문서(PRD·ARCHITECTURE·ADR)와 CLAUDE.md를 읽고 사용자와 범위를 합의한 뒤, 자기완결적 step 파일(phases/{task}/index.json + stepN.md)로 분해해줘. Use when 설계가 끝나 구현 계획을 세울 때(harness-run 실행 직전).
+description: SDD ① 계획의 PLAN — docs/{feature-date}/ 설계문서(PRD·ARCHITECTURE·ADR)와 CLAUDE.md를 읽고 사용자와 범위를 합의한 뒤, 자기완결적 step 파일(phases/{task}/index.json + stepN.md)로 분해해줘. Use when 설계가 끝나 구현 계획을 세울 때(harness-run 실행 직전).
 disable-model-invocation: false
 ---
 
@@ -17,7 +17,7 @@ disable-model-invocation: false
 - `docs/{feature-date}/PRD.md`(무엇을·왜) · `ARCHITECTURE.md`(구조·레이어) · `ADR.md`(기술 결정)
 - ⚠️ `docs/**`의 다른 문서는 읽지 않는다(컨텍스트 절약).
 
-## 2. 범위 합의 (사람 체크포인트 ② — PLAN의 첫 정지. 두 번째는 §5 step 승인)
+## 2. 범위 합의 (사람 체크포인트 ① 계획 — PLAN의 첫 정지. 두 번째는 §5 step 승인)
 
 - 설계문서에서 **구현 대상 유즈케이스·수용 조건**을 뽑아 bullet로 요약한다.
 - 모호·누락은 **추측 말고 질문**한다(karpathy: 가정 명시). 승인 전 step 파일을 쓰지 않는다.

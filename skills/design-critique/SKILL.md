@@ -1,6 +1,6 @@
 ---
 name: design-critique
-description: SDD DESIGN 단계 — 구현 전에 시안 자체를 평가한다. 페르소나·닐슨 휴리스틱·레퍼런스 실측을 독립 병렬로 돌려 발견 표와 체크포인트(verdict 변경|승인)를 낸다. design-brief로 시안을 그린 뒤, harness 전에 쓴다.
+description: SDD ① 계획의 DESIGN — 구현 전에 시안 자체를 평가한다. 페르소나·닐슨 휴리스틱·레퍼런스 실측을 독립 병렬로 돌려 발견 표와 체크포인트(verdict 변경|승인)를 낸다. design-brief로 시안을 그린 뒤, harness 전에 쓴다.
 disable-model-invocation: false
 ---
 

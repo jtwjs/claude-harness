@@ -23,4 +23,4 @@ mv incubator/ready/skills/<이름> skills/
 | 2026-10-12 | `brain-recall` | **삭제**. 전역 `~/.claude/CLAUDE.md` 「나를 아는 동료로 일하기」가 같은 일을 하고(`0_Me/Me.md` §3 Read · `2_LLMWiki/INDEX.md` 카탈로그 먼저 · 반출 금지), 스킬 본문의 경로(`system/principles.md`·`wiki/identity/`·루트 `index.md`·`wiki/projects/`)가 vault 5층 재개편(2026-10-11)으로 전부 깨졌다. 되살릴 때는 git 이력에서 꺼내 경로를 새로 쓴다 |
 | 2026-09-01 | `design-brief` · `design-plan` · `design-reconcile` | `skills/`. `sdd/SKILL.md`에 `## 0. 트랙 판단` 절과 DESIGN·PLAN·REVIEW 3개 호출 지점을 복원했다. 산출물 종착지는 `.claude/design/` |
 
-> ⚠️ **위 행은 2026-09-01 시점의 기록이라 그대로 둔다. 지금 상태는 다르다** — `design-plan`은 **2026-09-28(0.9.0)에 `skills/`에서 삭제**됐고, PLAN 자리는 `harness`가 디자인 핸드오프를 읽는 것으로 대체됐다. 현재 `sdd`의 디자인 호출 지점은 **DESIGN(`design-brief`) · REVIEW(`design-reconcile`) 둘**이다.
+> ⚠️ **위 행은 2026-09-01 시점의 기록이라 그대로 둔다. 지금 상태는 다르다** — `design-plan`은 **2026-09-28(0.9.0)에 `skills/`에서 삭제**됐고, PLAN 자리는 `harness`가 디자인 핸드오프를 읽는 것으로 대체됐다. 현재 `sdd`의 디자인 호출 지점은 **DESIGN(`design-brief` → `design-critique`) · REVIEW(`design-reconcile`) 셋**이다(`design-critique`는 0.15.0부터).

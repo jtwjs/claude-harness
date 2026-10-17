@@ -38,8 +38,8 @@ TODAY="$(date +%F)"
 
 FIX_THRESHOLD=3
 WORK_THRESHOLD=5
-CLAUDE_MAX_LINES=80    # 템플릿 45줄 · README 목표 ~40줄의 2배
-RULES_MAX_LINES=400    # 템플릿 rules 4개 합계 180줄의 2배 + 여유
+CLAUDE_MAX_LINES=80    # 템플릿 46줄 · README 목표 ~40줄의 2배
+RULES_MAX_LINES=400    # 정할 때 템플릿 rules 4개 180줄의 2배 + 여유. 지금 템플릿 rules 6개(조건부 포함) 231줄 — 여전히 아래
 
 # ── 축 1: 함정 freshness ─────────────────────────────────────────────────────
 # CLAUDE.md·rules 갱신 이후 fix: 가 쌓였다면 새 함정이 문서에 없을 가능성.

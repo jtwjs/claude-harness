@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 ## 사전 준비
 
-`.claude/harness.json`의 `verify`를 순서대로 실행한다(`harness-run` §4 코드 커밋과 같은 근거 — CLAUDE.md에 적힌 시퀀스는 그 사본이다). 각 단계에서 바뀐 파일도 관련 커밋에 포함한다.
+`.claude/harness.json`의 `verify`를 순서대로 실행한다(`harness-run` §3 커밋과 같은 근거 — CLAUDE.md에 적힌 시퀀스는 그 사본이다). 각 단계에서 바뀐 파일도 관련 커밋에 포함한다.
 
 ## git 맥락 수집
 

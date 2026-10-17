@@ -1,6 +1,6 @@
 ---
 name: design-brief
-description: SDD DESIGN 단계 — PRD를 디자인 브리프로 만들고 레포에 묶인 캔버스에 시안을 그린다. 레퍼런스부터 정하고, 상태·권한·데이터 결정을 한 질문씩 끝낸 뒤, 제작 체크리스트로 그린다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
+description: SDD ① 계획의 DESIGN — PRD를 디자인 브리프로 만들고 레포에 묶인 캔버스에 시안을 그린다. 레퍼런스부터 정하고, 상태·권한·데이터 결정을 한 질문씩 끝낸 뒤, 제작 체크리스트로 그린다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
 disable-model-invocation: false
 ---
 
@@ -10,7 +10,7 @@ PRD를 **디자인 브리프**로 압축하고, 그 브리프로 **레포에 묶
 
 ## 0. 입력
 
-- `docs/{feature-YYYY-MM-DD}/PRD.md`. 없거나 모호하면 `sdd` ① 계획 DESIGN(`references/design.md`)으로 먼저 만든다.
+- `docs/{feature-YYYY-MM-DD}/PRD.md`. 없거나 모호하면 `sdd` ① 계획 DESIGN(`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`)으로 먼저 만든다.
 
 ## 0.5 레퍼런스 먼저
 

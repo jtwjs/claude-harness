@@ -33,8 +33,8 @@ disable-model-invocation: false
 1. **리뷰 범위** — diff 범위·파일 수(1~2줄).
 2. **결과 표** — 각 축: `통과 / 위반 / 확인필요` + 근거(파일:라인).
    - 🔴 크리티컬(빌드·타입 붕괴·CRITICAL 위반·명백 버그) / 🟡 경고(규칙·경계·테스트 누락) / 🟢 제안.
-3. **수정 제안** — 항목별 `파일:라인 — 문제 — 수정 방향`. 실제 수정은 하지 않고 `feature-builder`로 인계.
-4. **다음 단계** — 통과 시 REFLECT로. 순서와 커밋 메시지 규칙은 여기 다시 적지 않는다 — **순서는 `sdd` SKILL.md의 REFLECT 절, 메시지 형식(`git.commitScope`)은 `commit` 스킬이 정본**이다. `--no-verify` 금지만 여기서도 한 번 더.
+3. **수정 제안** — 항목별 `파일:라인 — 문제 — 수정 방향`. 실제 수정은 하지 않는다. 고치는 경로는 `sdd` REVIEW 절과 같다 — 수정 step을 하나 더 만들어 `harness-run`으로, 작은 수정만 `feature-builder`.
+4. **다음 단계** — 통과 시 REFLECT로. 순서와 커밋 메시지 규칙은 여기 다시 적지 않는다 — **순서는 `sdd` SKILL.md의 ⑤ 마무리 절, 메시지 형식(`git.commitScope`)은 `commit` 스킬이 정본**이다. `--no-verify` 금지만 여기서도 한 번 더.
 
 ## 위임
 

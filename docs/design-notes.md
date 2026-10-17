@@ -31,17 +31,18 @@
 | 0.7.0 | 27 + 4 | 5,221 | 168.4 |
 | 0.8.0 | 27 + 4 | 5,120 | 165.2 |
 | 0.9.0 | 26 + 4 | 3,994 | 133.1 |
+| 0.23.0 | 25 + 4 | 4,748 | 163.7 |
 
-0.10.0: 스킬 27 + 4 — ⚠️ claude plugin details로 재측정 필요
+0.10.0~0.22.1은 재지 않았다(재기 시작 2026-10-17). 0.23.0에서 컴포넌트당 180토큰을 넘는 것: `plannotator-visual-explainer` ~290 · `harness-init` ~250 · `explain-diff-html` ~230 · `harness-run` ~220 · `sdd`·`test-writer` ~210 — `description` 다듬기 후보
 
 ## 4. RED → GREEN
 
-- `test-writer`는 **구현 파일을 열지 않고** PRD 수용 조건에서 실패 테스트를 만든다. `verify.test`가 **실패해야** 통과다 — 처음부터 초록이면 잡는 것이 없다는 뜻이다.
-- `feature-builder`는 테스트 파일을 고치지 않는다. `verify` 전체 통과 **AND** diff에 테스트 파일 없음.
+- SDD의 RED/GREEN 판정은 `sdd_runner.py judge`가 git 기록으로 한다(0.18.0~) — 테스트만 담긴 커밋이 먼저 · RED 시점 재실행이 **실패해야** · RED 뒤 테스트 파일 무변경 · verify 통과. 처음부터 초록이면 잡는 것이 없다는 뜻이다. 정본 `docs/sdd-runner.md`
+- `test-writer`(구현 파일을 열지 않고 실패 테스트)·`feature-builder`(테스트 파일을 고치지 않고 통과)는 러너가 부르지 않는 수동 TDD 도구다. 사람이 엄격한 분리를 원할 때와 REVIEW의 작은 수정에 쓴다.
 - 모든 step에 테스트가 붙지는 않는다. `harness`가 step마다 `tdd: true|false`를 판정하고 `false`면 이유를 적는다.
 - 모델 배정: 탐색·판정 에이전트(`test-writer`·`code-reviewer`·`root-cause-debugger`)는 상위 모델, `feature-builder`는 정해진 것을 만드는 일이라 기본 모델. 올리는 근거는 느낌이 아니라 `retries` 기록이다(`BACKLOG.md`).
 
-## 5. 계획 게이트는 하나
+## 5. 계획은 한 단계, 게이트는 둘
 
 ① 계획 = DESIGN → PLAN 한 단계, 게이트 둘(0.22.0, 2026-10-16). DESIGN 절차(인터뷰 → 세 장 → Readiness)는 `skills/sdd/references/design.md`로 sdd에 내장했다 — 별도 스킬(`why-plan`, 2026-10-11 `grilling`+`why-logictree` 합침)은 30일 sdd 세션 8건 중 호출 0이었고 sdd가 PRD를 인라인으로 썼다. 호출 한 단계를 없애고 절차를 sdd가 직접 읽는다. 범용 부분(WHY·3질문·로직트리·So What/Why So·질문 규칙 정본)은 `why` 스킬로 — 파일을 쓰지 않고 이유·근거만 본다. step 승인 직전의 빈칸은 `harness` §2가 같은 질문 규칙으로 그 자리에서 캐묻는다(옛 재호출 경로는 실사용 0건이었고, DESIGN이 PLAN 산출물을 고치는 교차를 만들었다). DESIGN·PLAN을 **스킬 하나로 합치지 않은** 근거: `harness` 단독 호출(30일 37회 vs DESIGN 2회 — PRD가 있는 기능에 step만 추가하는 경우가 대부분) · 게이트가 묻는 것이 다름(Readiness "무엇을 왜가 굳었나" / step 승인 "어떻게 쪼갰나", 디자인 트랙 브리프→시안 승인이 그 사이) · 한 텍스트에 인터뷰와 분해가 같이 있으면 모델이 분해로 서두른다(sdd 인라인 PRD가 그 증거). 결정 주체: 사람(단계는 묶고 스킬·게이트는 둘 · why 분리).
 
@@ -87,3 +88,4 @@ BE/FE 전용 플러그인을 따로 두지 않는다. 절차 스킬은 스택과
 - 워크플로우 리뷰(0.22.0, 2026-10-15~16): 30일 레포 세션 Skill 호출 집계(wiki 제외)로 sdd 5단계를 대조했다 — 전형 순서는 `sdd > harness > harness-run > sdd-review > revise-claude-md > pr-write`. ① DESIGN: `why-plan` 2회, sdd 세션 8건 중 0회·4건은 sdd가 PRD를 인라인으로 씀 → `why-plan`을 sdd에 내장(`references/design.md`) + 범용 `why` 스킬 신설 ② "step 승인 직전 재호출" 0회 → 삭제, `harness` §2가 같은 질문 규칙으로 캐묻기 ③ REFLECT: `_brain` 정리 0/8·brain-sync 2·changeset 4·pr-write 125 — wiki가 회고의 핵심이라 적은 「막힌 지점 → 남긴 자산」 한 장이 sdd에 아예 없었다(record-layers: LEARNED.md 3곳 전부 사망, 남긴 자산이 비면 회고 실패). REFLECT를 넷으로 다시 짰다 — 회고 1장(`_brain/wiki/infra/retro.md` append) → 하네스 되돌림 ≥1(흘린 것 revise-claude-md · 사고 non-obvious-patterns · 반복 task-observer · 더하기만 금지) → 지식 정리(`_brain`·brain-sync) → 이해 증명(리허설). 출구 조건: 회고 있음 · 막힘이 있으면 남긴 자산 ≥1(없으면 안 남긴 이유) · 건너뜀은 이유와 함께 — 못 맞추면 ⑤로 못 간다. 릴리스(changeset→commit→pr-write)는 **⑤ 마무리**로 분리 — 작업이 끝났을 때만, REFLECT 산출물과 같은 PR ④ 옛 이름 `grilling` 33회(10-11 뒤에도 9회+, `Unknown skill` 오류)·레포 사본 17개에 grilling·why-logictree·design-plan 잔존 → 이름표에 `design-plan`(행 삭제)·`why-plan` 추가, 템플릿 라우팅에 디자인 트랙 행, 레포는 `harness-init` 업그레이드로 ⑤ 6축은 README 대조표 한 장만(앞 두 축=레포당 1회, 뒤 네 축=①~④, ⑤는 축 밖) ⑥ technic.md "리뷰는 새 세션에" vs sdd-review 서브에이전트 → sdd-review가 맞다(컨텍스트 격리면 충분). 결정 주체: 사람(워크플로우 기준 리뷰 · 단계는 묶고 스킬은 둘 · why 분리 · ⑤ 분리 · 회고 자리 infra · 출구 조건은 막기 · sdd-review), AI 추천 수용(교차 삭제 · 되돌림 4종 · 더하기만 금지)
 - 리뷰 반영(0.18.1, 2026-10-13): GitBook 노트·execute.py 기준 리뷰 3갈래(러너·훅·문서)에서 🔴 7건. ① `judge`가 '첫 pending'을 골라 방금 끝난 step 대신 다음 step을 판정 → `--step N` 필수 ② RED 위반은 같은 BASE에서 못 고침 → 그 시도를 백업 브랜치로 옮기고 BASE로 되돌림 ③ 운영 DB 판별 스크립트가 죽으면 통과(fail-open) → 차단 + 세션 시작 알림 ④ 운영 DB 쓰기 판정을 **허용 목록**으로(SELECT·SHOW·EXPLAIN·DESCRIBE만, 파일·파이프·대화형·잠금 SELECT 차단) ⑤ `loop-lock`을 PostToolUseFailure에도 — 실패 반복을 못 셌다 ⑥ `gh pr merge`를 사람 확인(ask)으로 — dry-run이 문장뿐이었다. 막지 않고 묻는 이유: 사람이 시킨 머지는 그대로 승인하면 된다 ⑦ pyc 커밋 제거. 그 밖에 멈출 때 `wip:` 커밋 · 재개 원인을 지시문에 · 재개 뒤 한도 새로 · 실패 이력 `attempts` · `jdbc-url`·`.env*` 충돌·URL 직접 주입·`SPRING_PROFILES_INCLUDE` · `ANTHROPIC_API_KEY` 경고. 결정 주체: 사람(허용 목록), AI 추천 수용(나머지, 머지는 ask)
 - 학습 블록을 기술 중심으로(0.23.0, 2026-10-17): 초급·중급이 "이 diff가 무엇을 바꿨나"만 다뤄 용어 한 줄 정의에서 끝났다. 사용자 인터뷰로 정함 — 초급은 기술 카드 2~3장(키워드 12살 설명 · 원래 맥락 · 여기선 왜 · 안 쓰면 · 조심할 것 · 흐름 그림) + 끝에 정답 공개 빈칸 1(채점 없음), 이미 `_learn`에 같은 기술 카드가 있으면 여기선 왜 · 조심할 것만. 중급은 큰 흐름 2 + 적용 1. 고급·도메인 블록은 그대로. 정본 `docs/learning-level.md` §3, 가리키는 곳 4곳(pr-write 4.9 · sdd 빈틈 3곳·리허설 · explain-diff 둘)과 세션 주입 문구를 같이 고쳤다. 길이는 카드 8줄·블록 25줄 상한, 실사용 길이는 미측정
+- 낡은 문서 정리(0.23.1, 2026-10-17): 흐름 개편(0.18.0 러너 · 0.22.0 ① 계획·⑤ 마무리 · 0.23.0 학습 블록) 뒤 따라 바뀌지 않은 문장을 전수 점검했다(경로 참조·스킬 이름·개수는 기계 대조, 의미는 서브에이전트 2갈래 + 직접 재확인). 고친 것: harness-run 절 번호(§5→§4, 끊긴 §4 참조 2곳) · REVIEW 수정 경로를 sdd 기준(수정 step → harness-run, 작은 수정만 feature-builder)으로 4곳 통일 · sdd-review 커밋 순서 위치(⑤ 마무리) · explain-diff 설명 줄 · 템플릿 revise-claude-md 시점 · PR 템플릿·pr-write 본문에 회고 칸 · 상대 경로 · Stop 훅을 "응답 끝"으로 · BACKLOG 셀 수 없게 된 조건 · 로드 예산 0.23.0 실측 한 줄

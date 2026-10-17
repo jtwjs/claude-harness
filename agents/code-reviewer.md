@@ -81,7 +81,7 @@ tools: Read, Grep, Glob, Bash
 
 ## 경계
 
-- 🔴/🟡 수정·리팩토링 실행 → `feature-builder`
+- 🔴/🟡 수정·리팩토링 실행 → 수정 step을 만들어 `harness-run`(작은 수정만 `feature-builder`) — `sdd` REVIEW 절
 - 테스트 작성 → `test-writer`
 - 원인 불명 버그·재현 안 되는 회귀 → `root-cause-debugger`
 - **인계 대상을 보고에 적는다. 호출은 메인이 한다.**

@@ -35,7 +35,7 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 ## 0. 준비 (첫 실행)
 
 ```bash
-gh auth status                                   # 이 머신은 계정이 둘이다. 활성 계정을 확인한다
+gh auth status                                   # gh 계정이 여럿이면 활성 계정을 확인한다(owner별 쓰기 계정은 block-dangerous-bash 가 ~/.claude/gh-accounts.txt 로 막는다)
 gh repo view --json nameWithOwner,viewerPermission -q '.nameWithOwner+" "+.viewerPermission'
 gh label list --limit 200 --json name -q '.[].name'
 ```

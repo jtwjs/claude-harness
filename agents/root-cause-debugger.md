@@ -56,7 +56,7 @@ tools: Read, Grep, Glob, Bash
 ## 경계
 
 - 재현 실패 테스트·재발 방지 테스트 작성 → `test-writer`
-- 합의된 수정 적용·기능 보강 → `feature-builder`
+- 합의된 수정 적용·기능 보강 → 러너 step이면 메인이 그 step을 `error → pending`으로 되돌려 재개(`sdd` 「재개」), 러너 밖 작은 수정이면 `feature-builder`
 - **3-Fix 규칙이 발동하면**(3회+ 실패) 그건 구조 축 판정 대상이다 → `code-reviewer` 축 3
 - **인계 대상을 보고에 적는다. 호출은 메인이 한다.**
 - 새로 발견한 비명백 함정은 `.claude/rules/non-obvious-patterns.md` 추가 후보로 **한 줄 보고**한다.

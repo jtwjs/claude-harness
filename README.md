@@ -25,16 +25,16 @@
 /plugin install claude-md-management@claude-plugins-official   # 선택. REFLECT의 세션 학습 회수
 ```
 
-기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 이미 깔린 레포에서 `/harness-init`을 다시 부르면 업그레이드 모드로 템플릿 사본(라우팅·`_brain/CLAUDE.md`·버전)만 새 버전에 맞춘다. 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
+기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 이미 깔린 레포에서 `/harness-init`을 다시 부르면 업그레이드 모드로 템플릿 사본(라우팅·`_brain/CLAUDE.md`·버전·스킬 이름표·`.gitignore`)만 새 버전에 맞춘다. 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
 
 ## 무엇이 들었나
 
 | 칸 | 내용 |
 |---|---|
 | 스킬 25개 | SDD: `sdd` `harness` `harness-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `systematic-debugging` `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff-html` `explain-diff-notion` `plannotator-visual-explainer` |
-| 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
+| 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때 · REVIEW의 작은 수정) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
 | SDD 러너 | `skills/harness-run/scripts/sdd_runner.py` — 세션 안(`harness-run`)·헤드리스(`run`) 같은 규칙. step당 1번 호출 + git 기록 판정. 설계 `docs/sdd-runner.md` |
-| 훅 11개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` `brain-sync-auto` · 세션 끝: `validate-session-end` |
+| 훅 11개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인 + owner별 gh 쓰기 계정 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` `brain-sync-auto` · 응답 끝(Stop): `validate-session-end` |
 | `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `_brain/`, `stacks/` |
 | `incubator/` | 로드 경로 밖 대기 스킬(지금 비어 있음 — 이력은 `incubator/README.md`) |
 
@@ -65,7 +65,7 @@ flowchart TD
 | 구조 | `project-new` `harness-init` `harness-doctor` `ai-readiness-cartography` | 레포당 1회 · 점검 격주 |
 | 맥락 | `brain-walk` `brain-sync` (CLAUDE.md·rules·references는 `harness-init`이 깐다) | 레포당 1회 · 주기 |
 | 계획 | ① 계획 = DESIGN(`sdd` 내장 절차 + `why`) → PLAN(`harness`) · 🎨 `design-brief` `design-critique` | 기능마다 |
-| 실행 | ② IMPLEMENT `harness-run` `conductor` (`test-writer`·`feature-builder`) | 기능마다 |
+| 실행 | ② IMPLEMENT `harness-run` `conductor` (수동 TDD·작은 수정: `test-writer`·`feature-builder`) | 기능마다 |
 | 검증 | ③ REVIEW `sdd-review` `code-reviewer` `design-reconcile` `root-cause-debugger` `systematic-debugging` | 기능마다 |
 | 개선 | ④ REFLECT 회고 1장 · `revise-claude-md` · `task-observer` · `brain-sync` · 리허설 | 기능마다 |
 | (축 밖·마무리) | ⑤ 마무리 `changeset` `commit` `pr-write` — 작업이 끝났을 때만 | 기능마다 |

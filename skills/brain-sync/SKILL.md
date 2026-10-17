@@ -1,6 +1,6 @@
 ---
 name: brain-sync
-description: 이 프로젝트의 _brain/wiki/ 에 쌓인 도메인 지식을 통합 wiki(개인 vault)로 이관한다. 프로젝트마다 지식이 갇히지 않게 하는 배출구이고, 부수 효과로 프로젝트 _brain 이 계속 가벼워진다. SDD REFLECT 끝에서 또는 "위키에 정리해줘"라고 할 때 실행한다. 사람 확인을 받고 이관하며, 민감 정보는 거부한다.
+description: 이 프로젝트의 _brain/wiki/ 에 쌓인 도메인 지식을 통합 wiki(개인 vault)로 이관한다. 프로젝트마다 지식이 갇히지 않게 하는 배출구이고, 부수 효과로 프로젝트 _brain 이 계속 가벼워진다. SDD REFLECT 「지식 정리」에서 또는 "위키에 정리해줘"라고 할 때 실행한다. 사람 확인을 받고 이관하며, 민감 정보는 거부한다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 
