@@ -153,6 +153,14 @@ query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
 
 **실패하면**(권한·기능 미지원): 본문 첫 줄 `Blocked-by: #N` + `blocked` 라벨로 대신한다. 조회는 `gh issue list --label conductor --json number,title,body,labels` 한 번으로 받아 첫 줄을 파싱한다.
 
+**트랙 현황** — 디스패치(§5) 전, 예외 판정(§6) 전, 사용자가 "현황"이라고 할 때 표 한 장으로 본다. 트랙 세션마다 묻거나 worktree를 하나씩 열지 않는다.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/tracks_status.py"            # --stale 분(기본 30) · --no-gh
+```
+
+worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
+
 ## 5. 트랙 지시문
 
 `.claude/references/track-brief.md`를 채워 트랙 세션에 넘긴다. 손으로 다시 쓰지 않는다. 트랙 세션이 이미 떠 있으면 채운 지시문을 `SendMessage`로 보낸다(§8). 지시문에는 값이 없고 이슈 번호와 `ADR-NNN` 참조만 들어 있으므로 메시지로 보내도 원장이 갈라지지 않는다. 열린 이슈 목록은 §4 조회 결과를 그대로 붙인다.

@@ -50,12 +50,13 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    1) **회고 1장 append** — `_brain/wiki/infra/retro.md`(레포당 1파일, 최신이 위. `_brain`이 없으면 `docs/retro.md`). 회고는 이력이라 고치지 않고 쌓는다.
       ```
       ## YYYY-MM-DD — <기능 slug>
+      - 숫자: `phases_status.py --retro <task>` 합계 줄 (예: step 7 · 완료 7 · 재시도 3 · error/blocked 0 · 소요 2h10m)
       - 막힌 지점: step error·retries·재지시·리뷰 🔴·손으로 우회한 것 (없으면 "없음")
       - 원인 축: 맥락(CLAUDE.md·rules) / 검증(테스트·verify) / 도구(스킬·훅·MCP) / 코드(구조·패턴) / 공유(팀에 안 퍼짐)
       - 남긴 자산: <파일·훅·스킬·규칙 경로> — 막힌 지점이 있으면 비울 수 없다
       - 다음 후보: 아직 안 놓은 다리 (선택)
       ```
-      막힌 지점은 `phases/{task}/index.json`의 error·retries·`attempts`, 세션의 재지시·재교정, `sdd-review` 🔴에서 **모은다** — 기억으로 쓰지 않는다. 막힌 지점이 0이면 "막힌 지점 없음" 한 줄로 끝.
+      숫자 줄은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py" --retro <task>`의 마지막 줄을 그대로 붙인다(step별 표는 막힌 지점을 고를 때 본다). 막힌 지점은 `phases/{task}/index.json`의 error·retries·`attempts`, 세션의 재지시·재교정, `sdd-review` 🔴에서 **모은다** — 기억으로 쓰지 않는다. 막힌 지점이 0이면 "막힌 지점 없음" 한 줄로 끝.
    2) **하네스 되돌림 ≥1** — 회고의 「남긴 자산」을 실제로 놓는다. 종류별 종착지:
       - **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 🔴 **종착지는 하네스 3층으로 재지정** — 기본값 CLAUDE.md는 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.** 플러그인이 없으면 건너뛰고 한 줄 보고.
       - **사고**(실제로 당한 함정) → `rules/non-obvious-patterns.md` 한 줄. 고친 커밋과 같은 PR.

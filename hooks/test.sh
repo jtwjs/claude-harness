@@ -192,6 +192,44 @@ echo '{"phase":"be-a","docs":"docs/x","after":[],"steps":[{"step":1,"status":"er
 (cd "$TMP/ph" && python3 "$PS" --check fe-a >/dev/null) && bad "선행 미완료 통과" "be-a 가 error 인데 fe-a 를 허용했다" || ok "선행 미완료 — exit 1"
 out=$(cd "$TMP/ph" && python3 "$PS")
 printf '%s' "$out" | grep -A2 '^docs/x' | head -3 | sed -n 2p | grep -q 'be-a' && ok "현황 — docs 로 묶고 선행이 먼저" || bad "현황 순서" "$out"
+# --retro: 겹쳐 실행된 step 은 자기 started→completed 로 · retries 없으면 attempts 수 · done 은 완료 · obsolete 제외 · +0900 형식
+cat > "$TMP/ph/phases/old/index.json" <<'JSON'
+{"steps":[
+ {"step":1,"name":"a","status":"completed","started_at":"2026-10-16T18:23:15+0900","completed_at":"2026-10-16T18:40:00+0900","retries":1},
+ {"step":2,"name":"b","status":"done","started_at":"2026-10-16T18:32:14+0900","completed_at":"2026-10-16T18:41:55+0900","attempts":[{"at":"x","error":"y"},{"at":"x","error":"y"}]},
+ {"step":3,"name":"c","status":"error"},
+ {"step":4,"name":"d","status":"obsolete","retries":9}]}
+JSON
+out=$(cd "$TMP/ph" && python3 "$PS" --retro old)
+printf '%s' "$out" | grep -q '^step 3 · 완료 2 · 재시도 3 · error/blocked 1 · 소요 26m$' && ok "--retro 합계 줄(겹친 실행·attempts·done·obsolete)" || bad "--retro 합계" "$out"
+printf '%s' "$out" | grep -qF '| 3 | c | error | 0 | - |' && ok "--retro 시각 없는 step 은 -" || bad "--retro 빈 소요" "$out"
+
+# ── 케이스 2-g: conductor tracks_status — 브랜치로 트랙 매칭 · 막힌 트랙이 맨 위 (2026-10-18) ──
+printf '\n[2-g] tracks_status — 브랜치 매칭 · ⛔ 먼저\n'
+TS="$HOOKS/../skills/conductor/scripts/tracks_status.py"
+mkdir -p "$TMP/tr/.claude/references" && (cd "$TMP/tr" && git init -q -b main && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init)
+printf '| 트랙 | 소유 |\n|---|---|\n| `admin` | a |\n| `renderer` | r |\n' > "$TMP/tr/.claude/references/tracks.md"
+(cd "$TMP/tr" && git worktree add -q "$TMP/tr-siren" -b feature/admin-x && git worktree add -q "$TMP/tr-rd" -b feature/renderer-y) 2>/dev/null
+mkdir -p "$TMP/tr-siren/phases/admin-x" "$TMP/tr-rd/phases/renderer-y"
+echo '{"steps":[{"step":1,"name":"s1","status":"completed"},{"step":2,"name":"boom","status":"error"}]}' > "$TMP/tr-siren/phases/admin-x/index.json"
+echo '{"steps":[{"step":1,"name":"s1","status":"pending"}]}' > "$TMP/tr-rd/phases/renderer-y/index.json"
+out=$(cd "$TMP/tr" && python3 "$TS" --no-gh)
+printf '%s' "$out" | sed -n 3p | grep -qF '| ⛔ | admin | tr-siren | feature/admin-x | ⛔ admin-x 1/2 boom |' && ok "막힌 트랙이 첫 행 · 폴더명과 다른 트랙을 브랜치로 매칭" || bad "tracks_status" "$out"
+printf '%s' "$out" | grep -qF '| … | renderer | tr-rd | feature/renderer-y | ◆ renderer-y 0/1 ▶ s1 |' && ok "진행 중 트랙 표시" || bad "tracks_status 진행" "$out"
+
+# ── 케이스 2-h: daily-hub — 사람 요청만 · 헤드리스 제외 · 심볼릭 링크 중복 제거 · 오늘 학습 카드 (2026-10-18) ──
+printf '\n[2-h] daily_hub — 세션·학습 카드 집계\n'
+DH="$HOOKS/../scripts/daily-hub/daily_hub.py"; H="$TMP/dh"
+mkdir -p "$H/.claude/projects/-w" "$H/repo/_learn" && (cd "$H/repo" && git init -q)
+ln -s "$H/.claude/projects/-w" "$H/.claude/projects/-w-link"
+u() { printf '{"type":"user","promptSource":"typed","entrypoint":"%s","timestamp":"%s","cwd":"%s","message":{"role":"user","content":"%s"}}\n' "$1" "$2" "$H/repo" "$3"; }
+{ printf '{"type":"custom-title","customTitle":"repo-fe"}\n'; u cli 2026-10-17T23:30:00Z "첫 요청"; u cli 2026-10-18T05:00:00Z "마지막 요청"; u cli 2026-10-16T01:00:00Z "다른 날"; } > "$H/.claude/projects/-w/a.jsonl"
+u sdk-cli 2026-10-18T01:00:00Z "/routine evening" > "$H/.claude/projects/-w/b.jsonl"
+printf '%s\n' "$H/repo" > "$H/.claude/learn-repos.txt"
+printf '## YYYY-MM-DD · 템플릿\n## 2026-10-18 · 오늘 카드\n- 종류: 기술 · 출처: 빈틈 3곳\n- 상태: 설명 들음\n## 2026-10-17 · 어제 카드\n- 종류: 기술 · 출처: AI 설명\n' > "$H/repo/_learn/inbox.md"
+out=$(python3 "$DH" 2026-10-18 --home "$H" --out "$H/out")
+[ "$out" = "오늘 세션 1 · 프로젝트 1 · 새 학습 1 — 자세히: $H/out/2026-10-18.html" ] && ok "세션 1(헤드리스·링크 중복 제외) · 학습 1(오늘만)" || bad "daily_hub 집계" "$out"
+grep -q '08:30~14:00' "$H/out/2026-10-18.html" && grep -q 'repo-fe' "$H/out/2026-10-18.html" && grep -q '빈틈 3곳' "$H/out/2026-10-18.html" && ok "KST 시간대 · 세션 이름 · 빈틈 3곳 표시" || bad "daily_hub HTML" "$(grep -o '[0-9][0-9]:[0-9][0-9]~[0-9:]*' "$H/out/2026-10-18.html")"
 
 printf '\n[3] tdd-guard — include/exclude 판정\n'
 mkdir -p "$TMP/on/.claude" "$TMP/on/src/features" && (cd "$TMP/on" && git init -q)
