@@ -159,7 +159,7 @@ query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/tracks_status.py"            # --stale 분(기본 30) · --no-gh
 ```
 
-worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
+worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 사람에게는 `--compact` 한 줄(`트랙 ⛔admin 💤renderer 진행1 끝1`)이 지휘 자리(기준 worktree) 상태줄에 자동으로 뜬다(개인 dotfiles 상태줄이 부름). 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
 
 ## 5. 트랙 지시문
 

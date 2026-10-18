@@ -216,6 +216,8 @@ echo '{"steps":[{"step":1,"name":"s1","status":"pending"}]}' > "$TMP/tr-rd/phase
 out=$(cd "$TMP/tr" && python3 "$TS" --no-gh)
 printf '%s' "$out" | sed -n 3p | grep -qF '| ⛔ | admin | tr-siren | feature/admin-x | ⛔ admin-x 1/2 boom |' && ok "막힌 트랙이 첫 행 · 폴더명과 다른 트랙을 브랜치로 매칭" || bad "tracks_status" "$out"
 printf '%s' "$out" | grep -qF '| … | renderer | tr-rd | feature/renderer-y | ◆ renderer-y 0/1 ▶ s1 |' && ok "진행 중 트랙 표시" || bad "tracks_status 진행" "$out"
+out=$(cd "$TMP/tr" && python3 "$TS" --compact)
+[ "$out" = "트랙 ⛔admin 진행1" ] && ok "--compact 한 줄(막힌 트랙 이름 · 나머지는 수 · 기준 worktree 제외)" || bad "tracks_status --compact" "$out"
 
 # ── 케이스 2-h: daily-hub — 사람 요청만 · 헤드리스 제외 · 심볼릭 링크 중복 제거 · 오늘 학습 카드 (2026-10-18) ──
 printf '\n[2-h] daily_hub — 세션·학습 카드 집계\n'

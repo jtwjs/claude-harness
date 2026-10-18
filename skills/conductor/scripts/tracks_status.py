@@ -13,6 +13,7 @@ worktree 하나 = 트랙 작업 하나(`.claude/references/tracks.md`). worktree
 
 Usage:
     tracks_status.py [--stale MIN] [--no-gh]
+    tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 끝1 (gh 안 부름. 트랙 표가 없거나 worktree 1개면 빈 출력)
 """
 import json
 import re
@@ -108,9 +109,12 @@ def main(argv: list) -> int:
     stale = 30
     if "--stale" in argv:
         stale = int(argv[argv.index("--stale") + 1])
-    use_gh = "--no-gh" not in argv
+    compact = "--compact" in argv
+    use_gh = "--no-gh" not in argv and not compact
     root = Path(sh(["git", "rev-parse", "--show-toplevel"]) or ".")
     tracks = tracks_of(root)
+    if compact and not tracks:
+        return 0
     now = time.time()
     rows = []
     for w in worktrees(root):
@@ -128,6 +132,14 @@ def main(argv: list) -> int:
         rows.append((rank, mark, track or "-", wt.name, br, prog,
                      ago(now - last) if last else "-", str(dirty),
                      followups(root, track) if use_gh else ""))
+    if compact:
+        rows = sorted(r for r in rows if r[2] != "-")   # 트랙에 안 걸린 worktree(지휘가 앉은 기준 브랜치)는 뺀다
+        if not rows:
+            return 0
+        named = [f"{r[1]}{r[2]}" for r in rows if r[0] <= 1]
+        counts = [f"{w}{sum(1 for r in rows if r[1] == m)}" for m, w in (("…", "진행"), ("✓", "끝")) if any(r[1] == m for r in rows)]
+        print("트랙 " + " ".join(named + counts))
+        return 0
     if not rows:
         print("worktree 가 없다")
         return 0
