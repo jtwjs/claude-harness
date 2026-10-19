@@ -48,9 +48,10 @@ flowchart TD
 | 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test`(앱별이면 테스트가 든 앱만, `$step.test`가 있으면 그것) → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" — 이번 시도 버림 |
 | 4 | (`tdd: true`) 그 뒤 테스트 파일 무변경 — 바뀌었으면 되돌림 커밋 후 실패 | "GREEN: 테스트 파일을 고쳤다(되돌림)" |
 | 5 | 이 step에서 커밋된 변경이 있다. `kind: measure`(측정 전용)면 변경 0 허용 + `summary`에 백틱 명령·결과 필수, 통과 시 6 생략(#8). 단 phase 마지막 step이면 6을 전체로 돈다(0.25.0) | "completed 보고인데 변경 없음" / "measure: summary 에 측정 명령(백틱)과 결과가 없다" |
-| 6 | `verify` 통과. 앱별이면 바뀐 파일이 든 앱 + `verifyAffects`만(#5), `$step` 명령이 있으면 그것(0.25.0). 앱 밖 파일 · phase 마지막 step · 재개 step이면 전체 명령 전부 | "verify 실패: <이름>" |
+| 6 | `verify` 통과. 앱별이면 바뀐 파일이 든 앱 + `verifyAffects`만(#5), `$step` 명령이 있으면 그것(0.25.0). 앱 밖 파일 · phase 마지막 step · 재개 step이면 전체 명령 전부. 마지막 step에서 전체가 깨지고 이 step 범위는 통과(또는 측정 step)면 **blocked**(0.25.0) | "verify 실패: <이름>" / "… 앞 step 탓으로 보여 재시도하지 않는다" · "… 이 step 범위에서도 깨진다" |
 
 - **step 명령(`$step`, 0.25.0)**: 앱(단일 앱이면 `verify`)에 `"$step": {"test": "… {since} …"}`를 두면 판정 3·6, 서브에이전트 지시문의 「검증 명령」, 헤드리스 Stop 훅(env `SDD_RUNNER_SINCE`)이 전체 명령 대신 그것을 쓴다. `{since}`는 그 step 시작 커밋(BASE)이고, 명령이 `git diff {since}`·미추적 파일로 영향받은 테스트를 스스로 고른다(예: `vitest run --changed {since}`). `$` 키라 전체 명령으로는 모이지 않는다. 전체로 돌리는 때: 앱 밖 파일 · phase 마지막 step(측정 step 포함) · 재개 step(앞 시도 `wip:` 커밋이 BASE 앞에 있어 범위가 빈다). 근거: 앱 하나의 test 전체가 step마다 judge·RED·서브에이전트·Stop 훅에서 여러 번 돌아, 테스트 수에 비례해 step 비용이 커졌다(유통 대시보드 10-19: server 전체 52분 · web 5초 타임아웃 재실행)
+- **마지막 step의 전체 실패 가리기(0.25.0)**: 전체 verify가 깨지면 같은 앱의 step 명령을 한 번 더 돌린다. 통과하면 이 step 범위 밖(앞 step) 탓이라 재시도(최대 4회 × 전체 test) 대신 blocked — 그 step 에이전트는 남의 실패를 고칠 수 없다. 측정 step(변경 없음)은 바로 blocked. step 명령이 없으면 못 가려 지금처럼 재시도
 - 재시도는 첫 시도 + 3회 = 최대 4회(`harness-run`·`sdd`와 같은 문장). 강의 execute.py는 **총 3회**(`range(1, MAX_RETRIES+1)`) — 우리 하네스가 원래 쓰던 "재시도 3"을 유지했다. `retries`는 승격 판단 계수기라 재개 때도 0으로 돌리지 않고, 한도는 재개(`resumed_at`) 뒤 실패 수로 센다
 - 실패 사유는 `last_error`(다음 지시문용, 통과하면 지움)와 `attempts: [{at, error}]`(이력, 통과해도 남김 — REFLECT가 "어디서 헤맸나"를 본다, 강의 SDD §5 학습 루프)
 - RED 위반(2·3)은 같은 BASE 위에서 고칠 수 없다(1회차의 잘못된 커밋이 계속 판정 대상) → 이번 시도 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다. 지우지 않는다
@@ -85,7 +86,7 @@ flowchart TD
 
 ## 검증 상태
 
-- `python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py` — 41개 통과(0.25.0 step 명령 7개: 중간 step은 step 명령 · 마지막은 전체 · 앱 밖이면 전체 · 재개면 전체 · 측정 마지막 step도 전체 · RED 확인도 step 명령 · 지시문·세션 `prompt --base`).  이하 0.18 기준 목록: 헤드리스: 한 번에 통과 · 훅 기록 파일 안 섞음 · tdd false · pending→재시도 · 3회 실패 · blocked · blocked+실행 실패 · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · RED 위반 뒤 재시도로 회복 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · verify.test 없음 · summary 전달 · 실패 이력 · 멈춘 뒤 재개. 세션: judge가 지정 step 판정 · 마지막 step도 검사 · `--step` 필수. `release.sh`가 같이 돌린다
+- `python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py` — 43개 통과(0.25.0 step 명령 9개: 중간 step은 step 명령 · 마지막은 전체 · 마지막 전체만 깨지면 blocked · 이 step 범위도 깨지면 재시도 · step 명령 없으면 재시도 · 앱 밖이면 전체 · 재개면 전체 · 측정 마지막 step도 전체(깨지면 blocked) · RED 확인도 step 명령 · 지시문·세션 `prompt --base`).  이하 0.18 기준 목록: 헤드리스: 한 번에 통과 · 훅 기록 파일 안 섞음 · tdd false · pending→재시도 · 3회 실패 · blocked · blocked+실행 실패 · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · RED 위반 뒤 재시도로 회복 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · verify.test 없음 · summary 전달 · 실패 이력 · 멈춘 뒤 재개. 세션: judge가 지정 step 판정 · 마지막 step도 검사 · `--step` 필수. `release.sh`가 같이 돌린다
 - **실가동 1회(2026-10-13, Finn 터미널, Claude Code 2.1.296)**: 임시 레포 phase 1개·step 2개(`tdd: true` 셸 스크립트 → `tdd: false` README), `tdd.enabled: false`
   - `exit 0`, 재시도 0. 커밋 순서 `test: (red)` → `feat:` → `chore:` → `feat:` → `chore:` — 테스트 파일만 담긴 RED 커밋이 먼저 왔고 RED 시점 실패 검사도 통과
   - started→completed 25초·21초, 턴 5·4, `summary`가 step 2 지시문에 넘어감. JSON `total_cost_usd` 0.30·0.26은 **클라이언트 추정치**다(공식 문서: 구독자에게는 청구와 무관)

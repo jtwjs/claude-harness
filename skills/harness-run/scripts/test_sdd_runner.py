@@ -417,9 +417,31 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.step(1)["status"], "completed", self.out)   # 전체(exit 1) 대신 step 명령
         self.assertEqual(self.runs(log)[0], f"step {base}", "{since} = 그 step 시작 커밋")
         self.assertIn("step 명령: server test", self.out)
-        self.assertEqual(rc, 1)
-        self.assertIn("verify 실패: test", self.step(2).get("error_message", ""), "마지막 step 은 전체 명령")
-        self.assertIn("full", self.runs(log))
+        self.assertIn("full", self.runs(log), "마지막 step 은 전체 명령")
+        self.assertEqual(rc, 2, "전체만 깨지고 이 step 범위는 통과 → 앞 step 탓 의심, 재시도 없이 사람에게")
+        self.assertEqual(self.calls_made(), 2)
+        s2 = self.step(2)
+        self.assertEqual(s2["status"], "blocked")
+        self.assertIn("앞 step", s2["blocked_reason"])
+        self.assertIn("server test", s2["blocked_reason"])
+
+    def test_last_step_own_scope_fails_retries(self):
+        log = self.tmp / "runs.log"
+        (self.repo / "server").mkdir()
+        (self.repo / "server/ok").write_text("x")
+        self.set_cfg({"verify": {"server": {"test": "exit 1", "$step": {"test": "! test -f bad.txt"}}}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [["write", "server/bad.txt", "1"], ["commit", "feat: a"], DONE]}] * 4)
+        self.assertEqual(rc, 1, self.out)
+        self.assertEqual(self.calls_made(), 4, "이 step 범위에서도 깨지면 그 step 탓 — 지금처럼 재시도")
+        self.assertIn("이 step 범위에서도", self.step()["error_message"])
+
+    def test_last_step_without_step_cmd_retries(self):
+        self.apps_cfg()
+        self.two_steps()
+        rc = self.run_runner([{"step": 1, "ops": [["write", "web/a.txt", "1"], ["commit", "feat: a"], DONE]}]
+                             + [{"step": 2, "ops": [["write", "web/b.txt", "1"], ["commit", "feat: b"], DONE]}] * 4)
+        self.assertEqual(rc, 1, "step 명령이 없으면 누구 탓인지 못 가려 지금처럼 재시도")
 
     def test_step_cmd_not_run_outside_apps(self):
         log = self.step_cfg()
@@ -444,8 +466,9 @@ class RunnerCase(unittest.TestCase):
                     {"step": 2, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}])
         rc = self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}]
                              + [{"step": 2, "ops": [["status", "completed", {"summary": "`wc -l a` → 1"}]]}] * 4)
-        self.assertEqual(rc, 1, self.out)
-        self.assertIn("verify 실패: test", self.step(2).get("error_message", ""),
+        self.assertEqual(rc, 2, self.out)
+        self.assertEqual(self.calls_made(), 2, "측정 step 은 코드를 안 바꿨으니 전체 실패는 앞 step 탓 — 재시도 없음")
+        self.assertIn("verify 실패: test", self.step(2).get("blocked_reason", ""),
                       "마지막 step 이 측정이어도 phase 전체 verify 는 한 번 돈다")
 
     def test_red_check_uses_step_cmd(self):

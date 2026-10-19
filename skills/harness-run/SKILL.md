@@ -32,7 +32,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
    - **0 완료** → index.json(시간·usage)을 메타데이터 커밋까지 끝낸 상태다. **사람에게 3줄**(무엇을 바꿨나 · 왜 · 어디가 위험한가/안 돌려 본 것)을 출력하고 다음 step. 멈추지 않는다 — 사람이 구현 도중에 따라오게 하려는 것이다
    - **10 재시도** → 실패 사유가 index.json `last_error`·`attempts`에 남았고 `retries` +1. 2로 돌아간다(지시문에 사유가 붙는다). RED 위반(2·3)이면 러너가 이번 시도의 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다 — 다음 시도는 테스트부터 다시
    - **1 실패로 멈춤** → 재시도 3번 뒤에도 실패(첫 시도 + 재시도 3 = 최대 4회, 재개했으면 재개 뒤부터 센다). 남은 코드는 `wip:` 커밋으로 남는다. 사유를 보고하고 멈춘다. 근본 원인성이면 `root-cause-debugger` / `systematic-debugging`
-   - **2 blocked** → `blocked_reason`을 사람에게 보고하고 멈춘다(사람 체크포인트)
+   - **2 blocked** → `blocked_reason`을 사람에게 보고하고 멈춘다(사람 체크포인트). 「앞 step 탓」 blocked면 커밋을 거꾸로 짚어 원인 step을 찾고, 고친 뒤 이 step을 `pending`으로(재개라 전체 verify)
 
 `judge`가 보는 것(위에서부터, 첫 실패에서 멈춤 — 정본은 `sdd_runner.py` `check`):
 | # | 검사 | 실패 사유 |
@@ -42,7 +42,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 | 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test`(앱별이면 테스트가 든 앱만, `$step.test`가 있으면 그것) → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" → 이번 시도 버림 |
 | 4 | (`tdd: true`) 그 뒤 테스트 파일이 안 바뀜 — 바뀌었으면 되돌리고 실패 | "GREEN: 테스트 파일을 고쳤다(되돌림)" |
 | 5 | 이 step에서 커밋된 변경이 있다(남은 변경은 러너가 `feat:` 커밋으로 묶는다). `kind: measure`면 변경 0을 허용하고 대신 `summary`에 백틱 명령 + 결과가 있어야 한다(#8). 통과 시 6은 생략(phase 마지막 step이면 6을 전체로) | "completed 보고인데 변경 없음" / "measure: summary 에 측정 명령(백틱)과 결과가 없다" |
-| 6 | `verify` 통과. 앱별이면 **바뀐 파일이 든 앱 + `verifyAffects`에 걸린 앱만**(#5), 그 앱에 `$step` 명령이 있으면 그것(0.25.0) — 앱 밖 파일 · phase 마지막 step · 재개 step이면 전체 명령 전부 | "verify 실패: <이름>" |
+| 6 | `verify` 통과. 앱별이면 **바뀐 파일이 든 앱 + `verifyAffects`에 걸린 앱만**(#5), 그 앱에 `$step` 명령이 있으면 그것(0.25.0) — 앱 밖 파일 · phase 마지막 step · 재개 step이면 전체 명령 전부. 마지막 step의 전체가 깨졌는데 이 step 범위(step 명령)는 통과하거나 측정 step이면 앞 step 탓으로 보고 재시도 없이 **blocked** | "verify 실패: <이름>" |
 헤드리스 `run`은 여기에 **0. 실행 결과**(종료 코드 · JSON `is_error` · 타임아웃 1800초, 타임아웃이면 자식 프로세스까지 끈다)를 먼저 본다. `start`는 `tdd: true` step이 있는데 `verify.test`가 없으면 돌리지 않고, 환경에 `ANTHROPIC_API_KEY`가 있으면 경고한다(헤드리스 `claude -p`는 그 키로 API 과금된다 — 공식 문서).
 
 ## 3. 커밋

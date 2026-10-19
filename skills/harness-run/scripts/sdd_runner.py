@@ -50,6 +50,10 @@ class Fail(Exception):
     """판정 실패 — 재시도 대상."""
 
 
+class PhaseFail(Exception):
+    """phase 마지막 step 의 전체 verify 가 깨졌는데 이 step 범위는 통과 — 앞 step 탓이라 재시도하지 않고 사람에게."""
+
+
 class RedFail(Fail):
     """RED 순서·RED 가 아무것도 안 잡음 — 이 시도의 커밋을 버리고 BASE 에서 다시 해야 고칠 수 있다."""
 
@@ -317,10 +321,29 @@ class Runner:
             # phase 마지막 step 이 측정이면 여기서 phase 전체 verify 를 한 번 돌린다 — 안 하면 전체가 한 번도 안 돈다
             print("measure step: 코드 변경 없음 · phase 마지막 step 이라 전체 verify", file=sys.stderr)
             commits = []
+        last = self.is_last(step)
         for root, name, cmd in self.verify_scope(step, commits, base):
             if not self.run_cmd(root, cmd):
+                if last:
+                    self.blame_earlier(root, name, cmd, commits, base)
                 raise Fail(f"verify 실패: {name} (`{cmd}`)")
         return None
+
+    def blame_earlier(self, root: str, name: str, cmd: str, commits: list, base: str):
+        """마지막 step 의 전체 verify 실패가 앞 step 탓이면 PhaseFail. 이 step 에이전트가 고칠 수 없는 실패를
+        재시도 4회로 붙잡지 않게 한다(0.25.0). 측정 step(변경 없음)이면 언제나, 아니면 step 명령이 통과할 때.
+        step 명령이 없으면 가릴 수 없어 그대로 둔다(→ 재시도)."""
+        where = f"{root} {name}" if root != "." else name
+        if not commits:
+            raise PhaseFail(f"verify 실패: {name} (`{cmd}`) — 이 step 은 코드를 바꾸지 않았다. 앞 step 의 변경이 phase 전체 "
+                            f"verify({where})를 깨뜨렸다. 커밋을 거꾸로 짚어 원인 step 을 찾는다")
+        own = self.step_override(root, name)
+        if own is None:
+            return
+        if self.run_cmd(root, own.replace("{since}", shlex.quote(base))):
+            raise PhaseFail(f"verify 실패: {name} (`{cmd}`) — 이 step 범위(step 명령)는 통과, phase 전체({where})만 깨진다. "
+                            f"앞 step 탓으로 보여 재시도하지 않는다. 커밋을 거꾸로 짚어 원인 step 을 찾는다")
+        raise Fail(f"verify 실패: {name} (`{cmd}`) — 이 step 범위에서도 깨진다")
 
     def verify_scope(self, step: dict, commits: list, base: str) -> list:
         """판정 6에서 돌릴 verify. 앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만(#5, 2026-10-15),
@@ -400,6 +423,12 @@ class Runner:
             if run_failure and st != "blocked":   # 에이전트가 blocked 를 적었으면 실행 실패보다 그게 먼저다
                 raise Fail(run_failure)
             res = self.check(self.find(self.read(), n), base)
+        except PhaseFail as e:
+            idx = self.read()
+            s = self.find(idx, n)
+            s.update(status="blocked", blocked_reason=str(e))
+            self.write(idx)
+            res = "blocked"
         except RedFail as e:
             res, reason = "fail", str(e)
             self.discard_attempt(n, base)
