@@ -10,8 +10,9 @@
 
   sdd_runner.py run TASK [--timeout 1800] [--max-retries 3]   헤드리스: claude -p 로 끝까지
   sdd_runner.py start TASK                                    시작 전 점검 + 브랜치 (세션 안)
-  sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안)
-  sdd_runner.py judge TASK --step N --base SHA                step N 판정·기록 (세션 안. BASE 는 그 step 시작 전 HEAD)
+  sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안.
+                                                              --base 는 그 step 의 BASE 로 index.json 에 고정, 재시도에서 안 덮음)
+  sdd_runner.py judge TASK --step N [--base SHA]              step N 판정·기록 (세션 안. BASE 는 고정값이 먼저)
 
 종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만)
 claude 실행 파일은 SDD_RUNNER_CLAUDE 로 바꿀 수 있다(테스트용 가짜).
@@ -127,11 +128,26 @@ class Runner:
             return "재개한 step"
         return None
 
-    def run_cmd(self, root: str, cmd: str) -> bool:
+    def run_out(self, root: str, cmd: str):
+        """(통과 여부, 출력). 그 시점에 앱 폴더가 아직 없으면 실행할 수 없다 = 통과 아님."""
         cwd = self.root / root
-        if not cwd.is_dir():   # 그 시점에 앱 폴더가 아직 없으면 실행할 수 없다 = 통과 아님
-            return False
-        return subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True).returncode == 0
+        if not cwd.is_dir():
+            return False, ""
+        p = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, errors="replace")
+        return p.returncode == 0, (p.stdout or "") + (p.stderr or "")
+
+    def run_cmd(self, root: str, cmd: str) -> bool:
+        return self.run_out(root, cmd)[0]
+
+    def pin_base(self, n: int, base=None):
+        """step 시작 커밋(BASE)을 index.json 에 고정한다(#11). 이미 있으면 그대로 — 재시도에서 덮지 않는다.
+        세션 모드에서 모델이 BASE 를 기억하지 않아도 judge 가 같은 값을 읽는다. 끝난 step 에서는 record 가 지운다."""
+        idx = self.read()
+        s = self.find(idx, n)
+        if not s.get("base") and base:
+            s["base"] = base
+            self.write(idx)
+        return s.get("base") or base
 
     def commit(self, msg: str, paths=None):
         if paths:
@@ -243,7 +259,12 @@ class Runner:
             tdd = f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋"
         retry = ""
         if step.get("last_error"):
-            retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}\n\n---\n\n"
+            kept = ""
+            # 이전 시도의 RED 커밋이 남아 있으면 '테스트 먼저'를 다시 하지 않게 알린다(#9)
+            if step.get("tdd") and base and any(TEST_FILE.search(f) for _, fs in self.commits_since(base) for f in fs):
+                kept = ("\n\n이전 시도의 테스트 커밋이 남아 있다 — 테스트는 다시 쓰거나 고치지 않는다(고치면 되돌린다). 구현만 고친다. "
+                        "테스트 파일 자체가 검증에 걸리면 러너가 이 시도를 버리고 테스트부터 다시 하게 한다")
+            retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}{kept}\n\n---\n\n"
         elif step.get("error_message"):   # 재개: 사람이 되돌리며 적은 근본 원인
             retry = f"## ⚠ 이전 실행이 멈춘 원인(사람이 적음) — 반드시 반영한다\n\n{step['error_message']}\n\n---\n\n"
         shown = self.verify_cmds()
@@ -283,10 +304,12 @@ class Runner:
             self.git("add", "-A", "--", *rest)
             self.git("commit", "-q", "-m", f"feat: step {step['step']} — {step['name']}", "-m", f"phase: {self.task}")
         commits = self.commits_since(base)
+        red_tests = []
         if step.get("tdd"):
             red = next((c for c in commits if any(TEST_FILE.search(f) for f in c[1])), None)
             if red is None:
                 raise RedFail("RED: 테스트 커밋이 없다")
+            red_tests = [f for f in red[1] if TEST_FILE.search(f)]
             before = commits[:commits.index(red)]
             impl_in_red = [f for f in red[1] if not TEST_FILE.search(f)]
             if before or impl_in_red:
@@ -323,10 +346,27 @@ class Runner:
             commits = []
         last = self.is_last(step)
         for root, name, cmd in self.verify_scope(step, commits, base):
-            if not self.run_cmd(root, cmd):
+            ok, out = self.run_out(root, cmd)
+            if not ok:
+                hit = self.red_blame(out, root, red_tests) if name != "test" else None
+                if hit:
+                    raise RedFail(f"verify 실패: {name} (`{cmd}`) 가 RED 테스트 파일에서 난다 — {hit}. 테스트는 RED 뒤 고칠 수 없다. "
+                                  f"테스트를 쓸 때 {name} 도 통과하게 쓴다")
                 if last:
                     self.blame_earlier(root, name, cmd, commits, base)
                 raise Fail(f"verify 실패: {name} (`{cmd}`)")
+        return None
+
+    def red_blame(self, out: str, root: str, red_tests: list):
+        """test 밖 verify(lint·typecheck 등) 출력이 RED 테스트 파일을 가리키면 그 줄(#9). test 출력은 늘 테스트 이름을
+        담으니 보지 않는다. 앱별이면 출력 경로가 앱 기준이라 앱 상대 경로·파일 이름도 맞춰 본다."""
+        for f in red_tests:
+            names = {f, Path(f).name}
+            if root != "." and f.startswith(root.rstrip("/") + "/"):
+                names.add(f[len(root.rstrip("/")) + 1:])
+            lines = [ln.strip() for ln in out.splitlines() if any(n in ln for n in names)]
+            if lines:
+                return " / ".join(lines[:3])[:300]
         return None
 
     def blame_earlier(self, root: str, name: str, cmd: str, commits: list, base: str):
@@ -444,6 +484,7 @@ class Runner:
                     u[k] = u.get(k, 0) + v
         if res == "blocked":
             s["blocked_at"] = stamp()
+            s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
             self.commit_index(n)
@@ -453,6 +494,7 @@ class Runner:
             s["completed_at"] = stamp()
             s.pop("last_error", None)   # 실패 사유 이력은 attempts 에 남는다(REFLECT 재료)
             s.pop("error_message", None)
+            s.pop("base", None)
             self.write(idx)
             self.commit_index(n)
             print(f"✓ step {n} {s['name']}: {s.get('summary', '')}")
@@ -464,6 +506,7 @@ class Runner:
         if fails_now > self.max_retries:
             s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
+            s.pop("base", None)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
             self.commit_index(n)
@@ -536,7 +579,7 @@ class Runner:
                 print(f"✓ phase {self.task} 완료")
                 return 0
             n = step["step"]
-            base = self.git("rev-parse", "HEAD").stdout.strip()
+            base = self.pin_base(n, self.git("rev-parse", "HEAD").stdout.strip())
             idx = self.read()
             s = self.find(idx, n)
             s.setdefault("started_at", stamp())
@@ -572,13 +615,17 @@ def main(argv=None) -> int:
         idx = r.read()
         r.find(idx, step["step"]).setdefault("started_at", stamp())
         r.write(idx)
+        base = r.pin_base(step["step"], a.base) if a.base else step.get("base")
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
-        print(r.prompt(step, a.base))
+        print(r.prompt(r.find(r.read(), step["step"]), base))
         return 0
     # judge: 판정 대상은 번호로 받는다 — '첫 pending' 으로 고르면 방금 completed 로 바뀐 step 을 건너뛴다(10-13 리뷰)
-    if not a.base or not a.step:
-        ap.error("judge 는 --step N --base <그 step 시작 전 HEAD> 가 필요하다")
-    return r.record(a.step, a.base)
+    # BASE 는 prompt --base 가 index.json 에 고정한 값이 먼저다(#11). 없을 때만 --base
+    base = r.find(r.read(), a.step).get("base") if a.step else None
+    base = base or a.base
+    if not a.step or not base:
+        ap.error("judge 는 --step N 과 BASE(prompt --base 로 고정했거나 --base <그 step 시작 전 HEAD>)가 필요하다")
+    return r.record(a.step, base)
 
 
 if __name__ == "__main__":

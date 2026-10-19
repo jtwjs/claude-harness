@@ -240,6 +240,32 @@ class RunnerCase(unittest.TestCase):
                       "버린 시도는 백업 브랜치로 남는다")
         self.assertEqual(len(self.step()["attempts"]), 1)
 
+    def test_red_test_file_failing_lint_restarts_from_tests(self):
+        # #9: RED 테스트 파일이 lint 에 걸리면 고치려면 테스트를 건드려야 하고, 건드리면 되돌려져 재시도로 못 고쳤다
+        (self.repo / ".claude/harness.json").write_text(json.dumps(
+            {"verify": {"test": "sh check.sh", "lint": "sh lint.sh"}, "tdd": {"enabled": True}}))
+        (self.repo / "lint.sh").write_text('rc=0; for f in tests/*; do grep -q BAD "$f" && echo "$f: BAD 금지" && rc=1; done; exit $rc\n')
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "lint")
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        dirty = {"step": 1, "ops": [RED, ["write", "tests/a_note.txt", "BAD"], ["commit", "test: a (red)"],
+                                    IMPL, ["commit", "feat: a"], DONE]}
+        clean = {"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]}
+        rc = self.run_runner([dirty, clean])
+        self.assertEqual(rc, 0, self.out)
+        self.assertFalse((self.repo / "tests/a_note.txt").exists(), "테스트 파일 탓 시도는 버린다")
+        self.assertIn("a_note.txt", self.step()["attempts"][0]["error"])
+        self.assertIn("sdd-discard/t1/step1-try1", git(self.repo, "branch", "--list", "sdd-discard/*").stdout)
+
+    def test_retry_prompt_says_tests_already_committed(self):
+        # #9: 재시도 지시문이 '테스트 먼저 쓰라'만 반복해 에이전트가 테스트를 다시 쓰다 되돌림을 맞았다
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        wrong = {"step": 1, "ops": [RED, ["commit", "test: a (red)"], ["write", "src/a.txt", "bye"], ["commit", "feat: a"], DONE]}
+        rc = self.run_runner([wrong, {"step": 1, "ops": [IMPL, ["commit", "feat: a 고침"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("테스트 커밋이 남아 있다", self.prompt(1))
+        self.assertNotIn("테스트 커밋이 남아 있다", self.prompt(0))
+
     def test_red_check_leaves_shared_stash_alone(self):
         # 10-15 실측: stash 목록은 worktree 끼리 공유 — RED 확인 중 다른 worktree 가 stash 를 넣으면 남의 것을 꺼냈다
         wt = self.tmp / "wt2"
@@ -576,6 +602,26 @@ class RunnerCase(unittest.TestCase):
         self.act([DONE])                                  # 변경 없이 completed 만 보고
         self.assertEqual(self.session("judge", "t1", "--step", "1", "--base", base).returncode, 10, self.out)
         self.assertIn("변경 없음", self.step()["last_error"])
+
+    def test_session_base_pinned_across_retry(self):
+        # #11: BASE 를 모델 기억에 맡기면 재시도 때 HEAD 로 다시 잡아 이전 시도의 RED 커밋이 BASE 앞으로 밀린다
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.session("prompt", "t1", "--base", base)
+        self.assertEqual(self.step().get("base"), base, "prompt --base 가 BASE 를 index.json 에 적는다")
+        self.act([RED, ["commit", "test: a (red)"], ["write", "src/a.txt", "bye"], ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        head = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.session("prompt", "t1", "--base", head)        # 모델이 재시도에서 HEAD 로 다시 잡아도
+        self.assertEqual(self.step().get("base"), base, "재시도에서 고정한 BASE 를 덮지 않는다")
+        self.act([IMPL, ["commit", "feat: a 고침"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertNotIn("base", self.step(), "끝난 step 의 BASE 는 지운다")
+
+    def test_session_judge_without_any_base_refuses(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.assertNotEqual(self.session("judge", "t1", "--step", "1").returncode, 0)
 
     def test_session_judge_requires_step(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
