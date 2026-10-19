@@ -10,7 +10,7 @@
 
   sdd_runner.py run TASK [--timeout 1800] [--max-retries 3]   헤드리스: claude -p 로 끝까지
   sdd_runner.py start TASK                                    시작 전 점검 + 브랜치 (세션 안)
-  sdd_runner.py prompt TASK                                   다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안)
+  sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안)
   sdd_runner.py judge TASK --step N --base SHA                step N 판정·기록 (세션 안. BASE 는 그 step 시작 전 HEAD)
 
 종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만)
@@ -21,6 +21,7 @@ import fnmatch
 import json
 import os
 import re
+import shlex
 import signal
 import subprocess
 import sys
@@ -97,6 +98,30 @@ class Runner:
             elif isinstance(v, str) and v.strip():
                 out.append((".", k, v))
         return [c for c in out if only is None or c[1] == only]
+
+    def step_override(self, root: str, name: str):
+        """앱(또는 단일 앱 verify)의 `$step` 에 적힌 step 명령. `$` 키라 verify_cmds 는 전체 명령으로 모으지 않는다."""
+        v = self.cfg.get("verify") or {}
+        m = v if root == "." else v.get(root)
+        o = m.get("$step") if isinstance(m, dict) else None
+        c = o.get(name) if isinstance(o, dict) else None
+        return c if isinstance(c, str) and c.strip() else None
+
+    def scoped(self, cmds: list, since: str) -> list:
+        """step 명령이 있는 것만 바꾼다. {since} = 그 step 시작 커밋(명령이 git diff 로 바뀐 파일을 스스로 고른다)."""
+        return [(r, n, o.replace("{since}", shlex.quote(since)) if (o := self.step_override(r, n)) else c)
+                for r, n, c in cmds]
+
+    def is_last(self, step: dict) -> bool:
+        return all(s.get("status") == "completed" for s in self.read()["steps"] if s["step"] != step["step"])
+
+    def full_reason(self, step: dict):
+        """step 명령 대신 전체 명령을 쓸 이유. 재개 step 은 앞 시도의 wip 커밋이 {since} 앞에 있어 범위가 빈다."""
+        if self.is_last(step):
+            return "phase 마지막 step"
+        if step.get("resumed_at"):
+            return "재개한 step"
+        return None
 
     def run_cmd(self, root: str, cmd: str) -> bool:
         cwd = self.root / root
@@ -195,7 +220,7 @@ class Runner:
                 parts.append(f"## {name}\n\n{f.read_text(encoding='utf-8')}")
         return "\n\n---\n\n".join(parts)
 
-    def prompt(self, step: dict) -> str:
+    def prompt(self, step: dict, base=None) -> str:
         idx = self.read()
         done = [f"- Step {s['step']} ({s['name']}): {s['summary']}" for s in idx["steps"]
                 if s.get("status") == "completed" and s.get("summary")]
@@ -217,7 +242,10 @@ class Runner:
             retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}\n\n---\n\n"
         elif step.get("error_message"):   # 재개: 사람이 되돌리며 적은 근본 원인
             retry = f"## ⚠ 이전 실행이 멈춘 원인(사람이 적음) — 반드시 반영한다\n\n{step['error_message']}\n\n---\n\n"
-        cmds = " · ".join(f"`{c}`" + (f"({r} 에서)" if r != "." else "") for r, _, c in self.verify_cmds()) or "(verify 없음)"
+        shown = self.verify_cmds()
+        if base and not self.full_reason(step):
+            shown = self.scoped(shown, base)
+        cmds = " · ".join(f"`{c}`" + (f"({r} 에서)" if r != "." else "") for r, _, c in shown) or "(verify 없음)"
         return Template((HERE / "preamble.md").read_text(encoding="utf-8")).safe_substitute(
             project=idx.get("project", self.root.name), task=self.task, step=n,
             guardrails=self.guardrails(idx),
@@ -265,7 +293,7 @@ class Runner:
                 raise Fail("RED: verify.test 가 없어 테스트를 돌릴 수 없다")
             # 앱별 verify 면 테스트 파일이 들어간 앱의 test 만 본다 — 상관없는 앱의 실패가 RED 로 잡히지 않게
             mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in red[1])]
-            if self.red_passes(red[0], mine or tests):
+            if self.red_passes(red[0], self.scoped(mine or tests, base)):
                 raise RedFail("RED: 테스트가 아무것도 잡지 않음 — 테스트 커밋 시점에 이미 통과한다")
             changed = [f for f in self.git("diff", "--name-only", f"{red[0]}..HEAD").stdout.split()
                        if TEST_FILE.search(f) and not f.startswith("phases/")]
@@ -283,40 +311,49 @@ class Runner:
             # 측정·실측·대조 전용 step(#8): 변경 0 이 정상이고 산출물은 summary 의 측정 명령 + 결과다
             if not MEASURE_SUMMARY.search(step.get("summary") or ""):
                 raise Fail("measure: summary 에 측정 명령(백틱)과 결과가 없다 — 코드 변경이 없는 step 은 측정 출력이 산출물이다")
-            print("measure step: 코드 변경 없음 — summary 의 측정 결과로 통과, verify 생략", file=sys.stderr)
-            return None
-        for root, name, cmd in self.verify_scope(step, commits):
+            if not self.is_last(step):
+                print("measure step: 코드 변경 없음 — summary 의 측정 결과로 통과, verify 생략", file=sys.stderr)
+                return None
+            # phase 마지막 step 이 측정이면 여기서 phase 전체 verify 를 한 번 돌린다 — 안 하면 전체가 한 번도 안 돈다
+            print("measure step: 코드 변경 없음 · phase 마지막 step 이라 전체 verify", file=sys.stderr)
+            commits = []
+        for root, name, cmd in self.verify_scope(step, commits, base):
             if not self.run_cmd(root, cmd):
                 raise Fail(f"verify 실패: {name} (`{cmd}`)")
         return None
 
-    def verify_scope(self, step: dict, commits: list) -> list:
-        """판정 6에서 돌릴 verify (#5, 2026-10-15). 앱별 verify 일 때만 좁힌다.
-        바뀐 파일이 든 앱 + verifyAffects 에 걸린 앱. 앱 폴더 밖 파일이 있거나 phase 마지막 step 이면 전부."""
+    def verify_scope(self, step: dict, commits: list, base: str) -> list:
+        """판정 6에서 돌릴 verify. 앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만(#5, 2026-10-15),
+        `$step` 명령이 있으면 그것으로(0.25.0). 앱 밖 파일 · phase 마지막 step · 재개 step 이면 전체 명령 전부."""
         cmds = self.verify_cmds()
+        full = self.full_reason(step)
         roots = sorted({r for r, _, _ in cmds if r != "."}, key=len, reverse=True)
-        if not roots or any(r == "." for r, _, _ in cmds):
+        picked = None
+        if not full and roots and not any(r == "." for r, _, _ in cmds):
+            affects = {k: v for k, v in (self.cfg.get("verifyAffects") or {}).items() if not k.startswith("$")}
+            picked = set()
+            for f in sorted({f for _, fs in commits for f in fs}):
+                own = next((r for r in roots if f.startswith(r.rstrip("/") + "/")), None)
+                if own is None:
+                    full = f"앱 밖 파일 {f}"
+                    break
+                picked.add(own)
+                for pat, extra in affects.items():
+                    if fnmatch.fnmatch(f, pat):
+                        picked.update(extra if isinstance(extra, list) else [extra])
+        if full:
+            print(f"verify 범위: 전부 — {full}", file=sys.stderr)
             return cmds
-        others = [s for s in self.read()["steps"] if s["step"] != step["step"]]
-        if all(s.get("status") == "completed" for s in others):
-            print("verify 범위: 전부 — phase 마지막 step", file=sys.stderr)
-            return cmds
-        files = {f for _, fs in commits for f in fs}
-        affects = {k: v for k, v in (self.cfg.get("verifyAffects") or {}).items() if not k.startswith("$")}
-        picked = set()
-        for f in files:
-            own = next((r for r in roots if f.startswith(r.rstrip("/") + "/")), None)
-            if own is None:
-                print(f"verify 범위: 전부 — 앱 밖 파일 {f}", file=sys.stderr)
-                return cmds
-            picked.add(own)
-            for pat, extra in affects.items():
-                if fnmatch.fnmatch(f, pat):
-                    picked.update(extra if isinstance(extra, list) else [extra])
-        skipped = [r for r in roots if r not in picked]
-        print(f"verify 범위: {', '.join(sorted(picked))}" + (f" (건너뜀: {', '.join(skipped)})" if skipped else ""),
-              file=sys.stderr)
-        return [c for c in cmds if c[0] in picked]
+        if picked is not None:
+            skipped = [r for r in roots if r not in picked]
+            print(f"verify 범위: {', '.join(sorted(picked))}" + (f" (건너뜀: {', '.join(skipped)})" if skipped else ""),
+                  file=sys.stderr)
+            cmds = [c for c in cmds if c[0] in picked]
+        out = self.scoped(cmds, base)
+        stepped = [f"{r} {n}" if r != "." else n for (r, n, c), (_, _, o) in zip(cmds, out) if c != o]
+        if stepped:
+            print(f"step 명령: {', '.join(stepped)}", file=sys.stderr)
+        return out
 
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
@@ -411,17 +448,21 @@ class Runner:
         return 10
 
     # ── 헤드리스 ───────────────────────────────────────────────────────────
-    def invoke(self, step: dict):
+    def invoke(self, step: dict, base: str):
         """claude -p 1번. (실행 실패 사유 또는 None, usage)."""
         claude = os.environ.get("SDD_RUNNER_CLAUDE", "claude")
         cmd = [claude, "-p", "--dangerously-skip-permissions", "--output-format", "json"]
         if step.get("model"):
             cmd += ["--model", step["model"]]
-        cmd.append(self.prompt(step))
+        cmd.append(self.prompt(step, base))
+        env = dict(os.environ)
+        env.pop("SDD_RUNNER_SINCE", None)
+        if not self.full_reason(step):   # Stop 훅도 step 명령을 쓴다(validate-session-end.sh)
+            env["SDD_RUNNER_SINCE"] = base
         out = {"step": step["step"], "attempt": step.get("retries", 0) + 1, "started_at": stamp()}
         # 새 프로세스 그룹 — 타임아웃이면 claude 가 띄운 자식(테스트 watch·서버)까지 같이 끈다
         p = subprocess.Popen(cmd, cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                             start_new_session=True)
+                             start_new_session=True, env=env)
         try:
             stdout, stderr = p.communicate(timeout=self.timeout)
             out.update(exitCode=p.returncode, stdout=stdout, stderr=stderr)
@@ -472,7 +513,7 @@ class Runner:
             s.setdefault("started_at", stamp())
             self.write(idx)
             while True:
-                failure, usage = self.invoke(self.find(self.read(), n))
+                failure, usage = self.invoke(self.find(self.read(), n), base)
                 rc = self.record(n, base, failure, usage)
                 if rc != 10:
                     break
@@ -503,7 +544,7 @@ def main(argv=None) -> int:
         r.find(idx, step["step"]).setdefault("started_at", stamp())
         r.write(idx)
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
-        print(r.prompt(step))
+        print(r.prompt(step, a.base))
         return 0
     # judge: 판정 대상은 번호로 받는다 — '첫 pending' 으로 고르면 방금 completed 로 바뀐 step 을 건너뛴다(10-13 리뷰)
     if not a.base or not a.step:

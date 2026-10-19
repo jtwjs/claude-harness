@@ -12,6 +12,7 @@
 # verify 두 형태 (0.10.0):
 #   단일 앱  {"verify": {"lint": "…", "test": "…"}}                    → 레포 루트에서 실행
 #   앱별     {"verify": {"apps/api": {"test": "…"}, "apps/web": {…}}}  → root 마다 cd 후 실행, 결과에 root 이름
+# SDD 러너 step 안(env SDD_RUNNER_SINCE=그 step 시작 커밋)이면 `$step` 의 같은 키 명령을 대신 쓴다 (0.25.0)
 set -uo pipefail
 cat >/dev/null 2>&1 || true
 
@@ -39,7 +40,7 @@ fi
 # 한 줄 = root \t 키 \t 명령. 단일 앱이면 root 는 "." 이다.
 # "#notest \t root" 줄은 verify.test 가 빈 root (조용히 죽지 않게 보고용).
 parsed=$(python3 - "$CFG" <<'PY'
-import json, sys
+import json, os, shlex, sys
 try:
     cfg = json.load(open(sys.argv[1], encoding="utf-8"))
 except Exception:
@@ -48,9 +49,12 @@ v = cfg.get("verify") or {}
 apps = {k: m for k, m in v.items() if not k.startswith("$") and isinstance(m, dict)}
 if not apps:
     apps = {".": v}
+since = os.environ.get("SDD_RUNNER_SINCE", "")   # 헤드리스 SDD 러너 step 안이면 `$step` 명령을 쓴다(0.25.0)
 def cmd(m, k):
-    c = m.get(k)
-    return c.strip() if isinstance(c, str) else ""
+    o = m.get("$step") if since else None
+    c = o.get(k) if isinstance(o, dict) and isinstance(o.get(k), str) and o.get(k).strip() else m.get(k)
+    c = c.strip() if isinstance(c, str) else ""
+    return c.replace("{since}", shlex.quote(since)) if since else c
 for root, m in apps.items():
     if not cmd(m, "test"):
         print(f"#notest\t{root}")

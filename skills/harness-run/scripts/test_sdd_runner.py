@@ -388,6 +388,93 @@ class RunnerCase(unittest.TestCase):
         self.run_runner([{"step": 1, "ops": [["write", "package.json", "{}"], ["commit", "feat: a"], DONE]}] * 4)
         self.assertIn("verify 실패: test", self.step(1).get("error_message", ""), "앱 밖 파일이면 전부")
 
+    # ── step 명령($step) — step 마다 영향받은 테스트만, 전체는 phase 마지막·재개·앱 밖 ──────
+    def step_cfg(self, single=False):
+        """full 명령은 'full', step 명령은 'step {since}' 를 tmp/runs.log 에 적는다. server 전체는 실패한다."""
+        log = self.tmp / "runs.log"
+        if single:
+            cfg = {"verify": {"test": f"echo full >> {log}; sh check.sh",
+                              "$step": {"test": f"echo step {{since}} >> {log}; sh check.sh"}}}
+        else:
+            for d in ("web", "server"):
+                (self.repo / d).mkdir(exist_ok=True)
+                (self.repo / d / "ok").write_text("x")
+            cfg = {"verify": {"web": {"test": "true"},
+                              "server": {"test": f"echo full >> {log}; exit 1",
+                                         "$step": {"test": f"echo step {{since}} >> {log}"}}}}
+        self.set_cfg(cfg)
+        return log
+
+    def runs(self, log):
+        return log.read_text().split("\n")[:-1] if log.exists() else []
+
+    def test_step_cmd_used_mid_phase_full_on_last(self):
+        log = self.step_cfg()
+        self.two_steps()
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        rc = self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}]
+                             + [{"step": 2, "ops": [["write", "server/b.txt", "1"], ["commit", "feat: b"], DONE]}] * 4)
+        self.assertEqual(self.step(1)["status"], "completed", self.out)   # 전체(exit 1) 대신 step 명령
+        self.assertEqual(self.runs(log)[0], f"step {base}", "{since} = 그 step 시작 커밋")
+        self.assertIn("step 명령: server test", self.out)
+        self.assertEqual(rc, 1)
+        self.assertIn("verify 실패: test", self.step(2).get("error_message", ""), "마지막 step 은 전체 명령")
+        self.assertIn("full", self.runs(log))
+
+    def test_step_cmd_not_run_outside_apps(self):
+        log = self.step_cfg()
+        self.two_steps()
+        self.run_runner([{"step": 1, "ops": [["write", "README.md", "x"], ["write", "server/a.txt", "1"],
+                                             ["commit", "feat: a"], DONE]}] * 4)
+        self.assertNotIn("step", " ".join(self.runs(log)), "앱 밖 파일이면 step 명령이 아니라 전체")
+        self.assertIn("verify 실패: test", self.step(1).get("error_message", ""))
+
+    def test_resumed_step_runs_full(self):
+        log = self.step_cfg()
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False, "failed_at": "2026-01-01T00:00:00+0900",
+                     "error_message": "원인: x"},
+                    {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}] * 4)
+        self.assertIn("재개", self.out)
+        self.assertNotIn("step", " ".join(self.runs(log)))
+
+    def test_measure_last_step_runs_full_verify(self):
+        self.step_cfg()
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False},
+                    {"step": 2, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}])
+        rc = self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}]
+                             + [{"step": 2, "ops": [["status", "completed", {"summary": "`wc -l a` → 1"}]]}] * 4)
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("verify 실패: test", self.step(2).get("error_message", ""),
+                      "마지막 step 이 측정이어도 phase 전체 verify 는 한 번 돈다")
+
+    def test_red_check_uses_step_cmd(self):
+        log = self.step_cfg(single=True)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                    {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]},
+                              {"step": 2, "ops": [["write", "src/z.txt", "z"], ["commit", "feat: z"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        runs = self.runs(log)
+        self.assertTrue(runs[0].startswith("step ") and runs[1].startswith("step "), runs)   # RED 확인 · judge
+        self.assertEqual(runs[-1], "full", "마지막 step 은 전체")
+
+    def test_prompt_shows_step_cmd_with_since(self):
+        self.step_cfg()
+        self.two_steps()
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]},
+                         {"step": 2, "ops": [["write", "server/b.txt", "1"], ["commit", "feat: b"], DONE]}])
+        self.assertIn(f"step {base}", self.prompt(0), "서브에이전트 자체 확인도 step 명령")
+        self.assertIn("echo full", self.prompt(1), "마지막 step 지시문은 전체 명령")
+
+    def test_session_prompt_takes_base(self):
+        self.step_cfg()
+        self.two_steps()
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", "abc123")
+        self.assertIn("step abc123", p.stdout)
+
     def test_tdd_without_verify_test_refuses(self):
         (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"lint": "true"}}))
         git(self.repo, "add", "-A")

@@ -529,6 +529,18 @@ msg=$(printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdi
 echo "$msg" | grep -q '🟢 apps/api test' && ok "root 에서 실행 · 이름 표시 (apps/api test)" || bad "앱별 실행" "msg=[$msg]"
 echo "$msg" | grep -q '🟢 apps/web lint' && ok "두 번째 root 도 실행 (apps/web lint)" || bad "앱별 실행" "msg=[$msg]"
 echo "$msg" | grep -q 'apps/web: verify.test 가 비어' && ok "빈 test 를 root 별로 보고" || bad "침묵" "msg=[$msg]"
+# step 명령(0.25.0): SDD_RUNNER_SINCE 가 있으면 $step 의 같은 키, {since} 치환
+cat > "$TMP/multi/.claude/harness.json" <<JSON
+{ "verify": { "apps/api": { "test": "exit 1", "\$step": { "test": "test {since} = abc1" } } } }
+JSON
+rm -f "$TMP/multi/.claude/.last-session-validate"
+out=$(cd "$TMP/multi" && printf '{}' | SDD_RUNNER_SINCE=abc1 bash "$HOOKS/validate-session-end.sh" 2>/dev/null)
+msg=$(printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdin)["systemMessage"])' 2>/dev/null)
+echo "$msg" | grep -q '🟢 apps/api test' && ok "러너 step 안이면 \$step 명령 · {since} 치환" || bad "step 명령" "msg=[$msg]"
+rm -f "$TMP/multi/.claude/.last-session-validate"
+out=$(cd "$TMP/multi" && printf '{}' | env -u SDD_RUNNER_SINCE bash "$HOOKS/validate-session-end.sh" 2>/dev/null)
+msg=$(printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdin)["systemMessage"])' 2>/dev/null)
+echo "$msg" | grep -q '🔴 apps/api test' && ok "러너 밖이면 전체 명령" || bad "전체 명령" "msg=[$msg]"
 # loop-lock: 중첩 verify 명령을 검증성으로 본다 — 'cd … &&' 로 시작해 2순위 정규식에는 안 걸리는 명령
 cat > "$TMP/multi/.claude/harness.json" <<JSON
 { "verify": { "apps/api": { "test": "mytool verify-all" } } }

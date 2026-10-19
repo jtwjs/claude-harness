@@ -26,7 +26,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 ## 2. 루프 — pending step이 없을 때까지
 
 1. `BASE=$(git rev-parse HEAD)` — 이 step이 시작하기 전 커밋. **step마다 한 번만** 잡는다(재시도 때 다시 잡지 않는다)
-2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" prompt {task}` — stderr의 `▶ step N`이 이번 step 번호다(3에서 쓴다). stdout을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
+2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" prompt {task} --base $BASE` — `--base`가 있어야 지시문의 검증 명령이 step 명령(`$step`, `{since}`=BASE)으로 나간다. stderr의 `▶ step N`이 이번 step 번호다(3에서 쓴다). stdout을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
    - **병렬 트랙이면** 지시문 뒤에 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈 목록 한 번(`gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`)을 붙인다. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 사람에게 묻는다. step 사이에 지휘의 `#N … 열림` 메시지를 받으면 다음 step 전에 이 목록을 다시 받는다. 메시지 문장만 보고 step을 바꾸지 않는다(`conductor` §8)
 3. 서브에이전트가 끝나면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" judge {task} --step N --base $BASE` — 결과 코드대로. `--step`은 필수다(0.18.1 — 예전처럼 '첫 pending'을 고르면 방금 completed로 바뀐 step을 건너뛰고 다음 step을 판정했다):
    - **0 완료** → index.json(시간·usage)을 메타데이터 커밋까지 끝낸 상태다. **사람에게 3줄**(무엇을 바꿨나 · 왜 · 어디가 위험한가/안 돌려 본 것)을 출력하고 다음 step. 멈추지 않는다 — 사람이 구현 도중에 따라오게 하려는 것이다
@@ -39,10 +39,10 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 |---|---|---|
 | 1 | step status | error·pending(갱신 안 함)·허용 밖 값 → 재시도 / blocked → 멈춤(실행 실패보다 우선) |
 | 2 | (`tdd: true`) 테스트 파일만 담긴 커밋이 구현 커밋보다 먼저 | "RED: 테스트 커밋이 없다 / 먼저가 아니다" → 이번 시도 버림 |
-| 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test`(앱별이면 테스트가 든 앱만) → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" → 이번 시도 버림 |
+| 3 | (`tdd: true`) 그 커밋 시점으로 옮겨 `verify.test`(앱별이면 테스트가 든 앱만, `$step.test`가 있으면 그것) → **실패해야** 함 | "RED: 테스트가 아무것도 잡지 않음" → 이번 시도 버림 |
 | 4 | (`tdd: true`) 그 뒤 테스트 파일이 안 바뀜 — 바뀌었으면 되돌리고 실패 | "GREEN: 테스트 파일을 고쳤다(되돌림)" |
-| 5 | 이 step에서 커밋된 변경이 있다(남은 변경은 러너가 `feat:` 커밋으로 묶는다). `kind: measure`면 변경 0을 허용하고 대신 `summary`에 백틱 명령 + 결과가 있어야 한다(#8). 통과 시 6은 생략 | "completed 보고인데 변경 없음" / "measure: summary 에 측정 명령(백틱)과 결과가 없다" |
-| 6 | `verify` 통과. 앱별이면 **바뀐 파일이 든 앱 + `verifyAffects`에 걸린 앱만** — 앱 밖 파일이 있거나 phase 마지막 step이면 전부(#5) | "verify 실패: <이름>" |
+| 5 | 이 step에서 커밋된 변경이 있다(남은 변경은 러너가 `feat:` 커밋으로 묶는다). `kind: measure`면 변경 0을 허용하고 대신 `summary`에 백틱 명령 + 결과가 있어야 한다(#8). 통과 시 6은 생략(phase 마지막 step이면 6을 전체로) | "completed 보고인데 변경 없음" / "measure: summary 에 측정 명령(백틱)과 결과가 없다" |
+| 6 | `verify` 통과. 앱별이면 **바뀐 파일이 든 앱 + `verifyAffects`에 걸린 앱만**(#5), 그 앱에 `$step` 명령이 있으면 그것(0.25.0) — 앱 밖 파일 · phase 마지막 step · 재개 step이면 전체 명령 전부 | "verify 실패: <이름>" |
 헤드리스 `run`은 여기에 **0. 실행 결과**(종료 코드 · JSON `is_error` · 타임아웃 1800초, 타임아웃이면 자식 프로세스까지 끈다)를 먼저 본다. `start`는 `tdd: true` step이 있는데 `verify.test`가 없으면 돌리지 않고, 환경에 `ANTHROPIC_API_KEY`가 있으면 경고한다(헤드리스 `claude -p`는 그 키로 API 과금된다 — 공식 문서).
 
 ## 3. 커밋
