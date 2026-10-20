@@ -9,6 +9,7 @@ set -uo pipefail
 # 하네스가 깔린 레포에서만 동작한다.
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log() { :; }
 
 input=$(cat 2>/dev/null || true)
 cmd=$(printf '%s' "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
@@ -21,9 +22,10 @@ command -v git >/dev/null 2>&1 || exit 0
 
 # 스테이징 diff 의 추가 라인(+) 중 TODO/FIXME
 todos=$(git diff --cached -U0 2>/dev/null | grep -E '^\+' | grep -vE '^\+\+\+' | grep -nE 'TODO|FIXME|XXX|HACK' || true)
-[ -z "$todos" ] && exit 0
+[ -z "$todos" ] && { hook_log todo-warn clean; exit 0; }
 
 count=$(printf '%s\n' "$todos" | grep -c . | tr -d ' ')
+hook_log todo-warn warn "" "$count건"
 sample=$(printf '%s\n' "$todos" | head -n 8)
 
 # JSON 은 python 으로 싼다 — 코드 줄에 따옴표·백슬래시가 흔하다.

@@ -10,6 +10,7 @@ set -uo pipefail
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP="$(mktemp -d)"
 export CLAUDE_SKILL_HINTS_DIR="$TMP/skill-hints"
+export CLAUDE_HARNESS_HOOK_LOG="$TMP/hook-log.tsv"   # 훅 발화 기록이 실제 ~/.claude 에 쌓이지 않게
 export CLAUDE_GH_ACCOUNTS="$TMP/gh-accounts.txt"   # block-dangerous-bash 가 실제 계정 목록을 읽지 않게
 export CLAUDE_LEARN_SKIP="$TMP/learn-skip.txt"   # learn-setup 이 실제 제외 목록을 읽지 않게
 export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
@@ -481,6 +482,10 @@ printf 'edit2\n' >> "$TMP/on/loop-edit.ts"
 [ "$(ll s4 'pnpm test')" = "0" ] && ok "추적 안 되는 파일 내용이 바뀌어도 리셋" || bad "untracked 변경" "새 파일 내용 변경을 못 봤다"
 rm -f "$TMP/on/loop-edit.ts" "$TMP/on/.claude/.last-loop-lock"
 
+# 발화 기록 (0.27.0) — 덜어낼지 판단할 근거. 막은 건 blocked, 센 건 seen 으로 남는다
+grep -q $'\tloop-lock\tblocked\t' "$TMP/hook-log.tsv" 2>/dev/null && grep -q $'\tloop-lock\tseen\t' "$TMP/hook-log.tsv" \
+  && ok "loop-lock 발화 기록 — blocked·seen" || bad "발화 기록" "hook-log.tsv 에 loop-lock 줄이 없다"
+
 # ── 케이스 8: todo-warn — stdout JSON 으로 낸다 (stderr 는 아무도 못 본다) ─────
 printf '\n[8] todo-warn — stdout JSON\n'
 printf 'x\n// TODO later\n' > "$TMP/on/t.ts"
@@ -489,6 +494,7 @@ out=$(cd "$TMP/on" && printf '{"tool_input":{"command":"git commit -m x"}}' | ba
 echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "TODO" in d["hookSpecificOutput"]["additionalContext"] and d["systemMessage"]' 2>/dev/null \
   && ok "additionalContext + systemMessage" || bad "JSON" "out=[$out]"
 (cd "$TMP/on" && git reset -q t.ts && rm -f t.ts)
+grep -q $'\ttodo-warn\twarn\t' "$TMP/hook-log.tsv" 2>/dev/null && ok "todo-warn 발화 기록 — warn" || bad "발화 기록" "todo-warn warn 줄이 없다"
 
 # ── 케이스 9: validate-session-end — 결과를 stdout JSON systemMessage 로 ─────
 printf '\n[9] Stop 훅 — stdout JSON systemMessage\n'
@@ -499,6 +505,8 @@ rm -f "$TMP/on/.claude/.last-session-validate"
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/validate-session-end.sh" 2>/dev/null)
 echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); m=d["systemMessage"]; assert "🟢 lint" in m and "verify.test" in m' 2>/dev/null \
   && ok "systemMessage 에 🟢 lint · 빈 verify.test" || bad "JSON" "out=[$out]"
+awk -F'\t' '$3=="validate-session-end" && $4=="ok" && $5 ~ /^[0-9]+$/' "$TMP/hook-log.tsv" 2>/dev/null | grep -q . \
+  && ok "validate-session-end 발화 기록 — ok · ms" || bad "발화 기록" "validate-session-end ok·ms 줄이 없다"
 
 # ── 케이스 10: deny — force push 위치 · +refspec · rm -rf 플래그 순서 (2026-10-08) ─
 printf '\n[10] deny 패턴 — force push · rm -rf 변형\n'

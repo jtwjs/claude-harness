@@ -90,7 +90,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 재개
 
-중단 지점(`phases/{task}/index.json`의 status·현재 단계)을 읽고 이어서 진행한다. 디버깅이 필요하면 `root-cause-debugger`(`systematic-debugging` 규율). 원인이 확정되고 사람이 승인하면 **메인이** 해당 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 루프를 재개한다. 그 한 줄은 다음 지시문 머리에 들어가고, 재개한 실행은 재시도 한도를 새로 센다(`retries` 누계는 그대로). 그 원인은 ④ REFLECT 회고의 「막힌 지점」 첫 줄이 된다.
+중단 지점(`phases/{task}/index.json`의 status·현재 단계)을 읽고 이어서 진행한다. 디버깅이 필요하면 `root-cause-debugger`. 원인이 확정되고 사람이 승인하면 **메인이** 해당 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 루프를 재개한다. 그 한 줄은 다음 지시문 머리에 들어가고, 재개한 실행은 재시도 한도를 새로 센다(`retries` 누계는 그대로). 그 원인은 ④ REFLECT 회고의 「막힌 지점」 첫 줄이 된다.
 
 > 디자인 트랙은 `design-brief`·`design-critique`(DESIGN) · `design-reconcile`(REVIEW) **3스킬**이다 — 2026-09-01에 3스킬(`design-plan` 포함)로 설치됐다가 `design-plan`이 **0.9.0에서 삭제**됐고(PLAN 자리는 `harness`), 0.15.0에서 시안 평가용 `design-critique`가 들어왔다. 산출물 종착지는
 > `.claude/design/` — `brief.md`(내용)·`DESIGN.md`(스타일)·`design-system-map.md`(레지스트리)·`canvas/`(레포당 캔버스 하나, 커밋)·`checkpoints/`·`references/`(로컬 전용, README만 커밋).

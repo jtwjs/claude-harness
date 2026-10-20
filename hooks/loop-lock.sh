@@ -30,6 +30,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 CFG="$REPO_ROOT/.claude/harness.json"
 [ -f "$CFG" ] || exit 0
 stamp="$REPO_ROOT/.claude/.last-loop-lock"  # .claude/.last-* 는 .gitignore 처리
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log() { :; }
 
 # 검증성(루프 위험) 명령만 추적.
 #   1순위: harness.json verify.* 에 적힌 명령 문자열이 들어 있다.
@@ -100,6 +101,7 @@ else
   count=1
 fi
 printf '%s\n%s\n%s\n' "$hash" "$count" "$session" >"$stamp" 2>/dev/null || true
+[ "$count" -ge "$THRESHOLD" ] && hook_log loop-lock blocked "" "${count}회 $cmd" || hook_log loop-lock seen "" "${count}회"
 
 if [ "$count" -ge "$THRESHOLD" ]; then
   printf '🔁 LOOP LOCK: 코드가 그대로인 채 같은 검증 명령을 %s회 연속 실행했습니다. 다시 돌려도 결과가 같습니다.\n   접근을 바꾸거나(가설 재검토·다른 파일 확인) 사람에게 상황을 보고하세요. 같은 명령 반복 금지.\n' "$count" >&2

@@ -43,5 +43,5 @@ disable-model-invocation: false
 ## 위임
 
 - 성능/구조 건강성/보안까지 **깊게** 볼 필요가 있으면 Agent 도구로 **`code-reviewer`** 실행.
-- 원인 불명 회귀 → `root-cause-debugger` / `systematic-debugging` 스킬.
+- 원인 불명 회귀 → `root-cause-debugger`.
 - 이 스킬은 판정만 한다(코드 수정 없음).

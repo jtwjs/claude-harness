@@ -36,6 +36,9 @@ if [ -n "$cur_hash" ] && [ -f "$stamp" ] && [ "$(cat "$stamp" 2>/dev/null)" = "$
   exit 0
 fi
 
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || { hook_log() { :; }; hook_now_ms() { echo 0; }; }
+t0=$(hook_now_ms)
+
 # ── verify 추출 (없는 키는 skip — 거짓말하지 않는다) ─────────────────────────
 # 한 줄 = root \t 키 \t 명령. 단일 앱이면 root 는 "." 이다.
 # "#notest \t root" 줄은 verify.test 가 빈 root (조용히 죽지 않게 보고용).
@@ -117,6 +120,7 @@ done <<EOF
 $notest
 EOF
 [ -n "$failed" ] && report="${report}⚠️ 실패:${failed} (차단 아님 — CI 가 최종 게이트)"
+if [ -n "$failed" ]; then hook_log validate-session-end fail "$(( $(hook_now_ms) - t0 ))" "$failed"; else hook_log validate-session-end ok "$(( $(hook_now_ms) - t0 ))"; fi
 
 emit "Stop 검증(읽기 전용)
 ${report}"
