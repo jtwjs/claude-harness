@@ -34,9 +34,11 @@ fun decide(order: Order, command: CancelOrder, now: Instant): Decision = …   /
 
 ## 서비스 = 껍질 (쓰기)
 
-읽기 → `decide` → `Accepted`면 저장 · 커밋 뒤 발행 / `Rejected`면 아무것도 쓰지 않는다.
+읽기 → `decide` → `Accepted`면 상태 저장 · 커밋 뒤 발행 / `Rejected`면 상태를 바꾸지 않는다.
 
-- 🔴 **`decide` 전에 쓰지 않는다.** `@Transactional`은 예외에만 롤백한다 — 쓰고 나서 `Rejected`를 값으로 돌려주면 그 쓰기는 커밋된다
+- **결정의 기록(감사 로그)은 거절이어도 쓴다** — 누가 무엇을 요청했고 왜 거절됐는지가 요구사항이면 `Rejected`도 기록한다. 상태 변경만 `Accepted`일 때. 예: `viewus-distribution-dashboard` `releaseMute`는 거절도 `action_log`에 `FAILED` + 사유로 남기고, `alert_mute` 해제는 `Accepted`에만 한다
+
+- 🔴 **`decide` 전에 상태를 바꾸지 않는다.** `@Transactional`은 예외에만 롤백한다 — 쓰고 나서 `Rejected`를 값으로 돌려주면 그 쓰기는 커밋된다
 - 현재 시각은 `Clock` 빈을 받아 `Instant.now(clock)`으로 넘긴다
 
 ## 실패 — 값인가 예외인가

@@ -37,7 +37,7 @@ export const decide = (order: Order, command: CancelOrder, now: Date): Decision 
 
 ## 서비스 = 껍질 (쓰기)
 
-읽기 → `decide` → `accepted`면 저장 · 발행 / `rejected`면 아무것도 쓰지 않는다. 🔴 `decide` 전에 쓰지 않는다 — 트랜잭션은 throw에만 롤백한다.
+읽기 → `decide` → `accepted`면 상태 저장 · 발행 / `rejected`면 상태를 바꾸지 않는다. 결정의 기록(감사 로그)은 거절이어도 쓴다 — 상태 변경만 `accepted`일 때. 🔴 `decide` 전에 상태를 바꾸지 않는다 — 트랜잭션은 throw에만 롤백한다.
 
 ## 실패
 
