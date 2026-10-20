@@ -28,7 +28,11 @@ fun decide(order: Order, command: CancelOrder, now: Instant): Decision = …   /
 - `domain/`은 Spring · JPA를 import 하지 않는다 — kit의 ArchUnit 테스트가 막는다
 - 엔티티 ↔ 도메인은 매핑 함수 하나(`toDomain` · `toEntity`). 엔티티는 JPA 사정대로 가변으로 둔다
 
-## 서비스 = 껍질
+## 읽기 경로는 도메인 모델을 거치지 않는다
+
+조회는 쿼리에서 응답 DTO로 바로 프로젝션한다(`readOnly = true`). `decide`는 쓰기에만 쓴다. 없으면: 목록 조회 하나에 도메인 매핑이 끼어 느리고 길어진다.
+
+## 서비스 = 껍질 (쓰기)
 
 읽기 → `decide` → `Accepted`면 저장 · 커밋 뒤 발행 / `Rejected`면 아무것도 쓰지 않는다.
 

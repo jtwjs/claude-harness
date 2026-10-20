@@ -31,7 +31,11 @@ export const decide = (order: Order, command: CancelOrder, now: Date): Decision 
   ```
   ⚠️ 미실측 — 쓰는 레포가 생기면 그 ORM 이름으로 고친다
 
-## 서비스 = 껍질
+## 읽기 경로는 도메인 모델을 거치지 않는다
+
+조회는 쿼리에서 응답 DTO로 바로 만든다. `decide`는 쓰기에만 쓴다.
+
+## 서비스 = 껍질 (쓰기)
 
 읽기 → `decide` → `accepted`면 저장 · 발행 / `rejected`면 아무것도 쓰지 않는다. 🔴 `decide` 전에 쓰지 않는다 — 트랜잭션은 throw에만 롤백한다.
 

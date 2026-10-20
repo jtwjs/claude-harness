@@ -13,8 +13,8 @@ paths: ["src/**"]
 | `app/` | 라우터 · 전역 프로바이더 · 전역 스타일. 진입점 `main.tsx`만 `src` 바로 아래 |
 | `pages/` | 화면 하나. 폴더가 경로를 드러낸다 |
 | `widgets/` | 여러 화면이 쓰는 독립 UI 블록 |
-| `features/` | 사용자 행동(유즈케이스) 하나. **처음 생길 때 만든다** — 조회만 있는 동안은 없다 |
-| `entities/` | 도메인 단위의 API 호출 · 쿼리 팩토리 · 도메인 계산 |
+| `features/` | 사용자 행동(유즈케이스) 하나 — **쓰기(뮤테이션)는 여기**. **처음 생길 때 만든다** — 조회만 있는 동안은 없다 |
+| `entities/` | 도메인 단위의 **읽기**(API 조회 · 쿼리 팩토리) · 도메인 계산. 뮤테이션을 두지 않는다 |
 | `shared/` | 도메인과 **완전히 무관한** 것. 계약 생성물 · HTTP 클라이언트는 `shared/api` |
 
 **위에서 아래로만 import 한다**: `app → pages → widgets → features → entities → shared`. 역방향 금지.
@@ -23,7 +23,7 @@ paths: ["src/**"]
 
 - **같은 레이어의 다른 슬라이스를 import 하지 않는다.** 둘이 같이 쓰면 아래 레이어로 내린다
 - entity끼리는 **단방향 · 무순환**일 때만 `entities/{제공}/@x/{소비}.ts` 슬롯으로 연다
-- 슬라이스 밖에서는 **`index.ts`(public API)만** import 한다. `export default`·`export *`는 쓰지 않는다
+- 슬라이스 밖에서는 **`index.ts`(public API)만** import 한다. `export default`·`export *`는 쓰지 않는다(예외: Storybook 규약상 `*.stories.tsx` · `.storybook/` 설정은 default export)
 - **슬라이스 밖은 `@/` 별칭, 안은 상대 경로.** 상대 경로는 슬라이스를 벗어나지 않는다
 - `ui`의 부품은 모듈 폴더(`ui/<모듈>/<모듈>.tsx` · `.stories.tsx` · `.test.tsx` · `index.ts`)로 묶고, 밖에서는 그 `index.ts`로만 가져온다
 
@@ -44,13 +44,13 @@ paths: ["src/**"]
 
 ## 5. lint가 막는 것과 못 막는 것
 
-막는다: 레이어 역방향 · 같은 레이어 슬라이스 import · public API를 건너뛴 깊은 경로 · 슬라이스를 벗어나는 상대 경로 · 이웃 모듈의 안쪽 파일.
+막는다(stack-kits kit 기준): 레이어 역방향 · 본문 코드의 픽스처 · MSW 핸들러 import. 레포가 더 막았으면(예: `viewus-distribution-dashboard`) 그 레포 `eslint.config.*`가 정본이다 — 막는다고 믿기 전에 거기서 확인한다.
 
 에러: JSX 속성의 중괄호 몸통 화살표(`onChange={(e) => { … }}` — 이름 있는 핸들러로 뺀다, `functional-programming.md` 「함수 3층」). 한 줄 위임(`() => remove(id)`)은 허용.
 
 경고만 한다: 300줄 넘는 파일(`max-lines`, §6).
 
-못 막는다(리뷰로 본다): `shared`에 도메인 로직이 들어오는 것 · `@x` 슬롯의 단방향 · 무순환 · 동적 `import()` · 화면 파일에 섹션 본문이 들어오는 것 · 파일당 컴포넌트 수 · 화살표 함수 · 콜백 순서 · 훅 순서(§6).
+못 막는다(리뷰로 본다): kit에선 같은 레이어 슬라이스 import · public API를 건너뛴 깊은 경로 · 슬라이스를 벗어나는 상대 경로 · 이웃 모듈의 안쪽 파일도 여기다 · `shared`에 도메인 로직이 들어오는 것 · `@x` 슬롯의 단방향 · 무순환 · 동적 `import()` · 화면 파일에 섹션 본문이 들어오는 것 · 파일당 컴포넌트 수 · 화살표 함수 · 콜백 순서 · 훅 순서(§6).
 
 ## 6. 컴포넌트 · 파일
 
