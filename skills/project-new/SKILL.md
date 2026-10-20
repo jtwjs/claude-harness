@@ -17,6 +17,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 |---|---|---|
 | `kotlin-spring` | 단일 앱 | `kotlin-spring` |
 | `nextjs` | 단일 앱 | `nextjs` |
+| `react-vite` | 단일 앱(FE만 — React + Vite, 계약 스냅샷 `contracts/openapi.json` 포함) | `react-vite` |
 | `fullstack` | 모노레포 `apps/api`(Kotlin Spring) + `apps/web`(React + Vite), 계약 파이프라인 포함(openapi.json → 생성 타입) | `kotlin-spring` + `react-vite` |
 
 ## 2. 복사

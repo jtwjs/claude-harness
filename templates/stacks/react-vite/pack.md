@@ -6,7 +6,7 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 
 - `vite.config.*`가 있고 `package.json` dependencies에 `react`가 있다
 - **`next`가 없다** — 있으면 `nextjs` 팩이다
-- 코드 뼈대는 stack-kits `fullstack` kit의 `apps/web`이다. ESLint 설정(FSD 경계)의 정본은 kit의 `apps/web/eslint.config.*`이고, 이 팩의 `rules/fsd.md`는 판정만 옮긴다
+- 코드 뼈대는 stack-kits 단독 `react-vite` kit(FE만) 또는 `fullstack` kit의 `apps/web`(같은 뼈대 — 두 곳을 같이 고친다). ESLint 설정(FSD 경계 · 인라인 핸들러 · 300줄)의 정본은 kit의 `eslint.config.*`이고, 이 팩의 `rules/fsd.md`는 판정만 옮긴다
 
 ## 검증 명령 후보 — 하나씩 실행해 통과한 것만 `verify`에
 
@@ -46,4 +46,4 @@ TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-p
 
 ## 복사할 규칙
 
-`rules/fsd.md`(FSD를 쓸 때만 — 묻는다) · `rules/e2e.md`(Playwright가 있을 때) · `rules/bundle.md` (+ 기존 TS 조건부 두 파일)
+`rules/fsd.md`(FSD를 쓸 때만 — 묻는다) · `rules/e2e.md`(Playwright가 있을 때) · `rules/testing-fe.md` · `rules/bundle.md` (+ 기존 TS 조건부 두 파일 + 공통 `rules/react-components.md`)

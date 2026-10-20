@@ -39,4 +39,4 @@
 
 ## 복사할 규칙
 
-`rules/kotlin.md` · `rules/db.md` · `rules/api.md` · `rules/service.md`
+`rules/kotlin.md` · `rules/db.md` · `rules/api.md` · `rules/service.md` · `rules/domain.md` (+ 공통 `rules/functional-programming.md` — 적재적소 표 · 함수 3층이 Kotlin에도 걸린다)

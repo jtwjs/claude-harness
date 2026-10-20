@@ -1,6 +1,6 @@
 # nextjs 팩
 
-TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-programming}.md`도 같이 복사한다. 이 팩은 그 위에 Next 전용만 더한다.
+TS 프로젝트이므로 기존 조건부 규칙 `rules/{typescript,functional-programming,react-components}.md`도 같이 복사한다. 이 팩은 그 위에 Next 전용만 더한다.
 
 ## 검증 명령 후보 — 하나씩 실행해 통과한 것만 `verify`에
 
