@@ -1,5 +1,5 @@
 ---
-paths: ["**/domain/**", "**/service/**"]
+paths: ["**/domain/**", "**/service/**", "**/*Service.kt"]
 ---
 
 # 도메인 — 규칙 있는 곳만 불변 모델 (함수형 코어 · 명령형 껍질)

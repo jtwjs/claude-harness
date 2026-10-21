@@ -25,6 +25,8 @@
 | 실제 자동 머지 켜기 (`pr-write` 4.6, 지금 dry-run) | PR 본문에 `자동 머지 조건` 줄이 있는 **머지된 PR 10건**(`gh pr list --state merged --search '"자동 머지 조건" in:body'`)에서 오판 **0건**. 오판 = `충족`이었는데 머지 뒤 그 PR 파일을 고친 `fix:`·`revert` 커밋이 나옴, 또는 `미충족`이었는데 사람이 아무것도 고치지 않고 머지함. 켜면 `block-dangerous-bash`의 `gh pr merge` ask를 같이 푼다 |
 | 헤드리스 러너 worktree 격리 (강의 Contain 층) | 헤드리스 `run`이 step 범위 밖 파일을 바꾼 사례 **3건** (`git diff --stat`에 step 파일의 「작업」에 없는 경로) |
 | 운영 DB 가드 — Bash 밖 경로(MCP DB 도구·docker compose·설정 파일 Edit) | 이 경로로 운영 DB 에 붙은 사례 **1건** — 사고 1번이 곧 조건이다 |
+| `judge` 이동 테스트 판정 — 이름 변경 + `package` · `import` 줄만 바뀐 테스트 파일은 「RED 뒤 테스트 무변경」으로 친다(가져오는 이름이 같을 때만) | 이동 리팩터에서 RED를 측정 step(`kind: measure`)으로 떼고 이동 step을 `tdd: false`로 돌린 phase **3건** (`phases/*/index.json`) — 그때까지는 측정 step 우회로 푼다. 2026-10-21 1건 |
+| 조사 전 HEAD ↔ `origin/<base>` 비교 한 줄(`git rev-list --count HEAD..origin/<base>`가 0보다 크면 먼저 알린다) | 뒤처진 worktree에서 조사해 틀린 결론을 적은 사례 **3건** (`task-observer`·재교정). 2026-10-21 1건 |
 | 차단·허용 audit log (강의 Detect 층) | 차단된 명령을 사람이 "왜 막혔지"로 다시 찾은 일 **3회** (`task-observer`·재지시) |
 | 러너 step을 1회 → 2회 호출(TDD 도구 test-writer → feature-builder)로 되돌리기 | 러너로 통과한 `tdd: true` step에서 머지 뒤 `fix:` 커밋이 나온 사례 **3건** — `fix:` 커밋이 고친 파일이 그 step의 `feat: step N` 커밋 파일과 겹치면 센다 — 같은 머리가 테스트와 구현을 다 써서 테스트가 구현에 맞춰진 신호. 사용량 차이는 step `usage`로 잰다 |
 

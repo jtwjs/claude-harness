@@ -10,7 +10,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 0. 이미 깔린 레포: 업그레이드 모드
 
-`.claude/harness.json`·`_brain/CLAUDE.md`·`.claude/README.md` 중 하나라도 있으면 아래만 하고 끝낸다. 진단·명령 실측·인터뷰·rules·CI는 다시 하지 않는다(그건 사람이 고친 것을 덮는다). 손대는 것은 **템플릿이 주인인 사본**뿐이다.
+`.claude/harness.json`·`_brain/CLAUDE.md`·`.claude/README.md` 중 하나라도 있으면 아래만 하고 끝낸다. 진단·명령 실측·인터뷰·CI는 다시 하지 않는다(그건 사람이 고친 것을 덮는다). 손대는 것은 **템플릿이 주인인 사본**뿐이고, 스택 팩 규칙은 덮지 않고 **고르게** 한다.
 
 | 대상 | 어떻게 |
 |---|---|
@@ -20,6 +20,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | `_brain/raw/` | `.gitkeep`뿐이면 지운다. 내용이 있으면 멈추고 묻는다 |
 | `harness.json` | `harness.version`을 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 버전으로. 템플릿에만 있는 최상위 키는 목록만 보여 주고 넣지 않는다(`harness-doctor` §0과 같은 판정) |
 | `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |
+| 스택 팩 규칙 (`.claude/rules/`) | `stacks.packs`의 팩마다 `templates/stacks/<pack>/rules/*.md`를 레포 사본과 파일별로 diff 한다 — 비교 전에 템플릿 `paths:`에 그 팩의 `root` 접두를 붙인 판으로 맞춘다(§4 「스택 팩」과 같은 규칙. 접두가 빠지면 그 규칙은 어느 파일에도 안 걸린다). 결과를 `파일 · 템플릿에만 있음 / 레포에만 있음 / 둘 다 바뀜`으로 보여 주고 파일마다 🙋 「템플릿으로 · 레포 판 유지 · 줄 단위로 합치기」를 고르게 한다. 레포에 없는 팩 규칙 파일은 새로 깔지 묻는다. 덮어쓰지 않는다 — 레포가 일부러 고친 줄이 섞여 있다 |
+| 새로 맞는 팩 | §1-b 스택 판정을 빌드 파일로 다시 돌려 `stacks.packs`에 없는 팩이 나오면 목록만 보여 준다(예: init 뒤에 생긴 팩). 넣으면 위 행대로 규칙을 깔고 `stacks.packs`에 더한다 — 🙋 승인 뒤 |
 
 이름표 (옛 이름 → 지금, 날짜):
 
@@ -97,7 +99,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 **조건부**: TS면 `rules/{typescript,functional-programming}.md`(React면 `rules/react-components.md`도) · Kotlin이면 `rules/functional-programming.md` · ⑤면 `_brain/`(`${CLAUDE_PLUGIN_ROOT}/templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) + `rules/brain.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`는 이 템플릿이 있으면 그 절 구조를 채운다. 레포에 이미 있으면 덮지 않는다)
 
-**스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:` 앞에 앱 디렉터리를 붙인다(`apps/api/**/controller/**`). 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다.
+**스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:`의 **모든 glob** 앞에 그 팩의 `root`를 붙인다(`**/controller/**` → `apps/api/**/controller/**`, `src/**/*.test.tsx` → `apps/web/src/**/*.test.tsx`). 손으로 고르지 않는다 — 하나라도 빠지면 그 규칙은 조용히 안 걸린다. 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다. 기존 레포(코드가 이미 있는 레포)면 `testing-fe.md` · `e2e.md`의 「이 레포 현황」 절을 진단으로 채운다 — 렌더 헬퍼 · MSW · e2e 폴더가 실제로 있는지 파일로 확인하고, 「새 코드는」 칸만 묻는다. kit으로 시작한 레포면 그 절을 지운다.
 
 **CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) 플레이스홀더 — 7개 전부 이 표로 채운다.** 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다(2026-10-08 리뷰에서 `{{SETUP_STEPS}}`만 적혀 있었다).
 

@@ -30,6 +30,19 @@ paths: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.tsx", "e2e/**
 - 셀렉터는 역할 · 레이블 먼저. `data-testid`는 그것으로 안 될 때만
 - verify에 넣지 않는다. CI 별도 잡
 
+## 이 레포 현황 (기존 레포만 — `harness-init`이 채운다)
+
+위 표는 kit 뼈대(`shared/test/render.tsx` · MSW · `e2e/specs`)를 전제한다. 그 인프라가 없는 레포에 이 규칙만 깔리면 에이전트가 아무 PR에서나 MSW · 렌더 헬퍼를 새로 들인다. 다른 자리를 여기 적는다.
+
+| 자리 | 이 레포 지금 | 새 코드는 |
+|---|---|---|
+| 렌더 헬퍼 | <예: 없음 — 테스트마다 QueryClientProvider 조립> | <지금 방식을 따른다 / 헬퍼로> |
+| HTTP 고정 | <예: MSW 없음 — `vi.fn` fetch 목> | <지금 방식을 따른다 / MSW로> |
+| E2E 폴더 | <예: `e2e/*.spec.ts` 1개, pom · fixtures 없음> | <지금 방식을 따른다 / 위 구조로> |
+
+- 「새 코드는」이 「지금 방식」인 줄은 kit 인프라를 들이지 않는다. 들이는 것은 따로 합의한 작업에서만
+- 레포가 위 표 그대로면(kit으로 시작한 레포) 이 절을 지운다
+
 ## 확장자
 
 단위 · 통합은 `*.test.ts(x)`, E2E는 `*.spec.ts`. 도구 사이에 섞지 않는다(Vitest `include` · Playwright `testMatch`가 이것으로 가른다).
