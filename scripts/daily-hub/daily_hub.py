@@ -136,7 +136,10 @@ def phase_lines(wt: Path, day: str) -> tuple:
 
 
 def retro_today(wt: Path, day: str) -> str:
-    for f in (wt / "_brain" / "wiki" / "infra" / "retro.md", wt / "docs" / "retro.md"):
+    # 회고 한 장 = 파일 하나(retro/YYYY-MM-DD-<slug>.md). 옛 레포의 retro.md 한 파일도 읽는다
+    dirs = (wt / "_brain" / "wiki" / "infra" / "retro", wt / "docs" / "retro")
+    files = [f for d in dirs if d.is_dir() for f in sorted(d.glob(f"{day}-*.md"))]
+    for f in files + [wt / "_brain" / "wiki" / "infra" / "retro.md", wt / "docs" / "retro.md"]:
         if f.exists():
             for line in f.read_text(encoding="utf-8").splitlines():
                 if line.startswith(f"## {day}"):

@@ -20,7 +20,7 @@ _brain/
 ├── wiki/           # brain-walk 가 만들고, 기능 PR 이 갱신
 │   ├── overview.md # 전 소스 종합 synthesis (프로젝트가 뭘 아는가)
 │   ├── index.md    # 전체 노드 카탈로그 (링크+한줄+카테고리)
-│   └── log.md      # 변경 이력 (append-only, operation 파싱 가능)
+│   └── log/        # 변경 이력 — PR 하나 = 파일 하나(YYYY-MM-DD-<브랜치 slug>.md, operation 파싱 가능)
 └── CLAUDE.md       # 이 파일 = 운영규칙 + schema
 ```
 
@@ -56,11 +56,11 @@ wiki는 정적 폴더가 아니라 **walk·query·lint 세 동작으로 자라�
 | operation  | 트리거                        | 하는 일                                                                                                                                                                                            |
 | ---------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **walk** ⭐ | **레포를 맡았을 때 · `_brain/`이 비었을 때** | **`brain-walk` 스킬**이 코드를 R1~R7로 훑어 다섯 장을 만든다(입출구 · 테이블 · 생애 · 바뀔 수 있는 값 · 막힌 질문). **raw가 필요 없다 — 코드가 raw다.** |
-| **query**  | 사람이 wiki에 질문            | index에서 관련 노드 검색→읽고 **인용과 함께** 답한다. 답이 **재사용 가능한 분석·비교**면 새 노드로 환류(⚠️ 개별 VoC·요청은 복제 금지 — 이슈가 정본). `log.md` append.                              |
-| **lint**   | **PR에서 5장 중 하나를 고칠 때** (❌ "정기"로 두지 않는다 — 실측에서 한 번도 안 돌았다) | 모순·stale 주장·고아 노드(링크 0)·끊긴 `[[wikilink]]`·index↔파일 불일치·커버리지 갭 점검 후 보고·수선. **코드 drift 점검은 `harness-doctor`·`/revise-claude-md` 몫** — 여기선 wiki 내부 정합만. `log.md` append. |
+| **query**  | 사람이 wiki에 질문            | index에서 관련 노드 검색→읽고 **인용과 함께** 답한다. 답이 **재사용 가능한 분석·비교**면 새 노드로 환류(⚠️ 개별 VoC·요청은 복제 금지 — 이슈가 정본). 이 PR의 `log/` 파일에 append.                              |
+| **lint**   | **PR에서 5장 중 하나를 고칠 때** (❌ "정기"로 두지 않는다 — 실측에서 한 번도 안 돌았다) | 모순·stale 주장·고아 노드(링크 0)·끊긴 `[[wikilink]]`·index↔파일 불일치·커버리지 갭 점검 후 보고·수선. **코드 drift 점검은 `harness-doctor`·`/revise-claude-md` 몫** — 여기선 wiki 내부 정합만. 이 PR의 `log/` 파일에 append. |
 
 - **개별 사용자 요청·VoC**는 triage→**GitHub 이슈(정본)**. wiki에 복제하지 않는다(이슈 트래커 중복·stale 방지). 반복 테마가 제품 판단으로 굳으면 그때 `decisions/` 1장. query 환류도 이 규칙을 따른다.
-- **`log.md` 포맷(파싱 가능)**: `## [YYYY-MM-DD] {walk|query|lint|reflect} | {요약}`(`reflect` = `sdd` REFLECT 「지식 정리」) 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 최신이 위.
+- **`log/` 포맷(파싱 가능)**: PR 하나 = 파일 하나 `wiki/log/YYYY-MM-DD-<브랜치 slug>.md`(PR 없이 돈 walk·query·lint는 `YYYY-MM-DD-<operation>.md`). 항목은 `## [YYYY-MM-DD] {walk|query|lint|reflect} | {요약}`(`reflect` = `sdd` REFLECT 「지식 정리」) 헤더 + 하위 불릿(소스→노드, 갱신 노드 목록 등). 시간순은 파일 이름 순서다. 한 파일 맨 위에 쌓던 `log.md`는 병렬 트랙 PR마다 같은 줄에서 충돌해(2026-10-21 하루 3건) 접었다 — 옛 `log.md`는 지우지도 이어 쓰지도 않는다.
 - walk/query/reflect 시 `wiki/index.md` 해당 섹션에 항목 추가·갱신하고, 소스 종합이 바뀌면 `overview.md`도 반영.
 
 ## 🔴 언제 채우나 — 정해진 세 순간
@@ -75,7 +75,7 @@ wiki는 정적 폴더가 아니라 **walk·query·lint 세 동작으로 자라�
 
 **같은 PR에서 갱신한다. 별도 작업으로 미루면 안 한다.**
 
-그리고 `wiki/open-questions.md`(`brain-walk` 산출물 5번)는 **카테고리 폴더에 넣지 않는다** — `overview.md`·`index.md`·`log.md`와 같은 메타 레벨이다.
+그리고 `wiki/open-questions.md`(`brain-walk` 산출물 5번)는 **카테고리 폴더에 넣지 않는다** — `overview.md`·`index.md`·`log/`와 같은 메타 레벨이다.
 
 ## 노드 템플릿
 
@@ -122,7 +122,7 @@ status: active # 필수 — active | archived | superseded
 
 ## 관계
 
-- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`다. **회고 정본은 `_brain/wiki/infra/`** 다. 기능 회고는 `infra/retro.md` 한 파일에 `sdd` ④ REFLECT가 append한다(최신이 위 · 막힌 지점 / 원인 축 / 남긴 자산 / 다음 후보 — 형식은 `sdd` SKILL.md ④-1). 막힌 지점이 있는데 남긴 자산이 비면 그 회고는 미완이다.
+- 루트 `CLAUDE.md`는 `_brain/`을 **자동 로드하지 않는다**(0.9부터. 옛 레포의 `@_brain/wiki/` 줄은 그대로 두되 노드가 커지면 지우는 쪽을 권한다). 들어오는 길은 `.claude/README.md` 라우팅의 `brain-walk`다. **회고 정본은 `_brain/wiki/infra/`** 다. 기능 회고는 `infra/retro/YYYY-MM-DD-<기능 slug>.md`에 회고 한 장 = 파일 하나로 `sdd` ④ REFLECT가 쓴다(막힌 지점 / 원인 축 / 남긴 자산 / 다음 후보 — 형식은 `sdd` SKILL.md ④-1. 옛 `infra/retro.md`는 그대로 둔다). 막힌 지점이 있는데 남긴 자산이 비면 그 회고는 미완이다.
 
 ## 🔴 회고의 집은 하나다 — `docs/LEARNED.md` 를 접었다 (2026-09-28)
 

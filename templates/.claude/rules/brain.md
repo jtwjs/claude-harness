@@ -16,6 +16,6 @@ paths: ["_brain/**"]
 
 - **숫자는 노드 한 곳에만** 둔다. `index.md` · `overview.md`에는 요지와 링크만. 같은 숫자가 두 곳에 있으면 한 곳만 고쳐진다
 - 숫자는 주석을 빼고 센다
-- 노드를 고치면 frontmatter `updated`를 바꾸고 `_brain/wiki/log.md` 맨 위에 한 줄
+- 노드를 고치면 frontmatter `updated`를 바꾸고 `_brain/wiki/log/YYYY-MM-DD-<브랜치 slug>.md`에 한 줄(PR 하나 = 파일 하나, 같은 PR이면 그 파일에 이어 쓴다). 한 파일에 쌓으면 병렬 트랙 PR끼리 같은 줄에서 충돌한다. 옛 `log.md`는 그대로 둔다
 - 사실이 바뀌지 않는 변경(리팩터링 · 테스트 · 스타일)은 고칠 것이 없다. PR 본문에 "_brain 해당 없음" 한 줄
 - 막힌 질문 번호를 병렬 트랙이 각자 매기지 않는다 — 충돌한다. 병렬 트랙이면 `conductor`가 발급한다

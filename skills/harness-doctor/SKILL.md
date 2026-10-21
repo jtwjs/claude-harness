@@ -66,7 +66,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 **7-c. gitignore**: 루트 `.gitignore`에 `.claude/.last-*`가 없으면 ⚠️ — 훅 stamp 가 매 세션 untracked 로 뜬다(`${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append` 미적용). `_brain/`이 있으면 `_brain/internal/`도 같이 본다.
 
-**7-d. `_brain/`**(있을 때만): `_brain/wiki/index.md`에 적힌 노드 ↔ 실제 `.md` 파일이 1:1인가. 비밀값 패턴 grep은 `_brain/CLAUDE.md`의 명령 그대로 한 번 돌려 0건인지 본다.
+**7-d. `_brain/`**(있을 때만): `_brain/wiki/index.md`에 적힌 노드 ↔ 실제 `.md` 파일이 1:1인가. `wiki/log/`·`wiki/infra/retro/`의 파일은 노드가 아니라 기록이라 빼고 센다. 옛 한 파일 `wiki/log.md`·`wiki/infra/retro.md`에 `rules/brain.md`가 `log/` 방식으로 바뀐 커밋보다 뒤 날짜의 항목이 있으면 ⚠️ — 아직 한 파일에 쌓고 있어 병렬 PR이 다시 충돌한다. 비밀값 패턴 grep은 `_brain/CLAUDE.md`의 명령 그대로 한 번 돌려 0건인지 본다.
 
 ## 출력
 

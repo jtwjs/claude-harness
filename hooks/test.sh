@@ -219,6 +219,11 @@ printf '%s' "$out" | sed -n 3p | grep -qF '| ⛔ | admin | tr-siren | feature/ad
 printf '%s' "$out" | grep -qF '| … | renderer | tr-rd | feature/renderer-y | ◆ renderer-y 0/1 ▶ s1 |' && ok "진행 중 트랙 표시" || bad "tracks_status 진행" "$out"
 out=$(cd "$TMP/tr" && python3 "$TS" --compact)
 [ "$out" = "트랙 ⛔admin 진행1" ] && ok "--compact 한 줄(막힌 트랙 이름 · 나머지는 수 · 기준 worktree 제외)" || bad "tracks_status --compact" "$out"
+echo a > "$TMP/tr-siren/shared.txt"; echo b > "$TMP/tr-rd/shared.txt"; echo c > "$TMP/tr/shared.txt"
+out=$(cd "$TMP/tr" && python3 "$TS" --no-gh)
+printf '%s' "$out" | grep -qF -- '- `shared.txt` — tr-rd, tr-siren' && ! printf '%s' "$out" | grep -qF -- '- `phases' && ok "겹침: 두 트랙이 같이 바꾸는 파일만(기준 worktree·다른 phase 폴더 제외)" || bad "tracks_status 겹침" "$out"
+out=$(cd "$TMP/tr" && python3 "$TS" --compact)
+[ "$out" = "트랙 ⛔admin 진행1 겹침1" ] && ok "--compact 에 겹침 수" || bad "tracks_status --compact 겹침" "$out"
 
 # ── 케이스 2-h: daily-hub — 사람 요청만 · 헤드리스 제외 · 심볼릭 링크 중복 제거 · 오늘 학습 카드 (2026-10-18) ──
 printf '\n[2-h] daily_hub — 세션·학습 카드 집계\n'
@@ -229,10 +234,12 @@ u() { printf '{"type":"user","promptSource":"typed","entrypoint":"%s","timestamp
 { printf '{"type":"custom-title","customTitle":"repo-fe"}\n'; u cli 2026-10-17T23:30:00Z "첫 요청"; u cli 2026-10-18T05:00:00Z "마지막 요청"; u cli 2026-10-16T01:00:00Z "다른 날"; } > "$H/.claude/projects/-w/a.jsonl"
 u sdk-cli 2026-10-18T01:00:00Z "/routine evening" > "$H/.claude/projects/-w/b.jsonl"
 printf '%s\n' "$H/repo" > "$H/.claude/learn-repos.txt"
+mkdir -p "$H/repo/_brain/wiki/infra/retro" && printf '## 2026-10-18 — 오늘 기능\n- 숫자: step 1\n' > "$H/repo/_brain/wiki/infra/retro/2026-10-18-today.md"
 printf '## YYYY-MM-DD · 템플릿\n## 2026-10-18 · 오늘 카드\n- 종류: 기술 · 출처: 빈틈 3곳\n- 상태: 설명 들음\n## 2026-10-17 · 어제 카드\n- 종류: 기술 · 출처: AI 설명\n' > "$H/repo/_learn/inbox.md"
 out=$(python3 "$DH" 2026-10-18 --home "$H" --out "$H/out")
 [ "$out" = "오늘 세션 1 · 프로젝트 1 · 새 학습 1 — 자세히: $H/out/2026-10-18.html" ] && ok "세션 1(헤드리스·링크 중복 제외) · 학습 1(오늘만)" || bad "daily_hub 집계" "$out"
 grep -q '08:30~14:00' "$H/out/2026-10-18.html" && grep -q 'repo-fe' "$H/out/2026-10-18.html" && grep -q '빈틈 3곳' "$H/out/2026-10-18.html" && ok "KST 시간대 · 세션 이름 · 빈틈 3곳 표시" || bad "daily_hub HTML" "$(grep -o '[0-9][0-9]:[0-9][0-9]~[0-9:]*' "$H/out/2026-10-18.html")"
+grep -q '회고: 2026-10-18 — 오늘 기능' "$H/out/2026-10-18.html" && ok "회고는 retro/ 의 날짜 파일에서 읽는다" || bad "daily_hub 회고" "$(grep -o '회고:[^<]*' "$H/out/2026-10-18.html")"
 
 printf '\n[3] tdd-guard — include/exclude 판정\n'
 mkdir -p "$TMP/on/.claude" "$TMP/on/src/features" && (cd "$TMP/on" && git init -q)
@@ -573,10 +580,12 @@ grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\
   && ok "DESIGN 절차는 세 장 · _brain 은 REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
 # 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
 cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
-for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 append:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'infra/retro.md:templates/_brain/CLAUDE.md'; do
+for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'infra/retro/YYYY-MM-DD:templates/_brain/CLAUDE.md'; do
   grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
 없음: ${need}"
 done
+top=$(grep -nF '최신이 위' "$ROOT/skills/sdd/SKILL.md" "$ROOT/templates/_brain/CLAUDE.md" "$ROOT/templates/.claude/rules/brain.md" "$ROOT/skills/brain-walk/SKILL.md" || true)
+[ -z "$top" ] && ok "회고·로그는 한 건 = 파일 하나(한 파일 맨 위에 쌓지 않는다 — 병렬 PR 충돌)" || bad "회고·로그 한 파일 맨 위" "$top"
 [ -z "$cross" ] && ok "① 계획 두 게이트 · why 는 화면만 · REFLECT 회고+출구 조건 · ⑤ 마무리" || bad "0.22.0 흐름" "$cross"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"

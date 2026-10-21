@@ -7,13 +7,16 @@ worktree 하나 = 트랙 작업 하나(`.claude/references/tracks.md`). worktree
   마지막 신호 → 최신 커밋 시각과 index.json 수정 시각 중 늦은 것. --stale 분(기본 30)을 넘으면 💤
   막힘   → error·blocked step
   후속 이슈 → 열린 `track:<트랙>` + `follow-up` 이슈 수(gh 실패 시 ?)
+  겹침   → 기준 브랜치가 아닌 worktree 둘 이상이 같이 바꾸고 있는 파일(기준 브랜치와 갈라진 지점 이후 커밋 + 안 올린 변경).
+           병합하면 충돌할 자리다. 표 아래에 파일별로 낸다(2026-10-21 병렬 PR 충돌 3건)
 정렬: ⛔ → 💤 → 진행 중 → 끝남.
 
 아이디어 출처: lcalmsky/deadhd 레인 보드(작업 × 단계 · 멈춤 감지, MIT — 코드는 가져오지 않음). 2026-10-18.
 
 Usage:
-    tracks_status.py [--stale MIN] [--no-gh]
-    tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 끝1 (gh 안 부름. 트랙 표가 없거나 worktree 1개면 빈 출력)
+    tracks_status.py [--stale MIN] [--no-gh] [--base BRANCH]
+    tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 끝1 겹침2 (gh 안 부름. 트랙 표가 없거나 worktree 1개면 빈 출력)
+    --base 기본값은 origin/HEAD 가 가리키는 브랜치, 없으면 origin/main
 """
 import json
 import re
@@ -100,6 +103,34 @@ def followups(root: Path, track: str):
     return out if out is not None and out.isdigit() else "?"
 
 
+def base_ref(root: Path, argv: list) -> str:
+    if "--base" in argv:
+        b = argv[argv.index("--base") + 1]
+        return b if b.startswith("origin/") else f"origin/{b}"
+    head = sh(["git", "symbolic-ref", "-q", "--short", "refs/remotes/origin/HEAD"], cwd=root)
+    return head or "origin/main"
+
+
+def changed(wt: Path, base: str) -> set:
+    """기준 브랜치와 갈라진 뒤 바뀐 파일 + 안 올린 변경. 기준을 못 찾으면 안 올린 변경만."""
+    files = set()
+    mb = sh(["git", "merge-base", base, "HEAD"], cwd=wt)
+    if mb:
+        files |= set((sh(["git", "diff", "--name-only", mb, "HEAD"], cwd=wt) or "").splitlines())
+    for line in (sh(["git", "status", "--porcelain", "-uall"], cwd=wt) or "").splitlines():   # -uall: 새 폴더를 폴더 하나로 접지 않는다
+        files.add(line[3:].split(" -> ")[-1].strip('"'))
+    return {f for f in files if f}
+
+
+def overlaps(by_track: dict) -> list:
+    """[(파일, [worktree…])] — 트랙 worktree 둘 이상이 같이 바꾸는 파일."""
+    seen = {}
+    for name, files in by_track.items():
+        for f in files:
+            seen.setdefault(f, []).append(name)
+    return sorted((f, ws) for f, ws in seen.items() if len(ws) > 1)
+
+
 def ago(sec: float) -> str:
     m = int(sec // 60)
     return f"{m}분 전" if m < 120 else f"{m // 60}시간 전"
@@ -113,6 +144,8 @@ def main(argv: list) -> int:
     use_gh = "--no-gh" not in argv and not compact
     root = Path(sh(["git", "rev-parse", "--show-toplevel"]) or ".")
     tracks = tracks_of(root)
+    base = base_ref(root, argv)
+    touched = {}
     if compact and not tracks:
         return 0
     now = time.time()
@@ -122,6 +155,8 @@ def main(argv: list) -> int:
         if not wt.exists():
             continue
         track = track_for(br, tracks)
+        if br != base.split("/", 1)[-1]:   # 지휘가 앉은 기준 worktree 는 뺀다. 트랙 표가 없어도 본다
+            touched[wt.name] = changed(wt, base)
         prog, stuck, idx_mt = progress(wt, track)
         ct = sh(["git", "log", "-1", "--format=%ct"], cwd=wt)
         last = max(float(ct) if ct else 0.0, idx_mt)
@@ -138,7 +173,8 @@ def main(argv: list) -> int:
             return 0
         named = [f"{r[1]}{r[2]}" for r in rows if r[0] <= 1]
         counts = [f"{w}{sum(1 for r in rows if r[1] == m)}" for m, w in (("…", "진행"), ("✓", "끝")) if any(r[1] == m for r in rows)]
-        print("트랙 " + " ".join(named + counts))
+        ov = overlaps(touched)
+        print("트랙 " + " ".join(named + counts + ([f"겹침{len(ov)}"] if ov else [])))
         return 0
     if not rows:
         print("worktree 가 없다")
@@ -148,6 +184,11 @@ def main(argv: list) -> int:
     for r in sorted(rows):
         print("| " + " | ".join(r[1:]) + " |")
     print(f"\n⛔ 막힌 step · 💤 {stale}분 넘게 신호 없음 · … 진행 중 · ✓ 남은 SDD step 없음")
+    ov = overlaps(touched)
+    if ov:
+        print(f"\n겹침 {len(ov)} — worktree 둘 이상이 같이 바꾸는 파일(기준 {base}). 병합하면 충돌한다. conductor §5")
+        for f, ws in ov:
+            print(f"- `{f}` — {', '.join(ws)}")
     if not tracks:
         print("(.claude/references/tracks.md 트랙 표가 없어 트랙 칸은 비어 있다)")
     return 0

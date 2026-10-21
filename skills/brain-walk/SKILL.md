@@ -183,9 +183,9 @@ status: active
 
 본문 골격: `# 제목` → 한 줄 요지 → 표 중심 본문 → 마지막 줄 `관련: [[..]] · [[..]]`
 
-**5번은 카테고리 폴더에 넣지 않고 `wiki/` 바로 아래 둔다** — `overview.md`·`index.md`·`log.md`와 같은 메타 레벨이다(5분류 — decisions·domain·infra·conventions·glossary — 에 "질문" 버킷이 없다).
+**5번은 카테고리 폴더에 넣지 않고 `wiki/` 바로 아래 둔다** — `overview.md`·`index.md`·`log/`와 같은 메타 레벨이다(5분류 — decisions·domain·infra·conventions·glossary — 에 "질문" 버킷이 없다).
 
-마지막에 `wiki/index.md`에 5행을 추가하고 `wiki/log.md`에 1엔트리를 append한다.
+마지막에 `wiki/index.md`에 5행을 추가하고 `wiki/log/YYYY-MM-DD-walk.md`(갱신 모드가 PR 안에서 돌면 그 PR의 `log/` 파일)에 1엔트리를 쓴다.
 
 ```
 ## [YYYY-MM-DD] walk | <레포> R1~R7 한 바퀴 — 5장 생성
@@ -206,4 +206,4 @@ status: active
 - [ ] 각 장에 **"없다"고 적은 항목이 최소 하나** 있다 (없는 것을 안 적으면 훑지 않은 것이다)
 - [ ] 비밀값 검사 grep이 0건이다
 - [ ] 막힌 질문의 모든 행에 「누가 답하나」가 채워졌다
-- [ ] `wiki/index.md` 5행 · `wiki/log.md` 1엔트리
+- [ ] `wiki/index.md` 5행 · `wiki/log/` 1엔트리
