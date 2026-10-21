@@ -14,5 +14,7 @@ paths: ["src/**/*.tsx"]
 | 규칙은 model로 (판정 6) | 필터 · 정렬 · 집계 · 표시 규칙은 `model/` 순수 함수 + 단위 테스트. 컴포넌트엔 조립만 | `visibleRows(rows, filter)` | JSX 안 `.filter().sort()` 체인 | 규칙을 테스트하려면 화면을 띄워야 한다 |
 | 실패는 값 (판정 4) | 쿼리의 error 상태로 분기. `try/catch`는 이벤트 핸들러 경계에서만 | `if (query.isError) return <ErrorState />` | 렌더 경로의 `try/catch` | 실패 화면이 흩어지고 빠진다 |
 
+- 함수 3층 자리(FSD): 범용 계산 `shared/lib` · 규칙 조립 `entities/<도메인>/model` · 액션 `features/<행동>` 훅 · 핸들러 · 조립 컴포넌트 · 화면
+- 호출 자리(JSX 속성)는 이름 있는 함수 하나: ✅ `onChange={handleTitleChange}` · `onClick={() => remove(id)}` ❌ `onChange={(e) => { …여러 줄… }}`
 - `useMemo`는 계산이 비쌀 때만. 습관적 `memo` · `useCallback`은 쓰지 않는다
 - 상태 갱신은 복사본으로(판정 5): `setRows((prev) => [...prev, row])`. `prev.push` 금지

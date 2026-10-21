@@ -33,6 +33,7 @@ disable-model-invocation: false
 - **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 러너가 그 step을 **한 호출 안에서 테스트 먼저 → 구현**으로 돌리고 git 기록으로 확인한다(테스트만 담긴 커밋이 먼저 · 그 시점에 테스트가 실패 · 그 뒤 테스트 파일 무변경 — `harness-run` §2), `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
 - **금지사항 명시**: 아래 템플릿 「금지사항」 두 줄은 늘 넣는다. 이름 · 경로를 바꾸는 step이면 「옛 이름 grep 0」 AC에 쌓기만 하는 기록을 뺀 범위를 적는다 — 빼지 않으면 에이전트가 지난 로그 항목까지 새 이름으로 고친다(2026-10-21 실측: `_brain/wiki/log.md` 옛 항목을 고쳐 되돌림). CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 2026-10 병렬 트랙 실측: step md 111개 중 49개가 ADR 내용을 복사했고, ADR이 바뀐 뒤 step 값이 옛 값으로 남아 지시문으로 덮어써야 했다(재지시 2회).
 - **측정 전용 step은 `kind: "measure"`**: dev 실측·전후 대조·보고만 하고 바꿀 파일이 없는 step. 작업 절에 "무엇을 어떤 명령으로 재서 summary에 남기나"를 적는다. 구현 step에 측정을 섞지 않는다 — 섞으면 변경 유무로 판정할 수 없다.
+- **이동 리팩터(패키지 · 폴더 옮기기)는 세 step으로**: ① 측정 step(`kind: "measure"`) — 새 구조 규칙(ArchUnit · lint)을 임시로 돌려 RED를 확인하고 위반 목록을 summary에 남긴다 ② 이동 step(`tdd: false`, 사유 「테스트 파일도 rename · package 줄이 바뀌어 RED 뒤 테스트 무변경 판정과 못 같이 둔다」) ③ 규칙 step — 규칙을 커밋해 GREEN을 확인한다. 한 step에 묶으면 judge가 테스트 파일 변경으로 막는다
 - step 이름은 **kebab-case**.
 
 ## 3-b. 디자인 핸드오프가 있을 때

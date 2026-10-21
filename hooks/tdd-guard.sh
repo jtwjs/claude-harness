@@ -54,6 +54,22 @@ if any(s in p.name for s in (".test.", ".spec.")) or "__tests__" in p.parts:
 if jvm and (p.stem.endswith(("Test", "Tests")) or "/src/test/" in f"/{rel}"):
     sys.exit(0)                      # JVM 테스트 파일 자체
 
+# 선언만 있는 파일(data class · enum · type · interface, 함수 본문 0)은 짝 테스트 면제 — testing.md §0 「타입 선언」
+import re
+ti = payload.get("tool_input") or {}
+if "content" in ti:
+    after = ti.get("content") or ""
+else:                                # Edit: 지금 파일에 바꿀 조각을 대 본 결과로 판정
+    try:
+        cur = (root / rel).read_text(encoding="utf-8")
+    except Exception:
+        cur = ""
+    after = cur.replace(ti.get("old_string") or "", ti.get("new_string") or "")
+code = re.sub(r"/\*.*?\*/|//[^\n]*", "", after, flags=re.S)
+logic = (r"\bfun\b|\binit\s*\{|\bget\(\)" if jvm else r"\bfunction\b|=>|\bclass\b")
+if code.strip() and not re.search(logic, code):
+    sys.exit(0)
+
 stem = p.name.rsplit(".", 1)[0]
 ext  = p.suffix
 if jvm:
