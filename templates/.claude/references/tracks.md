@@ -43,7 +43,7 @@ git worktree list
 |---|---|---|
 | 포트 | 두 worktree가 같은 포트로 뜨면 부딪힌다. 로컬 E2E가 `reuseExistingServer`로 **다른 worktree의 서버를 재사용**할 수 있다 | 동시에 띄우는 작업은 포트를 옮긴다(환경변수 · `--port`) |
 | 컨테이너 | compose는 폴더 이름 기준 프로젝트로 뜬다 | worktree마다 `COMPOSE_PROJECT_NAME`을 다르게 둔다(⚠️ 원형 레포에서도 미검증) |
-| CPU · Docker | 트랙마다 Stop 훅이 응답이 끝날 때마다 verify 전체를 돈다. 동시에 응답이 끝나면 몰린다 | 무거운 검증은 트랙 사이에 시차를 둔다 |
+| CPU · Docker | 트랙마다 Stop 훅이 응답이 끝날 때마다 바뀐 앱의 format·lint·typecheck를 돈다(test는 0.31.1부터 Stop에서 빠졌다 — CI·러너 판정). 동시에 응답이 끝나면 몰린다 | 무거운 검증은 트랙 사이에 시차를 둔다 |
 
 ## 3. 트랙 세션 · 서브에이전트에 넘길 것
 

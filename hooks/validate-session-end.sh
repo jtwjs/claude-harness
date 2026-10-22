@@ -13,6 +13,10 @@
 #   단일 앱  {"verify": {"lint": "…", "test": "…"}}                    → 레포 루트에서 실행
 #   앱별     {"verify": {"apps/api": {"test": "…"}, "apps/web": {…}}}  → root 마다 cd 후 실행, 결과에 root 이름
 # SDD 러너 step 안(env SDD_RUNNER_SINCE=그 step 시작 커밋)이면 `$step` 의 같은 키 명령을 대신 쓴다 (0.25.0)
+# 부하 (0.31.1): verify.test 는 여기서 돌리지 않는다 — 응답마다 worktree 마다 전체 테스트(서버는 Testcontainers MySQL)가
+#   돌아 2026-10-21~22 대시보드 worktree 에서 36회 · 합계 35.9분 · 평균 60초였다. 테스트 게이트는 CI 와 러너 판정이다.
+#   앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만 돈다. 앱 밖 파일이 코드면 전부, 기록(*.md · phases/ · .claude/ ·
+#   _brain/ · _learn/)이면 무시한다. 화면만 고친 worktree 에서 server 검사가 돌던 것을 막는다.
 set -uo pipefail
 cat >/dev/null 2>&1 || true
 
@@ -43,7 +47,7 @@ t0=$(hook_now_ms)
 # 한 줄 = root \t 키 \t 명령. 단일 앱이면 root 는 "." 이다.
 # "#notest \t root" 줄은 verify.test 가 빈 root (조용히 죽지 않게 보고용).
 parsed=$(python3 - "$CFG" <<'PY'
-import json, os, shlex, sys
+import fnmatch, json, os, shlex, subprocess, sys
 try:
     cfg = json.load(open(sys.argv[1], encoding="utf-8"))
 except Exception:
@@ -58,23 +62,51 @@ def cmd(m, k):
     c = o.get(k) if isinstance(o, dict) and isinstance(o.get(k), str) and o.get(k).strip() else m.get(k)
     c = c.strip() if isinstance(c, str) else ""
     return c.replace("{since}", shlex.quote(since)) if since else c
+def git(*a):
+    r = subprocess.run(["git", *a], capture_output=True, text=True)
+    return r.stdout.splitlines() if r.returncode == 0 else []
+NOT_CODE = ("*.md", "phases/*", ".claude/*", "_brain/*", "_learn/*")
+roots = sorted((r for r in apps if r != "."), key=len, reverse=True)
+picked = set(apps)
+if roots:
+    changed = set(git("diff", "HEAD", "--name-only")) | set(git("ls-files", "-o", "--exclude-standard"))
+    affects = {k: x for k, x in (cfg.get("verifyAffects") or {}).items() if not k.startswith("$")}
+    picked = set()
+    for f in sorted(changed):
+        own = next((r for r in roots if f.startswith(r.rstrip("/") + "/")), None)
+        if own:
+            picked.add(own)
+        elif not any(fnmatch.fnmatch(f, p) for p in NOT_CODE):
+            picked = set(apps)
+            break
+        for pat, extra in affects.items():
+            if fnmatch.fnmatch(f, pat):
+                picked.update(extra if isinstance(extra, list) else [extra])
+for root in apps:
+    if root not in picked:
+        print(f"#skip\t{root}")
 for root, m in apps.items():
     if not cmd(m, "test"):
         print(f"#notest\t{root}")
 for root, m in apps.items():
-    for k in ("format", "lint", "typecheck", "test"):
+    if root not in picked:
+        continue
+    for k in ("format", "lint", "typecheck"):
         if cmd(m, k):
             print(f"{root}\t{k}\t{cmd(m, k)}")
 PY
 )
 notest=$(printf '%s\n' "$parsed" | awk -F'\t' '$1=="#notest"{print $2}')
-steps=$(printf '%s\n' "$parsed" | grep -v '^#notest' || true)
+skipped=$(printf '%s\n' "$parsed" | awk -F'\t' '$1=="#skip"{printf "%s%s", (n++ ? ", " : ""), $2}')
+steps=$(printf '%s\n' "$parsed" | grep -v '^#' || true)
 
 emit() { # $1 = 메시지 — stdout JSON systemMessage 로 낸다
   MSG="$1" python3 -c 'import json,os; print(json.dumps({"systemMessage": os.environ["MSG"]}, ensure_ascii=False))'
 }
 
 if [ -z "$steps" ]; then
+  [ -n "$cur_hash" ] && printf '%s' "$cur_hash" >"$stamp" 2>/dev/null || true
+  if [ -n "$skipped" ]; then hook_log validate-session-end skip 0 "$skipped"; exit 0; fi   # 바뀐 앱 없음(기록만 바뀜)
   emit 'ℹ️ harness.json 에 verify 명령이 없습니다 — Stop 검증 skip'
   exit 0
 fi
@@ -119,6 +151,10 @@ while IFS= read -r r; do
 done <<EOF
 $notest
 EOF
+[ -n "$skipped" ] && report="${report}⏭ 건너뜀(바뀐 파일 없음): ${skipped}
+"
+report="${report}ℹ️ test 는 Stop 에서 돌리지 않는다 — CI · 러너 판정이 돌린다
+"
 [ -n "$failed" ] && report="${report}⚠️ 실패:${failed} (차단 아님 — CI 가 최종 게이트)"
 if [ -n "$failed" ]; then hook_log validate-session-end fail "$(( $(hook_now_ms) - t0 ))" "$failed"; else hook_log validate-session-end ok "$(( $(hook_now_ms) - t0 ))"; fi
 
