@@ -95,6 +95,16 @@ fi
 # GitHub 쓰기 계정 — ~/.claude/gh-accounts.txt 에 「owner 계정」 줄이 있으면, 그 owner 레포에 이슈·PR·릴리스를 쓰는 명령은
 # 활성 gh 계정이 그 계정일 때만 통과(2026-10-15). 다른 계정이면 에러 없이 그 계정 이름으로 올라간다(jtwjs/claude-harness #1~3·#7 실측).
 # 같은 명령 안에 gh auth switch -u <계정> 이 먼저 있으면 통과. 목록 파일이 없으면 아무것도 안 한다.
+# 지휘 자리(~/.claude/conductor.json seat)에서는 gh 쓰기에 -R/--repo 필수 (ADR-003, 2026-10-31). 없으면 cwd(vault) 레포가 owner 가 되어
+# 지휘가 다른 레포에 쓸 이슈·댓글이 vault 레포에 생긴다. 지휘 설정이 없으면 이 절은 아무것도 안 한다.
+unqw=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+if printf '%s' "$unqw" | grep -Eq 'gh[[:space:]]+(issue|pr|release)[[:space:]]+(create|comment|edit|close|reopen|review|delete|merge)\b' \
+   && ! printf '%s' "$unqw" | grep -Eq '(^|[[:space:]])(-R|--repo)([[:space:]=]|$)' \
+   && python3 "$SCRIPT_DIR/lib/conductor.py" is-seat "$PWD" 2>/dev/null; then
+  printf '🚫 차단됨: 지휘 자리에서는 -R <owner>/<repo> 로 대상 레포를 적는다\n   사유: -R 이 없으면 지금 폴더의 레포에 이슈·댓글이 생긴다 (conductor ADR-003)\n' >&2
+  exit 2
+fi
+
 GH_ACCOUNTS="${CLAUDE_GH_ACCOUNTS:-$HOME/.claude/gh-accounts.txt}"
 if [ -f "$GH_ACCOUNTS" ]; then
   unqg=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
@@ -124,7 +134,13 @@ fi
 # harness.json 에 적힌 위치(spring:<프로필> · env:<파일>:<키>)에서 호스트를 디스크로 읽는다. 값은 어디에도 옮기지 않는다.
 #   ① 운영 DB 를 가리키는 명령(호스트·그 값을 담은 변수 이름)에 쓰기 SQL·SQL 파일 실행 → 차단. 조회(SELECT)는 허용
 #   ② 운영을 가리키는 Spring 프로필(같은 호스트면 자동) · switches(Node) 로 실행 → 차단
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+# 대상 레포 (ADR-004, 2026-10-31): 명령이 `cd <경로> &&|;` 또는 `git -C <경로>` 로 시작하면 그 경로의 레포로 판정한다 —
+# 지휘 자리(하네스 없는 폴더)에서 다른 레포를 건드리는 명령이 가드를 지나가지 않게. 경로가 없거나 git 이 아니면 cwd.
+tgt=$(printf '%s' "$cmd" | sed -nE 's/^[[:space:]]*cd[[:space:]]+([^;&[:space:]]+)[[:space:]]*(&&|;).*/\1/p; s/^[[:space:]]*git[[:space:]]+-C[[:space:]]+([^;&[:space:]]+).*/\1/p' | head -1)
+tgt="${tgt/#\~/$HOME}"
+REPO_ROOT=""
+[ -n "$tgt" ] && [ -d "$tgt" ] && REPO_ROOT="$(git -C "$tgt" rev-parse --show-toplevel 2>/dev/null)"
+[ -n "$REPO_ROOT" ] || REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
 prod=$(python3 "$SCRIPT_DIR/lib/prod_db.py" check "$REPO_ROOT" "$cmd" 2>/dev/null); prc=$?
 # 판별이 죽으면 막는다(fail-closed). guard.prodDb 가 없는 레포는 설정을 읽자마자 끝나 여기 올 일이 없다 — 10-13 리뷰: 조용히 통과했다

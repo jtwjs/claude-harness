@@ -23,8 +23,10 @@
     {
       "step": 3,
       "name": "bash-hook-target-repo",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "block-dangerous-bash: 지휘 자리 gh 쓰기 -R 필수 · 명령 머리 cd/git -C 로 운영 DB 대상 레포. [7-c] 9건(217/0)",
+      "completed_at": "2026-10-31T20:43:58+09:00"
     },
     {
       "step": 4,
