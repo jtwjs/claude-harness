@@ -112,8 +112,10 @@
     {
       "step": 14,
       "name": "review-fixes-2",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "REVIEW 2회차 🟡 2건(step 13 회귀) 수정. hook 252 · runner 50 통과",
+      "completed_at": "2026-10-31T21:25:05+09:00"
     }
   ]
 }
