@@ -15,6 +15,10 @@ import textwrap
 import unittest
 from pathlib import Path
 
+# 검사 상한(verify_busy)이 진짜 ps 를 보지 않게 — 다른 세션 검사가 돌면 judge 마다 최대 600초 기다린다(REVIEW 1회차)
+_EMPTY_PS = tempfile.NamedTemporaryFile(prefix="verify-ps-", delete=False)
+os.environ["CLAUDE_VERIFY_PS"] = _EMPTY_PS.name
+
 HERE = Path(__file__).resolve().parent
 RUNNER = HERE / "sdd_runner.py"
 

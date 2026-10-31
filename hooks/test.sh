@@ -658,6 +658,15 @@ python3 "$VB" match "$TMP/vb" 'pnpm lint' && ok "match — harness.json verify �
 python3 "$VB" match "$TMP/vb" 'cd x && pnpm verify' && ok "match — pnpm verify" || bad "match verify" "exit 1"
 python3 "$VB" match "$TMP/vb" 'git status' && bad "match 오탐" "git status" || ok "match — 검사 아닌 명령은 아님"
 python3 "$VB" match "$TMP/vb-apps" 'pnpm lint:web' && ok "match — 앱별 verify · \$ 키 무시" || bad "match 앱별" "exit 1"
+# REVIEW 1회차(2026-10-31): 한 실행이 zsh → pnpm → turbo → pnpm run ×2 로 떠도 1개 · 명령 자리에서만 · TRIVIAL 은 match 에서도 제외
+printf '100 1 zsh -c pnpm verify\n101 100 node /x/pnpm verify\n102 101 /x/turbo run verify\n103 102 node /x/pnpm run verify\n104 102 node /x/pnpm run verify\n' > "$CLAUDE_VERIFY_PS"
+out=$(CLAUDE_VERIFY_MAX=1 python3 "$VB" busy "$TMP/vb") && [ "$out" = "1" ] && ok "한 실행의 프로세스 트리(중간 turbo 포함)는 1개" || bad "트리 1개" "out=$out"
+printf 'rg pnpm test docs\nvim pnpm lint.md\n' > "$CLAUDE_VERIFY_PS"
+CLAUDE_VERIFY_MAX=1 python3 "$VB" busy "$TMP/vb" >/dev/null && bad "명령 자리" "검색·편집 줄을 검사로 셈" || ok "명령 자리가 아닌 줄(rg·vim 인자)은 안 셈"
+: > "$CLAUDE_VERIFY_PS"
+mkdir -p "$TMP/vb-true/.claude" && printf '{"verify":{"test":"true"}}' > "$TMP/vb-true/.claude/harness.json"
+python3 "$VB" match "$TMP/vb-true" 'ls || true' && bad "match TRIVIAL" "ls || true 를 검사로" || ok "match — verify 값 true 는 검사로 안 봄"
+python3 "$VB" match "$TMP/vb" 'echo pnpm verify' && bad "match 자리" "echo 인자를 검사로" || ok "match — 명령 자리 아닌 pnpm verify 는 아님"
 python3 "$VB" match "$TMP/vb-apps" 'pnpm t' && bad "match \$step" "exit 0" || ok "match — \$step 은 세지 않음"
 python3 "$VB" match "$TMP/none" 'npm run verify' && ok "harness.json 없어도 npm run verify" || bad "match 없음" "exit 1"
 : > "$CLAUDE_VERIFY_PS"
@@ -674,6 +683,12 @@ printf '{"seat":"%s","repos":["%s"]}' "$TMP/seat" "$TMP/prod" > "$CLAUDE_CONDUCT
 [ "$(bdb "$TMP/seat" "git -C $TMP/prod log; mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 2 ] && ok "git -C <레포> 머리 → 그 레포 prodDb" || bad "git -C 대상" "통과"
 [ "$(bdb "$TMP/seat" "cd $TMP/prod && mysql -h prod-db.example.com -e \"SELECT 1\"")" = 0 ] && ok "대상 레포 조회는 통과" || bad "cd 조회" "차단"
 [ "$(bdb "$TMP/seat" "cd $TMP/no-such && mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 0 ] && ok "없는 경로면 cwd(하네스 없음) 기준" || bad "없는 경로" "차단"
+# REVIEW 1회차: -R 범위(ADR-003 개정) · 머리 레포에 하네스가 없으면 cwd 로
+[ "$(bdb "$TMP/seat" 'gh label create x --color 000000')" = 2 ] && ok "지휘 자리 -R 없는 gh label create → 차단" || bad "label create" "통과"
+[ "$(bdb "$TMP/seat" 'gh pr ready 3')" = 2 ] && ok "지휘 자리 -R 없는 gh pr ready → 차단" || bad "pr ready" "통과"
+[ "$(bdb "$TMP/seat" 'gh issue create -R sellermill/x --title t && gh issue comment 5 --body x')" = 2 ] && ok "&& 뒤 조각에 -R 없으면 차단" || bad "조각마다" "통과"
+[ "$(bdb "$TMP/seat" 'gh label list')" = 0 ] && ok "gh label list(읽기)는 통과" || bad "label list" "차단"
+[ "$(bdb "$TMP/prod" "git -C $TMP/seat log; mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 2 ] && ok "머리 레포에 하네스 없으면 cwd 레포 prodDb 로 차단" || bad "cwd 되돌림" "통과"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 
 # ── 케이스 7-d: 검사 상한 — 모델이 직접 친 verify 명령 (ADR-007) ──
@@ -724,6 +739,11 @@ printf '%s' "$ctx" | grep -qF '트랙 ⛔admin 진행1 겹침1' && printf '%s' "
 printf '%s' "$ctx" | grep -qF '(조회 실패)' && ok "gh 실패 → (조회 실패)" || bad "gh 실패" "$ctx"
 printf '%s' "$ctx" | grep -qF 'nope-x (경로 없음)' && ok "없는 경로 → (경로 없음)" || bad "경로 없음" "$ctx"
 grep -q 'conductor-context.sh' "$HOOKS/hooks.json" && ok "hooks.json SessionStart 에 등록" || bad "등록" "없음"
+printf '#!/bin/sh\nexit 3\n' > "$TMP/fake-ts"; chmod +x "$TMP/fake-ts"
+ctx=$(cd "$TMP/seat2" && printf '{}' | CLAUDE_CONDUCTOR_TS="$TMP/fake-ts" bash "$CC" 2>&1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"])' 2>/dev/null)
+printf '%s' "$ctx" | grep -qF 'tr — (조회 실패)' && ! printf '%s' "$ctx" | grep -qF '손댈 것 없음' && ok "tracks_status 실패는 (조회 실패) — 「손댈 것 없음」 아님" || bad "트랙 실패" "$ctx"
+ctx=$(cd "$TMP/seat2" && printf '{}' | CLAUDE_CONDUCTOR_DEADLINE=0 bash "$CC" 2>&1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"])' 2>/dev/null)
+printf '%s' "$ctx" | grep -qF 'tr (시간 초과 — 건너뜀)' && ok "마감을 넘으면 남은 레포는 건너뜀 · 현황은 그래도 나온다" || bad "마감" "$ctx"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"; unset CLAUDE_CONDUCTOR_GH
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
