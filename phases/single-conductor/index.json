@@ -15,8 +15,10 @@
     {
       "step": 2,
       "name": "verify-busy-lib",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "hooks/lib/verify_busy.py — verify_cmds/running/limit/busy/is_verify + CLI. [7-b] 11건(208/0)",
+      "completed_at": "2026-10-31T20:41:35+09:00"
     },
     {
       "step": 3,
