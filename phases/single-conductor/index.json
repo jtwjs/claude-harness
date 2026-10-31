@@ -87,8 +87,10 @@
     {
       "step": 11,
       "name": "statusline-seat",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "summary": "dotfiles 8ef17aa: seat 면 tracks_status --compact(cwd=seat, 48칸). 손 확인: 설정 없음=옛 출력과 같음(빈 출력), 실레포 2개 seat=빈 출력(진행 0) 0.64s. 손 확인 중 본 트리가 지울 목록에 드는 버그 발견 → RED+fix. hook 239",
+      "completed_at": "2026-10-31T21:04:45+09:00"
     },
     {
       "step": 12,
