@@ -111,6 +111,14 @@ if [ -z "$steps" ]; then
   exit 0
 fi
 
+# 검사 상한 (ADR-007, 2026-10-31): 이 머신에서 도는 검사가 상한 이상이면 돌지 않는다. non-blocking 훅이라 기다리지 않고,
+# stamp 를 남기지 않아 다음 Stop 에서 다시 시도한다. 세션이 하나면 닿지 않는다.
+if busy_n=$(python3 "$(dirname "${BASH_SOURCE[0]}")/lib/verify_busy.py" busy "$REPO_ROOT" 2>/dev/null); then
+  hook_log validate-session-end busy 0 "$busy_n"
+  emit "⏸ 다른 세션 검사 ${busy_n}개 중 — 건너뜀"
+  exit 0
+fi
+
 failed=""; report=""
 while IFS=$'\t' read -r root key cmd; do
   [ -z "$key" ] && continue

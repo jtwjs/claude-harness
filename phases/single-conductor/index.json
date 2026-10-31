@@ -39,8 +39,10 @@
     {
       "step": 5,
       "name": "stop-hook-verify-cap",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "validate-session-end: 상한 이상이면 ⏸ 건너뜀 · stamp 안 남김. [7-e] 4건(226/0)",
+      "completed_at": "2026-10-31T20:47:15+09:00"
     },
     {
       "step": 6,
