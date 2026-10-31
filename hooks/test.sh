@@ -226,6 +226,24 @@ out=$(cd "$TMP/tr" && python3 "$TS" --no-gh)
 printf '%s' "$out" | grep -qF -- '- `shared.txt` — tr-rd, tr-siren' && ! printf '%s' "$out" | grep -qF -- '- `phases' && ok "겹침: 두 트랙이 같이 바꾸는 파일만(기준 worktree·다른 phase 폴더 제외)" || bad "tracks_status 겹침" "$out"
 out=$(cd "$TMP/tr" && python3 "$TS" --compact)
 [ "$out" = "트랙 ⛔admin 진행1 겹침1" ] && ok "--compact 에 겹침 수" || bad "tracks_status --compact 겹침" "$out"
+# 2026-10-31 ADR-006: compact 는 손댈 것만 · 끝난 worktree 는 표 아래 「지울 worktree」 · 지휘 자리면 대상 레포 전부
+mkdir -p "$TMP/tr2/.claude/references" && (cd "$TMP/tr2" && git init -q -b main && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init)
+printf '| 트랙 | 소유 |\n|---|---|\n| `api` | a |\n| `web` | w |\n' > "$TMP/tr2/.claude/references/tracks.md"
+(cd "$TMP/tr2" && git worktree add -q "$TMP/tr2-api" -b feature/api-a && git worktree add -q "$TMP/tr2-web" -b feature/web-b) 2>/dev/null
+for w in api:api-a web:web-b; do d="$TMP/tr2-${w%%:*}/phases/${w#*:}"; mkdir -p "$d"; echo '{"steps":[{"step":1,"name":"s1","status":"completed"}]}' > "$d/index.json"; echo x > "$TMP/tr2-${w%%:*}/same.txt"; done
+out=$(cd "$TMP/tr2" && python3 "$TS" --compact)
+[ -z "$out" ] && ok "--compact: 끝난 worktree 만이면 빈 출력(끝N 없음 · 끝난 것끼리 겹침 안 셈)" || bad "tracks_status --compact 끝만" "$out"
+out=$(cd "$TMP/tr2" && python3 "$TS" --no-gh)
+printf '%s' "$out" | grep -qF '지울 worktree' && printf '%s' "$out" | grep -qF -- '- tr2-api' && ! printf '%s' "$out" | grep -qF '| ✓ |' && ! printf '%s' "$out" | grep -qF '`same.txt`' && ok "전체 표: 끝난 worktree 는 「지울 worktree」로 따로 · 겹침 안 셈" || bad "tracks_status 지울 worktree" "$out"
+mkdir -p "$TMP/seat2" && (cd "$TMP/seat2" && git init -q)
+printf '{"seat":"%s","repos":["%s","%s","%s"]}' "$TMP/seat2" "$TMP/tr" "$TMP/tr2" "$TMP/nope-x" > "$CLAUDE_CONDUCTOR_CONFIG"
+out=$(cd "$TMP/seat2" && python3 "$TS" --compact)
+[ "$out" = "tr ⛔admin 진행1 겹침1 · nope-x (경로 없음)" ] && ok "지휘 자리 --compact: 레포별 조각 · 빈 레포 생략 · 없는 경로" || bad "tracks_status 지휘 compact" "$out"
+out=$(cd "$TMP/seat2" && python3 "$TS" --no-gh)
+printf '%s' "$out" | grep -qF '## tr' && printf '%s' "$out" | grep -qF '## tr2' && printf '%s' "$out" | grep -qF 'nope-x (경로 없음)' && printf '%s' "$out" | grep -qF 'admin-x 1/2 boom' && ok "지휘 자리 전체 표: 레포마다 절" || bad "tracks_status 지휘 표" "$out"
+out=$(cd "$TMP/tr" && python3 "$TS" --compact)
+[ "$out" = "트랙 ⛔admin 진행1 겹침1" ] && ok "지휘 설정이 있어도 레포 안에서는 지금 동작" || bad "tracks_status 레포 안" "$out"
+rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 
 # ── 케이스 2-h: daily-hub — 사람 요청만 · 헤드리스 제외 · 심볼릭 링크 중복 제거 · 오늘 학습 카드 (2026-10-18) ──
 printf '\n[2-h] daily_hub — 세션·학습 카드 집계\n'
