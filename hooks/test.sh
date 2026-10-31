@@ -654,5 +654,17 @@ printf '{"seat":"%s","repos":["%s"]}' "$TMP/seat" "$TMP/prod" > "$CLAUDE_CONDUCT
 [ "$(bdb "$TMP/seat" "cd $TMP/no-such && mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 0 ] && ok "없는 경로면 cwd(하네스 없음) 기준" || bad "없는 경로" "차단"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 
+# ── 케이스 7-d: 검사 상한 — 모델이 직접 친 verify 명령 (ADR-007) ──
+printf '\n[7-d] block-dangerous-bash — 검사 상한 넘으면 직접 친 verify 차단\n'
+printf 'node /x/pnpm lint\nsh -c pnpm verify\n' > "$CLAUDE_VERIFY_PS"
+out=$(cd "$TMP/vb" && printf '{"tool_input":{"command":"pnpm verify"}}' | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
+[ "$code" = 2 ] && printf '%s' "$out" | grep -q '30초 뒤 다시' && ok "상한(2) 이상 + pnpm verify → 차단 · 다시 안내" || bad "상한 차단" "exit=$code $out"
+[ "$(bdb "$TMP/vb" 'pnpm lint')" = 2 ] && ok "harness.json verify 값도 차단" || bad "verify 값" "통과"
+[ "$(bdb "$TMP/vb" 'git status')" = 0 ] && ok "검사 아닌 명령은 통과" || bad "검사 아님" "차단"
+[ "$(CLAUDE_VERIFY_MAX=5 bdb "$TMP/vb" 'pnpm verify')" = 0 ] && ok "CLAUDE_VERIFY_MAX=5 면 통과" || bad "MAX=5" "차단"
+printf 'node /x/pnpm lint\n' > "$CLAUDE_VERIFY_PS"
+[ "$(bdb "$TMP/vb" 'pnpm verify')" = 0 ] && ok "1개 돌 때는 통과(세션 하나는 안 막힘)" || bad "1개" "차단"
+: > "$CLAUDE_VERIFY_PS"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
