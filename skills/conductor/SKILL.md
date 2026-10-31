@@ -203,6 +203,22 @@ worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktre
 
 같은 목록형 파일이 두 번 넘게 겹치면 그 파일을 "한 건 = 파일 하나 + 자동 수집" 구조로 바꾸는 `follow-up`을 낸다. 실제로 겹친 파일만이다 — 미리 바꾸지 않는다.
 
+### 트랙 세션 열기 — 지휘가 직접 (2026-11-01 실측)
+
+지시문이 준비되고 겹침을 봤으면 지휘가 트랙 세션을 연다. 사람이 Orca·터미널에서 열고 `/rename` 하지 않는다.
+
+```bash
+git -C <레포> worktree add ../<레포>-<트랙>-<주제> -b feature/<트랙>-<주제> origin/<기준 브랜치>
+cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg -n <세션 이름> "<채운 track-brief 본문>"
+```
+
+- 이름은 「세션 종류」 표를 따른다. 출력 `backgrounded · <id> · <이름>`의 id는 `claude logs`·`attach`·`stop`·`rm`에 쓴다. 나중에는 `claude agents --json`에서 이름으로 찾는다
+- 띄운 세션은 `ListAgents`에 `<이름> · bg`로 보인다. 지시·보고는 지금처럼 `SendMessage`(§8)로 하고, 띄운 뒤 `notify_when_idle`을 건다
+- `-w`(Claude가 worktree를 만듦)는 쓰지 않는다. 브랜치가 `worktree-<이름>`이 되어 §4 현황의 `feature/<트랙>-…` 매칭에서 빠진다
+- 🔴 사용자가 그 레포 폴더에서 Claude를 한 번도 직접 연 적이 없으면 `Workspace not trusted`로 거절된다(2026-11-01 실측: 지휘 자리에서 cd로만 다루던 레포가 거절됨). 사용자에게 `cd <레포> && claude`를 한 번 열어 신뢰를 수락해 달라고 한다. 지휘가 신뢰 설정을 대신 바꾸지 않는다
+- 화면이 없다. 세션은 사용자 기본 권한 모드로 돈다(실측: auto). 사람이 보려면 `claude attach <id>`(터미널에서 열기) · `claude logs <id>`(최근 출력)
+- **대기 알림**: §4 현황을 볼 때 `ListAgents`에서 트랙이 `waiting`(승인·질문 대기)이면 사용자에게 한 줄로 알린다 — `<이름> 대기 중 · claude attach <id>`. 화면이 없어서 지휘가 알리지 않으면 아무도 모른다
+
 ## 6. 트랙 예외 승인
 
 트랙 세션이 소유 경로 밖을 고쳐야 한다고 보고하면 **지휘가 판정한다.** 트랙은 사용자보다 지휘에게 먼저 `SendMessage`로 묻는다. 사용자에게는 아래 표의 「사용자에게 넘김」만 간다(2026-10-01~08 실측: 예외 12건이 전부 사용자에게 몰렸다).
@@ -223,6 +239,7 @@ worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktre
 3. `blocked` 목록과 무엇을 기다리는지
 
 4. 「지울 worktree」(§4 현황 표 아래) — PR 병합을 확인하고 `git -C <레포> worktree remove`. 지우기 전에 안 올린 변경 수를 본다
+5. 지휘가 연 트랙 세션(§5 「트랙 세션 열기」) — PR이 병합되면 `claude stop <id>` → `claude rm <id>` → 4번 worktree 정리. `worktree remove`가 잠금으로 거절되면 잠금을 쥔 pid가 끝났는지 `ps -p <pid>`로 보고 끝났을 때만 `git -C <레포> worktree unlock <경로>`
 
 ```bash
 gh issue list -R <owner>/<repo> --label decision --state closed --json number,comments \
@@ -233,7 +250,7 @@ gh issue list -R <owner>/<repo> --label decision --state closed --json number,co
 
 같은 머신, 같은 계정의 세션끼리는 `SendMessage`로 서로 알릴 수 있다. 이 메시지는 사용자가 세션 사이에서 말을 옮겨 주던 일을 대신한다. 원장은 계속 이슈다.
 
-**세션 이름** — 각 세션 시작 때 `/rename`으로 정한다. 이름은 「세션 종류」 표를 따른다(지휘 `conductor` · 옛 사본 지휘 `<레포>-conductor`). 옛 이름으로 보냈는데 그 세션이 없으면 `conductor`로 보내 보고, 그래도 없으면 사용자가 옮긴다. 보내기 전에 `ListAgents`로 이름이 하나뿐인지 본다. 같은 이름이 둘이면 `이름 [ref]`로 보낸다(2026-10-14 실측: 세션 89개 중 같은 이름 2개).
+**세션 이름** — 지휘가 §5 「트랙 세션 열기」로 연 세션은 `-n`으로 이미 이름이 있다. 사람이 연 세션은 시작 때 `/rename`으로 정한다. 이름은 「세션 종류」 표를 따른다(지휘 `conductor` · 옛 사본 지휘 `<레포>-conductor`). 옛 이름으로 보냈는데 그 세션이 없으면 `conductor`로 보내 보고, 그래도 없으면 사용자가 옮긴다. 보내기 전에 `ListAgents`로 이름이 하나뿐인지 본다. 같은 이름이 둘이면 `이름 [ref]`로 보낸다(2026-10-14 실측: 세션 89개 중 같은 이름 2개).
 
 | 언제 | 누가 → 누구 | 본문 |
 |---|---|---|

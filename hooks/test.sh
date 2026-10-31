@@ -16,6 +16,7 @@ export CLAUDE_LEARN_SKIP="$TMP/learn-skip.txt"   # learn-setup 이 실제 제외
 export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
 export CLAUDE_CONDUCTOR_CONFIG="$TMP/conductor.json"   # 지휘 설정 — 실제 ~/.claude/conductor.json 을 읽지 않게 (기본은 없음)
 export CLAUDE_VERIFY_PS="$TMP/ps.txt"   # 검사 상한 — 실제 ps 대신 이 파일 (기본은 없음 = 0개)
+unset CLAUDE_VERIFY_MAX   # 사용자 settings.json env(예: 3)가 기본값 2 전제 테스트를 흔들지 않게 (2026-11-01)
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
 unset CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_AUTO_SKIP CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_SYNC   # 사용자 settings env 가 새어 들어오면 opt-in 판정이 틀어진다
