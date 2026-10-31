@@ -698,5 +698,29 @@ printf 'node pnpm verify\n' > "$CLAUDE_VERIFY_PS"
 [ -f "$TMP/st-ran" ] && ok "1개면 지금처럼 검사" || bad "1개" "verify 가 안 돌았다"
 : > "$CLAUDE_VERIFY_PS"
 
+# ── 케이스 7-f: conductor-context — 지휘 자리에서만 대상 레포 현황 (ADR-005) ──
+printf '\n[7-f] conductor-context — 지휘 자리 SessionStart 현황\n'
+CC="$HOOKS/conductor-context.sh"
+git -C "$TMP/tr" remote add origin https://github.com/acme/tr.git 2>/dev/null
+git -C "$TMP/tr2" remote add origin git@github.com:acme/bad-x.git 2>/dev/null
+cat > "$TMP/fake-gh" <<'SH'
+#!/bin/sh
+case "$*" in *"-R acme/bad-x"*) exit 1;; *"-R acme/tr "*) echo '[{"number":12,"title":"결정 A"}]';; *) echo '[]';; esac
+SH
+chmod +x "$TMP/fake-gh"; export CLAUDE_CONDUCTOR_GH="$TMP/fake-gh"
+out=$(cd "$TMP/tr" && printf '{}' | bash "$CC" 2>&1)
+[ -z "$out" ] && ok "지휘 설정 없음 → 무출력" || bad "설정 없음" "$out"
+printf '{"seat":"%s","repos":["%s","%s","%s"]}' "$TMP/seat2" "$TMP/tr" "$TMP/tr2" "$TMP/nope-x" > "$CLAUDE_CONDUCTOR_CONFIG"
+out=$(cd "$TMP/tr" && printf '{}' | bash "$CC" 2>&1)
+[ -z "$out" ] && ok "지휘 자리 아님(대상 레포 안) → 무출력" || bad "지휘 아님" "$out"
+out=$(cd "$TMP/seat2" && printf '{}' | bash "$CC" 2>&1)
+ctx=$(printf '%s' "$out" | python3 -c 'import json,sys; print(json.load(sys.stdin)["hookSpecificOutput"]["additionalContext"])' 2>/dev/null)
+[ -n "$ctx" ] && ok "JSON 형식 유효 · additionalContext" || bad "JSON" "$out"
+printf '%s' "$ctx" | grep -qF '트랙 ⛔admin 진행1 겹침1' && printf '%s' "$ctx" | grep -qF '#12 결정 A' && ok "레포별 트랙 한 줄 + 열린 지휘 이슈" || bad "레포 줄" "$ctx"
+printf '%s' "$ctx" | grep -qF '(조회 실패)' && ok "gh 실패 → (조회 실패)" || bad "gh 실패" "$ctx"
+printf '%s' "$ctx" | grep -qF 'nope-x (경로 없음)' && ok "없는 경로 → (경로 없음)" || bad "경로 없음" "$ctx"
+grep -q 'conductor-context.sh' "$HOOKS/hooks.json" && ok "hooks.json SessionStart 에 등록" || bad "등록" "없음"
+rm -f "$CLAUDE_CONDUCTOR_CONFIG"; unset CLAUDE_CONDUCTOR_GH
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
