@@ -55,8 +55,10 @@
     {
       "step": 7,
       "name": "tracks-status-multi-repo",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "collect/compact_line/print_table 분리. 끝난 worktree 는 「지울 worktree」, 겹침은 진행 중끼리, 지휘 자리면 레포별 조각·절. hook 231 통과",
+      "completed_at": "2026-10-31T20:57:57+09:00"
     },
     {
       "step": 8,
