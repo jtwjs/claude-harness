@@ -14,6 +14,8 @@ export CLAUDE_HARNESS_HOOK_LOG="$TMP/hook-log.tsv"   # 훅 발화 기록이 실�
 export CLAUDE_GH_ACCOUNTS="$TMP/gh-accounts.txt"   # block-dangerous-bash 가 실제 계정 목록을 읽지 않게
 export CLAUDE_LEARN_SKIP="$TMP/learn-skip.txt"   # learn-setup 이 실제 제외 목록을 읽지 않게
 export CLAUDE_LEARNING_LEVEL_FILE="$TMP/learning-level.json"   # learn-setup 이 실제 ~/.claude 레벨을 읽지 않게
+export CLAUDE_CONDUCTOR_CONFIG="$TMP/conductor.json"   # 지휘 설정 — 실제 ~/.claude/conductor.json 을 읽지 않게 (기본은 없음)
+export CLAUDE_VERIFY_PS="$TMP/ps.txt"   # 검사 상한 — 실제 ps 대신 이 파일 (기본은 없음 = 0개)
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
 unset CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_AUTO_SKIP CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_SYNC   # 사용자 settings env 가 새어 들어오면 opt-in 판정이 틀어진다
@@ -600,6 +602,22 @@ done
 top=$(grep -nF '최신이 위' "$ROOT/skills/sdd/SKILL.md" "$ROOT/templates/_brain/CLAUDE.md" "$ROOT/templates/.claude/rules/brain.md" "$ROOT/skills/brain-walk/SKILL.md" || true)
 [ -z "$top" ] && ok "회고·로그는 한 건 = 파일 하나(한 파일 맨 위에 쌓지 않는다 — 병렬 PR 충돌)" || bad "회고·로그 한 파일 맨 위" "$top"
 [ -z "$cross" ] && ok "① 계획 두 게이트 · why 는 화면만 · REFLECT 회고+출구 조건 · ⑤ 마무리" || bad "0.22.0 흐름" "$cross"
+
+# ── 케이스 7-a: 지휘 설정 — 자리 판정 · 대상 레포 (2026-10-31 single-conductor) ──
+printf '\n[7-a] conductor.py — 설정 없음·깨짐은 꺼짐 · 자리 판정 · 레포 목록\n'
+CL="$HOOKS/lib/conductor.py"
+mkdir -p "$TMP/seat/sub" && (cd "$TMP/seat" && git init -q)
+python3 "$CL" is-seat "$TMP/seat" >/dev/null 2>&1 && bad "설정 없음" "is-seat 0" || ok "설정 없으면 지휘 자리 아님"
+echo '{bad' > "$CLAUDE_CONDUCTOR_CONFIG"
+python3 "$CL" is-seat "$TMP/seat" >/dev/null 2>&1 && bad "깨진 설정" "is-seat 0" || ok "깨진 설정은 꺼짐"
+printf '{"seat":"%s","repos":["%s","~/nowhere-x"]}' "$TMP/seat" "$TMP/tr" > "$CLAUDE_CONDUCTOR_CONFIG"
+python3 "$CL" is-seat "$TMP/seat" && ok "seat 폴더는 지휘 자리" || bad "is-seat" "seat 폴더 exit 1"
+python3 "$CL" is-seat "$TMP/seat/sub" && ok "하위 폴더도 git toplevel 이 seat 면 지휘 자리" || bad "is-seat 하위" "exit 1"
+python3 "$CL" is-seat "$TMP/tr" && bad "is-seat 다른 레포" "exit 0" || ok "다른 레포는 지휘 자리 아님"
+out=$(python3 "$CL" repos)
+[ "$out" = "$TMP/tr
+$HOME/nowhere-x" ] && ok "repos — 순서 유지 · ~ 펼침" || bad "repos" "$out"
+rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
