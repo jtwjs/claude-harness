@@ -666,5 +666,19 @@ printf 'node /x/pnpm lint\n' > "$CLAUDE_VERIFY_PS"
 [ "$(bdb "$TMP/vb" 'pnpm verify')" = 0 ] && ok "1개 돌 때는 통과(세션 하나는 안 막힘)" || bad "1개" "차단"
 : > "$CLAUDE_VERIFY_PS"
 
+# ── 케이스 7-e: 검사 상한 — Stop 훅은 붐비면 건너뛴다 (ADR-007) ──
+printf '\n[7-e] Stop 훅 — 검사 상한 이상이면 건너뜀 · stamp 안 남김\n'
+mkdir -p "$TMP/st/.claude" && (cd "$TMP/st" && git init -q)
+printf '{"verify":{"lint":"touch %s/st-ran","test":""}}' "$TMP" > "$TMP/st/.claude/harness.json"
+printf 'sh -c pnpm verify\nnode pnpm verify\n' > "$CLAUDE_VERIFY_PS"
+out=$(cd "$TMP/st" && printf '{}' | bash "$HOOKS/validate-session-end.sh" 2>&1)
+printf '%s' "$out" | grep -q '⏸ 다른 세션 검사 2개 중 — 건너뜀' && ok "붐비면 건너뜀 메시지" || bad "건너뜀 메시지" "$out"
+[ ! -f "$TMP/st-ran" ] && ok "검사 명령을 돌리지 않음" || bad "건너뜀" "verify 가 돌았다"
+[ ! -f "$TMP/st/.claude/.last-session-validate" ] && ok "stamp 를 남기지 않음(다음 Stop 에서 다시)" || bad "stamp" "남았다"
+printf 'node pnpm verify\n' > "$CLAUDE_VERIFY_PS"
+(cd "$TMP/st" && printf '{}' | bash "$HOOKS/validate-session-end.sh" >/dev/null 2>&1)
+[ -f "$TMP/st-ran" ] && ok "1개면 지금처럼 검사" || bad "1개" "verify 가 안 돌았다"
+: > "$CLAUDE_VERIFY_PS"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
