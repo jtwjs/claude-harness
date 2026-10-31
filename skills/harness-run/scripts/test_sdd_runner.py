@@ -628,5 +628,31 @@ class RunnerCase(unittest.TestCase):
         self.assertNotEqual(self.session("judge", "t1", "--base", "HEAD").returncode, 0)
 
 
+class VerifySlotTest(unittest.TestCase):
+    """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
+
+    def setUp(self):
+        sys.path.insert(0, str(HERE))
+        import sdd_runner
+        self.r = sdd_runner
+
+    def test_waits_until_not_busy(self):
+        seq = iter([3, 2, 0])
+        slept = []
+        waited = self.r.wait_for_slot(".", interval=1, timeout=60, busy=lambda _: next(seq), sleep=slept.append)
+        self.assertEqual(slept, [1, 1])
+        self.assertTrue(waited)
+
+    def test_no_wait_when_idle(self):
+        slept = []
+        self.assertFalse(self.r.wait_for_slot(".", interval=1, timeout=60, busy=lambda _: 0, sleep=slept.append))
+        self.assertEqual(slept, [])
+
+    def test_gives_up_after_timeout(self):
+        slept = []
+        self.r.wait_for_slot(".", interval=5, timeout=12, busy=lambda _: 4, sleep=slept.append)
+        self.assertEqual(sum(slept), 15)   # 12초를 넘긴 첫 시점에 그대로 진행
+
+
 if __name__ == "__main__":
     unittest.main()
