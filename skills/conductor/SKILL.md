@@ -1,6 +1,6 @@
 ---
 name: conductor
-description: 병렬 트랙(worktree 세션 2개 이상)으로 한 레포를 진행할 때 지휘 세션이 쓴다. 결정·계약 변경을 GitHub 이슈로 받아 전파 후속 이슈로 쪼개고 의존을 건 뒤, 다 닫히면 ADR로 옮긴다. ADR 번호는 여기서만 발급한다. 트랙 지시문을 채워 넘기고 예외를 판정한다. 사용자가 "너는 지휘 세션"·"지휘 맡아"라고 하면 쓴다. 트랙이 하나면 쓰지 않는다.
+description: 병렬 트랙(worktree 세션 2개 이상)으로 레포를 진행할 때 지휘 세션이 쓴다. 지휘 설정(~/.claude/conductor.json)이 있으면 지휘 자리 하나에서 대상 레포 여럿을 맡는다. 결정·계약 변경을 GitHub 이슈로 받아 전파 후속 이슈로 쪼개고 의존을 건 뒤, 다 닫히면 ADR로 옮긴다. ADR 번호는 여기서만 발급한다. 트랙 지시문을 채워 넘기고 예외를 판정한다. 사용자가 "너는 지휘 세션"·"지휘 맡아"라고 하면 쓴다. 트랙이 하나면 쓰지 않는다.
 allowed-tools: [Read, Write, Bash, Glob, Grep]
 ---
 
@@ -33,15 +33,38 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 | 트랙이 하나 | 쓰지 않는다. `sdd`만 |
 | 트랙 세션 자신 | 쓰지 않는다. `harness-run`이 열린 이슈를 읽기만 한다 |
 
+## 지휘 자리 — 레포 여럿을 하나에서
+
+지휘 설정 `~/.claude/conductor.json`(`{"seat": "<지휘 자리>", "repos": [<대상 레포>…]}`)이 있으면 지휘는 대상 레포 밖, 지휘 자리 폴더에서 돈다. 설정이 없으면 지금처럼 레포 안 기준 worktree에서 레포 하나를 맡는다.
+
+- 대상 레포 목록은 `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/lib/conductor.py" repos`로 읽는다. 목록을 지어내지 않는다
+- 🔴 **모든 gh 명령에 `-R <owner>/<repo>`, 모든 git 명령에 `git -C <레포>`.** 지휘 자리에서 `-R` 없는 gh 쓰기는 `block-dangerous-bash`가 막는다. `gh api graphql`은 `-R`이 없어 쿼리 변수에 owner·name을 적는다
+- 판정(§1·§5·§6) 전에 그 레포의 `CLAUDE.md`·`.claude/references/tracks.md`를 Read한다. 지휘 자리에서는 대상 레포 설정·규칙이 자동으로 로드되지 않는다. 지휘 자리 문서와 레포가 다르면 레포가 맞다
+- 시작·재개·압축 뒤에는 `conductor-context` 훅이 레포마다 트랙 한 줄과 열린 지휘 이슈를 넣는다. 그 현황부터 읽고 이어 간다. 대화 기억으로 상태를 잇지 않는다
+- 레포 여럿에 걸친 결정은 **기능이 시작된 주 레포**에 `decision` 이슈·ADR을 둔다. 다른 레포에는 `follow-up` 이슈를 내고 본문 첫 줄에 `Decision: <owner>/<repo>#N`을 적는다. ADR 번호는 레포마다 따로다. 같은 결정을 레포마다 복제하지 않는다(한쪽이 낡는다)
+
+### 세션 종류
+
+| 종류 | 이름 | 언제 닫나 | 트랙 표 |
+|---|---|---|---|
+| 지휘 | `conductor` (옛 사본은 `<레포>-conductor`) | 닫지 않는다 | — |
+| 상주 | `<레포>-<층>` (`fe`·`be`) · FE 앱이 둘 이상이면 `<레포>-<앱>` | 닫지 않는다. 자동 압축에 맡긴다. 한 레포에 여러 개 | 행 |
+| 기능 묶음 | `<레포>-<층>-<기능>` (병렬 worktree) | PR이 병합되면 worktree와 같이. 지휘가 열고 닫는다 | 행. 소유 경로는 상주 트랙에서 떼어 온다 |
+| 기획·시안 단계 | 기능 묶음과 같다(코드 0, PRD·시안만) | 승인되면 코드 트랙으로 이어지거나 닫힌다 | 행 |
+| 1회용 | `<레포>-tmp-<할일>` (버그·리뷰) | 끝나면. 결정이 나오면 지휘에 보고 | 표 밖 |
+
+레포 밖 코드를 고치는 트랙은 두지 않는다. 그 레포를 따로 열어 그 레포의 상주 트랙이 지휘 지시를 받는다.
+
 ## 0. 준비 (첫 실행)
 
 ```bash
 gh auth status                                   # gh 계정이 여럿이면 활성 계정을 확인한다(owner별 쓰기 계정은 block-dangerous-bash 가 ~/.claude/gh-accounts.txt 로 막는다)
-gh repo view --json nameWithOwner,viewerPermission -q '.nameWithOwner+" "+.viewerPermission'
-gh label list --limit 200 --json name -q '.[].name'
+gh repo view <owner>/<repo> --json nameWithOwner,viewerPermission -q '.nameWithOwner+" "+.viewerPermission'
+gh label list -R <owner>/<repo> --limit 200 --json name -q '.[].name'
 ```
 
-- **세션 이름부터 맞춘다.** `ListAgents` 결과 첫 줄 `This session is <이름>`이 `<레포>-conductor`와 다르면, 사용자에게 `/rename <레포>-conductor` 한 줄을 그대로 보여 주고 다음 단계로 가지 않는다. 세션은 자기 이름을 스스로 바꾸지 못한다(`/rename`은 사용자 입력 명령). `<레포>`는 `gh repo view --json name -q .name`의 값이다. 같은 이름이 목록에 이미 있으면 그 세션이 살아 있는 지휘 세션인지 먼저 묻는다
+- **세션 이름부터 맞춘다.** `ListAgents` 결과 첫 줄 `This session is <이름>`이 `conductor`(지휘 자리) 또는 옛 이름 `<레포>-conductor`(설정 없이 레포 안)가 아니면, 사용자에게 `/rename conductor` 한 줄을 그대로 보여 주고 다음 단계로 가지 않는다. 세션은 자기 이름을 스스로 바꾸지 못한다(`/rename`은 사용자 입력 명령). 같은 이름이 목록에 이미 있으면 그 세션이 살아 있는 지휘 세션인지 먼저 묻는다
+- 지휘 자리면 대상 레포마다 아래 확인·라벨을 한 번씩 돈다(`<owner>/<repo>`는 그 레포 `git -C <레포> remote get-url origin`에서)
 - `viewerPermission`이 `WRITE`·`MAINTAIN`·`ADMIN`이 아니면 멈추고 보고한다. 계정을 바꿀지는 사용자가 정한다
 - 트랙 이름은 레포 `.claude/references/tracks.md`의 트랙 표에서 읽는다. 없으면 묻는다(지어내지 않는다)
 - 아래 라벨 중 없는 것을 목록으로 보여 주고 **물은 뒤** 만든다
@@ -56,8 +79,8 @@ gh label list --limit 200 --json name -q '.[].name'
 | `track:<이름>` | 담당 트랙. tracks.md 트랙마다 하나 |
 
 ```bash
-gh label create conductor --color 5319e7 --description "지휘 세션이 관리"
-gh label create "track:<이름>" --color 0e8a16
+gh label create -R <owner>/<repo> conductor --color 5319e7 --description "지휘 세션이 관리"
+gh label create -R <owner>/<repo> "track:<이름>" --color 0e8a16
 ```
 
 ## 1. 결정 흐름
@@ -89,9 +112,9 @@ gh label create "track:<이름>" --color 0e8a16
 3. 후속 이슈를 결정 이슈의 하위로 건다(`addSubIssue`, §4). 후속끼리 순서가 있으면 `addBlockedBy`
 4. 후속이 **전부 닫히면** ADR로 옮긴다. 🔴 **ADR 번호는 여기서만 발급한다**:
    ```bash
-   git fetch -q origin && git grep -h -o 'ADR-[0-9]\{3\}' origin/<기준 브랜치> -- 'docs/*/ADR.md' | sort -u | tail -1
+   git -C <레포> fetch -q origin && git -C <레포> grep -h -o 'ADR-[0-9]\{3\}' origin/<기준 브랜치> -- 'docs/*/ADR.md' | sort -u | tail -1
    ```
-   최대 번호 + 1. 로컬 작업 트리가 아니라 **원격 기준 브랜치**를 본다(로컬은 늦다). 열린 PR에 든 ADR 번호도 `gh pr list --search "ADR-" --state open`으로 한 번 본다
+   최대 번호 + 1. 로컬 작업 트리가 아니라 **원격 기준 브랜치**를 본다(로컬은 늦다). 열린 PR에 든 ADR 번호도 `gh pr list -R <owner>/<repo> --search "ADR-" --state open`으로 한 번 본다
 5. ADR을 담는 PR은 해당 트랙이 올린다. 지휘는 번호와 본문 초안만 넘긴다
 6. 결정 이슈에 ADR 링크를 코멘트로 남기고 닫는다
 
@@ -121,7 +144,7 @@ enum 값 · 주기 · 테이블 구조를 **계약으로 굳히기 전에** 운�
 🔴 네이티브 의존은 `gh api graphql`로만 걸린다. `gh` CLI(2.92)에는 플래그가 없다(2026-10-08 확인).
 
 ```bash
-id() { gh issue view "$1" --json id -q .id; }
+id() { gh issue view "$1" -R <owner>/<repo> --json id -q .id; }   # 노드 id 를 받은 뒤의 mutation 은 레포를 묻지 않는다
 
 # #12 가 #10 에 막힌다
 gh api graphql -f query='mutation($i:ID!,$b:ID!){addBlockedBy(input:{issueId:$i,blockingIssueId:$b}){issue{number}}}' \
@@ -152,21 +175,23 @@ query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
 
 `decision` 이슈는 지휘가 들고 있는 원장이라 결과에서 뺀다 — 트랙이 집어 갈 것은 `follow-up`·`contract-change`뿐이다(2026-10-08 비공개 임시 레포 실측: 빼지 않으면 결정 이슈가 "진행 가능"으로 섞여 나왔다).
 
-**실패하면**(권한·기능 미지원): 본문 첫 줄 `Blocked-by: #N` + `blocked` 라벨로 대신한다. 조회는 `gh issue list --label conductor --json number,title,body,labels` 한 번으로 받아 첫 줄을 파싱한다.
+**실패하면**(권한·기능 미지원): 본문 첫 줄 `Blocked-by: #N` + `blocked` 라벨로 대신한다. 조회는 `gh issue list -R <owner>/<repo> --label conductor --json number,title,body,labels` 한 번으로 받아 첫 줄을 파싱한다.
 
 **트랙 현황** — 디스패치(§5) 전, 예외 판정(§6) 전, 사용자가 "현황"이라고 할 때 표 한 장으로 본다. 트랙 세션마다 묻거나 worktree를 하나씩 열지 않는다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/tracks_status.py"            # --stale 분(기본 30) · --no-gh
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/tracks_status.py"            # --stale 분(기본 30) · --no-gh. 지휘 자리면 대상 레포마다 `## 레포` 절
 ```
 
-worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. 표 아래 「겹침」은 트랙 worktree 둘 이상이 같이 바꾸고 있는 파일이다(기준 브랜치와 갈라진 뒤 커밋 + 안 올린 변경) — 그대로 두면 먼저 병합된 쪽 뒤에 나머지가 충돌한다. 겹침이 나오면 §5 「겹치면」으로 판정한다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 사람에게는 `--compact` 한 줄(`트랙 ⛔admin 💤renderer 진행1 끝1`)이 지휘 자리(기준 worktree) 상태줄에 자동으로 뜬다(개인 dotfiles 상태줄이 부름). 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
+worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. 표 아래 「겹침」은 트랙 worktree 둘 이상이 같이 바꾸고 있는 파일이다(기준 브랜치와 갈라진 뒤 커밋 + 안 올린 변경) — 그대로 두면 먼저 병합된 쪽 뒤에 나머지가 충돌한다. 겹침이 나오면 §5 「겹치면」으로 판정한다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 끝난 worktree(남은 SDD step 없음)는 표 대신 아래 「지울 worktree」로 묶인다. 겹침은 진행 중 worktree끼리만 센다. 사람에게는 `--compact` 한 줄이 손댈 것만 담아 상태줄에 뜬다 — 레포 안이면 `트랙 ⛔admin 💤renderer 진행1 겹침2`, 지휘 자리면 `bv-admin ⛔fe 진행1 · dash (경로 없음)`. 손댈 것이 없으면 빈 출력이다(개인 dotfiles 상태줄이 부름). 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
 
 ## 5. 트랙 지시문
 
 `.claude/references/track-brief.md`를 채워 트랙 세션에 넘긴다. 손으로 다시 쓰지 않는다. 트랙 세션이 이미 떠 있으면 채운 지시문을 `SendMessage`로 보낸다(§8). 지시문에는 값이 없고 이슈 번호와 `ADR-NNN` 참조만 들어 있으므로 메시지로 보내도 원장이 갈라지지 않는다. 열린 이슈 목록은 §4 조회 결과를 그대로 붙인다.
 
 지시문에 값을 복사하지 않는다. ADR·PRD에 있는 값은 `ADR-NNN` 참조만 적는다 — 복사본은 정본이 바뀐 걸 따라오지 못한다(§왜 3번째 줄).
+
+「도메인 지식 링크(선택)」 칸에는 지휘 자리에 쌓인 그 레포·도메인 문서의 경로만 적는다. 내용을 지시문에 옮기지 않는다. 지휘 자리 문서가 반출 금지 원문이면 링크도 넣지 않는다.
 
 **보내기 전에 겹침을 본다.** 이번 step 범위의 step 파일 「작업」에 적힌 만들/바꿀 파일을 지시문 「바꿀 파일」 칸에 옮기고, §4 현황 표 아래 「겹침」과 다른 트랙에 이미 보낸 지시문의 「바꿀 파일」에 대조한다. 소유 경로가 갈려 있어도 라우트 목록 · enum · DI 모듈 · 공유 타입처럼 기능마다 한 줄씩 느는 파일은 겹친다.
 
@@ -197,8 +222,10 @@ worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktre
 2. 닫힌 `decision` 중 ADR 링크 코멘트가 없는 것 — **0이어야 한다**
 3. `blocked` 목록과 무엇을 기다리는지
 
+4. 「지울 worktree」(§4 현황 표 아래) — PR 병합을 확인하고 `git -C <레포> worktree remove`. 지우기 전에 안 올린 변경 수를 본다
+
 ```bash
-gh issue list --label decision --state closed --json number,comments \
+gh issue list -R <owner>/<repo> --label decision --state closed --json number,comments \
   -q '.[] | select([.comments[].body | test("ADR-[0-9]{3}")] | any | not) | .number'
 ```
 
@@ -206,7 +233,7 @@ gh issue list --label decision --state closed --json number,comments \
 
 같은 머신, 같은 계정의 세션끼리는 `SendMessage`로 서로 알릴 수 있다. 이 메시지는 사용자가 세션 사이에서 말을 옮겨 주던 일을 대신한다. 원장은 계속 이슈다.
 
-**세션 이름** — 각 세션 시작 때 `/rename`으로 정한다. 지휘는 `<레포>-conductor`, 트랙은 `<레포>-<트랙>`이다. 보내기 전에 `ListAgents`로 이름이 하나뿐인지 본다. 같은 이름이 둘이면 `이름 [ref]`로 보낸다(2026-10-14 실측: 세션 89개 중 같은 이름 2개).
+**세션 이름** — 각 세션 시작 때 `/rename`으로 정한다. 이름은 「세션 종류」 표를 따른다(지휘 `conductor` · 옛 사본 지휘 `<레포>-conductor`). 옛 이름으로 보냈는데 그 세션이 없으면 `conductor`로 보내 보고, 그래도 없으면 사용자가 옮긴다. 보내기 전에 `ListAgents`로 이름이 하나뿐인지 본다. 같은 이름이 둘이면 `이름 [ref]`로 보낸다(2026-10-14 실측: 세션 89개 중 같은 이름 2개).
 
 | 언제 | 누가 → 누구 | 본문 |
 |---|---|---|
@@ -229,6 +256,7 @@ gh issue list --label decision --state closed --json number,comments \
 1. 이슈는 팀 레포에서 동료에게 보인다. 본문에 사람 이름 · 내부 평가 · 비밀값 · 고객 식별 정보를 쓰지 않는다. 담당은 직함 또는 트랙 라벨로.
 2. 이슈가 정본이 되면 안 된다. 확정된 결정은 반드시 ADR(git)로 옮기고 이슈를 닫는다. 열린 이슈만 실시간 상태다.
 3. gh 호출 비용 · 권한: 조회는 한 번으로 묶는다. 이슈를 만드는 계정의 쓰기 권한을 첫 실행 때 확인한다.
+5. 검사 상한(ADR-007 of single-conductor-2026-10-31): 머신에서 검사(`verify`)가 `CLAUDE_VERIFY_MAX`(기본 2)개 이상 돌면 Stop 훅은 건너뛰고, 러너는 기다리고, 직접 친 검사 명령은 막힌다. 트랙을 여럿 열수록 부딪힌다 — 트랙 수를 늘리기 전에 이 숫자를 본다.
 4. 네이티브 의존은 `gh api graphql`로만 걸린다(gh CLI 플래그 없음, 2026-10-08 확인). 실패하면 본문 첫 줄 `Blocked-by: #N` + `blocked` 라벨로 대신한다.
 
 - 코드 · 다른 트랙 소유 문서를 직접 고치지 않는다
