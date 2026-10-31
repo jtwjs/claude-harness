@@ -151,7 +151,7 @@ def collect(root: Path, argv: list, stale: int, use_gh: bool) -> tuple:
     base_br = base.split("/", 1)[-1]
     touched, rows = {}, []
     now = time.time()
-    for w in worktrees(root):
+    for n, w in enumerate(worktrees(root)):
         wt, br = w["path"], w.get("branch", "(detached)")
         if not wt.exists():
             continue
@@ -162,7 +162,8 @@ def collect(root: Path, argv: list, stale: int, use_gh: bool) -> tuple:
         dirty = len((sh(["git", "status", "--porcelain"], cwd=wt) or "").splitlines())
         is_stale = last and (now - last) > stale * 60 and prog != "—"
         rank = 0 if stuck else 1 if is_stale else 2 if prog != "—" else 3
-        mark = "기준" if br == base_br else "⛔" if stuck else "💤" if is_stale else "…" if prog != "—" else "✓"
+        main_tree = n == 0   # git worktree list 첫 줄 = 본 트리. worktree remove 로 못 지운다
+        mark = "기준" if br == base_br or (main_tree and not stuck and prog == "—") else "⛔" if stuck else "💤" if is_stale else "…" if prog != "—" else "✓"
         if mark not in ("기준", "✓"):   # 겹침은 진행 중 worktree 끼리만(ADR-006). 지휘가 앉은 기준 worktree·끝난 worktree 는 뺀다
             touched[wt.name] = changed(wt, base)
         rows.append((rank, mark, track or "-", wt.name, br, prog,
