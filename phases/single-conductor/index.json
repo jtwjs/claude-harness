@@ -71,8 +71,10 @@
     {
       "step": 9,
       "name": "conductor-skill-doc",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "summary": "SKILL.md 지휘 자리 절·세션 종류 표·모든 gh 에 -R·git -C. AC grep: -R 없는 gh 줄은 graphql 4줄만(step 면제 대상). hook 통과",
+      "completed_at": "2026-10-31T21:01:34+09:00"
     },
     {
       "step": 10,
