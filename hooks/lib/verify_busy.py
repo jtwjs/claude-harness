@@ -68,8 +68,12 @@ def _real(cmds) -> list:
 _HEAD = r"(?:^|[;&|(]\s*|\s-c\s+['\"]?|/|\bnode\s+)"
 
 
+_HEAD_PATH = r"(?:^|[\s;&|(]|\s-c\s+['\"]?)"   # `./gradlew test` 는 `/bin/sh ./gradlew test` 처럼 공백 뒤에 온다(REVIEW 2회차)
+
+
 def _hit(text: str, cmds) -> bool:
-    return any(re.search(_HEAD + re.escape(c) + r"(?=$|[\s;&|)'\"])", text) for c in cmds)
+    return any(re.search((_HEAD_PATH if c.startswith("./") else _HEAD) + re.escape(c) + r"(?=$|[\s;&|)'\"])", text)
+               for c in cmds)
 
 
 def running(cmds) -> int:

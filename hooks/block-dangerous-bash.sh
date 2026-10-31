@@ -98,13 +98,13 @@ fi
 # 지휘 자리(~/.claude/conductor.json seat)에서는 gh 쓰기에 -R/--repo 필수 (ADR-003, 2026-10-31). 없으면 cwd(vault) 레포가 owner 가 되어
 # 지휘가 다른 레포에 쓸 이슈·댓글이 vault 레포에 생긴다. 지휘 설정이 없으면 이 절은 아무것도 안 한다.
 unqw=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
-# 조각마다 본다(&&·||·;·| 로 나눈 각 명령) — 앞 조각의 -R 이 뒤 조각을 덮지 않게. label·pr ready 도 쓰기 (ADR-003 개정, REVIEW 1회차)
+# 조각마다 본다(\\+줄바꿈 이어 쓰기를 먼저 붙인 뒤 &&·||·;·| 로 나눈 각 명령) — 앞 조각의 -R 이 뒤 조각을 덮지 않게. label·pr ready 도 쓰기 (ADR-003 개정, REVIEW 1회차)
 no_r=""
 while IFS= read -r seg; do
   printf '%s' "$seg" | grep -Eq 'gh[[:space:]]+((issue|pr|release)[[:space:]]+(create|comment|edit|close|reopen|review|delete|merge|ready)|label[[:space:]]+(create|edit|delete|clone))\b' \
     && ! printf '%s' "$seg" | grep -Eq '(^|[[:space:]])(-R|--repo)([[:space:]=]|$)' && no_r=1
 done <<EOF_SEGS
-$(printf '%s' "$unqw" | awk '{gsub(/&&|\|\||;|\|/, "\n"); print}')
+$(printf '%s' "$unqw" | sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta' | awk '{gsub(/&&|\|\||;|\|/, "\n"); print}')
 EOF_SEGS
 if [ -n "$no_r" ] && python3 "$SCRIPT_DIR/lib/conductor.py" is-seat "$PWD" 2>/dev/null; then
   printf '🚫 차단됨: 지휘 자리에서는 -R <owner>/<repo> 로 대상 레포를 적는다\n   사유: -R 이 없으면 지금 폴더의 레포에 이슈·댓글이 생긴다 (conductor ADR-003)\n' >&2
