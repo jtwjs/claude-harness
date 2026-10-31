@@ -468,6 +468,16 @@ rm -f "$CLAUDE_LEARN_SKIP"
 n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"
 [ -z "$(cd "$TMP/learn" && git status --porcelain)" ] && ok "git status 깨끗 — .gitignore 무변경" || bad "흔적" "$(cd "$TMP/learn" && git status --porcelain | head -3)"
 n=$(grep -c . "$CLAUDE_LEARN_REPOS" 2>/dev/null); [ "$n" = "1" ] && ok "레포 목록 등록(중복 없이)" || bad "목록" "줄 수=$n"
+# 2026-10-31: prettier 는 .git/info/exclude 를 안 읽는다 — _learn/inbox.md 가 format:check 를 깨뜨렸다(bv-admin pnpm verify 첫 단계 exit 1)
+mkdir -p "$TMP/learnpr/.claude" && (cd "$TMP/learnpr" && git init -q && printf '{}' > .claude/harness.json && printf '{"scripts":{"format:check":"prettier --check ."}}' > package.json)
+out=$(cd "$TMP/learnpr" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+echo "$out" | grep -qF '.prettierignore' && ok "prettier 쓰는 레포 · .prettierignore 에 _learn/ 없음 → 경고" || bad "prettier 경고" "out=[${out:0:200}]"
+echo "$out" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null && ok "경고 넣어도 JSON 유효" || bad "경고 JSON" "깨짐"
+[ ! -e "$TMP/learnpr/.prettierignore" ] && ok "커밋되는 .prettierignore 는 훅이 만들지 않는다" || bad "prettierignore" "훅이 만들었다"
+printf 'dist/\n_learn/\n' > "$TMP/learnpr/.prettierignore"
+out=$(cd "$TMP/learnpr" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
+! echo "$out" | grep -qF '.prettierignore' && ok "_learn/ 줄 있으면 경고 없음" || bad "경고 오탐" "줄이 있는데 경고"
+! (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1) | grep -qF '.prettierignore' && ok "prettier 안 쓰는 레포는 경고 없음" || bad "경고 오탐" "prettier 없음"
 printf '## 2026-10-11 · 예시\n- vault: [[x]]\n' >> "$TMP/learn/_learn/inbox.md"; before=$(cat "$TMP/learn/_learn/inbox.md")
 (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
 [ "$before" = "$(cat "$TMP/learn/_learn/inbox.md")" ] && ok "있는 수신함은 건드리지 않는다" || bad "덮어씀" "기존 카드가 바뀌었다"
