@@ -1,0 +1,81 @@
+{
+  "project": "claude-harness",
+  "phase": "single-conductor",
+  "docs": "docs/single-conductor-2026-10-31",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "conductor-config-lib",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 2,
+      "name": "verify-busy-lib",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "bash-hook-target-repo",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "bash-hook-verify-cap",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "stop-hook-verify-cap",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 6,
+      "name": "runner-verify-wait",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 7,
+      "name": "tracks-status-multi-repo",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 8,
+      "name": "conductor-context-hook",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 9,
+      "name": "conductor-skill-doc",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "templates-and-init",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "statusline-seat",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 12,
+      "name": "measure-before-after",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
+  ]
+}
