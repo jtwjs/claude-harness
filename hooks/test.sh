@@ -235,6 +235,10 @@ out=$(cd "$TMP/tr2" && python3 "$TS" --compact)
 [ -z "$out" ] && ok "--compact: 끝난 worktree 만이면 빈 출력(끝N 없음 · 끝난 것끼리 겹침 안 셈)" || bad "tracks_status --compact 끝만" "$out"
 out=$(cd "$TMP/tr2" && python3 "$TS" --no-gh)
 printf '%s' "$out" | grep -qF '지울 worktree' && printf '%s' "$out" | grep -qF -- '- tr2-api' && ! printf '%s' "$out" | grep -qF '| ✓ |' && ! printf '%s' "$out" | grep -qF '`same.txt`' && ok "전체 표: 끝난 worktree 는 「지울 worktree」로 따로 · 겹침 안 셈" || bad "tracks_status 지울 worktree" "$out"
+(cd "$TMP/tr2" && git checkout -q -b docs/x)
+out=$(cd "$TMP/tr2" && python3 "$TS" --no-gh)
+! printf '%s' "$out" | grep -qF -- '- tr2 (' && ok "본 트리는 기준 브랜치가 아니어도 「지울 worktree」에 안 넣는다(worktree remove 불가)" || bad "본 트리 지울 목록" "$out"
+(cd "$TMP/tr2" && git checkout -q main)
 mkdir -p "$TMP/seat2" && (cd "$TMP/seat2" && git init -q)
 printf '{"seat":"%s","repos":["%s","%s","%s"]}' "$TMP/seat2" "$TMP/tr" "$TMP/tr2" "$TMP/nope-x" > "$CLAUDE_CONDUCTOR_CONFIG"
 out=$(cd "$TMP/seat2" && python3 "$TS" --compact)
