@@ -63,8 +63,10 @@
     {
       "step": 8,
       "name": "conductor-context-hook",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "conductor-context.sh 신규 + hooks.json SessionStart 등록(timeout 30). gh 5초·실패 (조회 실패). hook 238 통과",
+      "completed_at": "2026-10-31T20:59:59+09:00"
     },
     {
       "step": 9,
