@@ -47,8 +47,10 @@
     {
       "step": 6,
       "name": "runner-verify-wait",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "wait_for_slot(5초·600초) judge 앞. verify_busy: TRIVIAL 첫 단어 제외 + 부모가 검사인 줄 제외. runner 50·hook 226 통과",
+      "completed_at": "2026-10-31T20:55:29+09:00"
     },
     {
       "step": 7,
