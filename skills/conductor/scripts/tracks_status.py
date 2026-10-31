@@ -15,7 +15,9 @@ worktree 하나 = 트랙 작업 하나(`.claude/references/tracks.md`). worktree
 
 Usage:
     tracks_status.py [--stale MIN] [--no-gh] [--base BRANCH]
-    tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 끝1 겹침2 (gh 안 부름. 트랙 표가 없거나 worktree 1개면 빈 출력)
+    tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 겹침2 — 손댈 것만(ADR-006). 끝난 worktree 는 안 센다.
+                                   # 셋 다 0 이거나 트랙 표가 없으면 빈 출력. gh 안 부름
+    지휘 자리(conductor.json seat)에서 부르면 대상 레포마다: compact 는 `bv-admin ⛔fe 진행1 · dash (경로 없음)`, 표는 레포마다 `## 이름` 절
     --base 기본값은 origin/HEAD 가 가리키는 브랜치, 없으면 origin/main
 """
 import json
@@ -27,6 +29,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "harness-run" / "scripts"))
 import phases_status  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks" / "lib"))
+try:
+    import conductor  # noqa: E402  지휘 설정(ADR-001). 없으면 레포 하나만 본다
+except ImportError:
+    conductor = None
 
 DONE = phases_status.DONE
 
@@ -136,61 +144,112 @@ def ago(sec: float) -> str:
     return f"{m}분 전" if m < 120 else f"{m // 60}시간 전"
 
 
-def main(argv: list) -> int:
-    stale = 30
-    if "--stale" in argv:
-        stale = int(argv[argv.index("--stale") + 1])
-    compact = "--compact" in argv
-    use_gh = "--no-gh" not in argv and not compact
-    root = Path(sh(["git", "rev-parse", "--show-toplevel"]) or ".")
+def collect(root: Path, argv: list, stale: int, use_gh: bool) -> tuple:
+    """(rows, touched, tracks, base). rows = (rank, mark, track, worktree, branch, 진행, 마지막 신호, 안 올린 변경, 후속 이슈)."""
     tracks = tracks_of(root)
     base = base_ref(root, argv)
-    touched = {}
-    if compact and not tracks:
-        return 0
+    base_br = base.split("/", 1)[-1]
+    touched, rows = {}, []
     now = time.time()
-    rows = []
     for w in worktrees(root):
         wt, br = w["path"], w.get("branch", "(detached)")
         if not wt.exists():
             continue
         track = track_for(br, tracks)
-        if br != base.split("/", 1)[-1]:   # 지휘가 앉은 기준 worktree 는 뺀다. 트랙 표가 없어도 본다
-            touched[wt.name] = changed(wt, base)
         prog, stuck, idx_mt = progress(wt, track)
         ct = sh(["git", "log", "-1", "--format=%ct"], cwd=wt)
         last = max(float(ct) if ct else 0.0, idx_mt)
         dirty = len((sh(["git", "status", "--porcelain"], cwd=wt) or "").splitlines())
         is_stale = last and (now - last) > stale * 60 and prog != "—"
         rank = 0 if stuck else 1 if is_stale else 2 if prog != "—" else 3
-        mark = "⛔" if stuck else "💤" if is_stale else "…" if prog != "—" else "✓"
+        mark = "기준" if br == base_br else "⛔" if stuck else "💤" if is_stale else "…" if prog != "—" else "✓"
+        if mark not in ("기준", "✓"):   # 겹침은 진행 중 worktree 끼리만(ADR-006). 지휘가 앉은 기준 worktree·끝난 worktree 는 뺀다
+            touched[wt.name] = changed(wt, base)
         rows.append((rank, mark, track or "-", wt.name, br, prog,
                      ago(now - last) if last else "-", str(dirty),
                      followups(root, track) if use_gh else ""))
-    if compact:
-        rows = sorted(r for r in rows if r[2] != "-")   # 트랙에 안 걸린 worktree(지휘가 앉은 기준 브랜치)는 뺀다
-        if not rows:
-            return 0
-        named = [f"{r[1]}{r[2]}" for r in rows if r[0] <= 1]
-        counts = [f"{w}{sum(1 for r in rows if r[1] == m)}" for m, w in (("…", "진행"), ("✓", "끝")) if any(r[1] == m for r in rows)]
-        ov = overlaps(touched)
-        print("트랙 " + " ".join(named + counts + ([f"겹침{len(ov)}"] if ov else [])))
-        return 0
-    if not rows:
+    return rows, touched, tracks, base
+
+
+def compact_line(rows: list, touched: dict) -> str:
+    """손댈 것만: ⛔·💤 이름 · 진행N · 겹침N. 없으면 빈 문자열."""
+    live = sorted(r for r in rows if r[2] != "-" and r[1] in ("⛔", "💤", "…"))
+    named = [f"{r[1]}{r[2]}" for r in live if r[1] in ("⛔", "💤")]
+    n = sum(1 for r in live if r[1] == "…")
+    ov = overlaps(touched)
+    parts = named + ([f"진행{n}"] if n else []) + ([f"겹침{len(ov)}"] if ov else [])
+    return " ".join(parts)
+
+
+def print_table(rows: list, touched: dict, tracks: list, base: str, stale: int) -> None:
+    keep = sorted(r for r in rows if r[1] != "✓")
+    done = sorted(r for r in rows if r[1] == "✓")
+    if not keep and not done:
         print("worktree 가 없다")
-        return 0
+        return
     print("| | 트랙 | worktree | 브랜치 | 진행 | 마지막 신호 | 안 올린 변경 | 후속 이슈 |")
     print("|---|---|---|---|---|---|---|---|")
-    for r in sorted(rows):
+    for r in keep:
         print("| " + " | ".join(r[1:]) + " |")
-    print(f"\n⛔ 막힌 step · 💤 {stale}분 넘게 신호 없음 · … 진행 중 · ✓ 남은 SDD step 없음")
+    print(f"\n⛔ 막힌 step · 💤 {stale}분 넘게 신호 없음 · … 진행 중 · 기준 지휘가 앉은 기준 브랜치")
+    if done:
+        print(f"\n지울 worktree {len(done)} — 남은 SDD step 없음. PR 병합을 확인하고 `git worktree remove` (conductor §7)")
+        for r in done:
+            print(f"- {r[3]} ({r[4]}, 안 올린 변경 {r[7]})")
     ov = overlaps(touched)
     if ov:
-        print(f"\n겹침 {len(ov)} — worktree 둘 이상이 같이 바꾸는 파일(기준 {base}). 병합하면 충돌한다. conductor §5")
+        print(f"\n겹침 {len(ov)} — 진행 중 worktree 둘 이상이 같이 바꾸는 파일(기준 {base}). 병합하면 충돌한다. conductor §5")
         for f, ws in ov:
             print(f"- `{f}` — {', '.join(ws)}")
     if not tracks:
         print("(.claude/references/tracks.md 트랙 표가 없어 트랙 칸은 비어 있다)")
+
+
+def seat_repos(cwd: Path):
+    """지휘 자리면 대상 레포 경로 목록, 아니면 None."""
+    if conductor is None or not conductor.is_seat(cwd):
+        return None
+    return conductor.repos()
+
+
+def main(argv: list) -> int:
+    stale = 30
+    if "--stale" in argv:
+        stale = int(argv[argv.index("--stale") + 1])
+    compact = "--compact" in argv
+    use_gh = "--no-gh" not in argv and not compact
+    repos = seat_repos(Path.cwd())
+    if repos is not None:
+        frags = []
+        for r in repos:
+            top = sh(["git", "rev-parse", "--show-toplevel"], cwd=r) if r.is_dir() else None
+            if not top:
+                frags.append(f"{r.name} (경로 없음)")
+                if not compact:
+                    print(f"## {r.name} (경로 없음)\n")
+                continue
+            rows, touched, tracks, base = collect(Path(top), argv, stale, use_gh)
+            if compact:
+                line = compact_line(rows, touched) if tracks else ""
+                if line:
+                    frags.append(f"{r.name} {line}")
+            else:
+                print(f"## {r.name}\n")
+                print_table(rows, touched, tracks, base, stale)
+                print()
+        if compact and frags:
+            print(" · ".join(frags))
+        return 0
+    root = Path(sh(["git", "rev-parse", "--show-toplevel"]) or ".")
+    if compact and not tracks_of(root):
+        return 0
+    rows, touched, tracks, base = collect(root, argv, stale, use_gh)
+    if compact:
+        line = compact_line(rows, touched)
+        if line:
+            print("트랙 " + line)
+        return 0
+    print_table(rows, touched, tracks, base, stale)
     return 0
 
 
