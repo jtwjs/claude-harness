@@ -619,5 +619,26 @@ out=$(python3 "$CL" repos)
 $HOME/nowhere-x" ] && ok "repos — 순서 유지 · ~ 펼침" || bad "repos" "$out"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 
+# ── 케이스 7-b: 검사 상한 — 지금 도는 검사 프로세스 수 (ADR-007) ──
+printf '\n[7-b] verify_busy.py — 가짜 ps 로 개수 · 상한 · 명령 판정\n'
+VB="$HOOKS/lib/verify_busy.py"
+mkdir -p "$TMP/vb/.claude" && printf '{"verify":{"lint":"pnpm lint","test":"pnpm test"}}' > "$TMP/vb/.claude/harness.json"
+mkdir -p "$TMP/vb-apps/.claude" && printf '{"verify":{"$comment":"x","web":{"lint":"pnpm lint:web","$step":{"test":"pnpm t"}}}}' > "$TMP/vb-apps/.claude/harness.json"
+: > "$CLAUDE_VERIFY_PS"
+python3 "$VB" busy "$TMP/vb" >/dev/null && bad "0개" "busy" || ok "검사 0개 → 한가함"
+printf 'node /x/pnpm lint\nvim notes\n' > "$CLAUDE_VERIFY_PS"
+python3 "$VB" busy "$TMP/vb" >/dev/null && bad "1개" "busy" || ok "검사 1개 → 한가함(상한 2)"
+printf 'node /x/pnpm lint\nsh -c pnpm verify\npython3 /h/verify_busy.py busy pnpm lint\n' > "$CLAUDE_VERIFY_PS"
+out=$(python3 "$VB" busy "$TMP/vb") && [ "$out" = "2" ] && ok "검사 2개 → 바쁨 · 개수 출력 · 자기 자신 줄은 뺌" || bad "2개" "out=$out"
+CLAUDE_VERIFY_MAX=3 python3 "$VB" busy "$TMP/vb" >/dev/null && bad "MAX=3" "busy" || ok "CLAUDE_VERIFY_MAX=3 이면 2개는 한가함"
+CLAUDE_VERIFY_MAX=abc python3 "$VB" busy "$TMP/vb" >/dev/null && ok "잘못된 MAX 는 기본 2" || bad "MAX=abc" "한가함"
+python3 "$VB" match "$TMP/vb" 'pnpm lint' && ok "match — harness.json verify 값" || bad "match lint" "exit 1"
+python3 "$VB" match "$TMP/vb" 'cd x && pnpm verify' && ok "match — pnpm verify" || bad "match verify" "exit 1"
+python3 "$VB" match "$TMP/vb" 'git status' && bad "match 오탐" "git status" || ok "match — 검사 아닌 명령은 아님"
+python3 "$VB" match "$TMP/vb-apps" 'pnpm lint:web' && ok "match — 앱별 verify · \$ 키 무시" || bad "match 앱별" "exit 1"
+python3 "$VB" match "$TMP/vb-apps" 'pnpm t' && bad "match \$step" "exit 0" || ok "match — \$step 은 세지 않음"
+python3 "$VB" match "$TMP/none" 'npm run verify' && ok "harness.json 없어도 npm run verify" || bad "match 없음" "exit 1"
+: > "$CLAUDE_VERIFY_PS"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
