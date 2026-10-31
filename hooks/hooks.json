@@ -87,6 +87,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/prod-db-check.sh\"",
             "timeout": 10,
             "statusMessage": "운영 DB 차단 점검"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/conductor-context.sh\"",
+            "timeout": 30,
+            "statusMessage": "지휘 현황"
           }
         ]
       }
