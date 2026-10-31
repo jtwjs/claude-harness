@@ -33,20 +33,37 @@ def verify_cmds(repo_root) -> list:
     return cmds
 
 
-def _ps_lines() -> list:
+# 셸 내장·한 단어 무해 명령은 세지 않는다 — `true` 가 `… || true` 가 든 모든 셸 줄에 걸린다(2026-10-31 실측: 러너 테스트가 600초 대기)
+TRIVIAL = {"true", "false", ":", "exit", "echo", "test", "["}
+
+
+def _ps_rows() -> list:
+    """[(pid, ppid, command)]. CLAUDE_VERIFY_PS 가짜 파일 줄은 `pid ppid command` 이거나 command 만(그러면 각 줄이 따로)."""
     fake = os.environ.get("CLAUDE_VERIFY_PS")
     if fake:
         try:
-            return Path(fake).read_text(encoding="utf-8").splitlines()
+            lines = Path(fake).read_text(encoding="utf-8").splitlines()
         except OSError:
             return []
-    r = subprocess.run(["ps", "-Ao", "command"], capture_output=True, text=True)
-    return r.stdout.splitlines()[1:] if r.returncode == 0 else []
+    else:
+        r = subprocess.run(["ps", "-Ao", "pid=,ppid=,command="], capture_output=True, text=True)
+        lines = r.stdout.splitlines() if r.returncode == 0 else []
+    rows = []
+    for i, line in enumerate(lines):
+        parts = line.split(None, 2)
+        if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
+            rows.append((int(parts[0]), int(parts[1]), parts[2]))
+        elif line.strip():
+            rows.append((-1 - i, 0, line))
+    return rows
 
 
 def running(cmds) -> int:
-    return sum(1 for line in _ps_lines()
-               if "verify_busy.py" not in line and any(c in line for c in cmds))
+    """검사 실행 수. 한 실행은 셸 래퍼 → node pnpm → turbo 처럼 줄이 여럿이라, 부모가 이미 검사인 줄은 세지 않는다."""
+    cmds = [c for c in cmds if c.split() and c.split()[0] not in TRIVIAL]
+    hits = {pid: ppid for pid, ppid, c in _ps_rows()
+            if "verify_busy.py" not in c and any(x in c for x in cmds)}
+    return sum(1 for pid, ppid in hits.items() if ppid not in hits)
 
 
 def limit() -> int:

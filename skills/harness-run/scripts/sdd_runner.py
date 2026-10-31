@@ -27,6 +27,34 @@ import signal
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
+import time
+from pathlib import Path as _P
+
+sys.path.insert(0, str(_P(__file__).resolve().parents[3] / "hooks" / "lib"))
+try:
+    import verify_busy  # 검사 상한 (ADR-007)
+except ImportError:   # 플러그인 밖에서 스크립트만 복사해 쓴 경우 — 상한 없이 지금처럼
+    verify_busy = None
+
+
+def wait_for_slot(root, interval=5, timeout=600, busy=None, sleep=time.sleep) -> bool:
+    """이 머신에서 도는 검사가 상한 이상이면 아래로 내려올 때까지 기다린다. 기다렸으면 True.
+    timeout 을 넘기면 그대로 진행한다 — 판정이 영영 안 도는 것보다 낫다. 세션이 하나면 닿지 않는다."""
+    if busy is None:
+        if verify_busy is None:
+            return False
+        busy = verify_busy.busy
+    waited, n = 0, busy(root)
+    if not n:
+        return False
+    print(f"⏸ 검사 대기 — 다른 세션 {n}개", file=sys.stderr)
+    while n and waited <= timeout:
+        sleep(interval)
+        waited += interval
+        n = busy(root)
+    if n:
+        print(f"⏸ 검사 대기 {timeout}초 넘음 — 그대로 진행", file=sys.stderr)
+    return True
 from pathlib import Path
 from string import Template
 
@@ -345,6 +373,7 @@ class Runner:
             print("measure step: 코드 변경 없음 · phase 마지막 step 이라 전체 verify", file=sys.stderr)
             commits = []
         last = self.is_last(step)
+        wait_for_slot(str(self.root))
         for root, name, cmd in self.verify_scope(step, commits, base):
             ok, out = self.run_out(root, cmd)
             if not ok:
