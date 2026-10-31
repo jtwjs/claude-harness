@@ -79,8 +79,10 @@
     {
       "step": 10,
       "name": "templates-and-init",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "summary": "tracks.md 세션 종류 표·이름 conductor, track-brief 주 레포·도메인 링크, harness-init ⑧ 줄 교체+옛 줄 치환 안내. 남은 <레포>-conductor 는 옛 이름 설명 2줄. hook 238 통과",
+      "completed_at": "2026-10-31T21:02:33+09:00"
     },
     {
       "step": 11,
