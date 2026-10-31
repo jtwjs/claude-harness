@@ -640,5 +640,19 @@ python3 "$VB" match "$TMP/vb-apps" 'pnpm t' && bad "match \$step" "exit 0" || ok
 python3 "$VB" match "$TMP/none" 'npm run verify' && ok "harness.json 없어도 npm run verify" || bad "match 없음" "exit 1"
 : > "$CLAUDE_VERIFY_PS"
 
+# ── 케이스 7-c: 지휘 자리 — -R 강제 · 명령 머리의 대상 레포로 운영 DB 판정 (ADR-003·004) ──
+printf '\n[7-c] block-dangerous-bash — 지휘 자리 -R · cd/git -C 대상 레포\n'
+printf '{"seat":"%s","repos":["%s"]}' "$TMP/seat" "$TMP/prod" > "$CLAUDE_CONDUCTOR_CONFIG"
+[ "$(bdb "$TMP/seat" 'gh issue comment 3 --body hi')" = 2 ] && ok "지휘 자리에서 -R 없는 gh 쓰기 → 차단" || bad "지휘 -R 없음" "통과"
+[ "$(bdb "$TMP/seat" 'gh pr create --title t')" = 2 ] && ok "지휘 자리 -R 없는 gh pr create → 차단" || bad "지휘 pr" "통과"
+[ "$(bdb "$TMP/seat" 'gh issue comment 3 -R sellermill/x --body hi')" = 0 ] && ok "지휘 자리 + -R → 통과(계정 목록 없음)" || bad "지휘 -R 있음" "차단"
+[ "$(bdb "$TMP/seat" 'gh issue list --label conductor')" = 0 ] && ok "지휘 자리 gh 읽기는 -R 없어도 통과" || bad "지휘 읽기" "차단"
+[ "$(bdb "$TMP/none" 'gh issue comment 3 --body hi')" = 0 ] && ok "지휘 자리 아니면 지금 동작" || bad "지휘 아님" "차단"
+[ "$(bdb "$TMP/seat" "cd $TMP/prod && mysql -h prod-db.example.com -e \"DELETE FROM users\"")" = 2 ] && ok "cd <레포> && → 그 레포 prodDb 로 차단" || bad "cd 대상" "통과"
+[ "$(bdb "$TMP/seat" "git -C $TMP/prod log; mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 2 ] && ok "git -C <레포> 머리 → 그 레포 prodDb" || bad "git -C 대상" "통과"
+[ "$(bdb "$TMP/seat" "cd $TMP/prod && mysql -h prod-db.example.com -e \"SELECT 1\"")" = 0 ] && ok "대상 레포 조회는 통과" || bad "cd 조회" "차단"
+[ "$(bdb "$TMP/seat" "cd $TMP/no-such && mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 0 ] && ok "없는 경로면 cwd(하네스 없음) 기준" || bad "없는 경로" "차단"
+rm -f "$CLAUDE_CONDUCTOR_CONFIG"
+
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
