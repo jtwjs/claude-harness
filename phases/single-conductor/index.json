@@ -100,6 +100,12 @@
       "kind": "measure",
       "summary": "① bv-admin `tracks_status.py --compact` 비포(07abe7d 코드) `트랙 끝7 겹침3` → 애프터 빈 출력(진행 중 0). ② 지휘 자리(~/wiki, 임시 conductor.json)에서 `gh issue comment 12 --body x` → exit 2 ADR-003 안내 · `-R sellermill/x` → exit 0 · `-R jtwjs/x` → 계정 검사로 exit 2(활성 jtw-219, 기존 동작). ③ 가짜 ps 17줄 `verify_busy.py busy ~/orca/bv-admin` → 17, 직접 친 `pnpm verify` → exit 2 30초 안내. 실제 ps 지금 0. 지휘 세션 수 1은 conductor.json 설치 뒤 Finn 환경에서",
       "completed_at": "2026-10-31T21:05:23+09:00"
+    },
+    {
+      "step": 13,
+      "name": "review-fixes",
+      "status": "pending",
+      "tdd": true
     }
   ]
 }
