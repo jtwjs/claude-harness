@@ -11,11 +11,12 @@ Usage:
 """
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
-ALWAYS = ["pnpm verify", "npm run verify"]
+ALWAYS = ["pnpm verify", "pnpm run verify", "npm run verify"]
 DEFAULT_MAX = 2
 
 
@@ -58,12 +59,37 @@ def _ps_rows() -> list:
     return rows
 
 
+def _real(cmds) -> list:
+    return [c for c in cmds if c.split() and c.split()[0] not in TRIVIAL]
+
+
+# 명령 자리: 줄 머리 · 셸 구분자 뒤 · `sh -c` 뒤 · 경로(/) 뒤 · `node ` 뒤. 다른 명령의 인자(`rg "pnpm test"`, `echo pnpm verify`)는 아니다.
+# `pnpm run verify` 안의 `npm run verify` 도 앞이 `p` 라 안 맞는다(REVIEW 1회차, 2026-10-31).
+_HEAD = r"(?:^|[;&|(]\s*|\s-c\s+['\"]?|/|\bnode\s+)"
+
+
+def _hit(text: str, cmds) -> bool:
+    return any(re.search(_HEAD + re.escape(c) + r"(?=$|[\s;&|)'\"])", text) for c in cmds)
+
+
 def running(cmds) -> int:
-    """검사 실행 수. 한 실행은 셸 래퍼 → node pnpm → turbo 처럼 줄이 여럿이라, 부모가 이미 검사인 줄은 세지 않는다."""
-    cmds = [c for c in cmds if c.split() and c.split()[0] not in TRIVIAL]
-    hits = {pid: ppid for pid, ppid, c in _ps_rows()
-            if "verify_busy.py" not in c and any(x in c for x in cmds)}
-    return sum(1 for pid, ppid in hits.items() if ppid not in hits)
+    """검사 실행 수. 한 실행은 셸 래퍼 → node pnpm → turbo → pnpm run 처럼 줄이 여럿이라,
+    조상 중 하나라도 검사인 줄은 세지 않는다(중간 turbo 줄이 검사 문자열이 아니어도)."""
+    cmds = _real(cmds)
+    rows = _ps_rows()
+    parent = {pid: ppid for pid, ppid, _ in rows}
+    hits = {pid for pid, _, c in rows if "verify_busy.py" not in c and _hit(c, cmds)}
+
+    def under_hit(pid):
+        seen, p = set(), parent.get(pid)
+        while p is not None and p not in seen:
+            if p in hits:
+                return True
+            seen.add(p)
+            p = parent.get(p)
+        return False
+
+    return sum(1 for pid in hits if not under_hit(pid))
 
 
 def limit() -> int:
@@ -81,7 +107,7 @@ def busy(repo_root) -> int:
 
 
 def is_verify(repo_root, command: str) -> bool:
-    return any(c in command for c in verify_cmds(repo_root))
+    return _hit(command, _real(verify_cmds(repo_root)))
 
 
 def main(argv) -> int:
