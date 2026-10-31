@@ -31,8 +31,10 @@
     {
       "step": 4,
       "name": "bash-hook-verify-cap",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "summary": "block-dangerous-bash: 직접 친 검사 명령은 상한 이상이면 차단 + 30초 뒤 안내(명령 안 바꿈). [7-d] 5건(222/0)",
+      "completed_at": "2026-10-31T20:45:31+09:00"
     },
     {
       "step": 5,

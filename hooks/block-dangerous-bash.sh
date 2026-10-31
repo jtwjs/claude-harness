@@ -140,6 +140,15 @@ tgt=$(printf '%s' "$cmd" | sed -nE 's/^[[:space:]]*cd[[:space:]]+([^;&[:space:]]
 tgt="${tgt/#\~/$HOME}"
 REPO_ROOT=""
 [ -n "$tgt" ] && [ -d "$tgt" ] && REPO_ROOT="$(git -C "$tgt" rev-parse --show-toplevel 2>/dev/null)"
+# 검사 상한 (ADR-007, 2026-10-31): 직접 친 검사 명령은 이 머신에서 도는 검사가 상한(CLAUDE_VERIFY_MAX, 기본 2) 이상이면 막는다.
+# 명령은 바꾸지 않는다 — 바꿔 넣기(updatedInput)는 자동 승인이나 승인 창과 짝이라 쓰지 않는다. 세션이 하나면 닿지 않는다.
+VROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+if python3 "$SCRIPT_DIR/lib/verify_busy.py" match "$VROOT" "$cmd" 2>/dev/null; then
+  if n=$(python3 "$SCRIPT_DIR/lib/verify_busy.py" busy "$VROOT" 2>/dev/null); then
+    printf '🚫 차단됨: 다른 세션 검사 %s개 중 — 30초 뒤 다시 실행\n   사유: 검사 동시 실행 상한(CLAUDE_VERIFY_MAX, 기본 2). 여러 세션이 전체 검사를 동시에 돌리면 머신이 멈춘다 (ADR-007)\n' "$n" >&2
+    exit 2
+  fi
+fi
 [ -n "$REPO_ROOT" ] || REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
 prod=$(python3 "$SCRIPT_DIR/lib/prod_db.py" check "$REPO_ROOT" "$cmd" 2>/dev/null); prc=$?
