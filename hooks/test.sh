@@ -667,6 +667,10 @@ CLAUDE_VERIFY_MAX=1 python3 "$VB" busy "$TMP/vb" >/dev/null && bad "명령 자�
 mkdir -p "$TMP/vb-true/.claude" && printf '{"verify":{"test":"true"}}' > "$TMP/vb-true/.claude/harness.json"
 python3 "$VB" match "$TMP/vb-true" 'ls || true' && bad "match TRIVIAL" "ls || true 를 검사로" || ok "match — verify 값 true 는 검사로 안 봄"
 python3 "$VB" match "$TMP/vb" 'echo pnpm verify' && bad "match 자리" "echo 인자를 검사로" || ok "match — 명령 자리 아닌 pnpm verify 는 아님"
+mkdir -p "$TMP/vb-gr/.claude" && printf '{"verify":{"test":"./gradlew test"}}' > "$TMP/vb-gr/.claude/harness.json"
+printf '200 1 /bin/sh ./gradlew test\n300 1 /bin/sh ./gradlew test\n' > "$CLAUDE_VERIFY_PS"
+out=$(python3 "$VB" busy "$TMP/vb-gr") && [ "$out" = "2" ] && ok "./gradlew test 는 공백 뒤도 명령 자리(REVIEW 2회차 회귀)" || bad "gradlew" "out=$out"
+: > "$CLAUDE_VERIFY_PS"
 python3 "$VB" match "$TMP/vb-apps" 'pnpm t' && bad "match \$step" "exit 0" || ok "match — \$step 은 세지 않음"
 python3 "$VB" match "$TMP/none" 'npm run verify' && ok "harness.json 없어도 npm run verify" || bad "match 없음" "exit 1"
 : > "$CLAUDE_VERIFY_PS"
@@ -688,6 +692,7 @@ printf '{"seat":"%s","repos":["%s"]}' "$TMP/seat" "$TMP/prod" > "$CLAUDE_CONDUCT
 [ "$(bdb "$TMP/seat" 'gh pr ready 3')" = 2 ] && ok "지휘 자리 -R 없는 gh pr ready → 차단" || bad "pr ready" "통과"
 [ "$(bdb "$TMP/seat" 'gh issue create -R sellermill/x --title t && gh issue comment 5 --body x')" = 2 ] && ok "&& 뒤 조각에 -R 없으면 차단" || bad "조각마다" "통과"
 [ "$(bdb "$TMP/seat" 'gh label list')" = 0 ] && ok "gh label list(읽기)는 통과" || bad "label list" "차단"
+[ "$(bdb "$TMP/seat" "$(printf 'gh issue create \\\n  -R sellermill/x --title t')")" = 0 ] && ok "\\ 줄 이어 쓴 gh 명령의 -R 을 본다(REVIEW 2회차 회귀)" || bad "줄 이어 쓰기" "차단"
 [ "$(bdb "$TMP/prod" "git -C $TMP/seat log; mysql -h prod-db.example.com -e \"DELETE FROM u\"")" = 2 ] && ok "머리 레포에 하네스 없으면 cwd 레포 prodDb 로 차단" || bad "cwd 되돌림" "통과"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"
 

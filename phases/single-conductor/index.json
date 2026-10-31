@@ -108,6 +108,12 @@
       "tdd": true,
       "summary": "REVIEW 🟡 1·2·3·4(A)·5·6·9 수정. hook 250 · runner 50 통과",
       "completed_at": "2026-10-31T21:19:56+09:00"
+    },
+    {
+      "step": 14,
+      "name": "review-fixes-2",
+      "status": "pending",
+      "tdd": true
     }
   ]
 }
