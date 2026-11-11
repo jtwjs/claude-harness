@@ -25,7 +25,7 @@ todos=$(git diff --cached -U0 2>/dev/null | grep -E '^\+' | grep -vE '^\+\+\+' |
 [ -z "$todos" ] && { hook_log todo-warn clean; exit 0; }
 
 count=$(printf '%s\n' "$todos" | grep -c . | tr -d ' ')
-hook_log todo-warn warn "" "$count건"
+hook_log todo-warn warn "" "${count}건"
 sample=$(printf '%s\n' "$todos" | head -n 8)
 
 # JSON 은 python 으로 싼다 — 코드 줄에 따옴표·백슬래시가 흔하다.
