@@ -5,7 +5,7 @@
 이름·프롬프트 원문·코드는 받지 않는다: 허용 칸·값 밖은 거부.
 
 Usage:
-    ledger.py append repo=.. task=.. gate=.. area=.. hyp=.. rec=.. acc=.. why=.. rebut=.. skip=..
+    ledger.py append repo=.. task=.. gate=.. diff=<easy|mid|hard|null> area=.. hyp=.. rec=.. acc=.. why=.. rebut=.. skip=..
     ledger.py hit <ref> <right|partial|wrong> <model|finn>
     ledger.py gate-fix <ref> <schema|api|error|delete|security|null>
     ledger.py state [repo task]          # on|off 한 줄. 줄 순서만으로 계산, 파일을 만들지 않음
@@ -20,15 +20,17 @@ import datetime
 import json
 import os
 import re
+import secrets
 import sys
 from pathlib import Path
 
 GATES = ("schema", "api", "error", "delete", "security")
+DIFFS = ("easy", "mid", "hard")  # 참고용 칸 — 계산(state·pending-*)에는 쓰지 않는다
 AREAS = ("FE", "BE", "infra", "domain", "unknown")
 HITS = ("right", "partial", "wrong")
 BYS = ("model", "finn")
 BOOLS = ("hyp", "rec", "acc", "why", "rebut", "skip")
-FIELDS = ("repo", "task", "gate", "area") + BOOLS
+FIELDS = ("repo", "task", "gate", "diff", "area") + BOOLS
 _NAME = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
 
 
@@ -44,13 +46,13 @@ def read_lines():
     """원장의 JSON 객체 줄을 순서대로. 없거나 깨진 줄은 건너뛴다."""
     out = []
     try:
-        text = ledger_path().read_text(encoding="utf-8")
+        data = ledger_path().read_bytes()
     except OSError:
         return out
-    for raw in text.splitlines():
+    for raw in data.split(b"\n"):
         try:
-            d = json.loads(raw)
-        except ValueError:
+            d = json.loads(raw.decode("utf-8"))  # UTF-8 아닌 바이트가 든 줄만 건너뛴다
+        except ValueError:  # UnicodeDecodeError 포함
             continue
         if isinstance(d, dict):
             out.append(d)
@@ -58,7 +60,8 @@ def read_lines():
 
 
 def _now() -> str:
-    return datetime.datetime.now().astimezone().isoformat(timespec="milliseconds")
+    # 같은 순간의 줄이 겹치지 않게 마이크로초 + 난수 꼬리. 줄 키·ref 는 이 문자열 통째(불투명)
+    return datetime.datetime.now().astimezone().isoformat(timespec="microseconds") + "#" + secrets.token_hex(2)
 
 
 def _write(obj: dict) -> None:
@@ -92,6 +95,8 @@ def build_entry(pairs):
         raise Reject("repo: 허용 밖 값")
     if kv["task"] != "null" and not _NAME.match(kv["task"]):
         raise Reject("task: 허용 밖 값")
+    if kv["diff"] != "null" and kv["diff"] not in DIFFS:
+        raise Reject("diff: 허용 밖 값")
     if kv["area"] not in AREAS:
         raise Reject("area: 허용 밖 값")
     entry = {
@@ -99,6 +104,7 @@ def build_entry(pairs):
         "repo": kv["repo"],
         "task": None if kv["task"] == "null" else kv["task"],
         "gate": _gate(kv["gate"], "gate"),
+        "diff": None if kv["diff"] == "null" else kv["diff"],
         "area": kv["area"],
     }
     for b in BOOLS:
@@ -132,11 +138,14 @@ def _split(lines):
     entries, hits, fixes = [], {}, {}
     for d in lines:
         if "ts" in d and "repo" in d:
-            entries.append(d)
-        elif "hit" in d and "ref" in d:
+            if isinstance(d["ts"], str):
+                entries.append(d)
+        elif not isinstance(d.get("ref"), str):
+            continue
+        elif "hit" in d:
             if d["hit"] in HITS:
                 hits[d["ref"]] = d["hit"]
-        elif "ref" in d and "gate" in d and (d["gate"] is None or d["gate"] in GATES):
+        elif "gate" in d and (d["gate"] is None or d["gate"] in GATES):
             fixes[d["ref"]] = d["gate"]
     return entries, hits, fixes
 
