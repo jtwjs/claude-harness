@@ -153,9 +153,18 @@ def compute_state(lines, thr) -> bool:
     key, streak, on = None, 0, False
     got_hyp = got_rebut = False
     for d in entries:
-        if d.get("task") is None or _eff_gate(d, fixes) is None:
-            continue  # task=null·gate=null 은 세지도 끊지도 않는다
+        if d.get("task") is None:
+            continue  # task=null 은 세지도 끊지도 모으지도 않는다
         k = (d["repo"], d["task"])
+        if _eff_gate(d, fixes) is None:
+            # gate=null 은 연속 계산에서만 빠진다: 세지도 끊지도 않고, (repo, task) 신호도 아니다.
+            # 단 켜진 동안 같은 키면 hyp·rebut 은 꺼짐 조건에 모은다.
+            if on and k == key:
+                got_hyp = got_hyp or d.get("hyp") is True
+                got_rebut = got_rebut or d.get("rebut") is True
+                if got_hyp and got_rebut:
+                    on, streak, got_hyp, got_rebut = False, 0, False, False
+            continue
         if k != key:
             key, streak, got_hyp, got_rebut = k, 0, False, False
         if d.get("rec") is True and d.get("acc") is True and d.get("why") is False:
