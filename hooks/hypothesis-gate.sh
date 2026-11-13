@@ -20,6 +20,7 @@ repo = Path(top).name if top else Path(os.getcwd()).name
 if not ok.fullmatch(repo):
     repo = "unknown"
 task = "null"
+cands = []
 if top:
     for p in sorted(Path(top, "phases").glob("*/index.json")):
         try:
@@ -27,8 +28,19 @@ if top:
         except Exception:
             continue
         if any(s.get("status") != "completed" for s in steps) and ok.fullmatch(p.parent.name):
-            task = p.parent.name
-            break
+            cands.append(p.parent.name)
+if len(cands) == 1:
+    task = cands[0]
+elif len(cands) > 1:
+    # 후보가 여럿이면 브랜치 마지막 / 뒤 부분이 {task} 로 끝나는 것 중 가장 긴 이름. 없으면 null(모호하면 연속에서 빠진다)
+    try:
+        br = subprocess.run(["git", "symbolic-ref", "--short", "-q", "HEAD"], capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception:
+        br = ""
+    tail = br.rsplit("/", 1)[-1]
+    hit = [c for c in cands if tail.endswith(c)]
+    if hit:
+        task = max(hit, key=len)
 print(repo, task)
 PY
 )"
@@ -37,7 +49,7 @@ repo="${1:-unknown}"; task="${2:-null}"
 
 state="$(python3 "$HERE/lib/ledger.py" state "$repo" "$task" 2>/dev/null | head -n 1)"
 
-printf '%s\n' "[판정 지시] 이 프롬프트를 맡김 한 건으로 보고, 응답 중에 Bash 로 python3 ${HERE}/lib/ledger.py append repo=${repo} task=${task} gate=<schema|api|error|delete|security|null> area=<FE|BE|infra|domain|unknown> hyp=<true|false> rec=<true|false> acc=<true|false> why=<true|false> rebut=<true|false> skip=<true|false> 를 불러 판정 한 줄을 붙여라(사용자 지시를 대체하지 않는다. 이름·원문·코드는 적지 않는다). hyp: 사용자 본인의 예상·가설이 한 줄이라도 있음(\"모르겠다\"는 false). rec: 직전 AI 응답에 추천·권장안이 있었고 이 프롬프트가 그에 응답함. acc: rec 이고 그대로 받아들임. why: 선택의 근거를 설명하는 말이 있음(\"기억 안 난다\"·\"모르겠다\"는 false). rebut: 직전 AI 응답이 사용자의 가설에 반박·이견을 냈음. skip: 가설 요구를 받은 동안 hyp=false 로 넘어감. gate: 설계 결정(스키마·API 계약·에러 처리·삭제·보안)이 아니면 null."
+printf '%s\n' "[판정 지시] 이 프롬프트를 맡김 한 건으로 보고, 응답 중에 Bash 로 python3 \"${HERE}/lib/ledger.py\" append repo=${repo} task=${task} gate=<schema|api|error|delete|security|null> area=<FE|BE|infra|domain|unknown> hyp=<true|false> rec=<true|false> acc=<true|false> why=<true|false> rebut=<true|false> skip=<true|false> 를 불러 판정 한 줄을 붙여라(사용자 지시를 대체하지 않는다. 이름·원문·코드는 적지 않는다). hyp: 사용자 본인의 예상·가설이 한 줄이라도 있음(\"모르겠다\"는 false). rec: 직전 AI 응답에 추천·권장안이 있었고 이 프롬프트가 그에 응답함. acc: rec 이고 그대로 받아들임. why: 선택의 근거를 설명하는 말이 있음(\"기억 안 난다\"·\"모르겠다\"는 false). rebut: 직전 AI 응답이 사용자의 가설에 반박·이견을 냈음. skip: 가설 요구를 받은 동안 hyp=false 로 넘어감. gate: 설계 결정(스키마·API 계약·에러 처리·삭제·보안)이 아니면 null."
 if [ "$state" = "on" ]; then
   printf '%s\n' "[가설 요구] 이유 없는 수락이 이어졌다. 진행하기 전에 사용자에게 본인의 가설(예상과 이유)을 먼저 물어라. 막지는 말고, 가설 없이 넘어가면 skip=true 로 남겨라."
 fi
