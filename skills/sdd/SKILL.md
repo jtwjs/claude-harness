@@ -48,6 +48,9 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 🙋 통과 판정 뒤에만 작업 탭을 `현행` 탭에 반영하고 작업 탭을 지운다(캔버스 커밋).
 4. **REFLECT** — **다음 바퀴를 덜 틀리게 만드는 단계.** 커밋 전, 사람이 자리에 있을 때 돈다(세션 끝 환기는 죽는다 — LEARNED.md 3곳 전부 사망 실측). 산출물 넷, 순서 고정. 작은 작업이라 절차를 줄여도 **회고 1장은 빼지 않는다.**
+   **회고 앞 두 단계 (가설 원장)** — 산출물 넷 앞에서 먼저 돈다. `repo`는 git toplevel 폴더 이름, `task`는 이 작업의 `phases/` 폴더 이름이고 `L="${CLAUDE_PLUGIN_ROOT}/hooks/lib/ledger.py"`다. `task=null`(sdd 밖) 작업은 두 단계 모두 대상이 아니다.
+   - **적중 판정** — `python3 "$L" pending-hits <repo> <task>`로 대상 `ts`를 모은다. 모델이 줄마다 `right|partial|wrong`을 제안하고, 사람이 정정하면 `python3 "$L" hit <ts> <값> finn`, 그대로 두면 `python3 "$L" hit <ts> <값> model`로 쓴다. 대상이 없으면 "적중 판정 대상 없음" 한 줄 보고하고 넘어간다.
+   - **게이트 보정** — `python3 "$L" pending-gates <repo> <task>`로 대상 `ts`를 모은다. 모델이 이번 diff와 대조해 `schema|api|error|delete|security` 후보를 보이고, **사람이 확정한 것만** `python3 "$L" gate-fix <ts> <gate>`로 쓴다. 원장에는 프롬프트 원문이 없어서, 줄을 프롬프트에 대응시킬 수 없으면(세션 압축 등) 그 줄은 건너뛰고 한 줄 보고한다. 대상이 없으면 "게이트 보정 대상 없음" 한 줄 보고하고 넘어간다.
    1) **회고 1장 새 파일** — `_brain/wiki/infra/retro/YYYY-MM-DD-<기능 slug>.md`(회고 한 장 = 파일 하나. `_brain`이 없으면 `docs/retro/`). 회고는 이력이라 고치지 않고 쌓는다. 한 파일 맨 위에 넣던 방식은 병렬 트랙 PR이 같은 줄을 건드려, 하나 병합될 때마다 나머지가 충돌했다(2026-10-21 하루 3건, 전부 "둘 다 남김"으로 끝난 판단 없는 충돌). 옛 `retro.md`는 그대로 둔다 — 옮기지도 이어 쓰지도 않는다.
       ```
       ## YYYY-MM-DD — <기능 slug>
@@ -83,7 +86,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 ① **계획** — DESIGN: PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로 · Readiness 착수 판단 · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict` / PLAN: `harness` 범위 합의 → step 계획 승인 · 🎨 DS 신규 컴포넌트 승인
 ② **IMPLEMENT** — blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패 · 빈틈 3곳(전 step GREEN 직후)
 ③ **REVIEW** — 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영)
-④ **REFLECT** — `revise-claude-md` diff 승인(종착지 판정 포함) · `_brain` 정리 초안 · brain-sync 이관 · task-observer 승격 판정 · 🎤 설명 리허설(제안 시) · 출구 조건 확인
+④ **REFLECT** — 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · `_brain` 정리 초안 · brain-sync 이관 · task-observer 승격 판정 · 🎤 설명 리허설(제안 시) · 출구 조건 확인
 ⑤ **마무리** — `pr-write` 생성(commit은 REVIEW 승인이 겸한다)
 
 > 이 목록 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 목록에 넣거나 스킬을 고친다. (2026-10-08: 선언 7곳 vs 실제 13곳이던 것을 맞춤)

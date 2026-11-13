@@ -1,0 +1,132 @@
+{
+  "project": "claude-harness",
+  "phase": "hypothesis-ledger",
+  "docs": "docs/desk-hypothesis-gate-2026-11-12",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "injection-probe",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-13T16:05:14+0900",
+      "summary": "측정만, 코드 변경 없음. (1) `claude -p --settings <스크래치>/probe-settings.json \"방금 훅이 넣은 표식 문자열을 그대로 말해줘\"` (UserPromptSubmit 훅 `echo PROBE-7731`) -> 모델이 `PROBE-7731` 을 그대로 답함: 훅 stdout 이 모델 컨텍스트에 닿음(PRD 남은 ⚠️ 첫째 해소, 주입 방식 유지). (2) `claude -p --output-format json \"Bash 로 python3 <스크래치>/ledger_probe.py append x 실행\"` (허용 목록 없음) -> Bash 호출이 'This command requires approval' 로 거절, permission_denials 에 기록, 스크립트 미실행: 헤드리스에서는 허용 목록 없으면 막힘 = 대화형에서도 권한 확인이 뜰 가능성이 큼(추정). 대화형 실측은 `미측정: 대화형 세션에서 확인 / step 6`. 설치 안내에 `python3 .../ledger.py` 허용 목록 추가를 적을지 step 6 뒤 판단. `bash hooks/test.sh` -> 통과 257 · 실패 0. 참고: 시작 전부터 `.claude/` 가 untracked 로 있었음(내가 만든 것 아님).",
+      "completed_at": "2026-11-13T16:07:11+0900"
+    },
+    {
+      "step": 2,
+      "name": "ledger-write",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:07:22+0900",
+      "summary": "hooks/lib/ledger.py 쓰기 3서브커맨드: `append key=value x10`(repo task gate area hyp rec acc why rebut skip 전부 필수, repo/task 는 [A-Za-z0-9._-]{1,100}|task null, 허용 밖 거부) · `hit <ref> <right|partial|wrong> <model|finn>`(ref 는 hyp=true 맡김 줄 ts) · `gate-fix <ref> <gate|null>`(ref 는 맡김 줄 ts). 거부 exit 2, 쓰기 실패 exit 1, 둘 다 stderr 한 줄. 경로 env CLAUDE_HYPOTHESIS_LEDGER. step 3 이 import 할 것: ledger_path()·read_lines()(깨진 줄 건너뜀)·GATES·AREAS. 케이스는 hooks/tests/ledger-write.sh. bash hooks/test.sh -> 통과 286 · 실패 0.",
+      "attempts": [
+        {
+          "at": "2026-11-13T16:16:17+0900",
+          "error": "RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다 (이 시도의 커밋은 버렸다 — BASE 에서 테스트부터 다시)"
+        }
+      ],
+      "retries": 1,
+      "completed_at": "2026-11-13T16:17:44+0900"
+    },
+    {
+      "step": 3,
+      "name": "ledger-state",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:17:50+0900",
+      "summary": "hooks/lib/ledger.py 읽기 3서브커맨드: `state [repo task]`(on|off 한 줄, 줄 순서만으로 계산·파일 안 만듦, 보정 줄을 먼저 모아 과거에 적용, task=null·유효 gate=null 줄은 세지도 끊지도 않고 hyp/rebut 도 안 모음, 켜지기 전 hyp/rebut 은 안 모음, 꺼지면 연속 0) · `pending-hits <repo> <task>` · `pending-gates <repo> <task>`(ts 한 줄씩). 기준 횟수는 env CLAUDE_HYPOTHESIS_GATE_CONFIG 또는 ~/.claude/hypothesis-gate.json 의 threshold(양의 정수만, 없거나 이상하면 off). state 의 repo task 인자는 받되 결과에 안 씀. step 4 가 쓸 것: threshold()·compute_state(lines, thr)·cmd_read. 케이스는 hooks/tests/ledger-state.sh. bash hooks/test.sh -> 통과 344 · 실패 0.",
+      "completed_at": "2026-11-13T16:23:51+0900"
+    },
+    {
+      "step": 4,
+      "name": "gate-hook",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:23:58+0900",
+      "summary": "hooks/hypothesis-gate.sh(UserPromptSubmit 진입점, 항상 exit 0, stdin 버림): git toplevel 이름=repo·미완료 step 있는 phases/*=task(없으면 null)를 구해 `ledger.py state` 결과를 읽고, 항상 `[판정 지시]` 한 줄(ledger.py append 호출 안내·칸 기준)을 내고 on 일 때만 `[가설 요구]` 한 줄을 더함. hooks/hooks.json 에 UserPromptSubmit 등록(timeout 10, 다른 이벤트 불변). 케이스는 hooks/tests/gate-hook.sh. 판정 지시의 append 안내 경로는 따옴표 없이 출력(테스트가 `ledger.py append` 리터럴을 봄 — 공백 경로면 깨질 수 있음). bash hooks/test.sh -> 통과 357 · 실패 0.",
+      "completed_at": "2026-11-13T16:29:05+0900"
+    },
+    {
+      "step": 5,
+      "name": "sdd-reflect-stages",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-13T16:29:14+0900",
+      "summary": "skills/sdd/SKILL.md REFLECT 에 「회고 앞 두 단계」 추가(산출물 넷 앞): 적중 판정(pending-hits → right|partial|wrong 제안 → 정정 시 hit finn, 아니면 model)·게이트 보정(pending-gates → diff 대조 후보 → 사람 확정만 gate-fix, 대응 불가 줄은 건너뛰고 보고). 둘 다 대상 없으면 한 줄 보고, task=null 제외. 사람 체크포인트 ④ 에 정정·확정 추가. 출구 조건 불변. bash hooks/test.sh -> 통과 357 · 실패 0.",
+      "completed_at": "2026-11-13T16:32:08+0900"
+    },
+    {
+      "step": 6,
+      "name": "fix-gate-null-collect",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:33:23+0900",
+      "summary": "ledger.py compute_state: gate=null 줄은 연속 계산에서만 제외(세지도 끊지도 않고 키 신호도 아님), on 이고 같은 (repo, task) 면 hyp·rebut 은 꺼짐 조건에 모음. task=null 은 둘 다 제외 유지. 케이스 5개를 hooks/tests/ledger-state.sh 끝에 추가. bash hooks/test.sh -> 통과 362 · 실패 0.",
+      "completed_at": "2026-11-13T16:38:12+0900"
+    },
+    {
+      "step": 7,
+      "name": "measure-ledger-cost",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-13T16:38:19+0900",
+      "summary": "측정 전용, 코드 변경 없음(임시 원장은 스크래치). (1) 훅 시간: 줄 5000개 임시 원장(CLAUDE_HYPOTHESIS_LEDGER, threshold=3)으로 `bash hooks/hypothesis-gate.sh </dev/null` 3회 -> 0.089s·0.089s·0.095s, 원장 없음 0.078s(차이 약 0.01s: 줄 5000개 훑기 비용은 작고 대부분이 python3·git 기동 비용). 줄 수만 개·실제 세션 오버헤드는 미측정. (2) 주입 문구: 같은 훅 stdout `| wc -m` -> 678자(상태 off, 판정 지시 한 줄 약 678자). 가설 요구 줄이 더해지는 on 상태 길이와 토큰 수는 미측정: on 상태 원장을 만들어 wc -m 재고 토큰은 토큰 로그로 / 첫 실사용 2주 안. (3) 압축 뒤 줄 매칭: 미측정: 압축된 세션에서 /sdd REFLECT 를 돌려 pending-gates 줄을 프롬프트에 대응시킬 수 있나 확인 / 첫 실사용 REFLECT (한계는 SDD-SIDE.md 「미확인」 절에 이미 있음). (4) 동시 쓰기: `python3 hooks/lib/ledger.py append repo=conc task=t\\$i gate=null area=BE hyp=false rec=false acc=false why=false rebut=false skip=false &` 50개 병렬 -> `wc -l` 50줄, 전부 json 파싱 성공 50, 서로 다른 task 50 = 깨진 줄·누락 0건(50건 1회 시행, 더 큰 N·다른 파일시스템은 미측정). `bash hooks/test.sh` -> 통과 362 · 실패 0.",
+      "completed_at": "2026-11-13T16:40:20+0900"
+    },
+    {
+      "step": 8,
+      "name": "fix-hook-ident-quote",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:51:20+0900",
+      "summary": "hypothesis-gate.sh: task 는 미완료 phase 가 하나면 그것, 둘 이상이면 브랜치 마지막 / 뒤가 {task} 로 끝나는 가장 긴 이름, 없으면 null. 주입 문구의 ledger.py 경로에 따옴표. 기존 케이스 gate-hook.sh:30 은 따옴표 형태에 맞게 RED 커밋에 포함해 고침(사람 개입: 메인이 RED 커밋을 amend, 구현은 에이전트 patch 적용). bash hooks/test.sh -> 통과 369 · 실패 0.",
+      "completed_at": "2026-11-13T19:18:04+0900"
+    },
+    {
+      "step": 9,
+      "name": "fix-diff-ts-robust",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T22:48:44+0900",
+      "summary": "ledger.py: ts=<ISO 마이크로초>#<hex4>(불투명 ref), append 필수 칸 diff=<easy|mid|hard|null>(gate 다음·계산 미사용), read_lines 줄 단위 UTF-8 디코드, _split 이 ts·ref 문자열만 인정. hypothesis-gate.sh 주입 문구에 diff 예시·정의. gate-hook.sh detached HEAD 케이스 수정. bash hooks/test.sh -> 통과 393 · 실패 0.",
+      "completed_at": "2026-11-13T22:53:50+0900"
+    },
+    {
+      "step": 10,
+      "name": "fix-read-hostile-input",
+      "status": "completed",
+      "summary": "ledger.py: read_lines 가 RecursionError 도 그 줄만 건너뜀, _split 이 ts·ref 를 [\\x21-\\x7e]{1,64} 한 토큰일 때만 인정(서로게이트·줄바꿈·공백 ts 거부, 정상 #hex4·옛 형식 ts 유지). 케이스 8개를 hooks/tests/ledger-state.sh 끝에 추가. bash hooks/test.sh -> 통과 402 · 실패 0.",
+      "tdd": true,
+      "started_at": "2026-11-13T23:10:32+0900",
+      "completed_at": "2026-11-13T23:15:06+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-13T16:44:20+09:00",
+      "head": "241ea0dfe1f239f37b5c627df3a7fa256a5c436c",
+      "issues": [
+        "훅이 task를 이름순 첫 미완료 phase로 고름(활성 phase와 다를 수 있음)",
+        "주입 문구의 ledger.py 경로 따옴표 없음",
+        "대화형 Bash 권한 확인과 설치 안내 미확인"
+      ]
+    },
+    {
+      "at": "2026-11-13T22:13:28+09:00",
+      "head": "10bfe93a793a8d5b62ce7260e846e1f17b9a684f",
+      "issues": [
+        "깨진 줄(잘못된 바이트·타입 틀린 ref/ts)에서 읽기가 죽음",
+        "detached HEAD 테스트가 실제로 detached를 못 만듦",
+        "ts 밀리초가 ref 식별자로 겹칠 수 있음(설계 결정 대기)"
+      ]
+    },
+    {
+      "at": "2026-11-13T22:58:57+09:00",
+      "head": "1bc2781a6c1b7e113636d6ef459098c557b61657",
+      "issues": []
+    }
+  ]
+}
