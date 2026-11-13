@@ -1,0 +1,14 @@
+{
+  "project": "claude-harness",
+  "phase": "hypothesis-ledger",
+  "docs": "docs/desk-hypothesis-gate-2026-11-12",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "injection-probe", "status": "pending", "tdd": false, "kind": "measure" },
+    { "step": 2, "name": "ledger-write", "status": "pending", "tdd": true },
+    { "step": 3, "name": "ledger-state", "status": "pending", "tdd": true },
+    { "step": 4, "name": "gate-hook", "status": "pending", "tdd": true },
+    { "step": 5, "name": "sdd-reflect-stages", "status": "pending", "tdd": false },
+    { "step": 6, "name": "measure-ledger-cost", "status": "pending", "tdd": false, "kind": "measure" }
+  ]
+}
