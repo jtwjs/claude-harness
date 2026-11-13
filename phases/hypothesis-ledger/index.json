@@ -97,8 +97,11 @@
     {
       "step": 10,
       "name": "fix-read-hostile-input",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "summary": "ledger.py: read_lines 가 RecursionError 도 그 줄만 건너뜀, _split 이 ts·ref 를 [\\x21-\\x7e]{1,64} 한 토큰일 때만 인정(서로게이트·줄바꿈·공백 ts 거부, 정상 #hex4·옛 형식 ts 유지). 케이스 8개를 hooks/tests/ledger-state.sh 끝에 추가. bash hooks/test.sh -> 통과 402 · 실패 0.",
+      "tdd": true,
+      "started_at": "2026-11-13T23:10:32+0900",
+      "completed_at": "2026-11-13T23:15:06+0900"
     }
   ],
   "reviews": [
