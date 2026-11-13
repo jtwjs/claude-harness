@@ -59,6 +59,12 @@
     },
     {
       "step": 6,
+      "name": "fix-gate-null-collect",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 7,
       "name": "measure-ledger-cost",
       "status": "pending",
       "tdd": false,
