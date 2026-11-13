@@ -93,6 +93,12 @@
       "started_at": "2026-11-13T22:48:44+0900",
       "summary": "ledger.py: ts=<ISO 마이크로초>#<hex4>(불투명 ref), append 필수 칸 diff=<easy|mid|hard|null>(gate 다음·계산 미사용), read_lines 줄 단위 UTF-8 디코드, _split 이 ts·ref 문자열만 인정. hypothesis-gate.sh 주입 문구에 diff 예시·정의. gate-hook.sh detached HEAD 케이스 수정. bash hooks/test.sh -> 통과 393 · 실패 0.",
       "completed_at": "2026-11-13T22:53:50+0900"
+    },
+    {
+      "step": 10,
+      "name": "fix-read-hostile-input",
+      "status": "pending",
+      "tdd": true
     }
   ],
   "reviews": [
