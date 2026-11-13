@@ -222,3 +222,35 @@ for c in state pending-hits pending-gates; do
   [ "$code" = "0" ] && ok "step9 ts·ref 가 리스트·객체인 줄이 섞여도 $c exit 0" || bad "해시 안 되는 값 $c" "exit=$code"
 done
 lscheck "step9 해시 안 되는 줄은 건너뛰고 나머지로 계산" on "$(lsstate)"
+
+# ── step 10: 적대적 입력 — 깊은 중첩 · ts/ref 모양 제한 ───────────────────────────
+lsreset; lscfg 2; lsblind 2
+python3 -c 'print("["*200000 + "]"*200000)' >> "$LSL"
+for c in state pending-hits pending-gates; do
+  out=$(python3 "$LS" $c r t 2>&1); code=$?
+  [ "$code" = "0" ] && ok "step10 중첩 20만 단계 줄이 섞여도 $c exit 0" || bad "깊은 중첩 $c" "exit=$code out=[${out:0:80}]"
+done
+lscheck "step10 깊은 중첩 줄은 건너뛰고 나머지로 계산" on "$(lsstate)"
+
+lsreset; lscfg 2; lsblind 2
+printf '{"ts":"\\ud800x","repo":"r","task":"t","gate":null,"hyp":true,"rec":true,"acc":true,"why":false}\n{"ref":"\\ud800y","hit":"right","by":"model"}\n{"ref":"\\ud800z","gate":"api","by":"finn"}\n' >> "$LSL"
+for c in pending-hits pending-gates; do
+  out=$(python3 "$LS" $c r t 2>&1); code=$?
+  [ "$code" = "0" ] && [ -z "$out" ] && ok "step10 짝 없는 서로게이트 ts·ref 가 섞여도 $c exit 0 · 그 줄 안 씀" || bad "서로게이트 $c" "exit=$code out=[$out]"
+done
+
+lsreset; lscfg 2
+printf '{"ts":"a\\nb","repo":"r","task":"t","gate":null,"hyp":true,"rec":false,"acc":false,"why":false}\n{"ts":"a b","repo":"r","task":"t","gate":null,"hyp":true,"rec":false,"acc":false,"why":false}\n' >> "$LSL"
+lse r t null false false false true
+for c in pending-hits pending-gates; do
+  out=$(python3 "$LS" $c r t 2>&1); code=$?
+  [ "$code" = "0" ] && [ "$out" = "t1" ] && ok "step10 줄바꿈·공백이 든 ts 는 $c 출력에 안 나오고 한 줄에 ts 하나" || bad "줄바꿈/공백 ts $c" "exit=$code out=[$out]"
+done
+
+lsreset; lscfg 2
+printf '{"ts":"2026-11-13T10:00:00.123456+09:00#ab12","repo":"r","task":"t","gate":null,"hyp":true,"rec":false,"acc":false,"why":false}\n{"ts":"2026-11-13T10:00:00+09:00","repo":"r","task":"t","gate":null,"hyp":false,"rec":false,"acc":false,"why":false}\n' >> "$LSL"
+out=$(python3 "$LS" pending-gates r t 2>&1)
+lscheck "step10 #hex4 꼬리 ts 와 #없는 옛 형식 ts 는 그대로 인정" "2026-11-13T10:00:00.123456+09:00#ab12
+2026-11-13T10:00:00+09:00" "$out"
+
+lsreset; rm -f "$CLAUDE_HYPOTHESIS_GATE_CONFIG"; unset CLAUDE_HYPOTHESIS_GATE_CONFIG
