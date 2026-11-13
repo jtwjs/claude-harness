@@ -17,8 +17,18 @@
     {
       "step": 2,
       "name": "ledger-write",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:07:22+0900",
+      "summary": "hooks/lib/ledger.py 쓰기 3서브커맨드: `append key=value x10`(repo task gate area hyp rec acc why rebut skip 전부 필수, repo/task 는 [A-Za-z0-9._-]{1,100}|task null, 허용 밖 거부) · `hit <ref> <right|partial|wrong> <model|finn>`(ref 는 hyp=true 맡김 줄 ts) · `gate-fix <ref> <gate|null>`(ref 는 맡김 줄 ts). 거부 exit 2, 쓰기 실패 exit 1, 둘 다 stderr 한 줄. 경로 env CLAUDE_HYPOTHESIS_LEDGER. step 3 이 import 할 것: ledger_path()·read_lines()(깨진 줄 건너뜀)·GATES·AREAS. 케이스는 hooks/tests/ledger-write.sh. bash hooks/test.sh -> 통과 286 · 실패 0.",
+      "attempts": [
+        {
+          "at": "2026-11-13T16:16:17+0900",
+          "error": "RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다 (이 시도의 커밋은 버렸다 — BASE 에서 테스트부터 다시)"
+        }
+      ],
+      "retries": 1,
+      "completed_at": "2026-11-13T16:17:44+0900"
     },
     {
       "step": 3,
