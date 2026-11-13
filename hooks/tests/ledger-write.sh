@@ -4,7 +4,7 @@ LW="$HOOKS/lib/ledger.py"
 LWL="$TMP/lw/ledger.jsonl"
 export CLAUDE_HYPOTHESIS_LEDGER="$LWL"
 rm -rf "$TMP/lw"
-GOOD="repo=r1 task=t1 gate=schema area=BE hyp=true rec=true acc=true why=false rebut=false skip=false"
+GOOD="repo=r1 task=t1 gate=schema diff=easy area=BE hyp=true rec=true acc=true why=false rebut=false skip=false"
 
 # append: 파일·폴더가 없으면 만들고 끝에 한 줄
 python3 "$LW" append $GOOD 2>"$TMP/lw.err"; code=$?
@@ -14,12 +14,12 @@ TS1=$(python3 -c 'import json,sys; print(json.loads(open(sys.argv[1]).readline()
 python3 -c '
 import json,sys
 d=json.loads(open(sys.argv[1]).readline())
-exp={"ts","repo","task","gate","area","hyp","rec","acc","why","rebut","skip"}
+exp={"ts","repo","task","gate","diff","area","hyp","rec","acc","why","rebut","skip"}
 assert set(d)==exp and d["hyp"] is True and d["why"] is False and d["gate"]=="schema", d
 ' "$LWL" 2>/dev/null && ok "append: 칸·불리언 형식" || bad "줄 형식" "$(cat "$LWL")"
 
 # null 값(task·gate)
-python3 "$LW" append repo=r1 task=null gate=null area=unknown hyp=false rec=false acc=false why=false rebut=false skip=false 2>/dev/null; code=$?
+python3 "$LW" append repo=r1 task=null gate=null diff=easy area=unknown hyp=false rec=false acc=false why=false rebut=false skip=false 2>/dev/null; code=$?
 python3 -c '
 import json,sys
 d=[json.loads(l) for l in open(sys.argv[1])][-1]
@@ -35,13 +35,13 @@ lw_reject() { # $1=이름  나머지=인자
   after=$(wc -l < "$LWL" | tr -d ' ')
   if [ "$code" != "0" ] && [ "$before" = "$after" ] && [ -n "$err" ] && [ "$(printf '%s\n' "$err" | wc -l | tr -d ' ')" = "1" ]; then ok "거부: $name"; else bad "거부 실패: $name" "exit=$code before=$before after=$after err=[$err]"; fi
 }
-lw_reject "허용 밖 gate" append repo=r1 task=t1 gate=bogus area=BE hyp=true rec=true acc=true why=false rebut=false skip=false
-lw_reject "허용 밖 area" append repo=r1 task=t1 gate=api area=mobile hyp=true rec=true acc=true why=false rebut=false skip=false
-lw_reject "불리언 아닌 값" append repo=r1 task=t1 gate=api area=BE hyp=yes rec=true acc=true why=false rebut=false skip=false
+lw_reject "허용 밖 gate" append repo=r1 task=t1 gate=bogus diff=easy area=BE hyp=true rec=true acc=true why=false rebut=false skip=false
+lw_reject "허용 밖 area" append repo=r1 task=t1 gate=api diff=easy area=mobile hyp=true rec=true acc=true why=false rebut=false skip=false
+lw_reject "불리언 아닌 값" append repo=r1 task=t1 gate=api diff=easy area=BE hyp=yes rec=true acc=true why=false rebut=false skip=false
 lw_reject "허용 밖 칸(name)" append $GOOD name=kim
 lw_reject "허용 밖 칸(prompt 원문)" append $GOOD prompt=hello
-lw_reject "칸 누락" append repo=r1 task=t1 gate=api area=BE hyp=true rec=true acc=true why=false rebut=false
-lw_reject "repo 에 공백·경로 문자" append repo=a/b task=t1 gate=api area=BE hyp=true rec=true acc=true why=false rebut=false skip=false
+lw_reject "칸 누락" append repo=r1 task=t1 gate=api diff=easy area=BE hyp=true rec=true acc=true why=false rebut=false
+lw_reject "repo 에 공백·경로 문자" append repo=a/b task=t1 gate=api diff=easy area=BE hyp=true rec=true acc=true why=false rebut=false skip=false
 lw_reject "ts 를 직접 넣기" append $GOOD ts=2020-01-01
 lw_reject "형식 없는 인자" append foo
 
@@ -97,3 +97,48 @@ err=$(CLAUDE_HYPOTHESIS_LEDGER="/dev/null/x/ledger.jsonl" python3 "$LW" hit "$TS
 
 # 사용자 원장은 건드리지 않는다
 export CLAUDE_HYPOTHESIS_LEDGER="$LWL"
+
+# ── step 9: ts 형식(#난수) · diff 칸 ─────────────────────────────────────────
+rm -f "$LWL"
+python3 "$LW" append $GOOD 2>/dev/null
+TS9=$(python3 -c 'import json,sys; print(json.loads(open(sys.argv[1]).readline())["ts"])' "$LWL" 2>/dev/null)
+printf '%s' "$TS9" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}[+-][0-9]{2}:[0-9]{2}#[0-9a-f]{4}$' && ok "step9 ts 는 <ISO 마이크로초>#<hex4>" || bad "step9 ts 형식" "[$TS9]"
+python3 -c '
+import json,sys
+d=json.loads(open(sys.argv[1]).readline())
+ks=list(d)
+assert ks.index("diff")==ks.index("gate")+1 and d["diff"]=="easy", ks
+' "$LWL" 2>/dev/null && ok "step9 줄에 diff 칸이 gate 다음" || bad "step9 diff 칸" "$(cat "$LWL")"
+
+# 동시 50번 append — ts 가 모두 다르다
+rm -f "$LWL"
+for i in $(seq 50); do python3 "$LW" append repo=conc task=t gate=null diff=null area=BE hyp=false rec=false acc=false why=false rebut=false skip=false 2>/dev/null & done
+wait
+python3 -c '
+import json,sys
+ts=[json.loads(l)["ts"] for l in open(sys.argv[1])]
+assert len(ts)==50 and len(set(ts))==50, (len(ts), len(set(ts)))
+' "$LWL" 2>/dev/null && ok "step9 동시 append 50번도 ts 가 전부 다르다" || bad "step9 ts 겹침" "$(wc -l < "$LWL")줄"
+
+# hit·gate-fix 가 # 꼬리 ts 를 ref 로 받는다
+rm -f "$LWL"
+python3 "$LW" append $GOOD 2>/dev/null
+TSH=$(python3 -c 'import json,sys; print(json.loads(open(sys.argv[1]).readline())["ts"])' "$LWL" 2>/dev/null)
+python3 "$LW" hit "$TSH" right model 2>/dev/null; c1=$?
+python3 "$LW" gate-fix "$TSH" api 2>/dev/null; c2=$?
+[ "$c1" = "0" ] && [ "$c2" = "0" ] && ok "step9 hit·gate-fix 가 #꼬리 ts 를 ref 로 받는다" || bad "step9 ref" "hit=$c1 gate-fix=$c2"
+
+# diff 값 4종 통과 · 허용 밖 거부 · 빠지면 거부
+for v in easy mid hard null; do
+  rm -f "$LWL"
+  python3 "$LW" append repo=r1 task=t1 gate=api diff=$v area=BE hyp=true rec=true acc=true why=false rebut=false skip=false 2>/dev/null; code=$?
+  python3 -c '
+import json,sys
+d=json.loads(open(sys.argv[1]).readline())
+exp=None if sys.argv[2]=="null" else sys.argv[2]
+assert d["diff"]==exp, d
+' "$LWL" "$v" 2>/dev/null && [ "$code" = "0" ] && ok "step9 diff=$v 통과" || bad "step9 diff=$v" "exit=$code"
+done
+rm -f "$LWL"; : > "$LWL"
+lw_reject "step9 허용 밖 diff" append repo=r1 task=t1 gate=api diff=foo area=BE hyp=true rec=true acc=true why=false rebut=false skip=false
+lw_reject "step9 diff 칸 빠짐" append repo=r1 task=t1 gate=api area=BE hyp=true rec=true acc=true why=false rebut=false skip=false

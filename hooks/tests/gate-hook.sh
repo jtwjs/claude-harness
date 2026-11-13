@@ -92,7 +92,8 @@ if printf '%s' "$out" | grep -q 'task=aaa '; then ok "브랜치 마지막 / 뒤 
 (cd "$GHD/repo2" && git symbolic-ref HEAD refs/heads/main)
 out=$(ghrun2)
 if printf '%s' "$out" | grep -q 'task=null '; then ok "phase 둘 + 맞는 브랜치 없음이면 task=null"; else bad "task=null(모호)" "[$out]"; fi
-(cd "$GHD/repo2" && git checkout -q --detach 2>/dev/null; git rev-parse -q --verify HEAD >/dev/null 2>&1 || true)
+(cd "$GHD/repo2" && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init && git checkout -q --detach)
+if (cd "$GHD/repo2" && ! git symbolic-ref -q HEAD >/dev/null 2>&1); then ok "repo2 가 실제 detached HEAD 상태"; else bad "detached 준비" "HEAD 가 안 떼어짐"; fi
 out=$(ghrun2); code=$?
 if [ "$code" = "0" ] && printf '%s' "$out" | grep -q '\[판정 지시\]'; then ok "브랜치를 못 구해도 exit 0"; else bad "브랜치 없음" "exit=$code out=[$out]"; fi
 printf '{"phase":"aaa","steps":[{"step":1,"status":"completed"}]}' > "$GHD/repo2/phases/aaa/index.json"
@@ -110,3 +111,8 @@ cp "$GH" "$SP/hypothesis-gate.sh"; cp "$HOOKS/lib/ledger.py" "$SP/lib/ledger.py"
 out=$(cd "$GHD/repo1" && printf '{}' | bash "$SP/hypothesis-gate.sh" 2>&1)
 if printf '%s' "$out" | grep -qF 'python3 "'"$SP"'/lib/ledger.py" append'; then ok "공백 경로의 ledger.py 가 따옴표로 감싸진다"; else bad "경로 따옴표" "[$out]"; fi
 unset CLAUDE_HYPOTHESIS_LEDGER CLAUDE_HYPOTHESIS_GATE_CONFIG
+
+# 주입 문구(step 9): diff 칸 예시와 정의
+out=$(cd "$GHD/repo1" && printf '{}' | bash "$GH" 2>&1)
+if printf '%s' "$out" | grep -qF 'gate=<schema|api|error|delete|security|null> diff=<easy|mid|hard|null> area='; then ok "주입 문구에 diff=<easy|mid|hard|null> 가 gate 다음"; else bad "diff 예시" "[$out]"; fi
+if printf '%s' "$out" | grep -qF 'diff: 가설을 맞히기 어려운 정도. 범위(여러 레이어에 걸침)·되돌리기 어려움(마이그레이션·삭제·공개 API 계약)·선례 없음(레포에 같은 패턴이 없음) 중 하나라도 해당하면 hard, 하나도 해당하지 않으면 easy, 해당 여부가 애매하면 mid, hyp=false 면 null.'; then ok "주입 문구에 diff 정의 문장"; else bad "diff 정의" "[$out]"; fi

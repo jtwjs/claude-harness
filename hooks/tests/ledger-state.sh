@@ -189,3 +189,36 @@ lsreset; lscfg 2; lsblind 2; lse r t null false false false true; lse r other nu
 lscheck "step6 다른 (repo, task) 의 gate=null 줄은 모으기에도 안 쓰임" on "$(lsstate)"
 
 lsreset; rm -f "$CLAUDE_HYPOTHESIS_GATE_CONFIG"; unset CLAUDE_HYPOTHESIS_GATE_CONFIG
+
+# ── step 9: diff 칸 무관 · 옛 줄 · 깨진 UTF-8 · 해시 안 되는 ts/ref ─────────────
+export CLAUDE_HYPOTHESIS_GATE_CONFIG="$LSD/gate.json"
+lsreset; lscfg 2
+for d in easy hard null; do
+  printf '{"ts":"d%s","repo":"r","task":"t","gate":"api","diff":"%s","area":"BE","hyp":false,"rec":true,"acc":true,"why":false,"rebut":false,"skip":false}\n' "$d" "$d" >> "$LSL"
+done
+lscheck "step9 diff 값이 달라도 연속에 똑같이 셈(on)" on "$(lsstate)"
+lscheck "step9 diff 는 pending-gates 에 영향 없음" "" "$(python3 "$LS" pending-gates r t 2>/dev/null)"
+lsreset; lscfg 2; lsblind 2
+lscheck "step9 diff 칸이 없는 옛 줄도 state 계산에 쓰임" on "$(lsstate)"
+
+lsreset; lscfg 2; lsblind 2
+printf '\xff\xfe broken \xc3\x28 line\n' >> "$LSL"; lsblind 0
+out=$(python3 "$LS" state r t 2>&1); code=$?
+[ "$code" = "0" ] && [ "$out" = "on" ] && ok "step9 깨진 UTF-8 줄이 섞여도 state exit 0 · 나머지로 계산" || bad "깨진 UTF-8 state" "exit=$code out=[$out]"
+lsreset; lse r t null false false false true; printf '\xff\xfe\n' >> "$LSL"
+out=$(python3 "$LS" pending-gates r t 2>&1); code=$?
+[ "$code" = "0" ] && [ "$out" = "t1" ] && ok "step9 깨진 UTF-8 줄이 있어도 pending-gates exit 0" || bad "깨진 UTF-8 pending-gates" "exit=$code out=[$out]"
+out=$(python3 "$LS" pending-hits r t 2>&1); code=$?
+[ "$code" = "0" ] && ok "step9 깨진 UTF-8 줄이 있어도 pending-hits exit 0" || bad "깨진 UTF-8 pending-hits" "exit=$code out=[$out]"
+printf '\xff\xfe' > "$CLAUDE_HYPOTHESIS_GATE_CONFIG"
+out=$(python3 "$LS" state r t 2>&1); code=$?
+[ "$code" = "0" ] && [ "$out" = "off" ] && ok "step9 깨진 UTF-8 설정 파일도 exit 0 · off" || bad "깨진 설정" "exit=$code out=[$out]"
+lscfg 2
+
+lsreset; lsblind 2
+printf '{"ts":["a"],"repo":"r","task":"t","gate":"api","rec":true,"acc":true,"why":false}\n{"ts":{"x":1},"repo":"r","task":"t","gate":"api"}\n{"ref":["a"],"hit":"right","by":"model"}\n{"ref":{"x":1},"gate":"api","by":"finn"}\n{"ref":["b"],"gate":null,"by":"finn"}\n' >> "$LSL"
+for c in state pending-hits pending-gates; do
+  python3 "$LS" $c r t >/dev/null 2>&1; code=$?
+  [ "$code" = "0" ] && ok "step9 ts·ref 가 리스트·객체인 줄이 섞여도 $c exit 0" || bad "해시 안 되는 값 $c" "exit=$code"
+done
+lscheck "step9 해시 안 되는 줄은 건너뛰고 나머지로 계산" on "$(lsstate)"
