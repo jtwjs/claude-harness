@@ -42,8 +42,11 @@
     {
       "step": 4,
       "name": "gate-hook",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:23:58+0900",
+      "summary": "hooks/hypothesis-gate.sh(UserPromptSubmit 진입점, 항상 exit 0, stdin 버림): git toplevel 이름=repo·미완료 step 있는 phases/*=task(없으면 null)를 구해 `ledger.py state` 결과를 읽고, 항상 `[판정 지시]` 한 줄(ledger.py append 호출 안내·칸 기준)을 내고 on 일 때만 `[가설 요구]` 한 줄을 더함. hooks/hooks.json 에 UserPromptSubmit 등록(timeout 10, 다른 이벤트 불변). 케이스는 hooks/tests/gate-hook.sh. 판정 지시의 append 안내 경로는 따옴표 없이 출력(테스트가 `ledger.py append` 리터럴을 봄 — 공백 경로면 깨질 수 있음). bash hooks/test.sh -> 통과 357 · 실패 0.",
+      "completed_at": "2026-11-13T16:29:05+0900"
     },
     {
       "step": 5,
