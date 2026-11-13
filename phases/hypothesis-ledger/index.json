@@ -4,11 +4,46 @@
   "docs": "docs/desk-hypothesis-gate-2026-11-12",
   "after": [],
   "steps": [
-    { "step": 1, "name": "injection-probe", "status": "pending", "tdd": false, "kind": "measure" },
-    { "step": 2, "name": "ledger-write", "status": "pending", "tdd": true },
-    { "step": 3, "name": "ledger-state", "status": "pending", "tdd": true },
-    { "step": 4, "name": "gate-hook", "status": "pending", "tdd": true },
-    { "step": 5, "name": "sdd-reflect-stages", "status": "pending", "tdd": false },
-    { "step": 6, "name": "measure-ledger-cost", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "injection-probe",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-13T16:05:14+0900",
+      "summary": "측정만, 코드 변경 없음. (1) `claude -p --settings <스크래치>/probe-settings.json \"방금 훅이 넣은 표식 문자열을 그대로 말해줘\"` (UserPromptSubmit 훅 `echo PROBE-7731`) -> 모델이 `PROBE-7731` 을 그대로 답함: 훅 stdout 이 모델 컨텍스트에 닿음(PRD 남은 ⚠️ 첫째 해소, 주입 방식 유지). (2) `claude -p --output-format json \"Bash 로 python3 <스크래치>/ledger_probe.py append x 실행\"` (허용 목록 없음) -> Bash 호출이 'This command requires approval' 로 거절, permission_denials 에 기록, 스크립트 미실행: 헤드리스에서는 허용 목록 없으면 막힘 = 대화형에서도 권한 확인이 뜰 가능성이 큼(추정). 대화형 실측은 `미측정: 대화형 세션에서 확인 / step 6`. 설치 안내에 `python3 .../ledger.py` 허용 목록 추가를 적을지 step 6 뒤 판단. `bash hooks/test.sh` -> 통과 257 · 실패 0. 참고: 시작 전부터 `.claude/` 가 untracked 로 있었음(내가 만든 것 아님).",
+      "completed_at": "2026-11-13T16:07:11+0900"
+    },
+    {
+      "step": 2,
+      "name": "ledger-write",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "ledger-state",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "gate-hook",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "sdd-reflect-stages",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "measure-ledger-cost",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
