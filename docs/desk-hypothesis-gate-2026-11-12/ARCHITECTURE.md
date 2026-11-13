@@ -6,7 +6,7 @@
 
 | 용어 | 이 문서에서의 뜻 |
 |---|---|
-| 맡김 줄 | 프롬프트 한 번에 원장에 붙는 한 줄(`ts repo task gate area hyp rec acc why rebut skip`) |
+| 맡김 줄 | 프롬프트 한 번에 원장에 붙는 한 줄(`ts repo task gate diff area hyp rec acc why rebut skip`) |
 | 적중 줄 | 맡김 줄의 `hyp`가 참인 건에 나중에 붙는 `{ref, hit, by}` 줄 |
 | 원장 | 두 종류의 줄이 쌓이는 추가 전용 JSONL 한 파일(`~/.claude/hypothesis-ledger.jsonl`) |
 | 연속 값 | 같은 (repo, task) 안에서 `rec·acc` 참, `why` 거짓인 맡김 줄이 이어진 횟수 |
