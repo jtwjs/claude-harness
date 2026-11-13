@@ -15,9 +15,11 @@
 - `hooks/hooks.json` 에 `UserPromptSubmit` 이벤트로 이 훅을 등록한다(AC1). 다른 이벤트는 건드리지 않는다.
 - 모든 레포에서 돈다(ADR-001). 판정 지시는 사용자의 지시를 대체하지 않는다.
 
+- 🔴 **`hooks/test.sh` 는 고치지 않는다.** 러너의 테스트 파일 판정이 이 파일을 못 알아봐서 RED 확인이 깨진다. `hooks/test.sh` 가 `hooks/tests/*.sh` 를 source 하므로(이미 연결됨), 새 케이스 파일은 `hooks/tests/` 아래에 두고 `ok`·`bad`·`TMP`·`HOOKS` 변수·함수를 그대로 쓴다. 실제 `~/.claude` 원장은 건드리지 않는다(`CLAUDE_HYPOTHESIS_LEDGER` 로 임시 경로).
+
 ## Acceptance Criteria
 
-- test.sh 새 케이스(AC1·AC7): hooks.json 에 `UserPromptSubmit` 이 있다 / 상태 `off` 주입에 가설 요구 문구가 없다 / `on` 이면 있다 / 원장이 깨져도 exit 0.
+- 새 케이스는 `hooks/tests/gate-hook.sh` 에 쓴다(AC1·AC7): hooks.json 에 `UserPromptSubmit` 이 있다 / 상태 `off` 주입에 가설 요구 문구가 없다 / `on` 이면 있다 / 원장이 깨져도 exit 0.
 - `bash hooks/test.sh` 전부 통과. 테스트 커밋 먼저, 그 시점에 새 케이스가 실패.
 
 ## 검증 절차

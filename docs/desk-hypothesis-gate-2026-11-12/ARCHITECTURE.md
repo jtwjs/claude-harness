@@ -47,7 +47,7 @@ flowchart TB
 | `hooks/lib/ledger.py gate-fix` | 보정 줄 `{ref, gate, by:finn}` 한 줄 추가, `ref`·`gate` 검사 | 기존 줄 수정 |
 | `hooks/lib/ledger.py pending-gates` | (repo, task)에서 유효한 `gate`가 null인 줄의 `ts` 출력 | 원장 쓰기 |
 | `skills/sdd/SKILL.md` REFLECT | 두 단계: 적중 판정(대상 모음 → 모델 제안 → 사람 정정 → `hit`, `by`는 정정하면 `finn` 아니면 `model`) / 게이트 보정(대상 모음 → diff 대조 후보 → 사람 확정 → `gate-fix`) | sdd 밖(`task=null`) 작업 처리 |
-| `hooks/test.sh` | 위 동작의 케이스 | 사용자의 실제 원장 건드리기 |
+| `hooks/tests/*.sh` (`hooks/test.sh`가 source) | 위 동작의 케이스 | 사용자의 실제 원장 건드리기 |
 
 ## 데이터 흐름
 
@@ -86,7 +86,7 @@ sequenceDiagram
 
 ## 테스트 전략
 
-- `hooks/test.sh`에 케이스를 추가한다(이 레포의 유일한 테스트). 임시 원장을 환경 변수로 지정해서 돌린다.
+- `hooks/tests/*.sh`에 케이스를 추가한다(`hooks/test.sh`가 source 한다. 러너가 `hooks/test.sh` 자체는 테스트 파일로 못 알아봐서 따로 뒀다, 2026-11-13). 임시 원장을 환경 변수로 지정해서 돌린다.
 - 케이스: 원장 없음·빈 파일·깨진 줄(AC2), 연속 값 계산과 리셋·건너뜀(AC3), 켜짐 유지(AC4), 꺼짐 조건(AC5), 설정 없음(AC6), 주입 문구 유무(AC7), `append` 거부 규칙(AC8·AC10), 적중 줄 규칙(AC9).
 - macOS 기본 bash 3.2에서 돈다. 변수 뒤에 한글이 오면 `${}`로 감싼다(0.35.0 수정 사례). 계산은 파이썬에 두어 bash 문법 위험을 줄인다.
 - 동작 확인은 별도다. 테스트 통과가 "훅이 실제로 모델에 한 줄을 넣는다"를 뜻하지 않으므로 구현 첫 단계에서 실제 세션으로 확인한다(PRD 남은 ⚠️).

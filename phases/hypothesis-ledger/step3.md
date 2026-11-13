@@ -14,9 +14,11 @@
 - `pending-gates <repo> <task>`: AC17 의 CLI 쪽. 유효한 `gate` 가 `null` 인 맡김 줄의 `ts`.
 - 원장이 없거나 비었거나 깨진 줄이 섞여도 죽지 않는다. 깨진 줄은 건너뛴다(AC2). 읽기만 하고 원장을 쓰지 않는다.
 
+- 🔴 **`hooks/test.sh` 는 고치지 않는다.** 러너의 테스트 파일 판정이 이 파일을 못 알아봐서 RED 확인이 깨진다. `hooks/test.sh` 가 `hooks/tests/*.sh` 를 source 하므로(이미 연결됨), 새 케이스 파일은 `hooks/tests/` 아래에 두고 `ok`·`bad`·`TMP`·`HOOKS` 변수·함수를 그대로 쓴다. 실제 `~/.claude` 원장은 건드리지 않는다(`CLAUDE_HYPOTHESIS_LEDGER` 로 임시 경로).
+
 ## Acceptance Criteria
 
-- test.sh 새 케이스(AC2·AC3·AC4·AC5·AC6·AC13·AC16 + `pending-gates`): 원장 없음·빈 파일·깨진 줄 / 연속 값 증가·`why` 리셋·(repo, task) 변경 리셋·`gate=null`·`task=null` 건너뜀 / 켜짐 유지 / `hyp`+`rebut` 순서 무관 꺼짐 / 설정 없음 / 보정으로 `null` → 값(연속에 합류)과 값 → `null`(빠짐) / 유효한 적중 줄 있는 건 `pending-hits` 에서 제외.
+- 새 케이스는 `hooks/tests/ledger-state.sh` 에 쓴다(AC2·AC3·AC4·AC5·AC6·AC13·AC16 + `pending-gates`): 원장 없음·빈 파일·깨진 줄 / 연속 값 증가·`why` 리셋·(repo, task) 변경 리셋·`gate=null`·`task=null` 건너뜀 / 켜짐 유지 / `hyp`+`rebut` 순서 무관 꺼짐 / 설정 없음 / 보정으로 `null` → 값(연속에 합류)과 값 → `null`(빠짐) / 유효한 적중 줄 있는 건 `pending-hits` 에서 제외.
 - `bash hooks/test.sh` 전부 통과. 테스트 커밋 먼저, 그 시점에 새 케이스가 실패.
 
 ## 검증 절차

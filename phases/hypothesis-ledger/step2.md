@@ -16,9 +16,11 @@
 - 쓰기 실패(권한·디스크): 0 이 아닌 종료 코드와 stderr 한 줄만. 재시도·알림·복구 없음(AC12, ADR-002).
 - 깨진 줄이 섞인 원장이어도 `ref` 검사는 깨진 줄을 건너뛰고 동작한다.
 
+- 🔴 **`hooks/test.sh` 는 고치지 않는다.** 러너의 테스트 파일 판정이 이 파일을 못 알아봐서 RED 확인이 깨진다. `hooks/test.sh` 가 `hooks/tests/*.sh` 를 source 하므로(이미 연결됨), 새 케이스 파일은 `hooks/tests/` 아래에 두고 `ok`·`bad`·`TMP`·`HOOKS` 변수·함수를 그대로 쓴다. 실제 `~/.claude` 원장은 건드리지 않는다(`CLAUDE_HYPOTHESIS_LEDGER` 로 임시 경로).
+
 ## Acceptance Criteria
 
-- test.sh 새 케이스(AC8·AC9·AC12·AC15): 허용 밖 칸·값 거부 / 기존 줄 무변경 / `hyp=false` 줄을 `ref` 로 하면 거부 / 존재하지 않는 `ref` 거부 / 허용 밖 `gate` 거부 / 쓸 수 없는 경로에서 비0 종료 + stderr 한 줄.
+- 새 케이스는 `hooks/tests/ledger-write.sh` 에 쓴다(AC8·AC9·AC12·AC15): 허용 밖 칸·값 거부 / 기존 줄 무변경 / `hyp=false` 줄을 `ref` 로 하면 거부 / 존재하지 않는 `ref` 거부 / 허용 밖 `gate` 거부 / 쓸 수 없는 경로에서 비0 종료 + stderr 한 줄.
 - `bash hooks/test.sh` 전부 통과(이 레포엔 harness.json 이 없어 verify 는 이 명령 하나). 테스트 커밋이 먼저, 그 시점에 새 케이스가 실패해야 한다.
 
 ## 검증 절차
