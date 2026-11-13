@@ -52,7 +52,7 @@ def read_lines():
     for raw in data.split(b"\n"):
         try:
             d = json.loads(raw.decode("utf-8"))  # UTF-8 아닌 바이트가 든 줄만 건너뛴다
-        except ValueError:  # UnicodeDecodeError 포함
+        except (ValueError, RecursionError):  # UnicodeDecodeError 포함, 깊은 중첩도 그 줄만 건너뜀
             continue
         if isinstance(d, dict):
             out.append(d)
@@ -133,14 +133,18 @@ def threshold():
     return None
 
 
+# ts·ref 는 출력 가능한 ASCII 한 토큰만 인정(공백·제어문자·비ASCII 거부)
+_TOKEN = re.compile(r"[\x21-\x7e]{1,64}")
+
+
 def _split(lines):
     """줄 종류를 키로 가른다: ts 가 있으면 맡김 줄, hit 면 적중 줄, ref+gate 면 보정 줄(마지막이 유효)."""
     entries, hits, fixes = [], {}, {}
     for d in lines:
         if "ts" in d and "repo" in d:
-            if isinstance(d["ts"], str):
+            if _TOKEN.fullmatch(d["ts"]) if isinstance(d["ts"], str) else False:
                 entries.append(d)
-        elif not isinstance(d.get("ref"), str):
+        elif not (isinstance(d.get("ref"), str) and _TOKEN.fullmatch(d["ref"])):
             continue
         elif "hit" in d:
             if d["hit"] in HITS:
