@@ -79,8 +79,11 @@
     {
       "step": 8,
       "name": "fix-hook-ident-quote",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:51:20+0900",
+      "summary": "hypothesis-gate.sh: task 는 미완료 phase 가 하나면 그것, 둘 이상이면 브랜치 마지막 / 뒤가 {task} 로 끝나는 가장 긴 이름, 없으면 null. 주입 문구의 ledger.py 경로에 따옴표. 기존 케이스 gate-hook.sh:30 은 따옴표 형태에 맞게 RED 커밋에 포함해 고침(사람 개입: 메인이 RED 커밋을 amend, 구현은 에이전트 patch 적용). bash hooks/test.sh -> 통과 369 · 실패 0.",
+      "completed_at": "2026-11-13T19:18:04+0900"
     }
   ],
   "reviews": [
