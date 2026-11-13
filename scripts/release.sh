@@ -38,9 +38,16 @@ printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · 훅 테스트 �
 step "gh 계정 → $RELEASE_GH_USER"
 prev="$(gh api user -q .login 2>/dev/null || true)"
 RESTORE_GH_USER="${RESTORE_GH_USER:-$prev}"
-restore() { [ -n "$RESTORE_GH_USER" ] && [ "$DRY" = 0 ] && gh auth switch -u "$RESTORE_GH_USER" >/dev/null 2>&1 && printf '\n↩ gh 계정 → %s\n' "$RESTORE_GH_USER"; return 0; }
+switched=0
+restore() { [ "$switched" = 1 ] && [ -n "$RESTORE_GH_USER" ] && [ "$DRY" = 0 ] && gh auth switch -u "$RESTORE_GH_USER" >/dev/null 2>&1 && printf '\n↩ gh 계정 → %s\n' "$RESTORE_GH_USER"; return 0; }
 trap restore EXIT
-run gh auth switch -u "$RELEASE_GH_USER"
+# 이미 릴리스 계정이면 전환을 건너뛴다 — 옛 gh(2.21 등)는 `gh auth switch` 가 없어 여기서 죽었다(2026-11-13)
+if [ "$prev" = "$RELEASE_GH_USER" ]; then
+  printf '  이미 %s — 전환 생략\n' "$RELEASE_GH_USER"
+else
+  run gh auth switch -u "$RELEASE_GH_USER" || die "gh auth switch 실패 — gh 가 옛 버전이면 직접 'gh auth login' 으로 $RELEASE_GH_USER 로 로그인한 뒤 다시"
+  switched=1
+fi
 [ "$DRY" = 1 ] || [ "$(gh api user -q .login)" = "$RELEASE_GH_USER" ] || die "계정 전환 실패"
 
 # ── 2~4. push → 마켓플레이스 → 플러그인 ───────────────────────────────────
