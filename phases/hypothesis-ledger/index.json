@@ -51,8 +51,11 @@
     {
       "step": 5,
       "name": "sdd-reflect-stages",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-13T16:29:14+0900",
+      "summary": "skills/sdd/SKILL.md REFLECT 에 「회고 앞 두 단계」 추가(산출물 넷 앞): 적중 판정(pending-hits → right|partial|wrong 제안 → 정정 시 hit finn, 아니면 model)·게이트 보정(pending-gates → diff 대조 후보 → 사람 확정만 gate-fix, 대응 불가 줄은 건너뛰고 보고). 둘 다 대상 없으면 한 줄 보고, task=null 제외. 사람 체크포인트 ④ 에 정정·확정 추가. 출구 조건 불변. bash hooks/test.sh -> 통과 357 · 실패 0.",
+      "completed_at": "2026-11-13T16:32:08+0900"
     },
     {
       "step": 6,
