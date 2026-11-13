@@ -84,6 +84,12 @@
       "started_at": "2026-11-13T16:51:20+0900",
       "summary": "hypothesis-gate.sh: task 는 미완료 phase 가 하나면 그것, 둘 이상이면 브랜치 마지막 / 뒤가 {task} 로 끝나는 가장 긴 이름, 없으면 null. 주입 문구의 ledger.py 경로에 따옴표. 기존 케이스 gate-hook.sh:30 은 따옴표 형태에 맞게 RED 커밋에 포함해 고침(사람 개입: 메인이 RED 커밋을 amend, 구현은 에이전트 patch 적용). bash hooks/test.sh -> 통과 369 · 실패 0.",
       "completed_at": "2026-11-13T19:18:04+0900"
+    },
+    {
+      "step": 9,
+      "name": "fix-diff-ts-robust",
+      "status": "pending",
+      "tdd": true
     }
   ],
   "reviews": [
@@ -94,6 +100,15 @@
         "훅이 task를 이름순 첫 미완료 phase로 고름(활성 phase와 다를 수 있음)",
         "주입 문구의 ledger.py 경로 따옴표 없음",
         "대화형 Bash 권한 확인과 설치 안내 미확인"
+      ]
+    },
+    {
+      "at": "2026-11-13T22:13:28+09:00",
+      "head": "10bfe93a793a8d5b62ce7260e846e1f17b9a684f",
+      "issues": [
+        "깨진 줄(잘못된 바이트·타입 틀린 ref/ts)에서 읽기가 죽음",
+        "detached HEAD 테스트가 실제로 detached를 못 만듦",
+        "ts 밀리초가 ref 식별자로 겹칠 수 있음(설계 결정 대기)"
       ]
     }
   ]
