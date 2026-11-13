@@ -176,4 +176,16 @@ lscheck "AC17 값 → null 로 보정된 줄은 대상에 들어옴" "$(printf '
 out=$(python3 "$LS" pending-gates r none 2>&1); code=$?
 [ "$code" = "0" ] && [ -z "$out" ] && ok "AC17 대상 없으면 빈 출력 · exit 0" || bad "pending-gates 비움" "exit=$code out=[$out]"
 
+# step 6: gate=null 줄은 연속 계산에서만 빠지고, on 인 동안 hyp·rebut 모으기에는 들어간다
+lsreset; lscfg 2; lsblind 2; lse r t null false false false true; lse r t null true true false false true
+lscheck "step6 on 뒤 gate=null 줄의 hyp 와 이어진 gate=null 줄의 rebut 이 모이면 off" off "$(lsstate)"
+lsreset; lscfg 2; lsblind 2; lse r t null false false false true
+lscheck "step6 gate=null 줄의 hyp 만으로는 아직 on" on "$(lsstate)"
+lsreset; lscfg 2; lse r t null true true false; lse r t null true true false; lse r t null true true false
+lscheck "step6 gate=null 줄만 rec·acc 참·why 거짓으로 이어져도 연속은 안 오름(off)" off "$(lsstate)"
+lsreset; lscfg 2; lsblind 2; lse r t null false false false true; lse r null api false false false false true
+lscheck "step6 task=null 줄의 rebut 은 여전히 꺼짐에 안 쓰임" on "$(lsstate)"
+lsreset; lscfg 2; lsblind 2; lse r t null false false false true; lse r other null false false false false true
+lscheck "step6 다른 (repo, task) 의 gate=null 줄은 모으기에도 안 쓰임" on "$(lsstate)"
+
 lsreset; rm -f "$CLAUDE_HYPOTHESIS_GATE_CONFIG"; unset CLAUDE_HYPOTHESIS_GATE_CONFIG
