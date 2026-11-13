@@ -75,6 +75,23 @@
       "started_at": "2026-11-13T16:38:19+0900",
       "summary": "측정 전용, 코드 변경 없음(임시 원장은 스크래치). (1) 훅 시간: 줄 5000개 임시 원장(CLAUDE_HYPOTHESIS_LEDGER, threshold=3)으로 `bash hooks/hypothesis-gate.sh </dev/null` 3회 -> 0.089s·0.089s·0.095s, 원장 없음 0.078s(차이 약 0.01s: 줄 5000개 훑기 비용은 작고 대부분이 python3·git 기동 비용). 줄 수만 개·실제 세션 오버헤드는 미측정. (2) 주입 문구: 같은 훅 stdout `| wc -m` -> 678자(상태 off, 판정 지시 한 줄 약 678자). 가설 요구 줄이 더해지는 on 상태 길이와 토큰 수는 미측정: on 상태 원장을 만들어 wc -m 재고 토큰은 토큰 로그로 / 첫 실사용 2주 안. (3) 압축 뒤 줄 매칭: 미측정: 압축된 세션에서 /sdd REFLECT 를 돌려 pending-gates 줄을 프롬프트에 대응시킬 수 있나 확인 / 첫 실사용 REFLECT (한계는 SDD-SIDE.md 「미확인」 절에 이미 있음). (4) 동시 쓰기: `python3 hooks/lib/ledger.py append repo=conc task=t\\$i gate=null area=BE hyp=false rec=false acc=false why=false rebut=false skip=false &` 50개 병렬 -> `wc -l` 50줄, 전부 json 파싱 성공 50, 서로 다른 task 50 = 깨진 줄·누락 0건(50건 1회 시행, 더 큰 N·다른 파일시스템은 미측정). `bash hooks/test.sh` -> 통과 362 · 실패 0.",
       "completed_at": "2026-11-13T16:40:20+0900"
+    },
+    {
+      "step": 8,
+      "name": "fix-hook-ident-quote",
+      "status": "pending",
+      "tdd": true
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-13T16:44:20+09:00",
+      "head": "241ea0dfe1f239f37b5c627df3a7fa256a5c436c",
+      "issues": [
+        "훅이 task를 이름순 첫 미완료 phase로 고름(활성 phase와 다를 수 있음)",
+        "주입 문구의 ledger.py 경로 따옴표 없음",
+        "대화형 Bash 권한 확인과 설치 안내 미확인"
+      ]
     }
   ]
 }
