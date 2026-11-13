@@ -33,8 +33,11 @@
     {
       "step": 3,
       "name": "ledger-state",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-13T16:17:50+0900",
+      "summary": "hooks/lib/ledger.py 읽기 3서브커맨드: `state [repo task]`(on|off 한 줄, 줄 순서만으로 계산·파일 안 만듦, 보정 줄을 먼저 모아 과거에 적용, task=null·유효 gate=null 줄은 세지도 끊지도 않고 hyp/rebut 도 안 모음, 켜지기 전 hyp/rebut 은 안 모음, 꺼지면 연속 0) · `pending-hits <repo> <task>` · `pending-gates <repo> <task>`(ts 한 줄씩). 기준 횟수는 env CLAUDE_HYPOTHESIS_GATE_CONFIG 또는 ~/.claude/hypothesis-gate.json 의 threshold(양의 정수만, 없거나 이상하면 off). state 의 repo task 인자는 받되 결과에 안 씀. step 4 가 쓸 것: threshold()·compute_state(lines, thr)·cmd_read. 케이스는 hooks/tests/ledger-state.sh. bash hooks/test.sh -> 통과 344 · 실패 0.",
+      "completed_at": "2026-11-13T16:23:51+0900"
     },
     {
       "step": 4,
