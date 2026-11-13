@@ -27,7 +27,7 @@ then ok "AC1 hooks.json 에 UserPromptSubmit → hypothesis-gate.sh"; else bad "
 rm -f "$GHL" "$CLAUDE_HYPOTHESIS_GATE_CONFIG"
 out=$(ghrun); code=$?
 if [ "$code" = "0" ] && printf '%s' "$out" | grep -q '\[판정 지시\]'; then ok "판정 지시가 항상 나간다(원장 없음)"; else bad "판정 지시" "exit=$code out=[$out]"; fi
-if printf '%s' "$out" | grep -q 'ledger.py append'; then ok "판정 지시에 ledger.py append 안내"; else bad "append 안내" "[$out]"; fi
+if printf '%s' "$out" | grep -qE 'ledger.py"? append'; then ok "판정 지시에 ledger.py append 안내"; else bad "append 안내" "[$out]"; fi
 if printf '%s' "$out" | grep -q '\[가설 요구\]'; then bad "AC7 off" "가설 요구가 나감"; else ok "AC7 off 면 가설 요구 문구 없음"; fi
 
 # AC6: 설정 없이 연속이 길어도 off
@@ -73,4 +73,40 @@ if printf '%s' "$out" | grep -q 'task=p1'; then ok "활성 phase 이름이 task 
 printf '{"phase":"p1","steps":[{"step":1,"status":"completed"}]}' > "$GHD/repo1/phases/p1/index.json"
 out=$(ghrun)
 if printf '%s' "$out" | grep -q 'task=null'; then ok "활성 phase 가 없으면 task=null"; else bad "task=null" "[$out]"; fi
+unset CLAUDE_HYPOTHESIS_LEDGER CLAUDE_HYPOTHESIS_GATE_CONFIG
+
+# task 고르기(step 8): 미완료 phase 가 여럿이면 브랜치와 맞는 것, 맞는 게 없으면 null
+export CLAUDE_HYPOTHESIS_LEDGER="$GHL"
+export CLAUDE_HYPOTHESIS_GATE_CONFIG="$GHD/gate.json"
+mkdir -p "$GHD/repo2/phases/aaa" "$GHD/repo2/phases/bbb"
+(cd "$GHD/repo2" && git init -q)
+printf '{"phase":"aaa","steps":[{"step":1,"status":"pending"}]}' > "$GHD/repo2/phases/aaa/index.json"
+printf '{"phase":"bbb","steps":[{"step":1,"status":"pending"}]}' > "$GHD/repo2/phases/bbb/index.json"
+ghrun2() { (cd "$GHD/repo2" && printf '{"prompt":"x"}' | bash "$GH" 2>&1); }
+(cd "$GHD/repo2" && git symbolic-ref HEAD refs/heads/feat-bbb)
+out=$(ghrun2)
+if printf '%s' "$out" | grep -q 'task=bbb '; then ok "phase 둘 + 브랜치 feat-bbb 면 task=bbb"; else bad "task=bbb" "[$out]"; fi
+(cd "$GHD/repo2" && git symbolic-ref HEAD refs/heads/feat/aaa)
+out=$(ghrun2)
+if printf '%s' "$out" | grep -q 'task=aaa '; then ok "브랜치 마지막 / 뒤 부분으로 맞춘다(feat/aaa)"; else bad "task=aaa" "[$out]"; fi
+(cd "$GHD/repo2" && git symbolic-ref HEAD refs/heads/main)
+out=$(ghrun2)
+if printf '%s' "$out" | grep -q 'task=null '; then ok "phase 둘 + 맞는 브랜치 없음이면 task=null"; else bad "task=null(모호)" "[$out]"; fi
+(cd "$GHD/repo2" && git checkout -q --detach 2>/dev/null; git rev-parse -q --verify HEAD >/dev/null 2>&1 || true)
+out=$(ghrun2); code=$?
+if [ "$code" = "0" ] && printf '%s' "$out" | grep -q '\[판정 지시\]'; then ok "브랜치를 못 구해도 exit 0"; else bad "브랜치 없음" "exit=$code out=[$out]"; fi
+printf '{"phase":"aaa","steps":[{"step":1,"status":"completed"}]}' > "$GHD/repo2/phases/aaa/index.json"
+(cd "$GHD/repo2" && git symbolic-ref HEAD refs/heads/feat-zzz)
+out=$(ghrun2)
+if printf '%s' "$out" | grep -q 'task=bbb '; then ok "미완료 phase 가 하나면 브랜치와 무관하게 그 이름"; else bad "단일 후보" "[$out]"; fi
+printf '{"phase":"bbb","steps":[{"step":1,"status":"completed"}]}' > "$GHD/repo2/phases/bbb/index.json"
+out=$(ghrun2)
+if printf '%s' "$out" | grep -q 'task=null '; then ok "후보가 없으면 task=null"; else bad "후보 없음" "[$out]"; fi
+
+# 경로 따옴표(step 8): HOOKS 경로에 공백이 있어도 주입 문구의 ledger.py 경로가 따옴표로 감싸진다
+SP="$GHD/with space/hooks"
+mkdir -p "$SP/lib"
+cp "$GH" "$SP/hypothesis-gate.sh"; cp "$HOOKS/lib/ledger.py" "$SP/lib/ledger.py"
+out=$(cd "$GHD/repo1" && printf '{}' | bash "$SP/hypothesis-gate.sh" 2>&1)
+if printf '%s' "$out" | grep -qF 'python3 "'"$SP"'/lib/ledger.py" append'; then ok "공백 경로의 ledger.py 가 따옴표로 감싸진다"; else bad "경로 따옴표" "[$out]"; fi
 unset CLAUDE_HYPOTHESIS_LEDGER CLAUDE_HYPOTHESIS_GATE_CONFIG
