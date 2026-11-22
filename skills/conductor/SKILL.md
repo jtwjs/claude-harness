@@ -1,6 +1,6 @@
 ---
 name: conductor
-description: 병렬 트랙(worktree 세션 2개 이상)으로 레포를 진행할 때 지휘 세션이 쓴다. 지휘 설정(~/.claude/conductor.json)이 있으면 지휘 자리 하나에서 대상 레포 여럿을 맡는다. 결정·계약 변경을 GitHub 이슈로 받아 전파 후속 이슈로 쪼개고 의존을 건 뒤, 다 닫히면 ADR로 옮긴다. ADR 번호는 여기서만 발급한다. 트랙 지시문을 채워 넘기고 예외를 판정한다. 사용자가 "너는 지휘 세션"·"지휘 맡아"라고 하면 쓴다. 트랙이 하나면 쓰지 않는다.
+description: 병렬 트랙(worktree 세션 2개 이상)을 지휘 세션이 맡을 때 쓴다(~/.claude/conductor.json이면 대상 레포 여럿). 결정·계약 변경 이슈를 후속 이슈로 쪼개 의존을 걸고, 다 닫히면 ADR로 옮긴다(번호 발급은 여기만). "너는 지휘 세션"·"지휘 맡아"일 때. 트랙이 하나면 안 쓴다.
 allowed-tools: [Read, Write, Bash, Glob, Grep]
 ---
 

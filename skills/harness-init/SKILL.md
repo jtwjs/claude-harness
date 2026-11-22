@@ -1,6 +1,6 @@
 ---
 name: harness-init
-description: 이 레포에 하네스를 깐다. 레포를 진단하고, 검증 명령을 실제로 돌려보고, 기계가 모를 것만 인터뷰한 뒤 CLAUDE.md·.claude/{harness.json,rules,references}·CI를 생성한다. 신규 프로젝트를 시작할 때나 기존 레포에 처음 하네스를 적용할 때 한 번 실행한다. 이미 깔린 레포(harness.json·_brain/CLAUDE.md·.claude/README.md 중 하나라도 있음)면 업그레이드 모드로 템플릿 사본만 새 버전에 맞춘다("하네스 업그레이드해줘"). 점검만 할 때는 harness-doctor.
+description: 레포에 하네스를 깐다 — 진단하고 검증 명령을 실제로 돌려 본 뒤, 기계가 모를 것만 인터뷰해 CLAUDE.md·.claude/{harness.json,rules,references}·CI를 만든다. 새 프로젝트나 첫 적용 때 한 번. 이미 깔린 레포면 업그레이드 모드("하네스 업그레이드해줘"). 점검만은 harness-doctor.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 

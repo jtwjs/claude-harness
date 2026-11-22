@@ -1,6 +1,6 @@
 ---
 name: harness-run
-description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step을 순회하며 step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록(RED 커밋 순서·RED가 실제로 실패하나·테스트 파일 수정·verify)으로 판정해 커밋/재시도/중단한다. 사람이 자리에 없을 때는 같은 규칙의 헤드리스 러너(sdd_runner.py run)를 쓴다. Use when harness 스킬로 만든 계획을 실제로 구현할 때.
+description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when harness 스킬로 만든 계획을 구현할 때.
 disable-model-invocation: false
 ---
 
