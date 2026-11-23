@@ -16,8 +16,11 @@
     {
       "step": 2,
       "name": "observer-append",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T20:06:04+0900",
+      "summary": "observer.py append [--dry-run] FILE 구현 — 검증(유형·레포 2곳·패턴 한 줄·방향, 어긋나면 stderr 한 줄 건너뜀) · ID F-최댓값+1 · `| ID | 패턴 |` 표 마지막 행 뒤 삽입(임시파일+rename, 표 없으면 exit 2 무쓰기) · .obsidian 기준 링크 · 월별 YYYY-MM.md 항목. stdout: 설정 없음 '원장 설정 없음'·후보 0 '후보 없음'·성공 시 쓴 행만(한 줄=한 행, step 3 이 셈). 종료 0/1/2. 테스트 hooks/tests/task-observer-append.sh",
+      "completed_at": "2026-11-23T20:16:07+0900"
     },
     {
       "step": 3,
