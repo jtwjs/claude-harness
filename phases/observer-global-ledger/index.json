@@ -43,9 +43,12 @@
     {
       "step": 5,
       "name": "measure-first-run",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-23T20:24:29+0900",
+      "summary": "측정만, 코드 변경 없음. `bash skills/task-observer/scripts/weekly.sh --dry-run`(실제 claude · 실제 ~/.claude/projects · 설정 없음 → 원장 무쓰기) 시작 20:24:47 · 끝 20:25:26 · exit 0 · 마지막 줄 `task-observer weekly: 후보 4 · 쓴 행 0 · 소요 39s` → 50분 기준 한참 아래, 실행 시각 17:30 유지. `observer.py gather --days 7` 재료 169,176바이트 · 레포 5(claude-harness 3세션 · conductor 1 · jtwjs-desk 2 · stack-kits 1 · wiki 8) · observations 0 · undelegated 0 · 사람 말에 다른 세션 메시지 0건. 후보 4: 권한 모드가 달라 보류된 세션 간 메시지를 사람이 다시 보내게 시킴(반복 절차, 5곳) / 결정 질문에서 추천안을 먼저 보이라는 지시 반복(재지시, 3곳) / 설계는 지휘·구현은 작업 세션 구조 재지시(재지시, 2곳) / 지휘가 띄운 세션 위치를 사람이 묻고 확인(반복 절차, 2곳). 설정 없는 dry-run 이라 ID F-001부터 · 연결 [[2026-11]].",
+      "completed_at": "2026-11-23T20:26:22+0900"
     }
   ]
 }
