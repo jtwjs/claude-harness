@@ -100,11 +100,13 @@ if [ "$NCAND" = "0" ]; then
   exit 0
 fi
 
+# 재료에 있던 레포 이름만 받는다 — 모델이 지어낸 이름으로 「2곳 이상」이 가짜로 차지 않게
+KNOWN=$(python3 -c 'import json,sys; print(",".join(r.get("name","") for r in json.load(open(sys.argv[1])).get("repos") or []))' "$WORK/material.json")
 if [ "$DRY" = "1" ]; then
-  python3 "$OBS" append --dry-run "$WORK/cand.json"; ARC=$?
+  python3 "$OBS" append --dry-run --known "$KNOWN" "$WORK/cand.json"; ARC=$?
   WROTE=0
 else
-  python3 "$OBS" append "$WORK/cand.json" > "$WORK/append.out"; ARC=$?
+  python3 "$OBS" append --known "$KNOWN" "$WORK/cand.json" > "$WORK/append.out"; ARC=$?
   cat "$WORK/append.out"
   WROTE=$(grep -c '^| F-' "$WORK/append.out" | tr -d ' ')
 fi

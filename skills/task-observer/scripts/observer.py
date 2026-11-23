@@ -4,7 +4,7 @@
 정본: docs/observer-global-ledger-2026-11-23/ARCHITECTURE.md
 - config: 설정 파일의 ledger 경로를 한 줄로. 없음 · 깨짐 · 칸 없음이면 빈 출력 exit 0.
 - gather --days N: 지난 N일 대화 기록에서 레포별 재료 JSON 을 stdout 에. 아무 파일도 쓰지 않는다.
-- append [--dry-run] FILE: 후보 JSON 을 검증해 원장에 상태 `후보` 행 · 월별 파일에 근거 항목.
+- append [--dry-run] [--known NAME,...] FILE: 후보 JSON 을 검증해 원장에 상태 `후보` 행 · 월별 파일에 근거 항목.
   모든 쓰기는 여기 한 곳. 원장의 기존 바이트는 그대로 두고 새 행만 넣는다.
 
 표준 라이브러리만 쓴다.
@@ -389,7 +389,7 @@ def _entry(c, fid, today):
     ]) + "\n"
 
 
-def append(path, dry_run):
+def append(path, dry_run, known=None):
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as e:
@@ -416,6 +416,11 @@ def append(path, dry_run):
             label = " ".join(str(label).split())[:60] if label else "#%d" % (i + 1)
             print("observer: 후보 건너뜀(%s) — %s" % (label, why), file=sys.stderr)
             continue
+        if known is not None:  # 재료(gather)에 없던 레포 이름이면 「2곳 이상」이 가짜로 참이 된다
+            unknown = [r for r in v["repos"] if r not in known]
+            if unknown:
+                print("observer: 레포 이름이 재료에 없음: %s" % ", ".join(unknown), file=sys.stderr)
+                continue
         cands.append(v)
     if not cands:
         print("후보 없음")
@@ -519,13 +524,23 @@ def main(argv) -> int:
         return 0
     if cmd == "append":
         rest = argv[2:]
-        dry = "--dry-run" in rest
-        files = [a for a in rest if a != "--dry-run"]
+        dry, known, files = False, None, []
+        i = 0
+        while i < len(rest):
+            a = rest[i]
+            if a == "--dry-run":
+                dry = True
+            elif a == "--known" and i + 1 < len(rest):
+                i += 1
+                known = {n.strip() for n in rest[i].split(",") if n.strip()}
+            else:
+                files.append(a)
+            i += 1
         if len(files) != 1:
-            print("사용: observer.py append [--dry-run] FILE", file=sys.stderr)
+            print("사용: observer.py append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
             return 2
-        return append(files[0], dry)
-    print("사용: observer.py config | gather [--days N] | append [--dry-run] FILE", file=sys.stderr)
+        return append(files[0], dry, known)
+    print("사용: observer.py config | gather [--days N] | append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
     return 2
 
 
