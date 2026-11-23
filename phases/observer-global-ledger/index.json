@@ -4,10 +4,39 @@
   "docs": "docs/observer-global-ledger-2026-11-23",
   "after": [],
   "steps": [
-    { "step": 1, "name": "observer-gather", "status": "pending", "tdd": true },
-    { "step": 2, "name": "observer-append", "status": "pending", "tdd": true },
-    { "step": 3, "name": "weekly-runner", "status": "pending", "tdd": true },
-    { "step": 4, "name": "skill-docs", "status": "pending", "tdd": false },
-    { "step": 5, "name": "measure-first-run", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "observer-gather",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T19:59:30+0900",
+      "summary": "skills/task-observer/scripts/observer.py(실행 가능) — config · gather 구현. step 2 는 `from observer import ledger_path`(Path|None, env CLAUDE_TASK_OBSERVER_CONFIG 우선)를 쓴다. gather 출력 {days, since, now, repos[{name, sessions, user, bash, observations, undelegated}]}, 상수 USER_MAX_CHARS=400·BASH_MAX_CHARS=200·각 150개, 지금은 env TASK_OBSERVER_NOW 로 고정 가능. 테스트 hooks/tests/task-observer-gather.sh",
+      "completed_at": "2026-11-23T20:05:58+0900"
+    },
+    {
+      "step": 2,
+      "name": "observer-append",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "weekly-runner",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "skill-docs",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "measure-first-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
