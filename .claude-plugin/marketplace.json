@@ -12,8 +12,8 @@
     {
       "name": "claude-harness",
       "source": "./",
-      "description": "신규 프로젝트에 까는 개인 표준 하네스 — SDD·RED/GREEN·컨텍스트 3층·brain 파이프라인",
-      "version": "0.37.0",
+      "description": "신규 프로젝트에 까는 개인 표준 하네스 — SDD·RED/GREEN·컨텍스트 3층·병렬 트랙 지휘",
+      "version": "0.38.0",
       "author": {
         "name": "jtwjs"
       },
