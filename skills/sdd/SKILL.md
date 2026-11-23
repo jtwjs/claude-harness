@@ -29,7 +29,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 1. **계획** = DESIGN → PLAN. 한 단계, 게이트 둘.
    **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`why` 「질문 규칙」: 한 번에 한 질문 · "왜?"를 받을 결정은 사람 생각 먼저)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. `_brain`에는 아직 쓰지 않는다 — REFLECT에서 옮긴다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
+   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`why` 「질문 규칙」: 한 번에 한 질문 · "왜?"를 받을 결정도 추천 표시 후 사람이 선택)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. `_brain`에는 아직 쓰지 않는다 — REFLECT에서 옮긴다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
    ⚠️ PRD의 **수용 조건**이 각 step의 **먼저 쓰는 테스트**의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 레퍼런스부터 정하고, **시안 전에** 권한·상태·데이터 결정(+ 닐슨 렌즈)을 끝내 `.claude/design/`에 브리프를 만든다 → 🙋 브리프 승인 →
    Claude가 **레포당 하나인 캔버스**의 `작업: <기능>` 탭에 시안을 그린다(제작 체크리스트 · `.claude/design/canvas/` 커밋) →
