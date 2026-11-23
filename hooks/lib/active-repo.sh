@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 활발한 레포 판정 — readiness 채점과 brain-sync 자동 이관이 같이 쓴다 (2026-10-12).
+# 활발한 레포 판정 — readiness 채점이 쓴다 (2026-10-12).
 #
 # 기준: 최근 ACTIVE_DAYS(14)일 HEAD 의 머지 제외 커밋이 ACTIVE_MIN_COMMITS(20)건 이상이고,
 #       커밋이 있었던 날이 ACTIVE_MIN_DAYS(3)일 이상.

@@ -28,3 +28,12 @@
 - 결정 주체: 사람(B · auto, AI 추천 수용)
 - 대안: A 전부 지휘로(병목 · 코드 맥락 재설명) / C 지휘가 먼저 분류(질문마다 한 단계 더) / 지휘 plan + 작업 bypass(plan은 지휘 쓰기가 막히고 모드가 달라 메시지 보류)
 - 결과: 판정함 「범위」 칸은 desk 쪽 변경이 따로 필요하다(jtwjs-desk 이슈). 트랙 안 결정은 지휘 기록에 남지 않는다.
+
+## ADR-013 레포에 `_brain/`을 두지 않는다 — brain-sync · brain-walk · `_brain` 템플릿 제거
+
+- 상태: 수락 (2026-11-23)
+- 맥락: brain-sync 대상 폴더가 vault에서 없어져 auto 이관이 이미 조용히 꺼져 있었다(부모 폴더 검사에서 끝남). 활성 레포(jtwjs-desk · claude-harness)에는 `_brain/`이 없다(확인). 「왜 그렇게 했나」는 레포별 ADR이 이미 맡는다. 결정 이슈 #26, 전파 #27.
+- 결정: 하네스는 레포에 `_brain/`을 깔지도 쓰지도 않는다. 스킬 `brain-sync` · `brain-walk`, 훅 `brain-sync-auto`, `templates/_brain/` · `templates/.claude/rules/brain.md`, sdd REFLECT 「지식 정리」의 이관 단계, cadence 축 2, pr-write 4.95의 tables.md 기록, harness-init ⑤ 질문, harness-doctor 7-d, `harness.json` `brainSync` 키를 걷어냈다. 제품·도메인 결정은 기능 PRD 「결정」 절, 기술 결정은 ADR이 정본이다. 「기록은 한 건 = 파일 하나」 규칙은 `sdd` ④-1(회고)로 옮겨 쌓기만 하는 기록 전체로 넓혔다. 회고 위치는 `docs/retro/`. harness-init 업그레이드 모드는 기존 레포의 `_brain/`을 지우지 않고 안내만 한다. `hooks/tests/no-brain.sh`가 참조 0을 지킨다.
+- 결정 주체: 사람
+- 대안: 허브에 링크만 / 새 칸으로 사본(정본이 둘이 되거나 쓰는 곳이 없음) / brain-sync만 제거하고 나머지는 별도 PR(사람이 한 번에 정리하기로 함)
+- 결과: 공개 스킬 2개 · 훅 1개가 사라진다. 이미 `_brain/`이 있는 레포는 아무도 갱신하지 않는 문서로 남는다. 도메인 용어 · 비즈니스 흐름 구조화는 지휘 자리 쪽 별도 작업. `hooks/test.sh`는 고치지 않는 규칙이지만, 지운 훅·템플릿을 가리키던 케이스(6-c 등)는 지우거나 경로를 바꿀 수밖에 없어 이 PR에서 고쳤다.
