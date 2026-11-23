@@ -31,6 +31,7 @@ paths: ["src/**"]
 
 `ui` · `api` · `model`(타입 · 순수 계산) · `lib` · `config`. 쓰는 것만 만든다.
 
+- **feature 슬라이스 이름은 `{대상}-{행동}`** (예: `article-create`). entity는 단수 명사(§4)
 - **슬라이스 안 방향은 `ui` → `model` · `api` → `lib` · `config`.** `model`은 `ui`를 import 하지 않는다 — 타입 하나라도 `model`이 `ui` 파일을 끌어오면 계산을 테스트 · 재사용할 때 화면이 같이 딸려 오고 `ui` ↔ `model` 순환이 생긴다. `ui`에 선언된 타입이 필요하면 그 타입을 `model`로 옮기고 `ui`가 가져다 쓴다
 - **응집도가 먼저다.** 나눠서 분명히 나아지지 않으면 나누지 않는다. 한 화면만 쓰는 것은 그 `pages/<화면>/`에 두되, 그 안에서도 섹션마다 `pages/<화면>/ui/<섹션>/` 모듈 폴더로 나눈다(§6)
 - `shared`에 도메인 문구 · 도메인 규칙을 넣지 않는다
@@ -45,15 +46,15 @@ paths: ["src/**"]
 
 ## 5. lint가 막는 것과 못 막는 것
 
-막는다(stack-kits kit 기준): 레이어 역방향 · 본문 코드의 픽스처 · MSW 핸들러 import. 레포 `eslint.config.*`가 더 막으면 그쪽이 정본이다 — 막는다고 믿기 전에 거기서 확인한다.
+kit는 막는다(stack-kits `react-vite` · `fullstack/apps/web`, 정본 [`react-vite/eslint.config.js`](https://github.com/jtwjs/stack-kits/blob/main/react-vite/eslint.config.js)): 레이어 역방향 · 본문 코드의 픽스처 · MSW 핸들러 import · 슬라이스 안 `model` → `ui` import(깊이 무관) · public API를 건너뛴 깊은 경로(1단계, `@x` 슬롯은 entities 안에서만) · 같은 레이어 슬라이스 import · 순환 import(`@x` 슬롯을 거친 순환 포함) · 파일당 export 컴포넌트 수(`.tsx`) · 화살표 함수(`function` 선언 · 표현식 금지) · 콜백 순서(props · `*Props` 의 `on*` 맨 뒤) · 훅 순서(§6). kit 설정이 없는 레포는 이 목록을 리뷰로 본다. 레포 `eslint.config.*`가 더 막으면 그쪽이 정본이다 — 막는다고 믿기 전에 거기서 확인한다.
 
 에러: JSX 속성의 중괄호 몸통 화살표(`onChange={(e) => { … }}` — 이름 있는 핸들러로 뺀다, `functional-programming.md` 「함수 3층」). 한 줄 위임(`() => remove(id)`)은 허용.
 
 경고만 한다: 300줄 넘는 파일(`max-lines`, §6).
 
-못 막는다(리뷰로 본다): 슬라이스 안 `model` → `ui` import(경계 lint는 슬라이스 사이만 본다 — 아래 블록을 넣으면 막는다) · kit에선 같은 레이어 슬라이스 import · public API를 건너뛴 깊은 경로 · 슬라이스를 벗어나는 상대 경로 · 이웃 모듈의 안쪽 파일도 여기다 · `shared`에 도메인 로직이 들어오는 것 · `@x` 슬롯의 단방향 · 무순환 · 동적 `import()` · 화면 파일에 섹션 본문이 들어오는 것 · 파일당 컴포넌트 수 · 화살표 함수 · 콜백 순서 · 훅 순서(§6).
+못 막는다(리뷰로 본다): 슬라이스를 벗어나는 상대 경로 · 이웃 모듈의 안쪽 파일(상대 경로라 public API 규칙에 안 걸린다) · `shared`에 도메인 로직이 들어오는 것 · 동적 `import()` · 화면 파일에 섹션 본문이 들어오는 것(§6).
 
-슬라이스 안 방향을 lint로 막으려면 레이어 블록을 만드는 자리(kit `restrictions`)에서 model 파일 블록을 하나 더 내고, **앞 블록의 패턴을 다시 넣는다**:
+kit에는 이미 들어 있다(`modelToUiRule`). kit 설정이 없는 레포에서 슬라이스 안 방향을 lint로 막으려면 레이어 블록을 만드는 자리에서 model 파일 블록을 하나 더 내고, **앞 블록의 패턴을 다시 넣는다**:
 
 ```js
 const modelToUi = { group: ["../ui", "../ui/*", "../../ui/*"], message: "model 은 ui 를 import 하지 않는다 — 타입은 model 로 옮긴다 (fsd §3)" };
