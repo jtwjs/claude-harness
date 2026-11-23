@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""task-observer 전역 후보 — 재료 추리기(gather) · 설정(config).
+"""task-observer 전역 후보 — 재료 추리기(gather) · 설정(config) · 원장 적재(append).
 
 정본: docs/observer-global-ledger-2026-11-23/ARCHITECTURE.md
 - config: 설정 파일의 ledger 경로를 한 줄로. 없음 · 깨짐 · 칸 없음이면 빈 출력 exit 0.
 - gather --days N: 지난 N일 대화 기록에서 레포별 재료 JSON 을 stdout 에. 아무 파일도 쓰지 않는다.
+- append [--dry-run] FILE: 후보 JSON 을 검증해 원장에 상태 `후보` 행 · 월별 파일에 근거 항목.
+  모든 쓰기는 여기 한 곳. 원장의 기존 바이트는 그대로 두고 새 행만 넣는다.
 
 표준 라이브러리만 쓴다.
 """
@@ -264,6 +266,233 @@ def gather(days: int) -> dict:
     return {"days": days, "since": since.isoformat(), "now": now.isoformat(), "repos": out}
 
 
+# ── append ──────────────────────────────────────────────────────────────
+KINDS = ("재지시", "재교정", "불발", "미위임", "반복 절차")
+DIRECTIONS = ("direct", "investigate", "plan")
+PATTERN_MAX_CHARS = 200
+CANDIDATE_STATE = "후보"
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_ID_RE = re.compile(r"^\| F-(\d+) \|", re.M)
+_TABLE_HEAD = "| ID | 패턴 |"
+
+
+def _valid_date(v):
+    if not isinstance(v, str) or not _DATE_RE.match(v):
+        return False
+    try:
+        dt.date.fromisoformat(v)
+    except ValueError:
+        return False
+    return True
+
+
+def _validate(c, today):
+    """후보 dict → 정규화된 dict, 또는 (None, 사유)."""
+    if not isinstance(c, dict):
+        return None, "후보가 객체가 아님"
+    pattern = c.get("pattern")
+    if not isinstance(pattern, str) or not pattern.strip():
+        return None, "패턴이 비어 있음"
+    pattern = pattern.strip()
+    if "\n" in pattern or "\r" in pattern:
+        return None, "패턴이 여러 줄"
+    if len(pattern) > PATTERN_MAX_CHARS:
+        return None, "패턴이 %d자 초과" % PATTERN_MAX_CHARS
+    kind = c.get("kind")
+    if kind not in KINDS:
+        return None, "유형 밖: %s" % kind
+    repos = c.get("repos")
+    if not isinstance(repos, list) or not all(isinstance(r, str) and r.strip() for r in repos):
+        return None, "레포 목록 형식 아님"
+    uniq = []
+    for r in repos:
+        if r.strip() not in uniq:
+            uniq.append(r.strip())
+    if len(uniq) < 2:
+        return None, "레포 2곳 미만"
+    direction = c.get("direction")
+    if direction not in DIRECTIONS:
+        return None, "방향 밖: %s" % direction
+    dates = {}
+    for k in ("first", "last"):
+        v = c.get(k)
+        if v is None or v == "":
+            v = today
+        if not _valid_date(v):
+            return None, "%s 날짜 형식 아님: %s" % (k, v)
+        dates[k] = v
+    count = c.get("count")
+    if count is None:
+        count = len(uniq)
+    if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+        return None, "횟수가 양의 정수 아님"
+    ev = c.get("evidence") or []
+    if not isinstance(ev, list):
+        ev = [ev]
+    ev = [" ".join(str(e).split()) for e in ev if str(e).strip()]
+    return {"pattern": pattern, "kind": kind, "repos": uniq, "count": count,
+            "first": dates["first"], "last": dates["last"], "direction": direction,
+            "evidence": ev}, None
+
+
+def _cell(v):
+    return " ".join(str(v).split()).replace("|", "\\|")
+
+
+def _link(ledger_dir, month):
+    """원장 폴더에서 위로 .obsidian 이 있는 폴더를 찾아 그 기준 상대 경로 링크."""
+    d = os.path.abspath(ledger_dir)
+    while True:
+        if os.path.isdir(os.path.join(d, ".obsidian")):
+            rel = os.path.relpath(os.path.abspath(ledger_dir), d)
+            if rel == ".":
+                return "[[%s]]" % month
+            return "[[%s/%s\\|%s]]" % (rel.replace(os.sep, "/"), month, month)
+        parent = os.path.dirname(d)
+        if parent == d:
+            return "[[%s]]" % month
+        d = parent
+
+
+def _table_end(lines):
+    """`| ID | 패턴 |` 첫 표의 마지막 `|` 줄 인덱스. 없으면 None."""
+    start = None
+    for i, line in enumerate(lines):
+        if line.startswith(_TABLE_HEAD):
+            start = i
+            break
+    if start is None:
+        return None
+    end = start
+    for j in range(start + 1, len(lines)):
+        if lines[j].lstrip().startswith("|"):
+            end = j
+        else:
+            break
+    return end
+
+
+def _entry(c, fid, today):
+    a = ", ".join(c["repos"])
+    return "\n".join([
+        "## %s · %s → %s" % (today, c["pattern"], fid),
+        "",
+        "> 근거(task-observer 헤드리스): %s" % " · ".join(c["evidence"]),
+        "",
+        "- 상황: 주 1회 헤드리스가 레포 %s의 지난 7일 대화 기록 · phases를 훑음" % a,
+        "- 불편: %s" % c["pattern"],
+        "- 비용: ⚠️",
+        "- 유형: %s" % c["kind"],
+        "- 대상: 레포(%s)" % a,
+        "- 프로젝트: ⚠️",
+        "- 방향: %s" % c["direction"],
+    ]) + "\n"
+
+
+def append(path, dry_run):
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception as e:
+        print("observer: 후보 파일을 읽지 못함 — %s" % e, file=sys.stderr)
+        return 2
+    if not isinstance(data, list):
+        print("observer: 후보 파일은 배열이어야 함", file=sys.stderr)
+        return 2
+
+    ledger = ledger_path()
+    if ledger is None and not dry_run:
+        print("원장 설정 없음")
+        return 0
+
+    today_d = _now().date()
+    today = today_d.isoformat()
+    month = today_d.strftime("%Y-%m")
+
+    cands = []
+    for i, c in enumerate(data):
+        v, why = _validate(c, today)
+        if v is None:
+            label = c.get("pattern") if isinstance(c, dict) else None
+            label = " ".join(str(label).split())[:60] if label else "#%d" % (i + 1)
+            print("observer: 후보 건너뜀(%s) — %s" % (label, why), file=sys.stderr)
+            continue
+        cands.append(v)
+    if not cands:
+        print("후보 없음")
+        return 0
+
+    # 원장 읽기 (dry-run · 설정 없음이면 빈 표 가정)
+    if ledger is not None:
+        try:
+            text = ledger.read_text(encoding="utf-8")
+        except Exception as e:
+            print("observer: 원장을 읽지 못함 — %s" % e, file=sys.stderr)
+            return 2
+        ledger_dir = str(ledger.parent)
+    else:
+        text = _TABLE_HEAD + " 유형 | 대상 | 프로젝트 | 횟수 | 처음 | 마지막 | 방향 | 상태 | 연결 |\n"
+        ledger_dir = None
+
+    lines = text.splitlines(keepends=True)
+    end = _table_end(lines)
+    if end is None:
+        print("observer: 원장에 `%s` 표가 없음 — 형식 불일치, 쓰지 않음" % _TABLE_HEAD, file=sys.stderr)
+        return 2
+
+    nums = [int(n) for n in _ID_RE.findall(text)]
+    nxt = (max(nums) if nums else 0) + 1
+    link = _link(ledger_dir, month) if ledger_dir else "[[%s]]" % month
+    rows, entries = [], []
+    for c in cands:
+        fid = "F-%03d" % nxt
+        nxt += 1
+        cells = [fid, _cell(c["pattern"]), _cell(c["kind"]),
+                 "레포(%s)" % _cell(", ".join(c["repos"])), "⚠️", str(c["count"]),
+                 c["first"], c["last"], c["direction"], CANDIDATE_STATE, link]
+        rows.append("| " + " | ".join(cells) + " |\n")
+        entries.append(_entry(c, fid, today))
+
+    if dry_run:
+        sys.stdout.write("".join(rows))
+        for e in entries:
+            sys.stdout.write("\n" + e)
+        return 0
+
+    # 쓰기 순서: 월별 파일 → 원장(정본이라 마지막)
+    monthly = ledger.parent / ("%s.md" % month)
+    try:
+        if monthly.exists():
+            cur = monthly.read_text(encoding="utf-8")
+            prefix = "" if cur.endswith("\n") or cur == "" else "\n"
+        else:
+            prefix = ("---\ntype: brain-note\ntags: [me, kind/friction]\n---\n\n"
+                      "# 불편 원문 %s\n" % month)
+        with open(monthly, "a", encoding="utf-8") as fh:
+            fh.write(prefix + "".join("\n" + e for e in entries))
+    except Exception as e:
+        print("observer: 월별 파일 쓰기 실패 — %s" % e, file=sys.stderr)
+        return 1
+
+    last = lines[end]
+    if not last.endswith("\n"):
+        lines[end] = last + "\n"
+    new_text = "".join(lines[:end + 1]) + "".join(rows) + "".join(lines[end + 1:])
+    tmp = ledger.parent / (".%s.tmp" % ledger.name)
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="") as fh:
+            fh.write(new_text)
+        os.replace(tmp, ledger)
+    except Exception as e:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        print("observer: 원장 쓰기 실패 — %s" % e, file=sys.stderr)
+        return 1
+    sys.stdout.write("".join(rows))
+    return 0
+
+
 # ── CLI ─────────────────────────────────────────────────────────────────
 def main(argv) -> int:
     cmd = argv[1] if len(argv) > 1 else ""
@@ -288,7 +517,15 @@ def main(argv) -> int:
             result = {"days": days, "repos": []}
         print(json.dumps(result, ensure_ascii=False, indent=1))
         return 0
-    print("사용: observer.py config | gather [--days N]", file=sys.stderr)
+    if cmd == "append":
+        rest = argv[2:]
+        dry = "--dry-run" in rest
+        files = [a for a in rest if a != "--dry-run"]
+        if len(files) != 1:
+            print("사용: observer.py append [--dry-run] FILE", file=sys.stderr)
+            return 2
+        return append(files[0], dry)
+    print("사용: observer.py config | gather [--days N] | append [--dry-run] FILE", file=sys.stderr)
     return 2
 
 
