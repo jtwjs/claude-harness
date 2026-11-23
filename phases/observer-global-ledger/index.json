@@ -34,8 +34,11 @@
     {
       "step": 4,
       "name": "skill-docs",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-23T20:21:47+0900",
+      "summary": "skills/task-observer/SKILL.md — §1 재지시/재교정 경계 한 줄 · §2 「열린 것」 표에 범위 칸(레포 고유 | 전역 후보)+판정 기준 · 새 §7 「전역 후보 → 개인 원장 (주 1회 헤드리스)」(흐름 그림 · ~/.claude/task-observer.json ledger · weekly.sh [--dry-run] · 상태 늘 후보 · 미위임 스크립트 집계 · 스케줄은 플러그인 밖) · 「금지」에 원장 후보 행 예외. templates/.claude/README.md observations.md 행에 범위 칸. 버전 0.40.0(plugin.json · marketplace.json). description 무변경",
+      "completed_at": "2026-11-23T20:24:29+0900"
     },
     {
       "step": 5,
