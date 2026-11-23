@@ -53,8 +53,11 @@
     {
       "step": 6,
       "name": "known-repos-check",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T20:31:41+0900",
+      "summary": "observer.py append [--dry-run] [--known NAME,...] FILE — --known 있으면 repos 중 목록 밖 이름이 하나라도 있으면 그 후보만 건너뜀 + stderr '레포 이름이 재료에 없음: <이름>', 없으면 하위 호환. weekly.sh 가 재료 repos[].name 을 쉼표로 이어 dry-run·실제 둘 다 --known 으로 넘김. PRD AC6·AC12 · ARCHITECTURE append·weekly 흐름 갱신. 테스트 hooks/tests/task-observer-known.sh, bash hooks/test.sh 458 통과",
+      "completed_at": "2026-11-23T20:40:05+0900"
     }
   ],
   "reviews": [
