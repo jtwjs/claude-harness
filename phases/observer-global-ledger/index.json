@@ -1,0 +1,78 @@
+{
+  "project": "claude-harness",
+  "phase": "observer-global-ledger",
+  "docs": "docs/observer-global-ledger-2026-11-23",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "observer-gather",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T19:59:30+0900",
+      "summary": "skills/task-observer/scripts/observer.py(실행 가능) — config · gather 구현. step 2 는 `from observer import ledger_path`(Path|None, env CLAUDE_TASK_OBSERVER_CONFIG 우선)를 쓴다. gather 출력 {days, since, now, repos[{name, sessions, user, bash, observations, undelegated}]}, 상수 USER_MAX_CHARS=400·BASH_MAX_CHARS=200·각 150개, 지금은 env TASK_OBSERVER_NOW 로 고정 가능. 테스트 hooks/tests/task-observer-gather.sh",
+      "completed_at": "2026-11-23T20:05:58+0900"
+    },
+    {
+      "step": 2,
+      "name": "observer-append",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T20:06:04+0900",
+      "summary": "observer.py append [--dry-run] FILE 구현 — 검증(유형·레포 2곳·패턴 한 줄·방향, 어긋나면 stderr 한 줄 건너뜀) · ID F-최댓값+1 · `| ID | 패턴 |` 표 마지막 행 뒤 삽입(임시파일+rename, 표 없으면 exit 2 무쓰기) · .obsidian 기준 링크 · 월별 YYYY-MM.md 항목. stdout: 설정 없음 '원장 설정 없음'·후보 0 '후보 없음'·성공 시 쓴 행만(한 줄=한 행, step 3 이 셈). 종료 0/1/2. 테스트 hooks/tests/task-observer-append.sh",
+      "completed_at": "2026-11-23T20:16:07+0900"
+    },
+    {
+      "step": 3,
+      "name": "weekly-runner",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T20:16:07+0900",
+      "summary": "skills/task-observer/scripts/weekly.sh(실행 가능) [--dry-run] [--days N] — config 없으면(dry-run 제외) claude 안 부르고 '원장 설정 없음' exit 0 · gather 레포 2곳 미만 '후보 없음' · ${TASK_OBSERVER_CLAUDE:-claude} -p --tools \"\" --no-session-persistence --output-format json 에 references/weekly-prompt.md + 재료 JSON 을 stdin · .result 에서 배열 추출(펜스 벗김) · 실패(비0·is_error·JSON 없음·배열 아님) exit 1 원장 무쓰기 · append 후 마지막 줄 'task-observer weekly: 후보 n · 쓴 행 m · 소요 Ns'(dry-run 은 쓴 행 0) · 임시 파일 mktemp -d + trap 삭제 · ANTHROPIC_API_KEY 있으면 stderr 경고. 테스트 hooks/tests/task-observer-weekly.sh",
+      "completed_at": "2026-11-23T20:21:47+0900"
+    },
+    {
+      "step": 4,
+      "name": "skill-docs",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-23T20:21:47+0900",
+      "summary": "skills/task-observer/SKILL.md — §1 재지시/재교정 경계 한 줄 · §2 「열린 것」 표에 범위 칸(레포 고유 | 전역 후보)+판정 기준 · 새 §7 「전역 후보 → 개인 원장 (주 1회 헤드리스)」(흐름 그림 · ~/.claude/task-observer.json ledger · weekly.sh [--dry-run] · 상태 늘 후보 · 미위임 스크립트 집계 · 스케줄은 플러그인 밖) · 「금지」에 원장 후보 행 예외. templates/.claude/README.md observations.md 행에 범위 칸. 버전 0.40.0(plugin.json · marketplace.json). description 무변경",
+      "completed_at": "2026-11-23T20:24:29+0900"
+    },
+    {
+      "step": 5,
+      "name": "measure-first-run",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-23T20:24:29+0900",
+      "summary": "측정만, 코드 변경 없음. `bash skills/task-observer/scripts/weekly.sh --dry-run`(실제 claude · 실제 ~/.claude/projects · 설정 없음 → 원장 무쓰기) 시작 20:24:47 · 끝 20:25:26 · exit 0 · 마지막 줄 `task-observer weekly: 후보 4 · 쓴 행 0 · 소요 39s` → 50분 기준 한참 아래, 실행 시각 17:30 유지. `observer.py gather --days 7` 재료 169,176바이트 · 레포 5(claude-harness 3세션 · conductor 1 · jtwjs-desk 2 · stack-kits 1 · wiki 8) · observations 0 · undelegated 0 · 사람 말에 다른 세션 메시지 0건. 후보 4: 권한 모드가 달라 보류된 세션 간 메시지를 사람이 다시 보내게 시킴(반복 절차, 5곳) / 결정 질문에서 추천안을 먼저 보이라는 지시 반복(재지시, 3곳) / 설계는 지휘·구현은 작업 세션 구조 재지시(재지시, 2곳) / 지휘가 띄운 세션 위치를 사람이 묻고 확인(반복 절차, 2곳). 설정 없는 dry-run 이라 ID F-001부터 · 연결 [[2026-11]].",
+      "completed_at": "2026-11-23T20:26:22+0900"
+    },
+    {
+      "step": 6,
+      "name": "known-repos-check",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-23T20:31:41+0900",
+      "summary": "observer.py append [--dry-run] [--known NAME,...] FILE — --known 있으면 repos 중 목록 밖 이름이 하나라도 있으면 그 후보만 건너뜀 + stderr '레포 이름이 재료에 없음: <이름>', 없으면 하위 호환. weekly.sh 가 재료 repos[].name 을 쉼표로 이어 dry-run·실제 둘 다 --known 으로 넘김. PRD AC6·AC12 · ARCHITECTURE append·weekly 흐름 갱신. 테스트 hooks/tests/task-observer-known.sh, bash hooks/test.sh 458 통과",
+      "completed_at": "2026-11-23T20:40:05+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-23T20:31:41+09:00",
+      "head": "76ea9541dd0dacb0ecf7cd62feb9c11712373c37",
+      "issues": [
+        "append 가 후보 레포 이름이 재료에 실제로 있던 레포인지 보지 않음 — 지어낸 이름으로 2곳 조건이 가짜로 참",
+        "PRD AC12 문구(후보 없음 한 줄)와 weekly.sh 동작(후보 없음 + 요약 줄) 불일치"
+      ]
+    },
+    {
+      "at": "2026-11-23T20:41:01+09:00",
+      "head": "6b8231938b23b82324abe95309055ee9e670338e",
+      "issues": []
+    }
+  ]
+}
