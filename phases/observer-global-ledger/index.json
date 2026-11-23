@@ -1,0 +1,13 @@
+{
+  "project": "claude-harness",
+  "phase": "observer-global-ledger",
+  "docs": "docs/observer-global-ledger-2026-11-23",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "observer-gather", "status": "pending", "tdd": true },
+    { "step": 2, "name": "observer-append", "status": "pending", "tdd": true },
+    { "step": 3, "name": "weekly-runner", "status": "pending", "tdd": true },
+    { "step": 4, "name": "skill-docs", "status": "pending", "tdd": false },
+    { "step": 5, "name": "measure-first-run", "status": "pending", "tdd": false, "kind": "measure" }
+  ]
+}
