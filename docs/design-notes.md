@@ -48,7 +48,7 @@
 
 ## 6. 3회 규칙
 
-두 번까지는 우연, 세 번째가 패턴이다. 같은 지시·같은 교정·안 불린 스킬을 `task-observer`가 세고, 3회에 닿은 것만 rules 한 줄 → 스킬 순으로 승격한다. 승격 조건은 **셀 수 있어야** 한다(`BACKLOG.md`).
+두 번까지는 우연, 세 번째가 패턴이다. 같은 지시·같은 교정·안 불린 스킬을 `harness-gaps`가 세고, 3회에 닿은 것만 rules 한 줄 → 스킬 순으로 승격한다. 승격 조건은 **셀 수 있어야** 한다(`BACKLOG.md`).
 
 ## 7. 코드 뼈대와 AI 환경을 나눈다
 
@@ -71,7 +71,7 @@ BE/FE 전용 플러그인을 따로 두지 않는다. 절차 스킬은 스택과
 - incubator: 비어 있음 (`brain-recall`은 2026-10-12 삭제 — 전역 CLAUDE.md가 대신)
 - 신설: `_learn`, readiness 자동 채점, 상태줄 권고
 - 설계 3장: `why-plan`이 PRD·ARCHITECTURE·ADR을 쓴다(ARCHITECTURE를 쓰는 스킬이 없던 빈칸을 메움). `_brain`은 REFLECT에서 세 장을 보고 정리한다
-- 도구화: `task-observer`가 「반복 절차」도 세어 `scripts/`로 승격을 제안한다. 첫 사례 `scripts/release.sh`
+- 도구화: `harness-gaps`가 「반복 절차」도 세어 `scripts/`로 승격을 제안한다. 첫 사례 `scripts/release.sh`
 - 질문 순서: 종류(제품·기술) 대신 "팀장이 왜냐고 물으면 내가 답해야 하나?"로 가른다. 예면 사용자 생각 먼저, 사소한 것만 추천 먼저. PRD 결정 절에도 결정 주체 칸
 - 업그레이드 모드(0.13.0): 레포마다 복사된 템플릿 사본이 낡아도 고칠 장치가 없었다. `harness-init`을 다시 부르면 이름표·라우팅·`_brain/CLAUDE.md`·버전만 맞춘다
 - 이해 게이트(0.14.0, 2026-10-12): `sdd` IMPLEMENT 끝에 🙋빈틈 3곳(모를 지점 3 → 고른 것만 12살 설명 → 내 말 한 줄), `pr-write` 4.9단계에 퀴즈 5(3 이하면 draft). 전엔 PR을 만든 뒤 explain-diff를 한 줄 제안했고 실사용 0회였다

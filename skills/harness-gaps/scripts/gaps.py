@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""task-observer 전역 후보 — 재료 추리기(gather) · 설정(config) · 원장 적재(append).
+"""harness-gaps 전역 후보 — 재료 추리기(gather) · 설정(config) · 원장 적재(append).
 
 정본: docs/observer-global-ledger-2026-11-23/ARCHITECTURE.md
 - config: 설정 파일의 ledger 경로를 한 줄로. 없음 · 깨짐 · 칸 없음이면 빈 출력 exit 0.
@@ -28,8 +28,8 @@ GLOBAL_SCOPE = "전역 후보"
 
 # ── config ──────────────────────────────────────────────────────────────
 def _config_file() -> Path:
-    env = os.environ.get("CLAUDE_TASK_OBSERVER_CONFIG")
-    return Path(env) if env else Path.home() / ".claude" / "task-observer.json"
+    env = os.environ.get("CLAUDE_HARNESS_GAPS_CONFIG")
+    return Path(env) if env else Path.home() / ".claude" / "harness-gaps.json"
 
 
 def ledger_path():
@@ -60,7 +60,7 @@ def _parse_ts(s):
 
 
 def _now():
-    t = _parse_ts(os.environ.get("TASK_OBSERVER_NOW", ""))
+    t = _parse_ts(os.environ.get("HARNESS_GAPS_NOW", ""))
     return t if t else dt.datetime.now().astimezone()
 
 
@@ -198,7 +198,7 @@ def _undelegated(top):
 
 # ── gather ──────────────────────────────────────────────────────────────
 def _projects_dir() -> Path:
-    env = os.environ.get("CLAUDE_TASK_OBSERVER_PROJECTS")
+    env = os.environ.get("CLAUDE_HARNESS_GAPS_PROJECTS")
     return Path(env) if env else Path.home() / ".claude" / "projects"
 
 
@@ -377,7 +377,7 @@ def _entry(c, fid, today):
     return "\n".join([
         "## %s · %s → %s" % (today, c["pattern"], fid),
         "",
-        "> 근거(task-observer 헤드리스): %s" % " · ".join(c["evidence"]),
+        "> 근거(harness-gaps 헤드리스): %s" % " · ".join(c["evidence"]),
         "",
         "- 상황: 주 1회 헤드리스가 레포 %s의 지난 7일 대화 기록 · phases를 훑음" % a,
         "- 불편: %s" % c["pattern"],
@@ -393,10 +393,10 @@ def append(path, dry_run, known=None):
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except Exception as e:
-        print("observer: 후보 파일을 읽지 못함 — %s" % e, file=sys.stderr)
+        print("gaps: 후보 파일을 읽지 못함 — %s" % e, file=sys.stderr)
         return 2
     if not isinstance(data, list):
-        print("observer: 후보 파일은 배열이어야 함", file=sys.stderr)
+        print("gaps: 후보 파일은 배열이어야 함", file=sys.stderr)
         return 2
 
     ledger = ledger_path()
@@ -414,12 +414,12 @@ def append(path, dry_run, known=None):
         if v is None:
             label = c.get("pattern") if isinstance(c, dict) else None
             label = " ".join(str(label).split())[:60] if label else "#%d" % (i + 1)
-            print("observer: 후보 건너뜀(%s) — %s" % (label, why), file=sys.stderr)
+            print("gaps: 후보 건너뜀(%s) — %s" % (label, why), file=sys.stderr)
             continue
         if known is not None:  # 재료(gather)에 없던 레포 이름이면 「2곳 이상」이 가짜로 참이 된다
             unknown = [r for r in v["repos"] if r not in known]
             if unknown:
-                print("observer: 레포 이름이 재료에 없음: %s" % ", ".join(unknown), file=sys.stderr)
+                print("gaps: 레포 이름이 재료에 없음: %s" % ", ".join(unknown), file=sys.stderr)
                 continue
         cands.append(v)
     if not cands:
@@ -431,7 +431,7 @@ def append(path, dry_run, known=None):
         try:
             text = ledger.read_text(encoding="utf-8")
         except Exception as e:
-            print("observer: 원장을 읽지 못함 — %s" % e, file=sys.stderr)
+            print("gaps: 원장을 읽지 못함 — %s" % e, file=sys.stderr)
             return 2
         ledger_dir = str(ledger.parent)
     else:
@@ -441,7 +441,7 @@ def append(path, dry_run, known=None):
     lines = text.splitlines(keepends=True)
     end = _table_end(lines)
     if end is None:
-        print("observer: 원장에 `%s` 표가 없음 — 형식 불일치, 쓰지 않음" % _TABLE_HEAD, file=sys.stderr)
+        print("gaps: 원장에 `%s` 표가 없음 — 형식 불일치, 쓰지 않음" % _TABLE_HEAD, file=sys.stderr)
         return 2
 
     nums = [int(n) for n in _ID_RE.findall(text)]
@@ -475,7 +475,7 @@ def append(path, dry_run, known=None):
         with open(monthly, "a", encoding="utf-8") as fh:
             fh.write(prefix + "".join("\n" + e for e in entries))
     except Exception as e:
-        print("observer: 월별 파일 쓰기 실패 — %s" % e, file=sys.stderr)
+        print("gaps: 월별 파일 쓰기 실패 — %s" % e, file=sys.stderr)
         return 1
 
     last = lines[end]
@@ -492,7 +492,7 @@ def append(path, dry_run, known=None):
             os.unlink(tmp)
         except OSError:
             pass
-        print("observer: 원장 쓰기 실패 — %s" % e, file=sys.stderr)
+        print("gaps: 원장 쓰기 실패 — %s" % e, file=sys.stderr)
         return 1
     sys.stdout.write("".join(rows))
     return 0
@@ -513,12 +513,12 @@ def main(argv) -> int:
             try:
                 days = max(1, int(rest[1]))
             except ValueError:
-                print("observer: --days 는 양의 정수", file=sys.stderr)
+                print("gaps: --days 는 양의 정수", file=sys.stderr)
                 return 2
         try:
             result = gather(days)
         except Exception as e:  # 어떤 입력에도 traceback 없이
-            print("observer: gather 실패 — %s" % e, file=sys.stderr)
+            print("gaps: gather 실패 — %s" % e, file=sys.stderr)
             result = {"days": days, "repos": []}
         print(json.dumps(result, ensure_ascii=False, indent=1))
         return 0
@@ -537,10 +537,10 @@ def main(argv) -> int:
                 files.append(a)
             i += 1
         if len(files) != 1:
-            print("사용: observer.py append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
+            print("사용: gaps.py append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
             return 2
         return append(files[0], dry, known)
-    print("사용: observer.py config | gather [--days N] | append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
+    print("사용: gaps.py config | gather [--days N] | append [--dry-run] [--known NAME,...] FILE", file=sys.stderr)
     return 2
 
 

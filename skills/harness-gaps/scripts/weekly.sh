@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# task-observer 주 1회 헤드리스 — gather → claude -p(4종 판정 · 2곳 이상 묶기) → append.
+# harness-gaps 주 1회 헤드리스 — gather → claude -p(4종 판정 · 2곳 이상 묶기) → append.
 # 정본: docs/observer-global-ledger-2026-11-23/ARCHITECTURE.md 「weekly.sh」
 # 사용: weekly.sh [--dry-run] [--days N]
 # 종료: 0 성공(후보 없음 · 설정 없음 포함) · 1 claude 실패 · 결과 파싱 실패 · 쓰기 실패 · 2 인자
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OBS="$DIR/observer.py"
+OBS="$DIR/gaps.py"
 PROMPT="$DIR/../references/weekly-prompt.md"
-CLAUDE="${TASK_OBSERVER_CLAUDE:-claude}"
+CLAUDE="${HARNESS_GAPS_CLAUDE:-claude}"
 
 DRY=0; DAYS=7
 while [ $# -gt 0 ]; do
@@ -19,11 +19,11 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-case "$DAYS" in ''|*[!0-9]*) echo "task-observer: --days 는 양의 정수" >&2; exit 2 ;; esac
+case "$DAYS" in ''|*[!0-9]*) echo "harness-gaps: --days 는 양의 정수" >&2; exit 2 ;; esac
 
 START=$(date +%s)
 summary() { # $1=후보 수  $2=쓴 행 수
-  echo "task-observer weekly: 후보 ${1} · 쓴 행 ${2} · 소요 $(( $(date +%s) - START ))s"
+  echo "harness-gaps weekly: 후보 ${1} · 쓴 행 ${2} · 소요 $(( $(date +%s) - START ))s"
 }
 
 # AC1 설정 없으면 claude 를 부르지 않는다(구독 사용량을 쓰지 않음). dry-run 은 계속
@@ -37,10 +37,10 @@ if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
   echo "⚠️ ANTHROPIC_API_KEY 가 설정돼 있다 — claude -p 가 구독이 아니라 API 과금으로 돈다" >&2
 fi
 
-WORK=$(mktemp -d "${TMPDIR:-/tmp}/task-observer.XXXXXX") || { echo "task-observer: 임시 폴더를 못 만듦" >&2; exit 1; }
+WORK=$(mktemp -d "${TMPDIR:-/tmp}/harness-gaps.XXXXXX") || { echo "harness-gaps: 임시 폴더를 못 만듦" >&2; exit 1; }
 trap 'rm -rf "$WORK"' EXIT
 
-python3 "$OBS" gather --days "$DAYS" > "$WORK/material.json" || { echo "task-observer: gather 실패" >&2; exit 1; }
+python3 "$OBS" gather --days "$DAYS" > "$WORK/material.json" || { echo "harness-gaps: gather 실패" >&2; exit 1; }
 NREPO=$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("repos") or []))' "$WORK/material.json" 2>/dev/null || echo 0)
 if [ "$NREPO" -lt 2 ]; then
   echo "후보 없음"   # 레포 2곳 미만이면 묶을 수 없다
@@ -57,7 +57,7 @@ python3 - "$WORK/out.json" "$RC" "$WORK/err" > "$WORK/cand.json" <<'PY'
 import json, re, sys
 out, rc, err = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 def fail(why):
-    print("task-observer: claude 실패 — %s" % why, file=sys.stderr)
+    print("harness-gaps: claude 실패 — %s" % why, file=sys.stderr)
     sys.exit(1)
 text = open(out, encoding="utf-8", errors="replace").read().strip()
 try:
@@ -110,5 +110,5 @@ else
   cat "$WORK/append.out"
   WROTE=$(grep -c '^| F-' "$WORK/append.out" | tr -d ' ')
 fi
-[ "$ARC" -eq 0 ] || { echo "task-observer: append 실패(exit ${ARC})" >&2; exit 1; }
+[ "$ARC" -eq 0 ] || { echo "harness-gaps: append 실패(exit ${ARC})" >&2; exit 1; }
 summary "$NCAND" "$WROTE"

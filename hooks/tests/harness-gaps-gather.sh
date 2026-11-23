@@ -1,27 +1,27 @@
-# task-observer observer.py config · gather — PRD AC1(config)·AC2·AC3·AC4·AC5. test.sh 가 source 한다.
-printf '\n[task-observer-gather] config · gather\n'
-OBS="$HOOKS/../skills/task-observer/scripts/observer.py"
+# harness-gaps gaps.py config · gather — PRD AC1(config)·AC2·AC3·AC4·AC5. test.sh 가 source 한다.
+printf '\n[harness-gaps-gather] config · gather\n'
+OBS="$HOOKS/../skills/harness-gaps/scripts/gaps.py"
 TOG="$TMP/tog"
 rm -rf "$TOG"; mkdir -p "$TOG"
-export CLAUDE_TASK_OBSERVER_CONFIG="$TOG/task-observer.json"
-export CLAUDE_TASK_OBSERVER_PROJECTS="$TOG/projects"
-export TASK_OBSERVER_NOW="2026-11-23T12:00:00+09:00"
+export CLAUDE_HARNESS_GAPS_CONFIG="$TOG/harness-gaps.json"
+export CLAUDE_HARNESS_GAPS_PROJECTS="$TOG/projects"
+export HARNESS_GAPS_NOW="2026-11-23T12:00:00+09:00"
 
 # ── config (AC1 일부) ──
 out=$(python3 "$OBS" config 2>&1); code=$?
 [ "$code" = "0" ] && [ -z "$out" ] && ok "config: 설정 파일 없음 → 빈 출력 exit 0" || bad "config 없음" "exit=$code out=[$out]"
-printf '{not json' > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{not json' > "$CLAUDE_HARNESS_GAPS_CONFIG"
 out=$(python3 "$OBS" config 2>&1); code=$?
 [ "$code" = "0" ] && [ -z "$out" ] && ok "config: 깨진 JSON → 빈 출력 exit 0" || bad "config 깨짐" "exit=$code out=[$out]"
-printf '{"other": 1}' > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"other": 1}' > "$CLAUDE_HARNESS_GAPS_CONFIG"
 out=$(python3 "$OBS" config 2>&1); code=$?
 [ "$code" = "0" ] && [ -z "$out" ] && ok "config: ledger 칸 없음 → 빈 출력 exit 0" || bad "config 칸 없음" "exit=$code out=[$out]"
-printf '{"ledger": "~/fake-vault/ledger/index.md"}' > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "~/fake-vault/ledger/index.md"}' > "$CLAUDE_HARNESS_GAPS_CONFIG"
 out=$(python3 "$OBS" config 2>&1); code=$?
 [ "$code" = "0" ] && [ "$out" = "$HOME/fake-vault/ledger/index.md" ] && ok "config: ledger 경로 ~ 펼쳐 한 줄" || bad "config 경로" "exit=$code out=[$out]"
-out=$(cd "$HOOKS/../skills/task-observer/scripts" && python3 -c 'import observer; p=observer.ledger_path(); print(p)' 2>&1)
+out=$(cd "$HOOKS/../skills/harness-gaps/scripts" && python3 -c 'import gaps; p=gaps.ledger_path(); print(p)' 2>&1)
 [ "$out" = "$HOME/fake-vault/ledger/index.md" ] && ok "config: ledger_path() 함수로 import 가능" || bad "ledger_path import" "$out"
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"
 
 # ── gather 픽스처: 레포 A(main + worktree) · 레포 B · git 아닌 폴더 · 없는 경로 ──
 gq() { git -c user.email=t@t -c user.name=t "$@" >/dev/null 2>&1; }
@@ -69,9 +69,9 @@ cat > "$TOG/repoA/phases/ph1/index.json" <<'EOF'
 EOF
 
 # 대화 기록
-mkdir -p "$CLAUDE_TASK_OBSERVER_PROJECTS/p1" "$CLAUDE_TASK_OBSERVER_PROJECTS/p2"
+mkdir -p "$CLAUDE_HARNESS_GAPS_PROJECTS/p1" "$CLAUDE_HARNESS_GAPS_PROJECTS/p2"
 LONG=$(python3 -c 'print("가"*600)')
-python3 - "$TOG" "$LONG" > "$CLAUDE_TASK_OBSERVER_PROJECTS/p1/s1.jsonl" <<'PY'
+python3 - "$TOG" "$LONG" > "$CLAUDE_HARNESS_GAPS_PROJECTS/p1/s1.jsonl" <<'PY'
 import json, sys
 tog, long = sys.argv[1], sys.argv[2]
 def u(cwd, ts, content, **kw):
@@ -100,7 +100,7 @@ lines = [
 ]
 print("\n".join(lines))
 PY
-printf 'garbage\n' > "$CLAUDE_TASK_OBSERVER_PROJECTS/p2/s2.jsonl"
+printf 'garbage\n' > "$CLAUDE_HARNESS_GAPS_PROJECTS/p2/s2.jsonl"
 
 G="$TOG/gather.json"
 python3 "$OBS" gather --days 7 > "$G" 2>"$TOG/gather.err"; code=$?
@@ -133,7 +133,7 @@ tog_py "gather: observations 는 전역 후보 · 창 안 행만(AC4, worktree �
 tog_py "gather: 범위 칸 없는 옛 표는 행 0" 'assert R["repoB"]["observations"] == [], R["repoB"]["observations"]'
 
 # 레포당 상한(AC5): 사람 말 150개
-python3 - "$TOG" > "$CLAUDE_TASK_OBSERVER_PROJECTS/p2/s3.jsonl" <<'PY'
+python3 - "$TOG" > "$CLAUDE_HARNESS_GAPS_PROJECTS/p2/s3.jsonl" <<'PY'
 import json, sys
 for i in range(200):
     print(json.dumps({"type": "user", "cwd": sys.argv[1] + "/repoB", "timestamp": "2026-11-22T02:%02d:%02dZ" % (i // 60, i % 60), "message": {"content": "많은말%d" % i}}, ensure_ascii=False))
@@ -147,4 +147,4 @@ python3 "$OBS" gather --days 7 >/dev/null 2>&1
 after=$(cd "$TOG" && find . -type f -not -name gather.json -not -name gather.err -not -name assert.err | LC_ALL=C sort | xargs cksum 2>/dev/null | cksum)
 [ "$before" = "$after" ] && ok "gather: 픽스처 폴더에 아무 파일도 쓰지 않음" || bad "gather 쓰기" "파일이 바뀜"
 
-unset CLAUDE_TASK_OBSERVER_CONFIG CLAUDE_TASK_OBSERVER_PROJECTS TASK_OBSERVER_NOW
+unset CLAUDE_HARNESS_GAPS_CONFIG CLAUDE_HARNESS_GAPS_PROJECTS HARNESS_GAPS_NOW

@@ -1,13 +1,13 @@
-# task-observer weekly.sh — PRD AC1·AC10·AC11·AC12·AC13. test.sh 가 source 한다.
-printf '\n[task-observer-weekly] weekly.sh\n'
-WK="$HOOKS/../skills/task-observer/scripts/weekly.sh"
-WPROMPT="$HOOKS/../skills/task-observer/references/weekly-prompt.md"
+# harness-gaps weekly.sh — PRD AC1·AC10·AC11·AC12·AC13. test.sh 가 source 한다.
+printf '\n[harness-gaps-weekly] weekly.sh\n'
+WK="$HOOKS/../skills/harness-gaps/scripts/weekly.sh"
+WPROMPT="$HOOKS/../skills/harness-gaps/references/weekly-prompt.md"
 TOW="$TMP/tow"
 rm -rf "$TOW"; mkdir -p "$TOW/tmp"
-export CLAUDE_TASK_OBSERVER_CONFIG="$TOW/task-observer.json"
-export CLAUDE_TASK_OBSERVER_PROJECTS="$TOW/projects"
-export TASK_OBSERVER_NOW="2026-11-23T12:00:00+09:00"
-export TASK_OBSERVER_CLAUDE="$TOW/fake-claude"
+export CLAUDE_HARNESS_GAPS_CONFIG="$TOW/harness-gaps.json"
+export CLAUDE_HARNESS_GAPS_PROJECTS="$TOW/projects"
+export HARNESS_GAPS_NOW="2026-11-23T12:00:00+09:00"
+export HARNESS_GAPS_CLAUDE="$TOW/fake-claude"
 
 # 가짜 claude — 인자(한 줄에 [값])와 stdin 을 남기고, reply 파일 내용을 내고 rc 파일 값으로 끝난다
 cat > "$TOW/fake-claude" <<EOF
@@ -53,23 +53,23 @@ CANDJ='[{"pattern": "주간 후보 패턴", "kind": "재지시", "repos": ["repo
 tow_reply() { # $1 = result 문자열(모델 출력)  $2 = is_error(true|false)
   python3 -c 'import json,sys; print(json.dumps({"type": "result", "is_error": sys.argv[2] == "true", "result": sys.argv[1]}, ensure_ascii=False))' "$1" "${2:-false}" > "$TOW/reply"
 }
-LASTRE='^task-observer weekly: 후보 [0-9]+ · 쓴 행 [0-9]+ · 소요 [0-9]+s$'
+LASTRE='^harness-gaps weekly: 후보 [0-9]+ · 쓴 행 [0-9]+ · 소요 [0-9]+s$'
 
 # ── 파일 존재 · 실행 가능 ──
 [ -x "$WK" ] && ok "weekly.sh 실행 가능" || bad "weekly.sh" "없음 또는 실행 불가"
 [ -s "$WPROMPT" ] && ok "references/weekly-prompt.md 있음" || bad "weekly-prompt.md" "없음"
 
 # ── AC1 설정 없음 → claude 안 부름 · '원장 설정 없음' · exit 0 ──
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"; tow_reset; tow_reply "$CANDJ"
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"; tow_reset; tow_reply "$CANDJ"
 out=$(TMPDIR="$TOW/tmp" bash "$WK" 2>&1); code=$?
 [ "$code" = "0" ] && printf '%s' "$out" | grep -q '원장 설정 없음' && [ ! -e "$TOW/args" ] \
   && ok "weekly: 설정 없음 → 가짜 claude 안 불림 · '원장 설정 없음' · exit 0(AC1)" || bad "설정 없음" "exit=$code out=[$out]"
 
-printf '{"ledger": "%s"}' "$LEDW" > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "%s"}' "$LEDW" > "$CLAUDE_HARNESS_GAPS_CONFIG"
 
 # ── 레포 1곳 → 안 불림 · '후보 없음' ──
 tow_reset
-out=$(CLAUDE_TASK_OBSERVER_PROJECTS="$TOW/one" TMPDIR="$TOW/tmp" bash "$WK" 2>&1); code=$?
+out=$(CLAUDE_HARNESS_GAPS_PROJECTS="$TOW/one" TMPDIR="$TOW/tmp" bash "$WK" 2>&1); code=$?
 [ "$code" = "0" ] && printf '%s' "$out" | grep -q '후보 없음' && [ ! -e "$TOW/args" ] && cmp -s "$LEDW" "$TOW/ledger.orig" \
   && ok "weekly: 레포 1곳 → claude 안 불림 · '후보 없음' · exit 0" || bad "레포 1곳" "exit=$code out=[$out]"
 
@@ -81,7 +81,7 @@ out=$(TMPDIR="$TOW/tmp" bash "$WK" 2>"$TOW/err"); code=$?
 [ -f "$MONW" ] && grep -q '→ F-003' "$MONW" && ok "weekly: 월별 파일에 근거 항목" || bad "월별" "$(cat "$MONW" 2>/dev/null)"
 last=$(printf '%s\n' "$out" | tail -n1)
 printf '%s' "$last" | grep -Eq "$LASTRE" && printf '%s' "$last" | grep -q '후보 1 · 쓴 행 1' \
-  && ok "weekly: 마지막 줄 'task-observer weekly: 후보 n · 쓴 행 m · 소요 Ns'" || bad "마지막 줄" "[$last]"
+  && ok "weekly: 마지막 줄 'harness-gaps weekly: 후보 n · 쓴 행 m · 소요 Ns'" || bad "마지막 줄" "[$last]"
 
 # ── AC11 인자 ──
 [ -f "$TOW/args" ] && grep -qx '\[-p\]' "$TOW/args" && grep -A1 -x '\[--tools\]' "$TOW/args" | sed -n 2p | grep -qx '\[\]' \
@@ -139,8 +139,8 @@ out=$(TMPDIR="$TOW/tmp" bash "$WK" --days 1 2>&1); code=$?
 
 # ── AC13 공개 레포: 원장 경로 · 볼트 폴더 이름 하드코딩 0 ──
 P1="1_My""Brain"; P2="brain/""friction"
-hits=$(grep -rIlE "$P1|$P2" "$HOOKS/../skills/task-observer" "$HOOKS"/tests/task-observer-*.sh 2>/dev/null)
-[ -z "$hits" ] && ok "AC13: skills/task-observer · tests 에 볼트 경로 grep 0" || bad "AC13 하드코딩" "$hits"
+hits=$(grep -rIlE "$P1|$P2" "$HOOKS/../skills/harness-gaps" "$HOOKS"/tests/harness-gaps-*.sh 2>/dev/null)
+[ -z "$hits" ] && ok "AC13: skills/harness-gaps · tests 에 볼트 경로 grep 0" || bad "AC13 하드코딩" "$hits"
 
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"
-unset CLAUDE_TASK_OBSERVER_CONFIG CLAUDE_TASK_OBSERVER_PROJECTS TASK_OBSERVER_NOW TASK_OBSERVER_CLAUDE
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"
+unset CLAUDE_HARNESS_GAPS_CONFIG CLAUDE_HARNESS_GAPS_PROJECTS HARNESS_GAPS_NOW HARNESS_GAPS_CLAUDE

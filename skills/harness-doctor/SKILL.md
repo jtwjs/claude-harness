@@ -52,9 +52,9 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 **교차 확인**: `claude plugin details <plugin>`의 `Always-on` 값도 함께 보고한다. **컴포넌트당 ≤180토큰**(`docs/design-notes.md` §3)을 넘으면 ⚠️ — 넘긴 컴포넌트를 `always-on` 내림차순 상위부터 지목한다. always-on을 키우는 것은 본문이 아니라 **`description` 길이**뿐이므로, 지목 대상은 description이다.
 
-## 6. 반복 계수 (`task-observer`)
+## 6. 반복 계수 (`harness-gaps`)
 
-`.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 같이 돈다. 파일이 없으면 "아직 안 셌다"로 **보고만** 한다 — 만드는 것은 `task-observer` 몫이다(이 스킬에는 Write가 없다).
+`.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 같이 돈다. 파일이 없으면 "아직 안 셌다"로 **보고만** 한다 — 만드는 것은 `harness-gaps` 몫이다(이 스킬에는 Write가 없다).
 
 > 검사 3(빈 축적소)과 다르다 — 저기는 *비어 있나*를 보고, 여기는 *찬 것을 안 옮겼나*를 본다. 3회를 넘긴 행이 방치되면 계수기를 둔 값이 없어진다.
 

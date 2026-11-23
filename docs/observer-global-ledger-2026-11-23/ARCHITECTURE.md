@@ -1,4 +1,4 @@
-# ARCHITECTURE — task-observer 전역 후보 적재
+# ARCHITECTURE — harness-gaps 전역 후보 적재
 
 ## 개요
 
@@ -7,34 +7,34 @@
 ## 계층 배치
 
 ```
-skills/task-observer/
+skills/harness-gaps/
 ├── SKILL.md                     # 범위 칸 · 경계 · 헤드리스 길 · 개인 설정 (정본)
 ├── references/weekly-prompt.md  # claude -p 지시문 (재료 JSON을 뒤에 붙여 stdin으로)
 └── scripts/
-    ├── observer.py              # gather · append (표준 라이브러리만)
+    ├── gaps.py              # gather · append (표준 라이브러리만)
     └── weekly.sh                # gather → claude -p → append, --dry-run, 소요 시간
-hooks/tests/task-observer.sh     # test.sh 가 source
+hooks/tests/harness-gaps.sh     # test.sh 가 source
 ```
 
 ## 데이터 흐름
 
 ```
 weekly.sh [--dry-run] [--days 7]
-  ├─ observer.py config            → 원장 경로 없으면 "원장 설정 없음" · exit 0 (dry-run은 계속)
-  ├─ observer.py gather --days 7   → 재료 JSON (stdout)
+  ├─ gaps.py config            → 원장 경로 없으면 "원장 설정 없음" · exit 0 (dry-run은 계속)
+  ├─ gaps.py gather --days 7   → 재료 JSON (stdout)
   │     repos[]: { name, sessions(날짜[]), user[], bash[], observations[], undelegated[] }
   ├─ (repos 2곳 미만이면 "후보 없음" · exit 0 — 묶을 수 없다)
   ├─ claude -p --tools "" --no-session-persistence --output-format json  < 지시문 + 재료
   │     → .result = 후보 JSON 배열
-  └─ observer.py append [--dry-run] --known <재료 repos[].name 쉼표> <후보.json>
+  └─ gaps.py append [--dry-run] --known <재료 repos[].name 쉼표> <후보.json>
         → 검증 → ID → 원장 행 삽입 → 월별 파일 항목 append
 ```
 
-### `observer.py config`
-- 설정: env `CLAUDE_TASK_OBSERVER_CONFIG`(테스트용) 또는 `~/.claude/task-observer.json`. `{"ledger": "<원장 index.md 경로>"}`. `~` 펼침. 없거나 깨졌거나 칸 없으면 빈 줄 + exit 0.
+### `gaps.py config`
+- 설정: env `CLAUDE_HARNESS_GAPS_CONFIG`(테스트용) 또는 `~/.claude/harness-gaps.json`. `{"ledger": "<원장 index.md 경로>"}`. `~` 펼침. 없거나 깨졌거나 칸 없으면 빈 줄 + exit 0.
 
-### `observer.py gather --days N [--projects DIR]`
-- 대화 기록: env `CLAUDE_TASK_OBSERVER_PROJECTS` 또는 `~/.claude/projects/*/*.jsonl`. 파일 mtime이 창 밖이면 열지 않는다. 줄의 `timestamp`가 창 안인 것만.
+### `gaps.py gather --days N [--projects DIR]`
+- 대화 기록: env `CLAUDE_HARNESS_GAPS_PROJECTS` 또는 `~/.claude/projects/*/*.jsonl`. 파일 mtime이 창 밖이면 열지 않는다. 줄의 `timestamp`가 창 안인 것만.
 - 레포 식별: 줄의 `cwd`를 `git -C <cwd> rev-parse --path-format=absolute --git-common-dir`로 묶는다. 이름 = 공통 디렉터리가 `.git`이면 그 부모 폴더 이름, 아니면(bare) 그 폴더 이름. 경로가 없거나 git이 아니면 뺀다. cwd별 결과는 캐시.
 - 사람 말: `type == "user"` 줄의 text 내용만(tool_result 제외). `<`로 시작하는 줄(명령 · 시스템 래퍼)과 다른 세션 메시지는 뺀다. 한 줄 400자 · 레포당 최근 150개.
 - Bash 명령: assistant `tool_use` 중 `name == "Bash"`의 `input.command` 첫 줄. 200자 · 레포당 최근 150개.
@@ -42,7 +42,7 @@ weekly.sh [--dry-run] [--days 7]
 - 미위임: 같은 toplevel들의 `phases/*/index.json`에서 `status == "blocked"` 또는 `retries >= 3`인 step → `{phase, step, name, reason}`(reason = `blocked_reason` 또는 `last_error`/`error_message`, 200자).
 - 출력은 레포 이름 순 정렬(결정적).
 
-### `observer.py append [--dry-run] [--known NAME,...] FILE`
+### `gaps.py append [--dry-run] [--known NAME,...] FILE`
 - FILE: 후보 배열 `[{pattern, kind, repos[], count, first, last, direction, evidence[]}]`.
 - 검증(AC6): kind ∈ `재지시 | 재교정 | 불발 | 미위임 | 반복 절차`, repos 서로 다른 이름 2개 이상, pattern 한 줄 · 1~200자, direction ∈ `direct | investigate | plan`, first/last `YYYY-MM-DD`(없으면 실행 날짜), count 양의 정수(없으면 레포 수). 어긋나면 그 후보만 건너뜀 + stderr.
 - `--known`(weekly.sh 가 재료 `repos[].name` 을 넘김): repos 중 하나라도 목록 밖이면 그 후보만 건너뜀 + stderr `레포 이름이 재료에 없음: <이름>`. 없으면 이 검사를 하지 않는다(하위 호환).
@@ -55,7 +55,7 @@ weekly.sh [--dry-run] [--days 7]
   ```markdown
   ## YYYY-MM-DD · <패턴> → F-NNN
 
-  > 근거(task-observer 헤드리스): <evidence 한 줄씩 · 로 이음>
+  > 근거(harness-gaps 헤드리스): <evidence 한 줄씩 · 로 이음>
 
   - 상황: 주 1회 헤드리스가 레포 <a>, <b>의 지난 7일 대화 기록 · phases를 훑음
   - 불편: <패턴>
@@ -70,19 +70,19 @@ weekly.sh [--dry-run] [--days 7]
 - 종료: 0 성공(후보 0 포함) · 1 쓰기 실패 · 2 입력 · 원장 형식 거부.
 
 ### `weekly.sh`
-- `claude` 실행 파일: env `TASK_OBSERVER_CLAUDE`(테스트용 가짜) 또는 `claude`.
+- `claude` 실행 파일: env `HARNESS_GAPS_CLAUDE`(테스트용 가짜) 또는 `claude`.
 - `ANTHROPIC_API_KEY`가 있으면 경고 한 줄(구독이 아니라 API 과금 — sdd_runner와 같은 안내).
-- 시작 · 끝 시각과 소요 초를 stdout 마지막 줄에: `task-observer weekly: 후보 n · 쓴 행 m · 소요 Ns`.
+- 시작 · 끝 시각과 소요 초를 stdout 마지막 줄에: `harness-gaps weekly: 후보 n · 쓴 행 m · 소요 Ns`.
 - 재료 · 결과 원문은 `${TMPDIR}` 임시 폴더, 끝나면 지운다(대화 원문을 남기지 않는다).
 
 ## 경계 · 의존 방향
 
-- 모델 → 파일 쓰기 없음. 모든 쓰기는 `observer.py append` 한 곳.
+- 모델 → 파일 쓰기 없음. 모든 쓰기는 `gaps.py append` 한 곳.
 - 원장 형식(11칸 · `F-NNN` · 상태 이름)은 볼트 friction 스킬이 주인이다. 하네스는 따라가고, 바뀌면 같이 고친다(ADR 「대가」).
 - 공개 레포: 원장 경로 · 볼트 폴더 이름은 설정 파일에서만 온다. 코드 · 문서 · 테스트 픽스처에 실제 경로를 쓰지 않는다.
 
 ## 테스트 전략
 
-- `hooks/tests/task-observer.sh` 하나. 임시 폴더에 가짜 `projects/*.jsonl` · 가짜 git 레포 2개(+ worktree 1) · 가짜 원장 · 가짜 `claude`(정해진 JSON을 내는 셸 스크립트)를 만든다.
-- 실제 `~/.claude`를 읽지 않게 `CLAUDE_TASK_OBSERVER_CONFIG` · `CLAUDE_TASK_OBSERVER_PROJECTS`를 늘 임시 경로로.
+- `hooks/tests/harness-gaps.sh` 하나. 임시 폴더에 가짜 `projects/*.jsonl` · 가짜 git 레포 2개(+ worktree 1) · 가짜 원장 · 가짜 `claude`(정해진 JSON을 내는 셸 스크립트)를 만든다.
+- 실제 `~/.claude`를 읽지 않게 `CLAUDE_HARNESS_GAPS_CONFIG` · `CLAUDE_HARNESS_GAPS_PROJECTS`를 늘 임시 경로로.
 - 모델 판정 품질은 테스트하지 않는다(사람이 `/friction review`에서 거른다). 첫 수동 실행 결과를 PR에 보고.

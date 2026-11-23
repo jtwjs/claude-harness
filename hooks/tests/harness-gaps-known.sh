@@ -1,13 +1,13 @@
-# task-observer append --known · weekly.sh 가 재료 레포 이름을 넘김 — PRD AC6(재료에 있던 레포 이름만). test.sh 가 source 한다.
-printf '\n[task-observer-known] append --known\n'
-KOBS="$HOOKS/../skills/task-observer/scripts/observer.py"
-KWK="$HOOKS/../skills/task-observer/scripts/weekly.sh"
+# harness-gaps append --known · weekly.sh 가 재료 레포 이름을 넘김 — PRD AC6(재료에 있던 레포 이름만). test.sh 가 source 한다.
+printf '\n[harness-gaps-known] append --known\n'
+KOBS="$HOOKS/../skills/harness-gaps/scripts/gaps.py"
+KWK="$HOOKS/../skills/harness-gaps/scripts/weekly.sh"
 TOK="$TMP/tok"
 rm -rf "$TOK"; mkdir -p "$TOK/tmp"
-export CLAUDE_TASK_OBSERVER_CONFIG="$TOK/task-observer.json"
-export CLAUDE_TASK_OBSERVER_PROJECTS="$TOK/projects"
-export TASK_OBSERVER_NOW="2026-11-23T12:00:00+09:00"
-export TASK_OBSERVER_CLAUDE="$TOK/fake-claude"
+export CLAUDE_HARNESS_GAPS_CONFIG="$TOK/harness-gaps.json"
+export CLAUDE_HARNESS_GAPS_PROJECTS="$TOK/projects"
+export HARNESS_GAPS_NOW="2026-11-23T12:00:00+09:00"
+export HARNESS_GAPS_CLAUDE="$TOK/fake-claude"
 
 mkdir -p "$TOK/vault/.obsidian" "$TOK/vault/ledger"
 LEDK="$TOK/vault/ledger/index.md"
@@ -20,7 +20,7 @@ cat > "$LEDK" <<'EOF'
 끝.
 EOF
 cp "$LEDK" "$TOK/ledger.orig"
-printf '{"ledger": "%s"}' "$LEDK" > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "%s"}' "$LEDK" > "$CLAUDE_HARNESS_GAPS_CONFIG"
 
 tok_cand() { # $1=패턴  $2..=레포 이름
   python3 -c '
@@ -86,5 +86,5 @@ out=$(TMPDIR="$TOK/tmp" bash "$KWK" --dry-run 2>"$TOK/err"); code=$?
   && ok "weekly --dry-run: 재료에 없는 레포 후보는 stdout 에도 없음" \
   || bad "weekly --dry-run --known" "exit=$code out=[$out] err=$(cat "$TOK/err")"
 
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"
-unset CLAUDE_TASK_OBSERVER_CONFIG CLAUDE_TASK_OBSERVER_PROJECTS TASK_OBSERVER_NOW TASK_OBSERVER_CLAUDE
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"
+unset CLAUDE_HARNESS_GAPS_CONFIG CLAUDE_HARNESS_GAPS_PROJECTS HARNESS_GAPS_NOW HARNESS_GAPS_CLAUDE

@@ -1,11 +1,11 @@
-# task-observer observer.py append — PRD AC1·AC6·AC7·AC8·AC9·AC10. test.sh 가 source 한다.
-printf '\n[task-observer-append] append\n'
-OBS="$HOOKS/../skills/task-observer/scripts/observer.py"
+# harness-gaps gaps.py append — PRD AC1·AC6·AC7·AC8·AC9·AC10. test.sh 가 source 한다.
+printf '\n[harness-gaps-append] append\n'
+OBS="$HOOKS/../skills/harness-gaps/scripts/gaps.py"
 TOA="$TMP/toa"
 rm -rf "$TOA"; mkdir -p "$TOA"
-export CLAUDE_TASK_OBSERVER_CONFIG="$TOA/task-observer.json"
-export CLAUDE_TASK_OBSERVER_PROJECTS="$TOA/projects"
-export TASK_OBSERVER_NOW="2026-11-23T12:00:00+09:00"
+export CLAUDE_HARNESS_GAPS_CONFIG="$TOA/harness-gaps.json"
+export CLAUDE_HARNESS_GAPS_PROJECTS="$TOA/projects"
+export HARNESS_GAPS_NOW="2026-11-23T12:00:00+09:00"
 
 # 가짜 볼트: .obsidian 이 있는 조상 + 원장 폴더
 mkdir -p "$TOA/vault/.obsidian" "$TOA/vault/notes/ledger"
@@ -50,7 +50,7 @@ PY
 toa_same() { cmp -s "$1" "$2"; }
 
 # ── AC1 설정 없음 → 무쓰기 exit 0 ──
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"
 out=$(python3 "$OBS" append "$CAND" 2>/dev/null); code=$?
 [ "$code" = "0" ] && printf '%s' "$out" | grep -q '원장 설정 없음' && toa_same "$LED" "$TOA/ledger.orig" && [ ! -e "$MON" ] \
   && ok "append: 설정 없음 → '원장 설정 없음' · 무쓰기 · exit 0" || bad "설정 없음" "exit=$code out=[$out]"
@@ -60,7 +60,7 @@ out=$(python3 "$OBS" append --dry-run "$CAND" 2>/dev/null); code=$?
 [ "$code" = "0" ] && printf '%s' "$out" | grep -q '| F-001 |' && [ ! -e "$MON" ] \
   && ok "append --dry-run: 설정 없어도 돌고 F-001 부터" || bad "dry-run 설정 없음" "exit=$code out=[$out]"
 
-printf '{"ledger": "%s"}' "$LED" > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "%s"}' "$LED" > "$CLAUDE_HARNESS_GAPS_CONFIG"
 
 # ── AC10 --dry-run → 둘 다 무변경 · stdout 에 행 ──
 out=$(python3 "$OBS" append --dry-run "$CAND" 2>/dev/null); code=$?
@@ -109,7 +109,7 @@ assert M.startswith("---\n") and "type: brain-note" in M and "kind/friction" in 
 toa_py "append: 월별 항목 — 제목 · 근거 · 칸(AC9)" '
 assert "## 2026-11-23 · a|b 를 매번 다시 말함 → F-005" in M, M
 assert "## 2026-11-23 · 같은 배포 절차 반복 → F-006" in M, M
-assert "> 근거(task-observer 헤드리스): repoA 2026-11-18 · repoB 2026-11-22" in M, M
+assert "> 근거(harness-gaps 헤드리스): repoA 2026-11-18 · repoB 2026-11-22" in M, M
 assert "- 유형: 반복 절차" in M and "- 대상: 레포(repoB, repoC)" in M and "- 방향: plan" in M and "- 비용: ⚠️" in M, M
 assert M.index("→ F-005") < M.index("→ F-006")'
 
@@ -138,7 +138,7 @@ out=$(python3 "$OBS" append "$TOA/cand3.json" 2>/dev/null); code=$?
 mkdir -p "$TOA/plain/ledger"
 PL="$TOA/plain/ledger/index.md"
 printf '# 원장\n\n| ID | 패턴 | 유형 | 대상 | 프로젝트 | 횟수 | 처음 | 마지막 | 방향 | 상태 | 연결 |\n|---|---|---|---|---|---|---|---|---|---|---|\n\n끝.\n' > "$PL"
-printf '{"ledger": "%s"}' "$PL" > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "%s"}' "$PL" > "$CLAUDE_HARNESS_GAPS_CONFIG"
 python3 "$OBS" append "$TOA/cand2.json" >/dev/null 2>&1; code=$?
 [ "$code" = "0" ] && grep -qF '| F-001 | 셋째 패턴 |' "$PL" && grep -F '| F-001 |' "$PL" | grep -qF '| [[2026-11]] |' \
   && grep -q '^끝\.$' "$PL" && [ -f "$TOA/plain/ledger/2026-11.md" ] \
@@ -148,10 +148,10 @@ python3 "$OBS" append "$TOA/cand2.json" >/dev/null 2>&1; code=$?
 mkdir -p "$TOA/notable"
 NL="$TOA/notable/index.md"
 printf '# 원장\n\n표가 없다.\n' > "$NL"; cp "$NL" "$TOA/nl.orig"
-printf '{"ledger": "%s"}' "$NL" > "$CLAUDE_TASK_OBSERVER_CONFIG"
+printf '{"ledger": "%s"}' "$NL" > "$CLAUDE_HARNESS_GAPS_CONFIG"
 python3 "$OBS" append "$CAND" >/dev/null 2>"$TOA/err2"; code=$?
 [ "$code" = "2" ] && toa_same "$NL" "$TOA/nl.orig" && [ ! -e "$TOA/notable/2026-11.md" ] && ! grep -q Traceback "$TOA/err2" \
   && ok "append: 표 없는 원장 → exit 2 · 둘 다 무변경" || bad "표 없음" "exit=$code err=$(cat "$TOA/err2")"
 
-rm -f "$CLAUDE_TASK_OBSERVER_CONFIG"
-unset CLAUDE_TASK_OBSERVER_CONFIG CLAUDE_TASK_OBSERVER_PROJECTS TASK_OBSERVER_NOW
+rm -f "$CLAUDE_HARNESS_GAPS_CONFIG"
+unset CLAUDE_HARNESS_GAPS_CONFIG CLAUDE_HARNESS_GAPS_PROJECTS HARNESS_GAPS_NOW
