@@ -16,7 +16,7 @@
 # 부하 (0.31.1): verify.test 는 여기서 돌리지 않는다 — 응답마다 worktree 마다 전체 테스트(서버는 Testcontainers MySQL)가
 #   돌아 2026-10-21~22 대시보드 worktree 에서 36회 · 합계 35.9분 · 평균 60초였다. 테스트 게이트는 CI 와 러너 판정이다.
 #   앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만 돈다. 앱 밖 파일이 코드면 전부, 기록(*.md · phases/ · .claude/ ·
-#   _brain/ · _learn/)이면 무시한다. 화면만 고친 worktree 에서 server 검사가 돌던 것을 막는다.
+#   _learn/)이면 무시한다. 화면만 고친 worktree 에서 server 검사가 돌던 것을 막는다.
 set -uo pipefail
 cat >/dev/null 2>&1 || true
 
@@ -65,7 +65,7 @@ def cmd(m, k):
 def git(*a):
     r = subprocess.run(["git", *a], capture_output=True, text=True)
     return r.stdout.splitlines() if r.returncode == 0 else []
-NOT_CODE = ("*.md", "phases/*", ".claude/*", "_brain/*", "_learn/*")
+NOT_CODE = ("*.md", "phases/*", ".claude/*", "_learn/*")
 roots = sorted((r for r in apps if r != "."), key=len, reverse=True)
 picked = set(apps)
 if roots:

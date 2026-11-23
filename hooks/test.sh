@@ -19,7 +19,6 @@ export CLAUDE_VERIFY_PS="$TMP/ps.txt"   # 검사 상한 — 실제 ps 대신 이
 unset CLAUDE_VERIFY_MAX   # 사용자 settings.json env(예: 3)가 기본값 2 전제 테스트를 흔들지 않게 (2026-11-01)
 export CLAUDE_LEARN_REPOS="$TMP/learn-repos.txt"   # learn-setup 이 실제 ~/.claude 목록에 쓰지 않게   # cadence-reminder 가 실제 ~/.claude 에 쓰지 않게
 trap 'rm -rf "$TMP"' EXIT
-unset CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_AUTO_SKIP CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_SYNC   # 사용자 settings env 가 새어 들어오면 opt-in 판정이 틀어진다
 pass=0; fail=0
 
 ok()   { printf '  ✓ %s\n' "$1"; pass=$((pass+1)); }
@@ -38,7 +37,7 @@ spread_commits() {
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
 mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q)
 payload='{"tool_input":{"file_path":"'"$TMP"'/none/src/a.ts","command":"npm test"}}'
-for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup brain-sync-auto prod-db-check; do
+for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup prod-db-check; do
   out=$(cd "$TMP/none" && printf '%s' "$payload" | bash "$HOOKS/$h.sh" 2>&1); code=$?
   if [ "$code" = "0" ] && [ -z "$out" ]; then ok "$h"; else bad "$h" "exit=$code out=[$out]"; fi
 done
@@ -259,7 +258,7 @@ u() { printf '{"type":"user","promptSource":"typed","entrypoint":"%s","timestamp
 { printf '{"type":"custom-title","customTitle":"repo-fe"}\n'; u cli 2026-10-17T23:30:00Z "첫 요청"; u cli 2026-10-18T05:00:00Z "마지막 요청"; u cli 2026-10-16T01:00:00Z "다른 날"; } > "$H/.claude/projects/-w/a.jsonl"
 u sdk-cli 2026-10-18T01:00:00Z "/routine evening" > "$H/.claude/projects/-w/b.jsonl"
 printf '%s\n' "$H/repo" > "$H/.claude/learn-repos.txt"
-mkdir -p "$H/repo/_brain/wiki/infra/retro" && printf '## 2026-10-18 — 오늘 기능\n- 숫자: step 1\n' > "$H/repo/_brain/wiki/infra/retro/2026-10-18-today.md"
+mkdir -p "$H/repo/docs/retro" && printf '## 2026-10-18 — 오늘 기능\n- 숫자: step 1\n' > "$H/repo/docs/retro/2026-10-18-today.md"
 printf '## YYYY-MM-DD · 템플릿\n## 2026-10-18 · 오늘 카드\n- 종류: 기술 · 출처: 빈틈 3곳\n- 상태: 설명 들음\n## 2026-10-17 · 어제 카드\n- 종류: 기술 · 출처: AI 설명\n' > "$H/repo/_learn/inbox.md"
 out=$(python3 "$DH" 2026-10-18 --home "$H" --out "$H/out")
 [ "$out" = "오늘 세션 1 · 프로젝트 1 · 새 학습 1 — 자세히: $H/out/2026-10-18.html" ] && ok "세션 1(헤드리스·링크 중복 제외) · 학습 1(오늘만)" || bad "daily_hub 집계" "$out"
@@ -407,39 +406,6 @@ printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다�
 
 # ── 케이스 6-b: learn-setup — 개인 학습 수신함 _learn/ (2026-10-11) ──────────
 # 레포에 쓰는 훅이라 경계를 다 건다: 하네스 없는 레포 무동작(케이스 1) · .gitignore 무변경 · 두 번 돌려도 한 줄.
-# ── 케이스 6-c: brain-sync-auto — opt-in · 경로 · 활발한 레포 · _brain/wiki 변경 (2026-10-12) ──
-printf '\n[6-c] brain-sync-auto — 조건을 다 넘을 때만 띄운다\n'
-export CLAUDE_BRAIN_SYNC_SYNC=1
-export CLAUDE_BRAIN_SYNC_LOG_DIR="$TMP"   # 실제 /tmp 에 테스트 로그를 남기지 않는다
-FAKECL="$TMP/fake-claude"; printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s/claude-calls"\n' "$TMP" > "$FAKECL"; chmod +x "$FAKECL"
-export CLAUDE_BRAIN_SYNC_BIN="$FAKECL"
-calls() { wc -l < "$TMP/claude-calls" 2>/dev/null | tr -d ' ' || echo 0; }
-bs() { (cd "$TMP/bs" && printf '{}' | bash "$HOOKS/brain-sync-auto.sh" 2>&1); }
-mkdir -p "$TMP/vault/2_LLMWiki/wiki/projects" "$TMP/bs/.claude" "$TMP/bs/_brain/wiki"
-printf '{"brainSync":{"wikiPath":"%s","targetFolder":"2_LLMWiki/wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
-(cd "$TMP/bs" && git init -q && echo a > _brain/wiki/a.md && git add -A && spread_commits 22)
-out=$(bs); [ -z "$out" ] && [ "$(calls)" = "0" ] && ok "opt-in 안 함 — 안 띄움·무출력" || bad "opt-in" "calls=$(calls) out=[$out]"
-export CLAUDE_BRAIN_SYNC_AUTO=1
-out=$(bs); [ -z "$out" ] && [ "$(calls)" = "1" ] && ok "첫 실행 — 띄움·무출력" || bad "첫 실행" "calls=$(calls) out=[$out]"
-grep -q -- "brain-sync auto.*--add-dir $(cd "$TMP/vault" && pwd -P)" "$TMP/claude-calls" 2>/dev/null && ok "auto 인자 + vault --add-dir" || bad "인자" "$(cat "$TMP/claude-calls")"
-rm -f "$CLAUDE_SKILL_HINTS_DIR"/*brain-sync-run
-bs >/dev/null; [ "$(calls)" = "1" ] && ok "_brain/wiki 변경 없음 — 안 띄움" || bad "변경 없음" "calls=$(calls)"
-(cd "$TMP/bs" && echo b > src.txt && git add -A && git -c user.email=t@t -c user.name=t commit -qm "code only")
-bs >/dev/null; [ "$(calls)" = "1" ] && ok "코드만 바뀜 — 안 띄움" || bad "코드만" "calls=$(calls)"
-(cd "$TMP/bs" && echo b >> _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm "brain")
-bs >/dev/null; [ "$(calls)" = "2" ] && ok "_brain/wiki 바뀜 — 띄움" || bad "변경 감지" "calls=$(calls)"
-(cd "$TMP/bs" && echo c >> _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm "brain2")
-bs >/dev/null; [ "$(calls)" = "2" ] && ok "같은 날 두 번째 — 안 띄움" || bad "중복" "calls=$(calls)"
-rm -f "$CLAUDE_SKILL_HINTS_DIR"/*brain-sync-run
-CLAUDE_BRAIN_SYNC_AUTO_SKIP="x:bs" bs >/dev/null; [ "$(calls)" = "2" ] && ok "SKIP 목록 — 안 띄움" || bad "SKIP" "calls=$(calls)"
-printf '{"brainSync":{"wikiPath":"%s","targetFolder":"wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
-bs >/dev/null; [ "$(calls)" = "2" ] && ok "옛 폴더 구조(부모 없음) — 안 띄움" || bad "경로 확인" "calls=$(calls)"
-printf '{"brainSync":{"wikiPath":"%s","targetFolder":"2_LLMWiki/wiki/projects/bs"}}' "$TMP/vault" > "$TMP/bs/.claude/harness.json"
-mkdir -p "$TMP/bsq/.claude" "$TMP/bsq/_brain/wiki" && cp "$TMP/bs/.claude/harness.json" "$TMP/bsq/.claude/" \
-  && (cd "$TMP/bsq" && git init -q && echo a > _brain/wiki/a.md && git add -A && git -c user.email=t@t -c user.name=t commit -qm one)
-(cd "$TMP/bsq" && printf '{}' | bash "$HOOKS/brain-sync-auto.sh" >/dev/null 2>&1); [ "$(calls)" = "2" ] && ok "비활성 레포 — 안 띄움" || bad "활발 게이트" "calls=$(calls)"
-unset CLAUDE_BRAIN_SYNC_SYNC CLAUDE_BRAIN_SYNC_AUTO CLAUDE_BRAIN_SYNC_BIN CLAUDE_BRAIN_SYNC_LOG_DIR
-
 printf '\n[6-b] learn-setup — _learn/ 수신함 · 로컬 제외 · 목록\n'
 mkdir -p "$TMP/learn/.claude" && (cd "$TMP/learn" && git init -q && printf '{}' > .claude/harness.json && printf 'node_modules/\n' > .gitignore \
   && git add -A && git -c user.email=t@t -c user.name=t commit -qm init)
@@ -447,7 +413,7 @@ out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
 [ -f "$TMP/learn/_learn/inbox.md" ] && ok "수신함 생성" || bad "수신함" "_learn/inbox.md 없음"
 echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "_learn/inbox.md" in d["hookSpecificOutput"]["additionalContext"]' 2>/dev/null \
   && ok "기록 지시를 additionalContext 로" || bad "지시" "JSON 이 아니거나 지시가 없다 out=[$out]"
-echo "$out" | grep -q '_brain/wiki/' && ok "지시가 도메인은 _brain 으로 가른다" || bad "분기" "지시에 _brain 행선지가 없다"
+echo "$out" | grep -q 'PRD 의 결정 절' && ok "지시가 도메인은 PRD 결정 절로 가른다" || bad "분기" "지시에 PRD 결정 절 행선지가 없다"
 echo "$out" | grep -q '안 옮긴 카드 0장' && ok "새 수신함은 0장(형식 예시는 세지 않는다)" || bad "카운트" "새 수신함인데 0장이 아니다"
 echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner · 인프라 beginner · 도메인 beginner' && ok "레벨 파일 없음 — 전부 beginner" || bad "레벨 기본값" "beginner 문구가 없다"
 echo "$out" | grep -q 'docs/learning-level.md' && ok "레벨 형식 정본 경로를 넣는다" || bad "레벨 정본" "docs/learning-level.md 경로가 없다"
@@ -621,18 +587,18 @@ ROOT="$(cd "$HOOKS/.." && pwd)"
 left=$(grep -rnE '`(grilling|why-logictree|why-plan|brain-intake|find-skills|harness-new)`|claude-harness:(brain-recall|why-plan)|decisions/<기능>' \
   "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형|2026-10-11 \|')   # 업그레이드 이름표 행(| 날짜 |)은 옛 이름이 정상
 [ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
-# 설계 3장 → REFLECT 정리 (0.12.4 · 0.22.0 sdd 내장): DESIGN 절차는 _brain 에 직접 쓰지 않고, sdd REFLECT 가 세 장을 보고 옮긴다.
-direct=$(grep -nE 'DESIGN`?이 `?decisions|→ `_brain/wiki/decisions/<주제>.md` · `_learn`' \
+# 설계 3장 (0.12.4 · 0.22.0 sdd 내장): DESIGN 절차는 세 장만 쓴다. 옛 결정 경로(decisions/)로 바로 쓰는 문구가 남지 않는다.
+direct=$(grep -nE 'DESIGN`?이 `?decisions' \
   "$ROOT/skills" "$ROOT/templates" -r 2>/dev/null)
 grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$ROOT/skills/sdd/references/design.md" && [ -z "$direct" ] \
-  && ok "DESIGN 절차는 세 장 · _brain 은 REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
+  && ok "DESIGN 절차는 세 장 · REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
 # 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
 cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
-for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'infra/retro/YYYY-MM-DD:templates/_brain/CLAUDE.md'; do
+for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'docs/retro/YYYY-MM-DD:skills/sdd/SKILL.md'; do
   grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
 없음: ${need}"
 done
-top=$(grep -nF '최신이 위' "$ROOT/skills/sdd/SKILL.md" "$ROOT/templates/_brain/CLAUDE.md" "$ROOT/templates/.claude/rules/brain.md" "$ROOT/skills/brain-walk/SKILL.md" || true)
+top=$(grep -nF '최신이 위' "$ROOT/skills/sdd/SKILL.md" || true)
 [ -z "$top" ] && ok "회고·로그는 한 건 = 파일 하나(한 파일 맨 위에 쌓지 않는다 — 병렬 PR 충돌)" || bad "회고·로그 한 파일 맨 위" "$top"
 [ -z "$cross" ] && ok "① 계획 두 게이트 · why 는 화면만 · REFLECT 회고+출구 조건 · ⑤ 마무리" || bad "0.22.0 흐름" "$cross"
 

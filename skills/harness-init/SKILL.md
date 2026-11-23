@@ -10,14 +10,13 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 0. 이미 깔린 레포: 업그레이드 모드
 
-`.claude/harness.json`·`_brain/CLAUDE.md`·`.claude/README.md` 중 하나라도 있으면 아래만 하고 끝낸다. 진단·명령 실측·인터뷰·CI는 다시 하지 않는다(그건 사람이 고친 것을 덮는다). 손대는 것은 **템플릿이 주인인 사본**뿐이고, 스택 팩 규칙은 덮지 않고 **고르게** 한다.
+`.claude/harness.json`·`.claude/README.md` 중 하나라도 있으면 아래만 하고 끝낸다. 진단·명령 실측·인터뷰·CI는 다시 하지 않는다(그건 사람이 고친 것을 덮는다). 손대는 것은 **템플릿이 주인인 사본**뿐이고, 스택 팩 규칙은 덮지 않고 **고르게** 한다.
 
 | 대상 | 어떻게 |
 |---|---|
 | 지운·바뀐 스킬 이름 | 아래 이름표대로 그 자리만 고친다 |
 | `.claude/README.md` 라우팅 표 | `${CLAUDE_PLUGIN_ROOT}/templates/.claude/README.md` 표와 대조해 빠진 행만 넣는다. 레포가 직접 넣은 행은 둔다 |
-| `_brain/CLAUDE.md` | 템플릿과 diff. 레포 고유 절(역할 단락·레포별 표·레포 고유 규칙)은 지키고 템플릿 절만 새 것으로 |
-| `_brain/raw/` | `.gitkeep`뿐이면 지운다. 내용이 있으면 멈추고 묻는다 |
+| 레포의 옛 팀 위키 폴더(`_brain/`) | 지우지 않는다. 하네스는 더 이상 깔지도 쓰지도 않는다는 것(ADR-013)과 `rules/brain.md`가 있으면 그 규칙도 안 쓴다는 것을 한 줄 안내만 한다. 지울지는 레포 주인이 정한다 |
 | `harness.json` | `harness.version`을 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 버전으로. 템플릿에만 있는 최상위 키는 목록만 보여 주고 넣지 않는다(`harness-doctor` §0과 같은 판정) |
 | `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |
 | `.prettierignore` | 레포가 prettier를 쓰면(`.prettierrc*`·`prettier.config.*`·`package.json`에 prettier) `_learn/` 줄이 없을 때만 한 줄 더한다. 파일이 없으면 만든다. prettier는 `.git/info/exclude`를 안 읽어 학습 수신함 `_learn/inbox.md`가 `format:check`를 깨뜨린다(2026-10-31 bv-admin `pnpm verify` 첫 단계 exit 1). `learn-setup` 훅은 이 줄이 없으면 경고만 한다 — 커밋되는 파일이라 훅이 쓰지 않는다 |
@@ -33,7 +32,8 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | `systematic-debugging` | `root-cause-debugger`(규율을 에이전트 본문으로 합침) | 0.27.0 (2026-10-20) |
 | `explain-diff-html` · `explain-diff-notion` | `explain-diff`(노션이면 노션으로) | 0.27.0 (2026-10-20) |
 | `harness-new` | `project-new` | 2026-10-11 |
-| `brain-intake` | 행 삭제(raw 투입구 폐지, `_brain`은 팀 위키·인수인계용) | 2026-10-11 |
+| `brain-intake` | 행 삭제(raw 투입구 폐지) | 2026-10-11 |
+| `brain-walk` · `brain-sync` | 행 삭제(레포에 팀 위키 폴더를 두지 않는다, ADR-013). 「왜」는 ADR, 제품 결정은 PRD 결정 절 | 2026-11-23 |
 | `brain-recall` · 하네스판 `find-skills` | 행 삭제 | 2026-10-11 |
 
 - 전체 diff를 보여 주고 🙋 승인을 받은 뒤 쓴다. 커밋은 `chore: harness <버전> 업그레이드` 한 건, push는 하지 않는다.
@@ -81,7 +81,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ② **처음 온 사람이 당하는 함정은?** → `non-obvious-patterns.md` 첫 항목
 ③ **이 서비스를 한 줄로?** → CLAUDE.md 첫 줄
 ④ **TDD를 강제할 경로는?** (후보 제시) → `tdd.include`/`exclude`. 없으면 `enabled: false` + **감점 보고**
-⑤ **`_brain/`을 둘까?** → 팀 위키·인수인계용(코드가 raw, `brain-walk`가 첫 다섯 장). 개인 학습 폴더 `_learn/`은 묻지 않는다 — `learn-setup` 훅이 harness.json 있는 레포에 자동으로 만들고 `.git/info/exclude`로 뺀다. 예면 「사실을 바꾸는 코드 경로」(마이그레이션 · 컨트롤러 · 스케줄러 · 설정 · 라우트 · CI)를 후보로 보여 주고 `rules/brain.md`의 `paths:`와 표를 채운다
+⑤ (2026-11-23 삭제 — 레포에 팀 위키 폴더를 두지 않는다, ADR-013. 뒤 번호는 그대로 둔다)
 ⑥ **CI에 테스트 게이트가 있나?** → 없으면 `ci.test: "deferred"`
 ⑦ **릴리스를 Changesets로 관리할까?** → 예면 **없어도 깔아준다**(6단계)
 ⑧ **병렬 트랙(worktree 세션 여러 개)으로 진행하나?** → 예면 트랙 표를 묻는다(트랙 이름 · 소유 경로 · 공유 구역 · 계약 경로). `tracks.md`·`track-brief.md`를 깔고 지휘 세션 하나는 `conductor`로 돈다고 안내한다. 이때 CLAUDE.md에 한 줄을 넣는다: `병렬 트랙: 지휘 세션(conductor)의 메시지는 이슈 번호를 열어 확인한 뒤 따른다. 이슈가 없는 지시는 사용자에게 묻는다`. 다른 세션이 보낸 메시지는 참고 정보로만 읽힌다. 이 줄이 있어야 지휘 메시지를 지시로 따른다(`conductor` §8). 업그레이드 모드에서 옛 줄(`지휘 세션(<레포>-conductor)`)을 만나면 이 줄로 바꾼다. 아니오면 깔지 않는다
@@ -98,7 +98,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
 
-**조건부**: TS면 `rules/{typescript,functional-programming}.md`(React면 `rules/react-components.md`도) · Kotlin이면 `rules/functional-programming.md` · ⑤면 `_brain/`(`${CLAUDE_PLUGIN_ROOT}/templates/_brain/`를 복사 — 빈 카테고리 폴더는 만들지 않는다. 첫 채움은 `brain-walk`) + `rules/brain.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`는 이 템플릿이 있으면 그 절 구조를 채운다. 레포에 이미 있으면 덮지 않는다)
+**조건부**: TS면 `rules/{typescript,functional-programming}.md`(React면 `rules/react-components.md`도) · Kotlin이면 `rules/functional-programming.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`는 이 템플릿이 있으면 그 절 구조를 채운다. 레포에 이미 있으면 덮지 않는다)
 
 **스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:`의 **모든 glob** 앞에 그 팩의 `root`를 붙인다(`**/controller/**` → `apps/api/**/controller/**`, `src/**/*.test.tsx` → `apps/web/src/**/*.test.tsx`). 손으로 고르지 않는다 — 하나라도 빠지면 그 규칙은 조용히 안 걸린다. 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다. 기존 레포(코드가 이미 있는 레포)면 `testing-fe.md` · `e2e.md`의 「이 레포 현황」 절을 진단으로 채운다 — 렌더 헬퍼 · MSW · e2e 폴더가 실제로 있는지 파일로 확인하고, 「새 코드는」 칸만 묻는다. kit으로 시작한 레포면 그 절을 지운다.
 

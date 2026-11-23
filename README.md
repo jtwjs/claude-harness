@@ -1,6 +1,6 @@
 # claude-harness
 
-레포에서 AI와 일하는 방식을 까는 Claude Code 플러그인이다. 대상 레포에서 `/harness-init`을 한 번 돌리면 스펙 우선 개발(SDD) 흐름, 테스트 먼저(RED/GREEN — 러너가 git 기록으로 확인) 규칙, 컨텍스트 3층, 팀 위키(`_brain/`)가 갖춰진다.
+레포에서 AI와 일하는 방식을 까는 Claude Code 플러그인이다. 대상 레포에서 `/harness-init`을 한 번 돌리면 스펙 우선 개발(SDD) 흐름, 테스트 먼저(RED/GREEN — 러너가 git 기록으로 확인) 규칙, 컨텍스트 3층이 갖춰진다.
 
 ## 세 레포의 관계
 
@@ -13,7 +13,7 @@
 | 레포 | 맡는 것 | 어디에 남나 | |
 |---|---|---|---|
 | [claude-dotfiles](https://github.com/jtwjs/claude-dotfiles) | 내 맥의 Claude Code 환경: 전역 CLAUDE.md, 상태줄, 플러그인 목록, 개인 스킬 | `~/.claude/` | |
-| [claude-harness](https://github.com/jtwjs/claude-harness) | 레포에서 AI와 일하는 방식: 스킬, 에이전트, 훅, 템플릿 | 플러그인 + 각 레포의 `.claude/`·`_brain/` | 📍 지금 여기 |
+| [claude-harness](https://github.com/jtwjs/claude-harness) | 레포에서 AI와 일하는 방식: 스킬, 에이전트, 훅, 템플릿 | 플러그인 + 각 레포의 `.claude/` | 📍 지금 여기 |
 | [stack-kits](https://github.com/jtwjs/stack-kits) | 새 프로젝트의 코드 뼈대: kotlin-spring, nextjs, fullstack | 새 레포의 코드 | |
 
 ## 빠른 시작
@@ -25,17 +25,17 @@
 /plugin install claude-md-management@claude-plugins-official   # 선택. REFLECT의 세션 학습 회수
 ```
 
-기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 이미 깔린 레포에서 `/harness-init`을 다시 부르면 업그레이드 모드로 템플릿 사본(라우팅·`_brain/CLAUDE.md`·버전·스킬 이름표·`.gitignore`)을 새 버전에 맞추고, 스택 팩 규칙은 파일별 diff를 보여 주고 고르게 한다(새로 맞는 팩도 알린다). 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
+기존 레포는 `/harness-init`, 새 프로젝트는 `/project-new`로 시작한다. 이미 깔린 레포에서 `/harness-init`을 다시 부르면 업그레이드 모드로 템플릿 사본(라우팅·버전·스킬 이름표·`.gitignore`)을 새 버전에 맞추고, 스택 팩 규칙은 파일별 diff를 보여 주고 고르게 한다(새로 맞는 팩도 알린다). 계획 승인을 브라우저에서 하려면 [plannotator](https://github.com/backnotprop/plannotator)를 추가로 깐다.
 
 ## 무엇이 들었나
 
 | 칸 | 내용 |
 |---|---|
-| 스킬 23개 | SDD: `sdd` `harness` `harness-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>지식: `brain-walk` `brain-sync` · 병렬: `conductor`<br/>품질: `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff` `plannotator-visual-explainer` |
+| 스킬 21개 | SDD: `sdd` `harness` `harness-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `task-observer`<br/>병렬: `conductor`<br/>품질: `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff` `plannotator-visual-explainer` |
 | 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때 · REVIEW의 작은 수정) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
 | SDD 러너 | `skills/harness-run/scripts/sdd_runner.py` — 세션 안(`harness-run`)·헤드리스(`run`) 같은 규칙. step당 1번 호출 + git 기록 판정. 설계 `docs/sdd-runner.md` |
-| 훅 11개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인 + owner별 gh 쓰기 계정 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` `brain-sync-auto` · 응답 끝(Stop): `validate-session-end` |
-| `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `_brain/`, `stacks/` |
+| 훅 10개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인 + owner별 gh 쓰기 계정 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` · 응답 끝(Stop): `validate-session-end` |
+| `templates/` | 대상 레포에 남는 것: `CLAUDE.md`, `.claude/`, `.github/`, `stacks/` |
 | `incubator/` | 로드 경로 밖 대기 스킬(지금 비어 있음 — 이력은 `incubator/README.md`) |
 
 각 스킬·훅이 하는 일은 `skills/*/SKILL.md`와 `hooks/*.sh` 머리에 있다.
@@ -63,18 +63,17 @@ flowchart TD
 | 축 | 스킬 | 주기 |
 |---|---|---|
 | 구조 | `project-new` `harness-init` `harness-doctor` `ai-readiness-cartography` | 레포당 1회 · 점검 격주 |
-| 맥락 | `brain-walk` `brain-sync` (CLAUDE.md·rules·references는 `harness-init`이 깐다) | 레포당 1회 · 주기 |
+| 맥락 | CLAUDE.md·rules·references는 `harness-init`이 깐다 | 레포당 1회 |
 | 계획 | ① 계획 = DESIGN(`sdd` 내장 절차 + `why`) → PLAN(`harness`) · 🎨 `design-brief` `design-critique` | 기능마다 |
 | 실행 | ② IMPLEMENT `harness-run` `conductor` (수동 TDD·작은 수정: `test-writer`·`feature-builder`) | 기능마다 |
 | 검증 | ③ REVIEW `sdd-review` `code-reviewer` `design-reconcile` `root-cause-debugger` | 기능마다 |
-| 개선 | ④ REFLECT 회고 1장 · `revise-claude-md` · `task-observer` · `brain-sync` · 리허설 | 기능마다 |
+| 개선 | ④ REFLECT 회고 1장 · `revise-claude-md` · `task-observer` · 리허설 | 기능마다 |
 | (축 밖·마무리) | ⑤ 마무리 `changeset` `commit` `pr-write` — 작업이 끝났을 때만 | 기능마다 |
 | 축 밖 | `slack-writing` `notion-writing` `explain-diff-*` `plannotator-visual-explainer` | 필요할 때 |
 
 | 무엇 | 어디 |
 |---|---|
 | 기능 스펙·설계(PRD·ARCHITECTURE·ADR) | `docs/{feature-YYYY-MM-DD}/` |
-| 계속 고치는 결정·규칙·용어, 코드 인계 문서 | `_brain/wiki/` |
 | 내가 배울 기술·도메인 지식(커밋 안 함) | `_learn/inbox.md` |
 | 분야별 학습 레벨(FE·BE·인프라·도메인 × beginner/intermediate/advanced) | `~/.claude/learning-level.json` — 없으면 전부 beginner. 형식은 `docs/learning-level.md`. 레포를 빼려면 `~/.claude/learn-skip.txt`에 본 레포 경로 한 줄 |
 | GitHub 쓰기 계정(owner별) | `~/.claude/gh-accounts.txt`에 `owner 계정` 한 줄 — 그 owner 레포에 이슈·PR·릴리스를 쓰는 명령은 그 계정일 때만 통과(`block-dangerous-bash`) |

@@ -55,11 +55,5 @@
   "release": {
     "$comment": "null 이면 changeset 스킬이 스스로 skip 한다.",
     "tool": null
-  },
-
-  "brainSync": {
-    "$comment": "통합 wiki 경로와 대상 폴더. brain-sync 가 처음 실행될 때 물어서 캐시한다.",
-    "wikiPath": "",
-    "targetFolder": ""
   }
 }

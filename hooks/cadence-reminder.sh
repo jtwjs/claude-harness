@@ -37,7 +37,6 @@ HINT_KEY="$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
 TODAY="$(date +%F)"
 
 FIX_THRESHOLD=3
-WORK_THRESHOLD=5
 CLAUDE_MAX_LINES=80    # 템플릿 46줄 · README 목표 ~40줄의 2배
 RULES_MAX_LINES=400    # 정할 때 템플릿 rules 4개 180줄의 2배 + 여유. 지금 템플릿 rules 6개(조건부 포함) 231줄 — 여전히 아래
 
@@ -60,18 +59,7 @@ if [ -n "$anchor" ]; then
   fi
 fi
 
-# ── 축 2: 지식 자본화 ────────────────────────────────────────────────────────
-# _brain/wiki/ 갱신 이후 실질 작업(feat/refactor)이 쌓였다면 통합 wiki 로 흘려보낼 때.
-if [ -d "$REPO_ROOT/_brain/wiki" ]; then
-  banchor=$(git log -1 --format=%H -- _brain/wiki/ 2>/dev/null || true)
-  if [ -n "$banchor" ]; then
-    n=$(git log --oneline -E --grep='^(feat|refactor):' "${banchor}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
-    if [ "${n:-0}" -ge "$WORK_THRESHOLD" ]; then
-      say "_brain/wiki 갱신 이후 feat:/refactor: 커밋 ${n}건. 그 커밋들을 훑어(기능 폴더 docs/<feature-date>/ 의 PRD 결정 절·ARCHITECTURE·ADR 이 있으면 그것부터) 빠진 것이 있으면 **초안을 만들어 제시할 것** — 제품·도메인 결정(정책·고객 사정·지표·범위)이면 _brain/wiki/decisions/<주제>.md, 장애를 닫았으면 infra/, 기술 결정(구조·데이터·라이브러리)은 docs/<feature-date>/ADR.md 에만(_brain 에 쓰지 않는다). 환기만 하면 안 쓰인다(실측: 임계 초과 13·21·8건에 엔트리 0). 코드 사실 문서 갱신은 brain-walk, 이관은 brain-sync."
-      HINTS+=("brain-walk — feat/refactor ${n}건")
-    fi
-  fi
-fi
+# ── 축 2: 지식 자본화 — 2026-11-23 뺐다(레포에 _brain/ 을 두지 않는다, ADR-013) ──
 
 # ── 축 3: CLAUDE.md 비대 ─────────────────────────────────────────────────────
 # `revise-claude-md`(SDD REFLECT)가 매 세션 한 줄씩 쌓는다. 쌓는 주체가 있으면
