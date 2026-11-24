@@ -16,8 +16,11 @@
     {
       "step": 2,
       "name": "rename-harness-run-to-sdd-run",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "러너 스킬이 skills/sdd-run/(SKILL.md name: sdd-run, scripts/sdd_runner.py · phases_status.py · test_sdd_runner.py · preamble.md)으로 옮겨졌고, 경로 `skills/harness-run/`과 스킬 이름 `harness-run`은 레포 전체(쌓기만 하는 기록 제외)에서 `sdd-run`으로 바뀌었다(harness-init/SKILL.md 2-b 줄 포함, hooks/test.sh는 2-d 경로 한 줄만). 옛 이름 harness-run은 phases/*·docs 기록에만 남아 step 6 이름표 행 대상",
+      "tdd": false,
+      "started_at": "2026-11-24T20:00:13+0900",
+      "completed_at": "2026-11-24T20:04:53+0900"
     },
     {
       "step": 3,
