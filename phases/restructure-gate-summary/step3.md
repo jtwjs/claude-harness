@@ -21,6 +21,7 @@
 - `learn-setup.sh`의 `_learn/` 생성 · 기록 지시를 걷는다(ADR-016 Q4). 그 훅이 하는 일이 그것뿐이라 훅을 지우고 `hooks.json`에서 뺀다
 - 스킬의 `_learn/` 기록 지시를 지운다. `scripts/daily-hub/daily_hub.py`의 기존 `_learn` 읽기 · `validate-session-end.sh`의 `_learn/*` 제외는 그대로 둔다(이미 있는 파일을 보기만 한다)
 - `explain-diff`의 Quiz 줄을 지운다
+- `docs/learning-level.md`에서 절을 지우거나 번호가 바뀌면, 그 절을 가리키는 스킬 문장(예: `skills/sdd/SKILL.md` ⑤ 마무리 「이해 증명」 리허설 줄이 §5의 3·4를 가리킨다)을 남는 절로 맞춘다. 가리킬 곳이 없어지면 그 참조를 지운다
 - `hooks/test.sh`에서 지우는 것은 두 곳뿐이다(ADR-016 「대가」 Q7 예외): ① 「`# ── 케이스 6-b: learn-setup — 개인 학습 수신함 _learn/`」 머리줄부터 `ok "워크트리를 지워도 카드가 남는다"`가 있는 줄까지(eca41a4 기준 407~461번 줄, 바로 뒤 빈 줄 하나 포함) ② 케이스 1의 훅 목록 줄 `for h in auto-format tdd-guard … learn-setup prod-db-check; do`에서 `learn-setup` 한 단어. 맨 위 `CLAUDE_LEARN_SKIP` · `CLAUDE_LEARNING_LEVEL_FILE` · `CLAUDE_LEARN_REPOS` export 줄은 테스트가 아니라 실제 `~/.claude`에 쓰지 않게 막는 줄이라 그대로 둔다
 - tdd: false — 문서 줄이기와 훅 삭제다. 삭제한 동작은 RED로 판정할 대상이 없다
 
