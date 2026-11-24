@@ -45,8 +45,11 @@
     {
       "step": 5,
       "name": "principles-three-docs",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:58:16+0900",
+      "summary": "docs/principles/attack-the-premise.md(같은 전제 수정 2회 실패 → 전제를 한 문장으로 적고 시험, 원인을 바꾸는 게 설계 결정이면 ask-questions대로 묻는다) · subtract-before-you-add.md(빼기 먼저, 범위 안에서만 지우고 범위 밖은 후보로 보고) · explain-the-number.md(결정 먼저 적기 · 왜 두 배 아닌가 · 대신 잰 것 지우기 + benchmark-checklist 숫자 점검 7문항 · 대략 감 예외 · 판정 불가 조건) 생성, INDEX 행 3개 추가(INDEX 5행). PStack 명령 예시 · playbook 링크 · 남의 프로세스 멈추기 자동 진행은 빼고, 파일 끝에 PStack MIT 출처 한 줄.",
+      "completed_at": "2026-11-24T21:04:47+0900"
     },
     {
       "step": 6,
