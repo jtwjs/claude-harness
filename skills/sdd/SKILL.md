@@ -63,7 +63,11 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
       - 다음 후보: 아직 안 놓은 다리 (선택)
       ```
       숫자 줄은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/phases_status.py" --retro <task>`의 마지막 줄을 그대로 붙인다(step별 표는 막힌 지점을 고를 때 본다). 막힌 지점은 `phases/{task}/index.json`의 error·retries·`attempts`, 세션의 재지시·재교정, `sdd-review` 🔴에서 **모은다** — 기억으로 쓰지 않는다. 막힌 지점이 0이면 "막힌 지점 없음" 한 줄로 끝.
-   2) **하네스 되돌림 ≥1** — 회고의 「남긴 자산」을 실제로 놓는다. 종류별 종착지:
+   2) **하네스 되돌림 ≥1** — 회고의 「남긴 자산」을 실제로 놓는다. 먼저 **남기는 문턱** 셋을 다 맞는 것만 남긴다. SHA · 버전 · 개수처럼 낡는 값은 남기는 문장에 넣지 않는다 — 곧 틀린 말이 된다.
+      - 6개월 뒤에도 맞다 — 이번 한 번의 사정은 다음 세션에 틀린 지시가 된다
+      - 다음 행동을 바꾼다 — 읽어도 하는 일이 같으면 읽는 비용만 는다
+      - 이번 세션에 쓴 스킬로 간다 — 고칠 스킬을 먼저 읽고 이미 분명히 적힌 것은 버린다. 스킬 밖의 함정 · 규칙은 아래 종착지로 간다
+      남은 것의 종류별 종착지:
       - **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 🔴 **종착지는 하네스 3층으로 재지정** — 기본값 CLAUDE.md는 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.** 플러그인이 없으면 건너뛰고 한 줄 보고.
       - **사고**(실제로 당한 함정) → `rules/non-obvious-patterns.md` 한 줄. 고친 커밋과 같은 PR.
       - **반복**(같은 지시·같은 교정·안 불린 스킬·못 맡긴 것·같은 수작업) → `harness-gaps`가 `.claude/observations.md`에 +1. 3회에 닿은 것만 승격 제안, 🙋 판정은 사람. 2회에 만들지 않는다.
