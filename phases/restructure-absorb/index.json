@@ -36,8 +36,11 @@
     {
       "step": 4,
       "name": "gaps-correction-ladder",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:28:34+0900",
+      "summary": "skills/harness-gaps/SKILL.md §4 종착지를 교정 위계 표(1 구조 → 2 타입 → 3 린트(에러가 고칠 곳을 말함) → 4 테스트 → 5 문서=rules 한 줄 마지막, 칸 「막는 장치(어기면 실패하는 것)」) + 「위계 밖 종착지」 표(scripts/ · .claude/skills/ · BACKLOG.md · 버림)로 나눔. 「규칙 ↔ 막는 장치」는 observations.md 「닫힌 것」 표 새 칸 `막는 장치`(근거 실수에 돌려 실패하는 것만, 문서 단은 「없음」 → 다시 3회면 위 단 제안). 출력 둘째 줄에 단 · 막는 장치 · 위 단이 안 되는 이유. 문턱(3회 · 반복 절차 2회 예외)은 그대로, 원칙은 ${CLAUDE_PLUGIN_ROOT}/docs/principles/build-the-lever.md 경로로만 가리킴",
+      "completed_at": "2026-11-25T00:35:14+0900"
     },
     {
       "step": 5,
