@@ -4,6 +4,8 @@ description: git 변경 내용을 기반으로 커밋 단위로 논리적으로 
 disable-model-invocation: false
 ---
 
+**원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
+
 ## 사전 준비
 
 `.claude/harness.json`의 `verify`를 순서대로 실행한다(`sdd-run` §3 커밋과 같은 근거 — CLAUDE.md에 적힌 시퀀스는 그 사본이다). 각 단계에서 바뀐 파일도 관련 커밋에 포함한다.
@@ -41,6 +43,6 @@ feat: 한 줄 요약
 
 1. 위 형식으로 **커밋 계획을 먼저 출력**한다(파일 범위·메시지).
 2. **사용자 승인 뒤 실행**한다 — 단, `sdd` ⑤ 마무리에서 불렸고 REVIEW 최종 판정(체크포인트 ③)을 이미 통과했으면 그 승인이 커밋 승인을 겸하므로 다시 묻지 않고 실행한다.
-3. 실행 뒤 `git log --oneline -n <개수>`로 만들어진 커밋을 보여준다. `--no-verify`·`--amend`(사용자 요청 없이)·force 류는 쓰지 않는다.
+3. 실행 뒤 `git log --oneline -n <개수>`로 만들어진 커밋을 보여주고, 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄을 단다. `--no-verify`·`--amend`(사용자 요청 없이)·force 류는 쓰지 않는다.
 
 `harness.json.release.tool`이 `changesets`이고 사용자 영향 변경인데 `.changeset/*.md`가 없으면, 커밋 계획 끝에 "먼저 `/changeset`실행 필요 (예상 bump: {patch|minor|major})" 한 줄을 덧붙인다. 대상 패키지 판정 근거는`changeset` 스킬을 따른다.

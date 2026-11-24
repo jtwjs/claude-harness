@@ -6,6 +6,8 @@ disable-model-invocation: false
 
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트/참조 문서에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/sdd-plan` 등으로 직접 호출도 가능.)
 
+**원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
+
 > **한 줄 흐름**
 > **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`sdd-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → 🙋빈틈 3곳 → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명) → ⑤ 마무리(`changeset` → `commit` → `pr-write`)
 > **디자인 트랙** — 위 흐름에 셋이 끼어든다: DESIGN에 `design-brief`(→ 레포 캔버스에 시안) → `design-critique`(시안 평가 루프), REVIEW에 `design-reconcile`. PLAN은 `sdd-plan`이 레포 캔버스를 읽는다
@@ -70,7 +72,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    3) **지식 정리** — 옮길 곳이 없다. 기능 폴더의 PRD 「결정」 절(제품·도메인)과 ADR(기술)이 그대로 정본이다 — 레포에 팀 위키 폴더를 두지 않는다(ADR-013). **개인 학습**은 `_learn/inbox.md`에 작업 중 이미 쌓였다 — 「이번 세션 학습 카드 n건」 한 줄만 보고한다(vault로 옮기는 것은 통합 wiki 쪽 주간 `/gauge week`).
    4) **이해 증명** 🎤 — "왜?"를 받을 결정이 있던 작업이면 **설명 리허설**을 제안한다(거절하면 건너뛴다). ADR과 PRD 「결정」 절의 `결정 주체: AI 추천 수용` 결정부터 고르고, 없으면 PRD 「결정」 절 → ADR 순으로 골라, 회의 참석자(팀장·옆 파트 동료) 역할로 질문 5개를 **하나씩** 던진다. 질문 깊이는 그 결정 분야의 레벨을 따른다(`docs/learning-level.md` — beginner은 쓰인 기술의 큰 흐름부터 "이게 뭐고 보통 언제 써? 여기선 왜 썼어? 안 쓰면?", intermediate은 함정과 이 프로젝트 적용, advanced은 대안·트레이드오프). 끝나면 `history`에 `source: rehearsal` 한 줄. 사람은 문서를 안 보고 자기 말로 답한다. 막힌 질문은 `_learn/inbox.md`에 `종류: 막힌 질문 · 출처: 리허설` 카드로. 사람이 답한 뒤 AI가 정답과의 간극을 비교해 **오해 원인을 한 줄** 알려 준다(`docs/learning-level.md` §5의 3·4). 리허설은 이해를 만드는 일이라 에이전트가 대신 답하지 않는다 — 검증은 기계에 넘겨도 다음 루프는 사람의 이해에서 나온다.
    🔴 **출구 조건** — 셋 다 맞아야 ⑤로 간다. ① 회고 1장이 있다 ② 막힌 지점이 있으면 남긴 자산이 1개 이상이다(없으면 "안 남긴 이유" 한 줄이 있어야 통과) ③ 건너뛴 항목은 `REFLECT 건너뜀: <항목> — <이유>`로 적혀 있다. 건너뛰기는 허용, **말없이 넘어가는 것만 금지**다.
-5. **마무리(SHIP)** — 작업이 **완전히 끝났을 때만**. `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. REFLECT 산출물(회고·규칙 한 줄·`observations.md`)을 구현과 **같은 PR**에 태운다 — 한 사이클 = 한 PR. **문서 한 줄은 고친 커밋과 같은 커밋에**(`rules/non-obvious-patterns.md` 자신의 규칙). PR 본문 끝에 회고 요약(막힌 지점 → 남긴 자산)과 `REFLECT 건너뜀` 줄을 그대로 둔다. `commit`은 REVIEW 최종 판정이 승인을 겸하므로 다시 묻지 않는다.
+5. **마무리(SHIP)** — 작업이 **완전히 끝났을 때만**. `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. REFLECT 산출물(회고·규칙 한 줄·`observations.md`)을 구현과 **같은 PR**에 태운다 — 한 사이클 = 한 PR. **문서 한 줄은 고친 커밋과 같은 커밋에**(`rules/non-obvious-patterns.md` 자신의 규칙). PR 본문 끝에 회고 요약(막힌 지점 → 남긴 자산)과 `REFLECT 건너뜀` 줄을 그대로 둔다. `commit`은 REVIEW 최종 판정이 승인을 겸하므로 다시 묻지 않는다. 마무리 보고 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄을 단다.
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 

@@ -6,6 +6,8 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 
 지휘 세션은 **디스패치 · 판정 · 기록만** 한다. 코드와 다른 트랙 소유 문서는 고치지 않는다. 고치는 것은 그 트랙 세션이거나 공유 구역 PR이다.
 
+**원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
+
 ## 왜
 
 한 레포를 트랙 3개 병렬 세션(worktree)으로 만들며 실측한 것(2026-10-01~08):
@@ -277,6 +279,7 @@ cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg --permission-mode a
 
 4. 「지울 worktree」(§4 현황 표 아래) — PR 병합을 확인하고 `git -C <레포> worktree remove`. 지우기 전에 안 올린 변경 수를 본다
 5. 지휘가 연 트랙 세션(§5 「트랙 세션 열기」) — PR이 병합되면 `claude stop <id>` → `claude rm <id>` → 4번 worktree 정리. `worktree remove`가 잠금으로 거절되면 잠금을 쥔 pid가 끝났는지 `ps -p <pid>`로 보고 끝났을 때만 `git -C <레포> worktree unlock <경로>`
+6. `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄
 
 ```bash
 gh issue list -R <owner>/<repo> --label decision --state closed --json number,comments \
