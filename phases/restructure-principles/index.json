@@ -18,8 +18,11 @@
     {
       "step": 2,
       "name": "skills-call-base-branch",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:36:50+0900",
+      "summary": "pr-write · sdd-review · changeset · harness-init의 기준 브랜치 규칙 문장을 `bash \"${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh\"` 출력(exit 2면 사람에게 묻는다) 한 줄로 바꿨다. harness-init은 git.baseBranch 채우기 · {{BASE_BRANCH}} 빈 값 · .changeset/config.json baseBranch 세 곳이 같은 스크립트를 쓴다. skills 안 base-branch.sh 참조 6줄.",
+      "completed_at": "2026-11-24T20:40:14+0900"
     },
     {
       "step": 3,
