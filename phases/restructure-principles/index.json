@@ -27,8 +27,11 @@
     {
       "step": 3,
       "name": "principles-index-and-questions",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-24T20:40:14+0900",
+      "summary": "docs/principles/INDEX.md(첫 줄 「목차의 경로는 이 파일이 있는 폴더 기준이다」 · 표 `이름 | 언제 | 경로`, 경로 칸은 `ask-questions.md`처럼 백틱 파일명) · docs/principles/ask-questions.md(why 질문 규칙의 판단 규칙만, 날짜·ADR-011 이력·가설 원장 문장은 뺐다) 생성. why 「질문 규칙」 절과 sdd · sdd/references/design.md · sdd-plan · design-brief 참조는 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md` 한 줄로. hooks/tests/principles.sh([principles] 5줄)가 INDEX ↔ 원칙 파일 짝 · skills/ 안 원칙 경로는 ${CLAUDE_PLUGIN_ROOT} 형태만 · why 포인터를 검사하므로 step 4·5는 새 원칙 파일마다 INDEX 행을 같이 더한다. test.sh 케이스 10 정본 검사는 '한 번에 한 질문:docs/principles/ask-questions.md'.",
+      "completed_at": "2026-11-24T20:50:47+0900"
     },
     {
       "step": 4,
