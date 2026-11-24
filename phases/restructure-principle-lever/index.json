@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "principle-build-the-lever",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "docs/principles/build-the-lever.md에 두 절(build-the-lever: 결과물이 분명할 때 도구, 모호하면 반복 관찰 대기 · encode-lessons-in-structure: 두 번째 「후보」 표시만, 3회부터 승격 후보) + INDEX 두 행(같은 파일). skills/harness-gaps/SKILL.md 문턱 문장이 ${CLAUDE_PLUGIN_ROOT}/docs/principles/build-the-lever.md를 가리키고 2회 행은 출력 표에 「후보」만 붙인다",
+      "tdd": false,
+      "started_at": "2026-11-24T21:13:27+0900",
+      "completed_at": "2026-11-24T21:21:29+0900"
     }
   ]
 }
