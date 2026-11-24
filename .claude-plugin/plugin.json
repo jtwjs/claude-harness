@@ -6,9 +6,6 @@
     "name": "jtwjs"
   },
   "license": "MIT",
-  "dependencies": [
-    { "name": "understand-anything", "marketplace": "understand-anything" }
-  ],
   "keywords": [
     "harness",
     "sdd",

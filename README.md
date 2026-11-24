@@ -19,7 +19,6 @@
 ## 빠른 시작
 
 ```bash
-/plugin marketplace add Egonex-AI/Understand-Anything   # 의존 플러그인. 없으면 harness가 비활성화된다
 /plugin marketplace add jtwjs/claude-harness
 /plugin install claude-harness@jtwjs-plugins
 /plugin install claude-md-management@claude-plugins-official   # 선택. REFLECT의 세션 학습 회수
