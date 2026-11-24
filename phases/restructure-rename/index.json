@@ -52,8 +52,11 @@
     {
       "step": 6,
       "name": "rename-table-and-guard",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:15:59+0900",
+      "summary": "skills/harness-init/SKILL.md 이름표 끝에 harness→sdd-plan(스킬 이름 자리만) · harness-run→sdd-run · ai-readiness-cartography→harness-score · plannotator-visual-explainer→행 삭제(PR 설명은 explain-diff) 4행(언제 2026-11-24)을 더하고 design-plan 행 「지금」을 sdd-plan으로 고쳤다. 새 hooks/tests/renames.sh([renames])가 skills·agents·hooks·templates·scripts·README.md·BACKLOG.md에서 옛 이름 4개(PLAN은 'claude-harness:harness([^-a-z]|$)|skills/harness/')를 grep -I로 세어 0이면 ok(빼는 곳: hooks/test.sh·자기 자신·harness-init 이름표). weekly-readiness-check.sh 하락 알림은 /harness-score 직접 실행 안내로, harness-score/SKILL.md 제목은 'Harness Score', cartography 문장 2곳은 새 이름에 맞춤(When to use의 'repo cartography' 트리거 예시는 남김)",
+      "completed_at": "2026-11-24T20:24:17+0900"
     }
   ]
 }
