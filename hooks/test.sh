@@ -594,7 +594,7 @@ grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\
   && ok "DESIGN 절차는 세 장 · REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
 # 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
 cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
-for need in '이 자리에서 묻는다:skills/sdd-plan/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'docs/retro/YYYY-MM-DD:skills/sdd/SKILL.md'; do
+for need in '이 자리에서 묻는다:skills/sdd-plan/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '한 번에 한 질문:docs/principles/ask-questions.md' 'docs/retro/YYYY-MM-DD:skills/sdd/SKILL.md'; do
   grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
 없음: ${need}"
 done

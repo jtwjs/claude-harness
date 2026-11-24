@@ -29,13 +29,13 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 1. **계획** = DESIGN → PLAN. 한 단계, 게이트 둘.
    **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`why` 「질문 규칙」: 한 번에 한 질문 · "왜?"를 받을 결정도 추천 표시 후 사람이 선택)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
+   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
    ⚠️ PRD의 **수용 조건**이 각 step의 **먼저 쓰는 테스트**의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 레퍼런스부터 정하고, **시안 전에** 권한·상태·데이터 결정(+ 닐슨 렌즈)을 끝내 `.claude/design/`에 브리프를 만든다 → 🙋 브리프 승인 →
    Claude가 **레포당 하나인 캔버스**의 `작업: <기능>` 탭에 시안을 그린다(제작 체크리스트 · `.claude/design/canvas/` 커밋) →
    `design-critique`로 시안 평가(페르소나 · 닐슨 휴리스틱 · 레퍼런스 실측 독립 병렬) → 체크포인트 `verdict: 변경`이면 반영 후 다시 → 🙋 `verdict: 승인`.
    **PLAN** — `sdd-plan`으로 step 분해(각 step에 `tdd: true|false` 판정 포함). 세 장이 이미 있어 PLAN만 필요하면 `sdd-plan`을 바로 부른다.
-   step 파일의 `⚠️`·`TBD`·미해결 가정은 `sdd-plan` §2가 **그 자리에서** 캐묻고(질문 규칙은 `why`) 결정을 PRD 「결정」/ADR에 적는다. 승인 시점 미해결 `⚠️` 0개. → 🙋 step 계획 승인.
+   step 파일의 `⚠️`·`TBD`·미해결 가정은 `sdd-plan` §2가 **그 자리에서** 캐묻고(질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`) 결정을 PRD 「결정」/ADR에 적는다. 승인 시점 미해결 `⚠️` 0개. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `sdd-plan` §3-b가 레포 캔버스의 작업 탭을 읽어 step마다 보드·뷰포트·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
 2. **IMPLEMENT** 🤖 — `sdd-run`이 step마다 호출 1번(테스트 먼저 → 구현)으로 돌리고 `sdd_runner.py judge`가 git 기록으로 판정한다. hands-off.
    - **RED**: 테스트만 담긴 커밋이 먼저 있고, 그 시점으로 돌려 `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
