@@ -1,6 +1,6 @@
 ---
 name: harness-run
-description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when harness 스킬로 만든 계획을 구현할 때.
+description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when sdd-plan 스킬로 만든 계획을 구현할 때.
 disable-model-invocation: false
 ---
 
@@ -16,7 +16,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 ## 0. 입력
 
 - `task` slug(= `phases/{task}/` 존재). 없으면 사용자에게 확인.
-- 설계문서 경로는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`harness`가 채운다). 없으면 묻는다 — `docs/` 아래를 뒤져 추측하지 않는다.
+- 설계문서 경로는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`sdd-plan`이 채운다). 없으면 묻는다 — `docs/` 아래를 뒤져 추측하지 않는다.
 - 여러 phase 현황은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py"`(같은 PRD로 묶고 `after` 순서로). 시작 전 점검은 §1 `start`가 이 스크립트의 `--check`와 같은 검사를 한다
 
 ## 1. 시작 — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" start {task}`

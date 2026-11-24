@@ -39,12 +39,12 @@
 
 - SDD의 RED/GREEN 판정은 `sdd_runner.py judge`가 git 기록으로 한다(0.18.0~) — 테스트만 담긴 커밋이 먼저 · RED 시점 재실행이 **실패해야** · RED 뒤 테스트 파일 무변경 · verify 통과. 처음부터 초록이면 잡는 것이 없다는 뜻이다. 정본 `docs/sdd-runner.md`
 - `test-writer`(구현 파일을 열지 않고 실패 테스트)·`feature-builder`(테스트 파일을 고치지 않고 통과)는 러너가 부르지 않는 수동 TDD 도구다. 사람이 엄격한 분리를 원할 때와 REVIEW의 작은 수정에 쓴다.
-- 모든 step에 테스트가 붙지는 않는다. `harness`가 step마다 `tdd: true|false`를 판정하고 `false`면 이유를 적는다.
+- 모든 step에 테스트가 붙지는 않는다. `sdd-plan`이 step마다 `tdd: true|false`를 판정하고 `false`면 이유를 적는다.
 - 모델 배정: 탐색·판정 에이전트(`test-writer`·`code-reviewer`·`root-cause-debugger`)는 상위 모델, `feature-builder`는 정해진 것을 만드는 일이라 기본 모델. 올리는 근거는 느낌이 아니라 `retries` 기록이다(`BACKLOG.md`).
 
 ## 5. 계획은 한 단계, 게이트는 둘
 
-① 계획 = DESIGN → PLAN 한 단계, 게이트 둘(0.22.0, 2026-10-16). DESIGN 절차(인터뷰 → 세 장 → Readiness)는 `skills/sdd/references/design.md`로 sdd에 내장했다 — 별도 스킬(`why-plan`, 2026-10-11 `grilling`+`why-logictree` 합침)은 30일 sdd 세션 8건 중 호출 0이었고 sdd가 PRD를 인라인으로 썼다. 호출 한 단계를 없애고 절차를 sdd가 직접 읽는다. 범용 부분(WHY·3질문·로직트리·So What/Why So·질문 규칙 정본)은 `why` 스킬로 — 파일을 쓰지 않고 이유·근거만 본다. step 승인 직전의 빈칸은 `harness` §2가 같은 질문 규칙으로 그 자리에서 캐묻는다(옛 재호출 경로는 실사용 0건이었고, DESIGN이 PLAN 산출물을 고치는 교차를 만들었다). DESIGN·PLAN을 **스킬 하나로 합치지 않은** 근거: `harness` 단독 호출(30일 37회 vs DESIGN 2회 — PRD가 있는 기능에 step만 추가하는 경우가 대부분) · 게이트가 묻는 것이 다름(Readiness "무엇을 왜가 굳었나" / step 승인 "어떻게 쪼갰나", 디자인 트랙 브리프→시안 승인이 그 사이) · 한 텍스트에 인터뷰와 분해가 같이 있으면 모델이 분해로 서두른다(sdd 인라인 PRD가 그 증거). 결정 주체: 사람(단계는 묶고 스킬·게이트는 둘 · why 분리).
+① 계획 = DESIGN → PLAN 한 단계, 게이트 둘(0.22.0, 2026-10-16). DESIGN 절차(인터뷰 → 세 장 → Readiness)는 `skills/sdd/references/design.md`로 sdd에 내장했다 — 별도 스킬(`why-plan`, 2026-10-11 `grilling`+`why-logictree` 합침)은 30일 sdd 세션 8건 중 호출 0이었고 sdd가 PRD를 인라인으로 썼다. 호출 한 단계를 없애고 절차를 sdd가 직접 읽는다. 범용 부분(WHY·3질문·로직트리·So What/Why So·질문 규칙 정본)은 `why` 스킬로 — 파일을 쓰지 않고 이유·근거만 본다. step 승인 직전의 빈칸은 `sdd-plan` §2가 같은 질문 규칙으로 그 자리에서 캐묻는다(옛 재호출 경로는 실사용 0건이었고, DESIGN이 PLAN 산출물을 고치는 교차를 만들었다). DESIGN·PLAN을 **스킬 하나로 합치지 않은** 근거: `sdd-plan` 단독 호출(30일 37회 vs DESIGN 2회 — PRD가 있는 기능에 step만 추가하는 경우가 대부분) · 게이트가 묻는 것이 다름(Readiness "무엇을 왜가 굳었나" / step 승인 "어떻게 쪼갰나", 디자인 트랙 브리프→시안 승인이 그 사이) · 한 텍스트에 인터뷰와 분해가 같이 있으면 모델이 분해로 서두른다(sdd 인라인 PRD가 그 증거). 결정 주체: 사람(단계는 묶고 스킬·게이트는 둘 · why 분리).
 
 ## 6. 3회 규칙
 

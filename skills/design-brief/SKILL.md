@@ -109,4 +109,4 @@ DS·컴포넌트 탭을 이번 기능이 바꿀 때도 as-is | to-be로 둔다. 
 
 ## 6. 다음
 
-**`design-critique`**로 시안을 평가한다. `verdict: 승인`이 나면 `harness`로 step을 쪼갠다 — `harness` §3-b가 레포 캔버스를 읽는다.
+**`design-critique`**로 시안을 평가한다. `verdict: 승인`이 나면 `sdd-plan`으로 step을 쪼갠다 — `sdd-plan` §3-b가 레포 캔버스를 읽는다.

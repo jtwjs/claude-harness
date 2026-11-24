@@ -9,7 +9,7 @@ disable-model-invocation: false
 ## 1. 기준 로드 (이 파일들만)
 
 - 루트 `CLAUDE.md`
-- 설계문서 폴더는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`harness`가 채움). `task`를 모르면 묻고, `docs/` 아래를 뒤져 추측하지 않는다.
+- 설계문서 폴더는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`sdd-plan`이 채움). `task`를 모르면 묻고, `docs/` 아래를 뒤져 추측하지 않는다.
 - `{docs}/ARCHITECTURE.md`(구조·레이어) · `ADR.md`(기술 결정)
 - (필요 시 `PRD.md`로 요구사항 대조)
 

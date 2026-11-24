@@ -1,5 +1,5 @@
 ---
-name: harness
+name: sdd-plan
 description: SDD ① 계획의 PLAN — docs/{feature-date}/ 설계문서(PRD·ARCHITECTURE·ADR)와 CLAUDE.md를 읽고 사용자와 범위를 합의한 뒤, 자기완결적 step 파일(phases/{task}/index.json + stepN.md)로 분해해줘. Use when 설계가 끝나 구현 계획을 세울 때(harness-run 실행 직전).
 disable-model-invocation: false
 ---
