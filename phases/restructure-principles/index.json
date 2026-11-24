@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "base-branch-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "summary": "scripts/base-branch.sh 생성 — `bash scripts/base-branch.sh [레포 경로=.]`가 기준 브랜치 한 줄을 stdout(① .claude/harness.json git.baseBranch ② origin/HEAD에서 origin/ 뗀 값 ③ 둘 다 없으면 stderr 한 줄 + exit 2, 부른 쪽이 사람에게 묻는다). 레포 경로는 git toplevel로 맞춘다. 테스트는 hooks/tests/base-branch.sh([base-branch] 4케이스). step 2는 pr-write · sdd-review · changeset · harness-init의 기준 브랜치 줄을 이 스크립트 호출로 바꾼다.",
+      "tdd": true,
+      "started_at": "2026-11-24T20:29:11+0900",
+      "completed_at": "2026-11-24T20:35:42+0900"
     },
     {
       "step": 2,
