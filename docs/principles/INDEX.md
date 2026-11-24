@@ -7,3 +7,5 @@
 | `attack-the-premise` | 같은 전제를 깐 수정이 두 번 이상 같은 검사(테스트 · 빌드 · 리뷰 · 측정)에서 실패했을 때, 다음 수정 전 | `attack-the-premise.md` |
 | `subtract-before-you-add` | 기능 추가 · 리팩터 · 다시 쓰기의 작업 순서를 정할 때 | `subtract-before-you-add.md` |
 | `explain-the-number` | 재기 전, 그리고 잰 숫자(성능 · 평가 결과)를 믿거나 보고하거나 그것으로 정하기 전 | `explain-the-number.md` |
+| `build-the-lever` | 사소하지 않은 일(수정 · 옮기기 · 분석 · 검사)을 손으로 하려 할 때 | `build-the-lever.md` |
+| `encode-lessons-in-structure` | 같은 지시를 두 번째 쓰거나 같은 교정이 되풀이될 때 | `build-the-lever.md` |
