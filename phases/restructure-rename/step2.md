@@ -28,7 +28,7 @@
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
 - `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 통과(`scripts/release.sh`와 같은 명령)
 - `test ! -e skills/harness-run && test -f skills/sdd-run/scripts/sdd_runner.py`
-- `git grep -n 'harness-run' -- . ':!phases/' ':!docs/retro/' ':!docs/*-20*/' ':!docs/design-notes.md' ':!skills/harness-init/SKILL.md' ':!skills/harness-init/references/'` 출력 0줄
+- `git grep -n 'harness-run' -- . ':!phases/' ':!docs/retro/' ':!docs/*-20*' ':!docs/design-notes.md' ':!skills/harness-init/SKILL.md' ':!skills/harness-init/references/'` 출력 0줄
 
 ## 검증 절차
 

@@ -21,7 +21,7 @@
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
 - `test ! -e skills/plannotator-visual-explainer`
-- `git grep -n 'plannotator-visual-explainer' -- . ':!phases/' ':!docs/retro/' ':!docs/*-20*/' ':!docs/design-notes.md' ':!skills/harness-init/SKILL.md' ':!skills/harness-init/references/'` 출력 0줄
+- `git grep -n 'plannotator-visual-explainer' -- . ':!phases/' ':!docs/retro/' ':!docs/*-20*' ':!docs/design-notes.md' ':!skills/harness-init/SKILL.md' ':!skills/harness-init/references/'` 출력 0줄
 
 ## 검증 절차
 
