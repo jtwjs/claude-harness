@@ -63,8 +63,11 @@
     {
       "step": 7,
       "name": "reframe-sharpen",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:47:49+0900",
+      "summary": "새 skills/reframe/SKILL.md(만드는 것을 전문 용어로 가르침: 후보 문제 2~3개 · 용어 8~12개와 확인한 링크 · 이웃 분야 2~3개 · 놓친 것 · 설명 다시 쓰기) + 새 skills/sharpen/SKILL.md(크게가 아니라 깊게: 최고 실무자 · 날것 재료 · 방법과 도구 · 바깥 검증 4가지 뒤 지시문 다시 쓰기, 실험으로 가릴 선택은 프로토타입 추천 · 결정 넘기기는 ${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md, 다시 쓴 지시문을 내고 멈춤). 둘 다 disable-model-invocation: true · 본문 첫 줄에 「왜 · 근거는 why의 일」 경계 · PStack MIT 출처 한 줄 · 「쓴 원칙」 줄 없음",
+      "completed_at": "2026-11-25T00:54:08+0900"
     },
     {
       "step": 8,
