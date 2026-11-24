@@ -16,7 +16,7 @@ git 변경사항을 분석해서 Changeset 파일을 자동으로 작성해줘.
 아래를 순서대로 실행해서 변경 내용을 파악한다:
 
 ```bash
-git log <base>..HEAD --oneline         # <base> = harness.json git.baseBranch, 비었으면 origin/HEAD (pr-write 와 같은 규칙. main 하드코딩 금지)
+git log <base>..HEAD --oneline         # <base> = bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh" 출력 (exit 2면 사람에게 묻는다)
 git diff HEAD --stat                   # 변경 파일 목록과 규모
 git diff HEAD                          # 실제 diff
 # 모노레포면 워크스페이스별로: git diff HEAD -- <workspace-dir>/

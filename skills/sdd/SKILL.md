@@ -6,6 +6,8 @@ disable-model-invocation: false
 
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트/참조 문서에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/sdd-plan` 등으로 직접 호출도 가능.)
 
+**원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
+
 > **한 줄 흐름**
 > **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`sdd-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → 🙋빈틈 3곳 → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명) → ⑤ 마무리(`changeset` → `commit` → `pr-write`)
 > **디자인 트랙** — 위 흐름에 셋이 끼어든다: DESIGN에 `design-brief`(→ 레포 캔버스에 시안) → `design-critique`(시안 평가 루프), REVIEW에 `design-reconcile`. PLAN은 `sdd-plan`이 레포 캔버스를 읽는다
@@ -29,13 +31,13 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 1. **계획** = DESIGN → PLAN. 한 단계, 게이트 둘.
    **DESIGN** — `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR을 확보한다.
-   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`why` 「질문 규칙」: 한 번에 한 질문 · "왜?"를 받을 결정도 추천 표시 후 사람이 선택)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
+   세 장이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다(크기 판정 → 날것·참고 자료 → WHY·3질문(`why` 탐구 모드) → 갈래별 한 질문씩 → 렌즈 점검(사용자 흐름 → 아키텍처 → 엣지·에러·보안+과설계) → So What/Why So → PRD → ARCHITECTURE → 기술 결정이 있으면 ADR · `_learn` 카드는 그 자리에서). 🔴 **절차를 건너뛰고 세 장을 바로 쓰지 않는다** — 질문 규칙(`${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`)과 Readiness가 빠진다. 세 장이 이미 있으면 Readiness만 돈다. → 🙋 **Readiness 체크**(7항목 — AI 채점, 착수는 사람. "착수할까요?").
    ⚠️ PRD의 **수용 조건**이 각 step의 **먼저 쓰는 테스트**의 입력이다. 여기가 비면 뒤가 전부 빈다.
    🎨 **디자인 트랙**: PRD 확정 후 `design-brief`로 레퍼런스부터 정하고, **시안 전에** 권한·상태·데이터 결정(+ 닐슨 렌즈)을 끝내 `.claude/design/`에 브리프를 만든다 → 🙋 브리프 승인 →
    Claude가 **레포당 하나인 캔버스**의 `작업: <기능>` 탭에 시안을 그린다(제작 체크리스트 · `.claude/design/canvas/` 커밋) →
    `design-critique`로 시안 평가(페르소나 · 닐슨 휴리스틱 · 레퍼런스 실측 독립 병렬) → 체크포인트 `verdict: 변경`이면 반영 후 다시 → 🙋 `verdict: 승인`.
    **PLAN** — `sdd-plan`으로 step 분해(각 step에 `tdd: true|false` 판정 포함). 세 장이 이미 있어 PLAN만 필요하면 `sdd-plan`을 바로 부른다.
-   step 파일의 `⚠️`·`TBD`·미해결 가정은 `sdd-plan` §2가 **그 자리에서** 캐묻고(질문 규칙은 `why`) 결정을 PRD 「결정」/ADR에 적는다. 승인 시점 미해결 `⚠️` 0개. → 🙋 step 계획 승인.
+   step 파일의 `⚠️`·`TBD`·미해결 가정은 `sdd-plan` §2가 **그 자리에서** 캐묻고(질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`) 결정을 PRD 「결정」/ADR에 적는다. 승인 시점 미해결 `⚠️` 0개. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `sdd-plan` §3-b가 레포 캔버스의 작업 탭을 읽어 step마다 보드·뷰포트·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
 2. **IMPLEMENT** 🤖 — `sdd-run`이 step마다 호출 1번(테스트 먼저 → 구현)으로 돌리고 `sdd_runner.py judge`가 git 기록으로 판정한다. hands-off.
    - **RED**: 테스트만 담긴 커밋이 먼저 있고, 그 시점으로 돌려 `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
@@ -70,7 +72,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    3) **지식 정리** — 옮길 곳이 없다. 기능 폴더의 PRD 「결정」 절(제품·도메인)과 ADR(기술)이 그대로 정본이다 — 레포에 팀 위키 폴더를 두지 않는다(ADR-013). **개인 학습**은 `_learn/inbox.md`에 작업 중 이미 쌓였다 — 「이번 세션 학습 카드 n건」 한 줄만 보고한다(vault로 옮기는 것은 통합 wiki 쪽 주간 `/gauge week`).
    4) **이해 증명** 🎤 — "왜?"를 받을 결정이 있던 작업이면 **설명 리허설**을 제안한다(거절하면 건너뛴다). ADR과 PRD 「결정」 절의 `결정 주체: AI 추천 수용` 결정부터 고르고, 없으면 PRD 「결정」 절 → ADR 순으로 골라, 회의 참석자(팀장·옆 파트 동료) 역할로 질문 5개를 **하나씩** 던진다. 질문 깊이는 그 결정 분야의 레벨을 따른다(`docs/learning-level.md` — beginner은 쓰인 기술의 큰 흐름부터 "이게 뭐고 보통 언제 써? 여기선 왜 썼어? 안 쓰면?", intermediate은 함정과 이 프로젝트 적용, advanced은 대안·트레이드오프). 끝나면 `history`에 `source: rehearsal` 한 줄. 사람은 문서를 안 보고 자기 말로 답한다. 막힌 질문은 `_learn/inbox.md`에 `종류: 막힌 질문 · 출처: 리허설` 카드로. 사람이 답한 뒤 AI가 정답과의 간극을 비교해 **오해 원인을 한 줄** 알려 준다(`docs/learning-level.md` §5의 3·4). 리허설은 이해를 만드는 일이라 에이전트가 대신 답하지 않는다 — 검증은 기계에 넘겨도 다음 루프는 사람의 이해에서 나온다.
    🔴 **출구 조건** — 셋 다 맞아야 ⑤로 간다. ① 회고 1장이 있다 ② 막힌 지점이 있으면 남긴 자산이 1개 이상이다(없으면 "안 남긴 이유" 한 줄이 있어야 통과) ③ 건너뛴 항목은 `REFLECT 건너뜀: <항목> — <이유>`로 적혀 있다. 건너뛰기는 허용, **말없이 넘어가는 것만 금지**다.
-5. **마무리(SHIP)** — 작업이 **완전히 끝났을 때만**. `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. REFLECT 산출물(회고·규칙 한 줄·`observations.md`)을 구현과 **같은 PR**에 태운다 — 한 사이클 = 한 PR. **문서 한 줄은 고친 커밋과 같은 커밋에**(`rules/non-obvious-patterns.md` 자신의 규칙). PR 본문 끝에 회고 요약(막힌 지점 → 남긴 자산)과 `REFLECT 건너뜀` 줄을 그대로 둔다. `commit`은 REVIEW 최종 판정이 승인을 겸하므로 다시 묻지 않는다.
+5. **마무리(SHIP)** — 작업이 **완전히 끝났을 때만**. `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write`. REFLECT 산출물(회고·규칙 한 줄·`observations.md`)을 구현과 **같은 PR**에 태운다 — 한 사이클 = 한 PR. **문서 한 줄은 고친 커밋과 같은 커밋에**(`rules/non-obvious-patterns.md` 자신의 규칙). PR 본문 끝에 회고 요약(막힌 지점 → 남긴 자산)과 `REFLECT 건너뜀` 줄을 그대로 둔다. `commit`은 REVIEW 최종 판정이 승인을 겸하므로 다시 묻지 않는다. 마무리 보고 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄을 단다.
 
 ## 사람 체크포인트 (여기서만 승인 대기)
 

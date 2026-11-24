@@ -9,38 +9,63 @@
     {
       "step": 1,
       "name": "base-branch-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "summary": "scripts/base-branch.sh 생성 — `bash scripts/base-branch.sh [레포 경로=.]`가 기준 브랜치 한 줄을 stdout(① .claude/harness.json git.baseBranch ② origin/HEAD에서 origin/ 뗀 값 ③ 둘 다 없으면 stderr 한 줄 + exit 2, 부른 쪽이 사람에게 묻는다). 레포 경로는 git toplevel로 맞춘다. 테스트는 hooks/tests/base-branch.sh([base-branch] 4케이스). step 2는 pr-write · sdd-review · changeset · harness-init의 기준 브랜치 줄을 이 스크립트 호출로 바꾼다.",
+      "tdd": true,
+      "started_at": "2026-11-24T20:29:11+0900",
+      "completed_at": "2026-11-24T20:35:42+0900"
     },
     {
       "step": 2,
       "name": "skills-call-base-branch",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:36:50+0900",
+      "summary": "pr-write · sdd-review · changeset · harness-init의 기준 브랜치 규칙 문장을 `bash \"${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh\"` 출력(exit 2면 사람에게 묻는다) 한 줄로 바꿨다. harness-init은 git.baseBranch 채우기 · {{BASE_BRANCH}} 빈 값 · .changeset/config.json baseBranch 세 곳이 같은 스크립트를 쓴다. skills 안 base-branch.sh 참조 6줄.",
+      "completed_at": "2026-11-24T20:40:14+0900"
     },
     {
       "step": 3,
       "name": "principles-index-and-questions",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-24T20:40:14+0900",
+      "summary": "docs/principles/INDEX.md(첫 줄 「목차의 경로는 이 파일이 있는 폴더 기준이다」 · 표 `이름 | 언제 | 경로`, 경로 칸은 `ask-questions.md`처럼 백틱 파일명) · docs/principles/ask-questions.md(why 질문 규칙의 판단 규칙만, 날짜·ADR-011 이력·가설 원장 문장은 뺐다) 생성. why 「질문 규칙」 절과 sdd · sdd/references/design.md · sdd-plan · design-brief 참조는 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md` 한 줄로. hooks/tests/principles.sh([principles] 5줄)가 INDEX ↔ 원칙 파일 짝 · skills/ 안 원칙 경로는 ${CLAUDE_PLUGIN_ROOT} 형태만 · why 포인터를 검사하므로 step 4·5는 새 원칙 파일마다 INDEX 행을 같이 더한다. test.sh 케이스 10 정본 검사는 '한 번에 한 질문:docs/principles/ask-questions.md'.",
+      "completed_at": "2026-11-24T20:50:47+0900"
     },
     {
       "step": 4,
       "name": "principles-write-for-readers",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:50:54+0900",
+      "summary": "docs/principles/write-for-readers.md 생성 — 슬랙·노션 공용 글 규칙 12개에 고정 번호(1 지어내지 않음 · 2 4단 최대 · 3 형용사 대신 숫자 · 4 열린 질문→제안값 · 5 요청 문장 음슴체 금지 · 6 12살 설명 금지 · 7 해석 문장 · 8 em dash · 9~11 AI 티 · 12 밖으로 내기 전 출처 점검), 다른 스킬은 `write-for-readers N`으로 인용하고 새 규칙은 끝 번호 뒤에 붙인다. INDEX 행 추가. slack-writing · notion-writing은 맨 위 「공용 글 규칙」 줄로 `${CLAUDE_PLUGIN_ROOT}/docs/principles/write-for-readers.md`를 가리키고 형식별 규칙만 남겼으며, 절차의 출력 직전 단계에 출처 점검(`write-for-readers 12`)을 더했다. 「출처」 이력 절 · 기계 검사는 그대로 둠(PR 5 trim-history-rest 몫).",
+      "completed_at": "2026-11-24T20:58:16+0900"
     },
     {
       "step": 5,
       "name": "principles-three-docs",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:58:16+0900",
+      "summary": "docs/principles/attack-the-premise.md(같은 전제 수정 2회 실패 → 전제를 한 문장으로 적고 시험, 원인을 바꾸는 게 설계 결정이면 ask-questions대로 묻는다) · subtract-before-you-add.md(빼기 먼저, 범위 안에서만 지우고 범위 밖은 후보로 보고) · explain-the-number.md(결정 먼저 적기 · 왜 두 배 아닌가 · 대신 잰 것 지우기 + benchmark-checklist 숫자 점검 7문항 · 대략 감 예외 · 판정 불가 조건) 생성, INDEX 행 3개 추가(INDEX 5행). PStack 명령 예시 · playbook 링크 · 남의 프로세스 멈추기 자동 진행은 빼고, 파일 끝에 PStack MIT 출처 한 줄.",
+      "completed_at": "2026-11-24T21:04:47+0900"
     },
     {
       "step": 6,
       "name": "entry-skills-point-to-index",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T21:04:47+0900",
+      "summary": "자동 입구 7개(sdd · why · conductor · slack-writing · notion-writing · commit · pr-write) 맨 위에 「**원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.」 한 줄, 보고 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄(sdd ⑤ 마무리 · why 「끝」 · conductor §7 6번 · slack/notion 출력 형식(메시지·본문 밖) · commit 실행 3 · pr-write 6단계(PR 본문 밖)). how는 restructure-absorb에서 같은 두 줄을 넣는다.",
+      "completed_at": "2026-11-24T21:10:02+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-24T21:12:29+0900",
+      "head": "d52dc204009ec7ac64da2a8ff8c309f6572861b0",
+      "issues": []
     }
   ]
 }
