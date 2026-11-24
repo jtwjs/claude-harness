@@ -36,8 +36,11 @@
     {
       "step": 4,
       "name": "principles-write-for-readers",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:50:54+0900",
+      "summary": "docs/principles/write-for-readers.md 생성 — 슬랙·노션 공용 글 규칙 12개에 고정 번호(1 지어내지 않음 · 2 4단 최대 · 3 형용사 대신 숫자 · 4 열린 질문→제안값 · 5 요청 문장 음슴체 금지 · 6 12살 설명 금지 · 7 해석 문장 · 8 em dash · 9~11 AI 티 · 12 밖으로 내기 전 출처 점검), 다른 스킬은 `write-for-readers N`으로 인용하고 새 규칙은 끝 번호 뒤에 붙인다. INDEX 행 추가. slack-writing · notion-writing은 맨 위 「공용 글 규칙」 줄로 `${CLAUDE_PLUGIN_ROOT}/docs/principles/write-for-readers.md`를 가리키고 형식별 규칙만 남겼으며, 절차의 출력 직전 단계에 출처 점검(`write-for-readers 12`)을 더했다. 「출처」 이력 절 · 기계 검사는 그대로 둠(PR 5 trim-history-rest 몫).",
+      "completed_at": "2026-11-24T20:58:16+0900"
     },
     {
       "step": 5,
