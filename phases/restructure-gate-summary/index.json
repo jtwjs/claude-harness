@@ -42,5 +42,14 @@
       "summary": "templates/.claude/references/track-brief.md 「끝나면 지휘에 보고」 = 세 줄 요약 → 판정 재료(기존 5줄 유지, 번호 그대로) → 학습 카드, 형식은 ${CLAUDE_PLUGIN_ROOT}/skills/sdd/SKILL.md ⑤가 정본(다시 안 씀, ⑤ 안 거쳤으면 같은 형식으로 지금). skills/conductor/SKILL.md: §4 사용자에게 올리는 현황 = recall 출력 계약(sdd 「재개」 경로 참조, 상태 태그는 트랙마다 ⛔·💤·진행), §8 보고 행 = 세 줄 요약·판정 재료 5줄·학습 카드, §5 「트랙 보고 4번」→「판정 재료」 4번. bash hooks/test.sh 449 통과",
       "completed_at": "2026-11-24T22:00:28+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-24T22:02:33+0900",
+      "head": "71551b085e402fef144ebea265f809f7fa574e21",
+      "issues": [
+        "실제 동작 확인필요 — sdd 마무리 · pr-write를 실제 세션에서 돌려 세 줄 요약 · 학습 카드가 나오는지 미실행"
+      ]
+    }
   ]
 }
