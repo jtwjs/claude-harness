@@ -72,8 +72,11 @@
     {
       "step": 8,
       "name": "how-skill",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:54:08+0900",
+      "summary": "새 skills/how/SKILL.md(자동 입구 · allowed-tools [Read, Glob, Grep] 읽기 전용 · diff 없이 지금 코드를 읽음, description 「코드가 어떻게 도나 · 어느 레이어에 두나」로 why(이유 · 근거)와 갈림, 본문: 진입점 → 흐름(파일:줄, 못 찾은 연결은 [추정]) → 경계 → 손대기 전 함정 / 둘 곳은 CLAUDE.md · .claude/rules · docs/*/ARCHITECTURE.md와 이웃 코드부터, 갈리면 선택지+추천 후 사람이 고름(${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md) · 입구 원칙 줄 · 「쓴 원칙 · 바뀐 결정」 보고 줄 · PStack MIT 출처 한 줄, PStack의 서브에이전트 위임은 안 가져옴) + trigger-eval/evals.json에 \"how\" 20문항(떠야 할 10 · 안 떠야 할 10: why형 3 · 단순 검색 3 · 구현 2 · 일반 개념 1 · sdd 시작 1). trigger-eval/README.md 「스킬 7개」는 그대로라 After 측정 step이 8개로 고칠 몫",
+      "completed_at": "2026-11-25T01:08:48+0900"
     },
     {
       "step": 9,
