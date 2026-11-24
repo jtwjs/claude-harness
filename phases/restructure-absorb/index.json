@@ -27,8 +27,11 @@
     {
       "step": 3,
       "name": "statechart-import",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:19:53+0900",
+      "summary": "skills/statechart/ 반입(PStack 9e278fe 원본 410파일 blob 해시 · 실행 권한 그대로 + LICENSE MIT 사본, 진입점 scripts/statechart · scripts/statechart.ts). SKILL.md만 고침: disable-model-invocation: true(원본 유지) · 레포 밖 스크래치 폴더에서만 실행 · 첫 실행 mise로 Java·TLC 설치 + 네트워크 경고 한 줄 · PStack 출처 한 줄. 원본 SKILL.md에 Cursor 전용 문장은 없었음",
+      "completed_at": "2026-11-25T00:28:02+0900"
     },
     {
       "step": 4,
