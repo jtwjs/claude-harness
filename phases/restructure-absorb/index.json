@@ -54,8 +54,11 @@
     {
       "step": 6,
       "name": "why-code-decision",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:40:32+0900",
+      "summary": "skills/why/SKILL.md 검증 모드 머리(1. 양방향 앞)에 한 줄: 코드 결정(왜 이 구조 · 값 · 의존인가)이면 `git log -L` · `git blame`으로 그 줄을 넣은 커밋 · PR · ADR부터 보고, 기록에 남은 이유가 근거 · 기록이 없을 때만 추정으로 판정(ADR-016 D13, no-comments · comment-hunter의 git log -L · blame 문구와 같은 형태). 11번 줄 날짜 이력은 trim-history-flow 몫이라 그대로 둠",
+      "completed_at": "2026-11-25T00:47:49+0900"
     },
     {
       "step": 7,
