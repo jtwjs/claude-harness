@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "no-comments-skill-agent",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "skills/no-comments/SKILL.md(사람만 · 범위는 scripts/base-branch.sh · 판정은 메인 · 거절 보고 1회만 재실행 · 제약 주석은 승인 뒤 타입·런타임 검사·테스트·린트로) + agents/comment-hunter.md(주석만 지우고 MUST KILL 표시 · Read/Grep/Glob/Bash/Edit · sonnet) 생성, sdd REVIEW에 「선택: /no-comments」 한 줄. PStack 「/why」 「/architect」 자리는 git log -L·blame 추적과 시그니처 스케치 + ask-questions 원칙으로 바꿈",
+      "tdd": false,
+      "started_at": "2026-11-24T22:03:37+0900",
+      "completed_at": "2026-11-25T00:11:25+0900"
     },
     {
       "step": 2,
