@@ -4,9 +4,9 @@ description: Scores how AI-ready a repository is (100-pt, 7-category rubric) and
 disable-model-invocation: true
 ---
 
-# AI-Readiness Cartography
+# Harness Score
 
-이 스킬은 임의 레포지토리를 **AI-Ready 코드베이스 v2 루브릭** (100점 · 7 카테고리 A-G) 으로 감사합니다. 산출물은 한 장의 전문 기술 대시보드 HTML + 자동 채점 JSON + ROI 순으로 정렬된 actionable 액션 리스트입니다. 이름은 "cartography" 지만 톤은 의사결정용 계기판 — 판타지 양피지 / 컴퍼스 로즈 같은 장식은 절대 쓰지 않습니다.
+이 스킬은 임의 레포지토리를 **AI-Ready 코드베이스 v2 루브릭** (100점 · 7 카테고리 A-G) 으로 감사합니다. 산출물은 한 장의 전문 기술 대시보드 HTML + 자동 채점 JSON + ROI 순으로 정렬된 actionable 액션 리스트입니다. 톤은 이름 그대로 점수를 읽고 결정하는 계기판 — 판타지 양피지 / 컴퍼스 로즈 같은 장식은 절대 쓰지 않습니다.
 
 ## When to use
 
@@ -139,7 +139,7 @@ xdg-open <path>                            # Linux
 - **스크립트 출력을 무시하고 직접 점수 매기기** — 자동이 잡는 것은 자동이 더 정확. 스크립트 실행 후 그 위에 보강.
 - **E1 hallucinated path 를 가볍게 다룸** — Meta 표준 "0 hallucinated paths". 1건이라도 있으면 즉시 fix 액션.
 - **template 무시하고 처음부터 쓰기** — 매번 디자인 달라짐. 복사 → 수정.
-- **판타지 회귀** — 이름이 cartography라고 지도 은유 강하게 쓰지 말 것.
+- **판타지 회귀** — 결과 파일 이름이 `ai-readiness-map`이라고 지도 은유 강하게 쓰지 말 것.
 - **ROI 정성적 형용사만** — "효율 ↑" 같은 모호한 임팩트 금지. "task당 ~3 min × ~5/일" 처럼 구체적 단위.
 
 ## ROI framing

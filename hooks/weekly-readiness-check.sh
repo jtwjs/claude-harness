@@ -77,7 +77,7 @@ case "$cmp_line" in
     printf 'ai-readiness — %s→%s점\n' "$before" "$after" > "$HINT_FILE" 2>/dev/null || true
     if [ "$(cat "$SEEN_FILE" 2>/dev/null)" != "$rdate" ]; then
       # ⚠️ 큰따옴표를 쓰지 않는다 — JSON 으로 직접 싼다.
-      msg="AI-Readiness 점수가 ${before}점에서 ${after}점으로 떨어졌다(${rdate} 채점, 떨어진 범주: ${fell:-총점만}). 뭔가 들어왔는데 문서가 안 따라왔다는 신호다 — 사용자에게 한 줄로 알리고, 원하면 harness-score 로 대시보드와 할 일 목록을 만든다."
+      msg="AI-Readiness 점수가 ${before}점에서 ${after}점으로 떨어졌다(${rdate} 채점, 떨어진 범주: ${fell:-총점만}). 뭔가 들어왔는데 문서가 안 따라왔다는 신호다 — 사용자에게 한 줄로 알리고, 대시보드와 할 일 목록이 필요하면 /harness-score 를 직접 실행하라고 안내한다."
       printf '%s\n' "$rdate" > "$SEEN_FILE" 2>/dev/null || true
     fi
     ;;
