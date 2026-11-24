@@ -1,0 +1,44 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-rename",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "rename-harness-to-sdd-plan",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "rename-harness-run-to-sdd-run",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "rename-cartography-to-harness-score",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "remove-visual-explainer",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "drop-understand-anything",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "rename-table-and-guard",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}

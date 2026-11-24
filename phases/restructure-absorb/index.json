@@ -1,0 +1,77 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-absorb",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-gate-summary"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "no-comments-skill-agent",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "review-proof-rules",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "statechart-import",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "gaps-correction-ladder",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "reflect-thresholds",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "why-code-decision",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 7,
+      "name": "reframe-sharpen",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 8,
+      "name": "how-skill",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 9,
+      "name": "explain-diff-to-explain",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "backlog-verification-row",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "measure-show-me-your-work",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-principles",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-rename"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "base-branch-script",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 2,
+      "name": "skills-call-base-branch",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "principles-index-and-questions",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "principles-write-for-readers",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "principles-three-docs",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "entry-skills-point-to-index",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}

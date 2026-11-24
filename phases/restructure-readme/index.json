@@ -1,0 +1,29 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-readme",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-repo"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "readme-rewrite",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 2,
+      "name": "doctor-readme-check",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "measure-after",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
+  ]
+}

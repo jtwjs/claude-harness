@@ -1,0 +1,16 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-principle-lever",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-principles"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "principle-build-the-lever",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}

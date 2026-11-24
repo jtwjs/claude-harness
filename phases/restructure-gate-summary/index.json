@@ -1,0 +1,34 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-gate-summary",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-principle-lever"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "sdd-drop-gap3-add-summary",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 2,
+      "name": "pr-write-drop-quiz",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "learning-card-only",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "conductor-report-format",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}
