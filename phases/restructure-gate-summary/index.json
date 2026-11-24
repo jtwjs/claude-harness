@@ -9,26 +9,47 @@
     {
       "step": 1,
       "name": "sdd-drop-gap3-add-summary",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-24T21:23:18+0900",
+      "summary": "skills/sdd/SKILL.md: 🙋 빈틈 3곳·「내 한 줄」 잠금·_learn 기록 지시 삭제, ⑤ 마무리 = 세 줄 요약(무엇·왜·위험/직접 확인할 것, 입력 안 받음 — PR 본문 첫머리·학습 카드 「작업 요약」·지휘 보고가 같은 세 줄) → changeset → commit → pr-write → 학습 카드(레포에 안 씀, 재료 ${CLAUDE_PLUGIN_ROOT}/skills/explain-diff/SKILL.md), 재개 = recall 출력 계약(요약 ≤5·상태 태그·반복 문제 ≤5·다음 수 1). 테스트 hooks/tests/no-gate-sdd.sh",
+      "completed_at": "2026-11-24T21:33:32+0900"
     },
     {
       "step": 2,
       "name": "pr-write-drop-quiz",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-24T21:38:20+0900",
+      "summary": "skills/pr-write/SKILL.md: 4.9 이해 게이트(퀴즈·미달 시 draft·gh pr ready·_learn/learning-level history 기록) 절 삭제, draft는 사람이 원할 때만 --draft, 5단계 본문 첫머리(템플릿이면 첫 섹션) = sdd ⑤ 세 줄 요약 그대로(sdd 밖이면 같은 세 줄을 지금), 6단계 결과에서 이해 게이트 결과·tables.md 삭제. pr-write에 _learn 언급 0(4.8단계 docs/learning-level.md `fe` 행 참조는 남음). 테스트 hooks/tests/no-gate-pr.sh",
+      "completed_at": "2026-11-24T21:46:51+0900"
     },
     {
       "step": 3,
       "name": "learning-card-only",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T21:47:53+0900",
+      "summary": "docs/learning-level.md = 학습 카드 「개념/키워드」 칸의 기술 카드 형식만(6항목+빈칸 1, 레벨·퀴즈·빈틈 3곳 절 삭제, 카드 나머지 항목은 skills/sdd/SKILL.md ⑤가 정함). hooks/learn-setup.sh 삭제·hooks.json 제외, skills의 _learn/ 0(design.md 4번·harness-init .prettierignore 행 삭제), explain-diff Quiz 절 삭제, sdd 리허설·학습 카드·pr-write 4.8의 learning-level 절 참조 정리. hooks/test.sh 케이스 6-b·케이스 1 learn-setup 삭제(474→449 통과). README.md의 learn-setup·_learn·학습 레벨 줄은 남음(범위 밖)",
+      "completed_at": "2026-11-24T21:56:05+0900"
     },
     {
       "step": 4,
       "name": "conductor-report-format",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T21:56:05+0900",
+      "summary": "templates/.claude/references/track-brief.md 「끝나면 지휘에 보고」 = 세 줄 요약 → 판정 재료(기존 5줄 유지, 번호 그대로) → 학습 카드, 형식은 ${CLAUDE_PLUGIN_ROOT}/skills/sdd/SKILL.md ⑤가 정본(다시 안 씀, ⑤ 안 거쳤으면 같은 형식으로 지금). skills/conductor/SKILL.md: §4 사용자에게 올리는 현황 = recall 출력 계약(sdd 「재개」 경로 참조, 상태 태그는 트랙마다 ⛔·💤·진행), §8 보고 행 = 세 줄 요약·판정 재료 5줄·학습 카드, §5 「트랙 보고 4번」→「판정 재료」 4번. bash hooks/test.sh 449 통과",
+      "completed_at": "2026-11-24T22:00:28+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-24T22:02:33+0900",
+      "head": "71551b085e402fef144ebea265f809f7fa574e21",
+      "issues": [
+        "실제 동작 확인필요 — sdd 마무리 · pr-write를 실제 세션에서 돌려 세 줄 요약 · 학습 카드가 나오는지 미실행"
+      ]
     }
   ]
 }

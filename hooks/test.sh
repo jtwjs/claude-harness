@@ -37,7 +37,7 @@ spread_commits() {
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
 mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q)
 payload='{"tool_input":{"file_path":"'"$TMP"'/none/src/a.ts","command":"npm test"}}'
-for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check learn-setup prod-db-check; do
+for h in auto-format tdd-guard todo-warn loop-lock validate-session-end cadence-reminder weekly-readiness-check prod-db-check; do
   out=$(cd "$TMP/none" && printf '%s' "$payload" | bash "$HOOKS/$h.sh" 2>&1); code=$?
   if [ "$code" = "0" ] && [ -z "$out" ]; then ok "$h"; else bad "$h" "exit=$code out=[$out]"; fi
 done
@@ -403,62 +403,6 @@ qf="$CLAUDE_SKILL_HINTS_DIR/$(cd "$TMP/quiet" && git rev-parse --show-toplevel |
 printf 'harness-doctor\n' > "$qf"   # 지난 세션의 권고가 남아 있다고 치고
 (cd "$TMP/quiet" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" >/dev/null 2>&1)
 [ -e "$qf" ] && bad "남은 권고" "권고가 없는데 파일이 남았다" || ok "권고가 없으면 칸을 비운다"
-
-# ── 케이스 6-b: learn-setup — 개인 학습 수신함 _learn/ (2026-10-11) ──────────
-# 레포에 쓰는 훅이라 경계를 다 건다: 하네스 없는 레포 무동작(케이스 1) · .gitignore 무변경 · 두 번 돌려도 한 줄.
-printf '\n[6-b] learn-setup — _learn/ 수신함 · 로컬 제외 · 목록\n'
-mkdir -p "$TMP/learn/.claude" && (cd "$TMP/learn" && git init -q && printf '{}' > .claude/harness.json && printf 'node_modules/\n' > .gitignore \
-  && git add -A && git -c user.email=t@t -c user.name=t commit -qm init)
-out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-[ -f "$TMP/learn/_learn/inbox.md" ] && ok "수신함 생성" || bad "수신함" "_learn/inbox.md 없음"
-echo "$out" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "_learn/inbox.md" in d["hookSpecificOutput"]["additionalContext"]' 2>/dev/null \
-  && ok "기록 지시를 additionalContext 로" || bad "지시" "JSON 이 아니거나 지시가 없다 out=[$out]"
-echo "$out" | grep -q 'PRD 의 결정 절' && ok "지시가 도메인은 PRD 결정 절로 가른다" || bad "분기" "지시에 PRD 결정 절 행선지가 없다"
-echo "$out" | grep -q '안 옮긴 카드 0장' && ok "새 수신함은 0장(형식 예시는 세지 않는다)" || bad "카운트" "새 수신함인데 0장이 아니다"
-echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner · 인프라 beginner · 도메인 beginner' && ok "레벨 파일 없음 — 전부 beginner" || bad "레벨 기본값" "beginner 문구가 없다"
-echo "$out" | grep -q 'docs/learning-level.md' && ok "레벨 형식 정본 경로를 넣는다" || bad "레벨 정본" "docs/learning-level.md 경로가 없다"
-echo "$out" | grep -q '종류: 도메인' && ok "도메인 카드를 _learn 에 허용" || bad "도메인 카드" "지시에 종류: 도메인 이 없다"
-printf '{"levels":{"fe":"intermediate","be":"advanced","infra":"이상한값"}}' > "$CLAUDE_LEARNING_LEVEL_FILE"
-out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-echo "$out" | grep -q '학습 레벨: FE intermediate · BE advanced · 인프라 beginner · 도메인 beginner' && ok "레벨 파일 — 값 반영·빠진/틀린 값은 beginner" || bad "레벨 반영" "$(echo "$out" | grep -o '학습 레벨: [^(]*')"
-echo "$out" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null && ok "레벨 넣어도 JSON 유효" || bad "레벨 JSON" "출력이 JSON 이 아니다"
-printf 'not json' > "$CLAUDE_LEARNING_LEVEL_FILE"
-out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-echo "$out" | grep -q '학습 레벨: FE beginner · BE beginner' && ok "깨진 레벨 파일 — beginner로" || bad "깨진 파일" "beginner이 아니다"
-rm -f "$CLAUDE_LEARNING_LEVEL_FILE"
-mkdir -p "$TMP/learnskip/.claude" && (cd "$TMP/learnskip" && git init -q && printf '{}' > .claude/harness.json)
-printf '%s\n' "$(cd "$TMP/learnskip" && git rev-parse --show-toplevel)" > "$CLAUDE_LEARN_SKIP"
-out=$(cd "$TMP/learnskip" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-[ -z "$out" ] && [ ! -e "$TMP/learnskip/_learn" ] && ! grep -q learnskip "$CLAUDE_LEARN_REPOS" && ok "제외 목록 레포 — 무출력·수신함·목록 없음" || bad "제외" "out=[$out]"
-rm -f "$CLAUDE_LEARN_SKIP"
-(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
-n=$(grep -cxF '_learn/' "$TMP/learn/.git/info/exclude" 2>/dev/null); [ "$n" = "1" ] && ok "exclude 한 줄(두 번 돌려도)" || bad "exclude" "_learn/ 줄 수=$n"
-[ -z "$(cd "$TMP/learn" && git status --porcelain)" ] && ok "git status 깨끗 — .gitignore 무변경" || bad "흔적" "$(cd "$TMP/learn" && git status --porcelain | head -3)"
-n=$(grep -c . "$CLAUDE_LEARN_REPOS" 2>/dev/null); [ "$n" = "1" ] && ok "레포 목록 등록(중복 없이)" || bad "목록" "줄 수=$n"
-# 2026-10-31: prettier 는 .git/info/exclude 를 안 읽는다 — _learn/inbox.md 가 format:check 를 깨뜨렸다(bv-admin pnpm verify 첫 단계 exit 1)
-mkdir -p "$TMP/learnpr/.claude" && (cd "$TMP/learnpr" && git init -q && printf '{}' > .claude/harness.json && printf '{"scripts":{"format:check":"prettier --check ."}}' > package.json)
-out=$(cd "$TMP/learnpr" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-echo "$out" | grep -qF '.prettierignore' && ok "prettier 쓰는 레포 · .prettierignore 에 _learn/ 없음 → 경고" || bad "prettier 경고" "out=[${out:0:200}]"
-echo "$out" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null && ok "경고 넣어도 JSON 유효" || bad "경고 JSON" "깨짐"
-[ ! -e "$TMP/learnpr/.prettierignore" ] && ok "커밋되는 .prettierignore 는 훅이 만들지 않는다" || bad "prettierignore" "훅이 만들었다"
-printf 'dist/\n_learn/\n' > "$TMP/learnpr/.prettierignore"
-out=$(cd "$TMP/learnpr" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-! echo "$out" | grep -qF '.prettierignore' && ok "_learn/ 줄 있으면 경고 없음" || bad "경고 오탐" "줄이 있는데 경고"
-! (cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1) | grep -qF '.prettierignore' && ok "prettier 안 쓰는 레포는 경고 없음" || bad "경고 오탐" "prettier 없음"
-printf '## 2026-10-11 · 예시\n- vault: [[x]]\n' >> "$TMP/learn/_learn/inbox.md"; before=$(cat "$TMP/learn/_learn/inbox.md")
-(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" >/dev/null 2>&1)
-[ "$before" = "$(cat "$TMP/learn/_learn/inbox.md")" ] && ok "있는 수신함은 건드리지 않는다" || bad "덮어씀" "기존 카드가 바뀌었다"
-printf '## 2026-10-11 · 빈 카드\n- vault:\n' >> "$TMP/learn/_learn/inbox.md"
-out=$(cd "$TMP/learn" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-echo "$out" | grep -q '안 옮긴 카드 1장' && ok "옮기지 않은 카드만 센다(vault 칸 빈 것 1장)" || bad "카운트" "1장이 아니다"
-# 워크트리 — 수신함·목록은 본 레포 기준(워크트리를 지워도 카드가 남는다)
-(cd "$TMP/learn" && git worktree add -q "$TMP/learn-wt" 2>/dev/null)
-mkdir -p "$TMP/learn-wt/.claude" && printf '{}' > "$TMP/learn-wt/.claude/harness.json"
-out=$(cd "$TMP/learn-wt" && printf '{}' | bash "$HOOKS/learn-setup.sh" 2>&1)
-[ ! -e "$TMP/learn-wt/_learn" ] && echo "$out" | grep -q "$TMP/learn/_learn/inbox.md" && ok "워크트리 — 본 레포 수신함을 가리킨다" || bad "워크트리" "워크트리에 _learn 이 생겼거나 경로가 다르다"
-grep -qxF "$TMP/learn-wt" "$CLAUDE_LEARN_REPOS" && bad "목록" "워크트리 경로가 목록에 들어갔다" || ok "워크트리 — 목록엔 본 레포만"
-(cd "$TMP/learn" && git worktree remove --force "$TMP/learn-wt" 2>/dev/null)
-[ -f "$TMP/learn/_learn/inbox.md" ] && ok "워크트리를 지워도 카드가 남는다" || bad "유실" "수신함이 사라졌다"
 
 # ── 케이스 7: loop-lock — 3회 연속 exit 2 · 세션이 바뀌면 리셋 · 비검증 명령 미추적 (2026-10-08) ─
 printf '\n[7] loop-lock — 반복 차단 · 세션 리셋 · 추적 범위\n'
