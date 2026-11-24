@@ -375,8 +375,8 @@ rm -rf "$TMP/rd/.claude/reports/$(date +%F)" && mkdir -p "$TMP/rd/.claude/report
 [ ! -d "$TMP/rd/.claude/reports/$(date +%F)" ] && ok "마지막 채점 5일 전 — 14일 전이라 다시 안 잰다" || bad "조기 재채점" "14일 안인데 다시 쟀다"
 rm -rf "$TMP/rd/.claude/reports/$recent"
 # 채점이 실패하면 빈 날짜 폴더를 남기지 않는다 — 가짜 플러그인 루트(실패하는 score.py)로 돌린다
-FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/ai-readiness-cartography/scripts"
-cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; cp -R "$HOOKS/lib" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/ai-readiness-cartography/scripts/score.py"
+FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/harness-score/scripts"
+cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; cp -R "$HOOKS/lib" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/harness-score/scripts/score.py"
 rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
 (cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
 [ -d "$TMP/rd/.claude/reports/$(date +%F)" ] && bad "빈 폴더" "채점 실패인데 날짜 폴더가 남았다" || ok "채점 실패 — 빈 날짜 폴더를 지운다"

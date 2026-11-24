@@ -31,7 +31,7 @@
 
 | 칸 | 내용 |
 |---|---|
-| 스킬 21개 | SDD: `sdd` `sdd-plan` `sdd-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `harness-gaps`<br/>병렬: `conductor`<br/>품질: `ai-readiness-cartography`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff` `plannotator-visual-explainer` |
+| 스킬 21개 | SDD: `sdd` `sdd-plan` `sdd-run` `sdd-review` `design-brief` `design-critique` `design-reconcile` · 탐구: `why`<br/>하네스: `project-new` `harness-init` `harness-doctor` `harness-gaps`<br/>병렬: `conductor`<br/>품질: `harness-score`<br/>마무리: `commit` `changeset` `pr-write` · 글쓰기: `slack-writing` `notion-writing`<br/>코드 이해: `explain-diff` `plannotator-visual-explainer` |
 | 에이전트 4개 | `test-writer`·`feature-builder`(TDD 2단계 도구 — 러너는 안 부르고 사람이 엄격하게 할 때 · REVIEW의 작은 수정) `code-reviewer` `root-cause-debugger`. 커밋·push는 하지 않는다 |
 | SDD 러너 | `skills/sdd-run/scripts/sdd_runner.py` — 세션 안(`sdd-run`)·헤드리스(`run`) 같은 규칙. step당 1번 호출 + git 기록 판정. 설계 `docs/sdd-runner.md` |
 | 훅 10개 | Bash 전: `block-dangerous-bash`(위험 명령 + `harness.json` `guard.prodDb`의 운영 DB 조회 밖 SQL·운영 프로필 실행 + `gh pr merge` 사람 확인 + owner별 gh 쓰기 계정 확인) `todo-warn` · Write/Edit 전: `tdd-guard` · Write/Edit 후: `auto-format` · Bash 후(성공·실패 둘 다): `loop-lock`<br/>세션 시작: `cadence-reminder` `learn-setup` `weekly-readiness-check` `prod-db-check` · 응답 끝(Stop): `validate-session-end` |
@@ -62,7 +62,7 @@ flowchart TD
 
 | 축 | 스킬 | 주기 |
 |---|---|---|
-| 구조 | `project-new` `harness-init` `harness-doctor` `ai-readiness-cartography` | 레포당 1회 · 점검 격주 |
+| 구조 | `project-new` `harness-init` `harness-doctor` `harness-score` | 레포당 1회 · 점검 격주 |
 | 맥락 | CLAUDE.md·rules·references는 `harness-init`이 깐다 | 레포당 1회 |
 | 계획 | ① 계획 = DESIGN(`sdd` 내장 절차 + `why`) → PLAN(`sdd-plan`) · 🎨 `design-brief` `design-critique` | 기능마다 |
 | 실행 | ② IMPLEMENT `sdd-run` `conductor` (수동 TDD·작은 수정: `test-writer`·`feature-builder`) | 기능마다 |

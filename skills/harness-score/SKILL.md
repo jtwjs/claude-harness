@@ -1,6 +1,7 @@
 ---
-name: ai-readiness-cartography
+name: harness-score
 description: Scores how AI-ready a repository is (100-pt, 7-category rubric) and outputs a single-file HTML dashboard with an ROI-ranked action list. Use when asked to audit or score agent-friendliness.
+disable-model-invocation: true
 ---
 
 # AI-Readiness Cartography
@@ -34,7 +35,7 @@ description: Scores how AI-ready a repository is (100-pt, 7-category rubric) and
 ### 1. Python 스크립트로 자동 채점
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/ai-readiness-cartography/scripts/score.py" <repo-path> \
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-score/scripts/score.py" <repo-path> \
   --json <output-path>/ai-readiness-score.json
 ```
 
