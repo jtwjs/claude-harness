@@ -43,8 +43,11 @@
     {
       "step": 5,
       "name": "drop-understand-anything",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": ".claude-plugin/plugin.json의 dependencies 키와 .claude-plugin/marketplace.json의 allowCrossMarketplaceDependenciesOn 키를 통째로 지웠고(항목이 understand-anything 하나뿐이라 둘 다 비었다), README.md 빠른 시작에서 Understand-Anything 설치 줄을 줄째 지웠다(설명 문장만 지우면 쓸모없는 설치 명령이 남는다). 쌓기만 하는 기록을 뺀 레포 전체에서 understand-anything 참조 0줄(대소문자 무시)",
+      "tdd": false,
+      "started_at": "2026-11-24T20:12:56+0900",
+      "completed_at": "2026-11-24T20:15:59+0900"
     },
     {
       "step": 6,
