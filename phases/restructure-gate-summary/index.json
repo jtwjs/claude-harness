@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "sdd-drop-gap3-add-summary",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-24T21:23:18+0900",
+      "summary": "skills/sdd/SKILL.md: 🙋 빈틈 3곳·「내 한 줄」 잠금·_learn 기록 지시 삭제, ⑤ 마무리 = 세 줄 요약(무엇·왜·위험/직접 확인할 것, 입력 안 받음 — PR 본문 첫머리·학습 카드 「작업 요약」·지휘 보고가 같은 세 줄) → changeset → commit → pr-write → 학습 카드(레포에 안 씀, 재료 ${CLAUDE_PLUGIN_ROOT}/skills/explain-diff/SKILL.md), 재개 = recall 출력 계약(요약 ≤5·상태 태그·반복 문제 ≤5·다음 수 1). 테스트 hooks/tests/no-gate-sdd.sh",
+      "completed_at": "2026-11-24T21:33:32+0900"
     },
     {
       "step": 2,
