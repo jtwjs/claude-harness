@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 ## 1단계: 변경 내용 수집
 
-기준 브랜치: `.claude/harness.json`의 `git.baseBranch`(비었으면 `git symbolic-ref --short refs/remotes/origin/HEAD`에서 `origin/`을 뗀 값. 그것도 없으면 묻는다) = `<base>`.
+기준 브랜치: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력 = `<base>`. exit 2면 사람에게 묻는다.
 
 ```bash
 git log <base>..HEAD --oneline          # 커밋 목록

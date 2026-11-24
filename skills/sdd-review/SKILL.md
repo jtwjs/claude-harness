@@ -15,7 +15,7 @@ disable-model-invocation: false
 
 ## 2. 변경 수집
 
-- `git diff --name-only <base>...HEAD`(또는 `git diff HEAD`)로 변경 파일 파악 — `<base>`는 `harness.json`의 `git.baseBranch`(비었으면 `origin/HEAD`) → 필요한 파일 맥락 확인. diff가 비면 범위를 한 번 확인.
+- `git diff --name-only <base>...HEAD`(또는 `git diff HEAD`)로 변경 파일 파악 — `<base>`는 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력(exit 2면 사람에게 묻는다) → 필요한 파일 맥락 확인. diff가 비면 범위를 한 번 확인.
 - **회차**(#10, 0.26.0) — `phases/{task}/index.json`의 `reviews`(없으면 빈 목록) 길이 + 1이 이번 회차다. 2회차부터는 **직전 회차의 `head` 이후 diff(`git diff <head>..HEAD`)만** 대조한다. 단 「빌드·테스트」 축의 `verify`는 늘 전체로 돌린다. 이전 회차의 `issues`에 있는 지적은 다시 내지 않는다.
 
 ## 3. 체크리스트 대조

@@ -73,7 +73,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - **앱이 둘 이상**(모노레포 · `stacks.packs`에 root가 여럿)이면 앱별 형태로 적는다: `{"apps/api": {"test": "…"}, "apps/web": {…}}`. 키는 `stacks.packs[].root`와 같은 값이고, 명령은 **그 폴더에서** 실행해 본다(`cd <root> && …`). 앱별이면 단일 앱 키(`format`·`lint`…)는 지운다. `validate-session-end`·`loop-lock` 훅과 `harness-doctor`가 두 형태를 다 읽는다
 - `verify.format`에는 **읽기 전용(`--check` 계열)만** 넣는다. 포맷 적용은 `auto-format` 훅이 편집 직후에 한다.
 - 없는 키는 **비워 둔다.** 지어내지 않는다.
-- `git.baseBranch` ← `git symbolic-ref --short refs/remotes/origin/HEAD`(`origin/` 제거). 리모트가 없으면 비우고 보고한다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다. `git.branchPattern`은 최근 원격 브랜치 이름(`git branch -r`)·`CLAUDE.md`·rules의 브랜치 규칙을 보고 `{task}`를 넣은 형태로 제안한다(예: `feature/{task}`). 규칙이 안 보이면 비운다(러너 기본 `feat-{task}`). `verify`가 앱별이면 `verifyAffects`(경로 glob → 같이 돌릴 앱)를 제안한다 — 트랙 표의 계약 경로, CI `paths` 필터, 앱끼리 import 하는 공유 경로를 보고. 확신이 없으면 비운다(마지막 step 전체 verify가 잡는다). 테스트가 오래 걸리면 앱별 `$step.test`(영향받은 테스트만, `{since}`=step 시작 커밋 — 예 `vitest run --changed {since}`)를 제안한다. 비우면 step마다 전체 test
+- `git.baseBranch` ← `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력(harness.json이 비어 있으면 `origin/HEAD`로 떨어진다). exit 2면 사람에게 묻는다. `git.commitScope`는 기존 커밋 이력에 `type(scope):`가 쓰이는지 보고 제안한다. `git.branchPattern`은 최근 원격 브랜치 이름(`git branch -r`)·`CLAUDE.md`·rules의 브랜치 규칙을 보고 `{task}`를 넣은 형태로 제안한다(예: `feature/{task}`). 규칙이 안 보이면 비운다(러너 기본 `feat-{task}`). `verify`가 앱별이면 `verifyAffects`(경로 glob → 같이 돌릴 앱)를 제안한다 — 트랙 표의 계약 경로, CI `paths` 필터, 앱끼리 import 하는 공유 경로를 보고. 확신이 없으면 비운다(마지막 step 전체 verify가 잡는다). 테스트가 오래 걸리면 앱별 `$step.test`(영향받은 테스트만, `{since}`=step 시작 커밋 — 예 `vitest run --changed {since}`)를 제안한다. 비우면 step마다 전체 test
 - `packageManager` ← lock 파일로 판정한다: `pnpm-lock.yaml`→`pnpm` · `yarn.lock`→`yarn` · `package-lock.json`→`npm` · `bun.lockb`→`bun` · JVM은 `gradlew`/`mvnw` 유무. 둘 이상이면 묻는다. (§6 릴리스 세팅이 이 값을 읽는데 채우는 단계가 없었다 — 2026-10-08)
 
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
@@ -110,7 +110,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 | 플레이스홀더 | 출처 (`harness.json`) | 비어 있을 때 |
 |---|---|---|
-| `{{BASE_BRANCH}}` | `git.baseBranch` | `origin/HEAD`에서 다시 뽑고, 그것도 없으면 묻는다 |
+| `{{BASE_BRANCH}}` | `git.baseBranch` | `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력. exit 2면 묻는다 |
 | `{{SETUP_STEPS}}` | 판정된 팩의 `pack.md` CI 셋업 스텝 | 팩이 없으면 주석 줄째 삭제 |
 | `{{VERIFY_FORMAT}}` `{{VERIFY_LINT}}` `{{VERIFY_TYPECHECK}}` `{{VERIFY_BUILD}}` | `verify.format` · `lint` · `typecheck` · `build` | **그 `- name:` 스텝을 통째로 삭제** (ci.yml 머리 주석 "비어 있는 단계는 넣지 않는다") |
 | `{{VERIFY_TEST}}` | `verify.test` | 스텝을 지우지 않는다. `ci.test`가 `"deferred"`면 `run: echo "test deferred — .claude/harness.json ci.test 참고"` |
@@ -136,7 +136,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | 단계 | 하는 일 | 자동 추출 |
 |---|---|---|
 | 의존성 | `@changesets/cli` + changelog 플러그인 | 패키지 매니저는 `harness.json` |
-| init·패치 | `.changeset/config.json` 생성 후 수정 | `repo` ← `git remote get-url origin`<br>`baseBranch` ← `git symbolic-ref refs/remotes/origin/HEAD`<br>`access` ← private면 restricted<br>`ignore` ← private 워크스페이스 |
+| init·패치 | `.changeset/config.json` 생성 후 수정 | `repo` ← `git remote get-url origin`<br>`baseBranch` ← `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력<br>`access` ← private면 restricted<br>`ignore` ← private 워크스페이스 |
 | scripts | `package.json`에 2줄 | — |
 | CI | PR에 changeset 추가가 있는지 검사 | 🔴 **없으면 exit 1로 차단**한다. 코멘트만 남기는 게이트는 없느니만 못하다. 우회는 `skip-changeset` 라벨 |
 
