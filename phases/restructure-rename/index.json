@@ -7,8 +7,11 @@
     {
       "step": 1,
       "name": "rename-harness-to-sdd-plan",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "PLAN 스킬 이름이 skills/sdd-plan/SKILL.md(name: sdd-plan)로 바뀌었고, 스킬 · 템플릿 · 문서에서 PLAN을 가리키던 `harness`는 `sdd-plan`으로 바뀌었다(목록에 없던 design-brief · design-critique · harness-gaps · sdd-review도 고침, hooks/test.sh 케이스 10은 경로만 고침). 남긴 것: harness-init 이름표의 design-plan 행(step 6에서 행 추가) · incubator/README.md · test.sh 595번 줄 주석. AC grep의 ':!docs/*-20*/'는 뒤에 붙은 /가 하위 파일을 빼지 못해 docs/harness-restructure-2026-11-24/PLAN.md:40 한 줄이 잡힌다(기록 파일이라 안 고침, ':!docs/*-20*'로는 0줄)",
+      "tdd": false,
+      "started_at": "2026-11-24T19:53:03+0900",
+      "completed_at": "2026-11-24T19:59:43+0900"
     },
     {
       "step": 2,
