@@ -45,8 +45,11 @@
     {
       "step": 5,
       "name": "reflect-thresholds",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:35:14+0900",
+      "summary": "skills/sdd/SKILL.md REFLECT 2) 하네스 되돌림 머리에 「남기는 문턱」 3줄(6개월 뒤에도 맞다 · 다음 행동을 바꾼다 · 이번 세션에 쓴 스킬로 간다 — 고칠 스킬을 먼저 읽고 이미 적힌 것은 버림, 스킬 밖 함정 · 규칙은 기존 종착지로) + SHA · 버전 · 개수 같은 낡는 값은 남기는 문장에 넣지 않음. 종류별 종착지(흘린 것 · 사고 · 반복 · 더하기만 금지)는 그대로, harness-gaps 위계는 다시 쓰지 않음",
+      "completed_at": "2026-11-25T00:40:32+0900"
     },
     {
       "step": 6,
