@@ -12,10 +12,12 @@
 
 - `skills/harness-init/SKILL.md` 이름표
 - 새 `hooks/tests/renames.sh`
+- `hooks/weekly-readiness-check.sh` 알림 문구 · `skills/harness-score/SKILL.md` 제목과 옛 이름 문장
 
 - 이름표에 행을 더한다: `harness` → `sdd-plan`, `harness-run` → `sdd-run`, `ai-readiness-cartography` → `harness-score`, `plannotator-visual-explainer` → 행 삭제(PR 설명은 `explain-diff`). 「언제」 칸은 다음 릴리스 버전
 - 새 `hooks/tests/renames.sh`: `skills` · `agents` · `hooks` · `templates` · `scripts` · `README.md` · `BACKLOG.md`에서 위 옛 이름 4개를 grep 해 0이면 `ok`. 빼는 곳: `hooks/test.sh` · 자기 자신 · `skills/harness-init/SKILL.md`(이름표). PLAN 스킬 옛 이름은 `claude-harness:harness([^-a-z]|$)|skills/harness/` 패턴으로만 센다
 - 새 테스트 파일은 `hooks/tests/no-brain.sh`처럼 `hooks/test.sh`가 source 하는 조각이다: `printf '\n[이름] …\n'`로 시작, `$HOOKS` · `$TMP` · `ok` · `bad`를 그대로 쓰고 변수는 파일 고유 접두사(`_xx_`)를 붙인다
+- 이름 바꾸기 뒷정리(step 3에서 남은 것): `harness-score`는 이제 사람만 부른다(ADR-016 D5). `hooks/weekly-readiness-check.sh`의 하락 알림 「원하면 harness-score 로 대시보드와 할 일 목록을 만든다」를 사용자에게 `/harness-score`를 안내하는 문장으로 바꾼다. `skills/harness-score/SKILL.md`의 제목 「AI-Readiness Cartography」와 「cartography」라는 이름을 설명하는 문장 2곳을 새 이름에 맞춘다(리포트 파일 이름 `ai-readiness-score.json` · 상태줄 접두사 `ai-readiness — `는 그대로)
 - tdd: false — 이름 바꾸기가 앞 step에서 끝나 지금 넣는 검사는 바로 통과한다(회귀 방지용)
 
 ## Acceptance Criteria
