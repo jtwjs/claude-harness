@@ -27,8 +27,11 @@
     {
       "step": 3,
       "name": "learning-card-only",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T21:47:53+0900",
+      "summary": "docs/learning-level.md = 학습 카드 「개념/키워드」 칸의 기술 카드 형식만(6항목+빈칸 1, 레벨·퀴즈·빈틈 3곳 절 삭제, 카드 나머지 항목은 skills/sdd/SKILL.md ⑤가 정함). hooks/learn-setup.sh 삭제·hooks.json 제외, skills의 _learn/ 0(design.md 4번·harness-init .prettierignore 행 삭제), explain-diff Quiz 절 삭제, sdd 리허설·학습 카드·pr-write 4.8의 learning-level 절 참조 정리. hooks/test.sh 케이스 6-b·케이스 1 learn-setup 삭제(474→449 통과). README.md의 learn-setup·_learn·학습 레벨 줄은 남음(범위 밖)",
+      "completed_at": "2026-11-24T21:56:05+0900"
     },
     {
       "step": 4,
