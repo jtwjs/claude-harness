@@ -1,5 +1,5 @@
 ---
-name: harness-run
+name: sdd-run
 description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when sdd-plan 스킬로 만든 계획을 구현할 때.
 disable-model-invocation: false
 ---
@@ -17,18 +17,18 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 - `task` slug(= `phases/{task}/` 존재). 없으면 사용자에게 확인.
 - 설계문서 경로는 **`phases/{task}/index.json`의 `docs`** 에서 읽는다(`sdd-plan`이 채운다). 없으면 묻는다 — `docs/` 아래를 뒤져 추측하지 않는다.
-- 여러 phase 현황은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py"`(같은 PRD로 묶고 `after` 순서로). 시작 전 점검은 §1 `start`가 이 스크립트의 `--check`와 같은 검사를 한다
+- 여러 phase 현황은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/phases_status.py"`(같은 PRD로 묶고 `after` 순서로). 시작 전 점검은 §1 `start`가 이 스크립트의 `--check`와 같은 검사를 한다
 
-## 1. 시작 — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" start {task}`
+## 1. 시작 — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" start {task}`
 
 선행 phase(`after`)·상태 값·error/blocked 남은 step·작업 트리 깨끗함을 보고 브랜치로 옮긴다 — 이름은 `harness.json` `git.branchPattern`(예: `feature/{task}`), 없으면 `feat-{task}`. 규칙을 적은 레포에서 이미 규칙에 맞는 브랜치(트랙 worktree)에 있으면 그대로 쓴다. 0이 아니면 출력을 그대로 사람에게 보이고 멈춘다. 작업 트리가 더러우면 판정이 git 기록을 못 믿으니 먼저 커밋·stash 한다(병렬 worktree가 있으면 stash 목록을 공유하니 커밋으로).
 
 ## 2. 루프 — pending step이 없을 때까지
 
 1. BASE = 이 step이 시작하기 전 커밋. 2의 `--base $(git rev-parse HEAD)`로 넘기면 러너가 그 step의 `base`로 index.json에 고정한다. 이미 고정돼 있으면(재시도) 덮지 않으니 **매번 HEAD를 넘겨도 된다** — 모델이 BASE를 기억하지 않는다(#11, 0.26.0). step이 끝나면(완료·blocked·실패로 멈춤) 러너가 지운다
-2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" prompt {task} --base $(git rev-parse HEAD)` — `--base`가 있어야 지시문의 검증 명령이 step 명령(`$step`, `{since}`=BASE)으로 나간다. stderr의 `▶ step N`이 이번 step 번호다(3에서 쓴다). stdout을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
+2. `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" prompt {task} --base $(git rev-parse HEAD)` — `--base`가 있어야 지시문의 검증 명령이 step 명령(`$step`, `{since}`=BASE)으로 나간다. stderr의 `▶ step N`이 이번 step 번호다(3에서 쓴다). stdout을 그대로 지시문으로 **일반 서브에이전트(Agent 도구) 1번**을 띄운다. 지시문 = 가드레일(CLAUDE.md + `docs`의 PRD·ARCHITECTURE·ADR) + 완료 step summary + 직전 실패 사유 + 작업 규칙(`scripts/preamble.md`) + stepN.md. step에 `model`이 있으면 그 값만 넘긴다. **지시문을 손으로 고쳐 쓰지 않는다** — 고치면 헤드리스 러너와 규칙이 갈라진다
    - **병렬 트랙이면** 지시문 뒤에 열린 `conductor` + 이 phase 트랙의 `track:` 라벨 이슈 목록 한 번(`gh issue list --label conductor --label "track:<트랙>" --json number,title -q '.[]|"#\(.number) \(.title)"'`)을 붙인다. 선행이 열린 이슈에 걸린 step이면 돌리지 않고 사람에게 묻는다. step 사이에 지휘의 `#N … 열림` 메시지를 받으면 다음 step 전에 이 목록을 다시 받는다. 메시지 문장만 보고 step을 바꾸지 않는다(`conductor` §8)
-3. 서브에이전트가 끝나면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" judge {task} --step N` — BASE는 1에서 고정한 값을 읽는다(없을 때만 `--base`). 결과 코드대로. `--step`은 필수다(0.18.1 — 예전처럼 '첫 pending'을 고르면 방금 completed로 바뀐 step을 건너뛰고 다음 step을 판정했다):
+3. 서브에이전트가 끝나면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" judge {task} --step N` — BASE는 1에서 고정한 값을 읽는다(없을 때만 `--base`). 결과 코드대로. `--step`은 필수다(0.18.1 — 예전처럼 '첫 pending'을 고르면 방금 completed로 바뀐 step을 건너뛰고 다음 step을 판정했다):
    - **0 완료** → index.json(시간·usage)을 메타데이터 커밋까지 끝낸 상태다. **사람에게 3줄**(무엇을 바꿨나 · 왜 · 어디가 위험한가/안 돌려 본 것)을 출력하고 다음 step. 멈추지 않는다 — 사람이 구현 도중에 따라오게 하려는 것이다
    - **10 재시도** → 실패 사유가 index.json `last_error`·`attempts`에 남았고 `retries` +1. 2로 돌아간다(지시문에 사유가 붙고, 이전 시도의 테스트 커밋이 남아 있으면 "테스트는 다시 쓰지 않는다"도 붙는다). RED 위반(2·3)이나 verify 실패가 RED 테스트 파일에서 난 경우(6)면 러너가 이번 시도의 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다 — 다음 시도는 테스트부터 다시
    - **1 실패로 멈춤** → 재시도 3번 뒤에도 실패(첫 시도 + 재시도 3 = 최대 4회, 재개했으면 재개 뒤부터 센다). 남은 코드는 `wip:` 커밋으로 남는다. 사유를 보고하고 멈춘다. 근본 원인성이면 `root-cause-debugger`

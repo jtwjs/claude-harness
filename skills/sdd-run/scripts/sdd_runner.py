@@ -6,7 +6,7 @@
 여기서는 그 status 에 더해 실행 결과(is_error·종료 코드)와 git 기록(RED 커밋 순서·RED 가 실제로 실패하나·테스트
 파일 수정·변경 유무·verify)을 러너가 직접 본다. 판정 표의 정본은 docs/sdd-runner.md.
 
-세션 안 harness-run 과 같은 규칙을 쓴다 — 두 러너가 이 파일의 prompt·judge 를 같이 부른다.
+세션 안 sdd-run 과 같은 규칙을 쓴다 — 두 러너가 이 파일의 prompt·judge 를 같이 부른다.
 
   sdd_runner.py run TASK [--timeout 1800] [--max-retries 3]   헤드리스: claude -p 로 끝까지
   sdd_runner.py start TASK                                    시작 전 점검 + 브랜치 (세션 안)
@@ -529,7 +529,7 @@ class Runner:
             print(f"✓ step {n} {s['name']}: {s.get('summary', '')}")
             return 0
         # retries = 누적 재시도 수(승격 계수기, 0으로 안 돌림). 한도는 이번 실행(재개 이후)의 실패 수로 센다:
-        # 첫 시도 + 재시도 3 = 최대 4회 — harness-run·sdd 와 같은 문장
+        # 첫 시도 + 재시도 3 = 최대 4회 — sdd-run·sdd 와 같은 문장
         s.setdefault("attempts", []).append({"at": stamp(), "error": reason})
         fails_now = sum(1 for a in s["attempts"] if a["at"] >= s.get("resumed_at", ""))
         if fails_now > self.max_retries:

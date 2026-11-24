@@ -67,7 +67,7 @@ if [ "$is_verify" != "1" ]; then
 fi
 
 # 판단 단위 = 명령 + 그 시점 코드 상태 (2026-10-13). 코드가 그대로인데 같은 검증을 다시 돌리는 것만 의미 없는 반복이다.
-# 코드를 고치고 다시 돌리는 건 정상 수정 루프라 리셋한다(그 루프의 상한은 harness-run 의 retries 3).
+# 코드를 고치고 다시 돌리는 건 정상 수정 루프라 리셋한다(그 루프의 상한은 sdd-run 의 retries 3).
 # 성공·실패는 가르지 않는다. PostToolUse 는 성공한 호출에만 돈다(2026-10-13 실측: `false` 실행 시 PostToolUseFailure 3 · PostToolUse 0)
 # → 이 훅을 PostToolUse 와 PostToolUseFailure 둘 다에 건다(0.18.1). 실패한 npm test 반복도 같은 카운터로 센다.
 # 상태 = tracked 변경(git diff HEAD) + untracked 파일 내용. .claude/.last-* 같은 훅 흔적은 뺀다.

@@ -4,7 +4,7 @@
 강의 test_execute.py 는 claude 호출을 mock 으로 바꿔 부품만 보고, 판정 루프(재시도·status 미갱신·3회 실패)는
 테스트가 0개였다. 여기서는 index.json·git 을 실제로 바꾸는 가짜 claude 로 그 루프를 본다.
 
-실행: python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py
+실행: python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py
 """
 import json
 import os

@@ -19,7 +19,7 @@
 | 세션 handoff 파일 규약 (강의 Harness Engineering 맥락 축) | 압축·`/clear` 뒤 사람이 같은 지시를 다시 한 사례 **3건** (`harness-gaps`·재지시 — 압축된 세션은 스스로 못 알아채니 사람의 재지시로 센다) |
 | `harness-doctor` 안 쓰는 스킬·MCP 검사 | 30일 호출 0인 스킬을 손으로 지운 일 **3회** (`git log --grep='삭제'` 중 스킬 삭제 커밋) |
 | 다른 모델 교차 리뷰 (Codex 등) | `review-code` 행과 같은 계수 — 그때 차원별 병렬과 다른 모델 중 고른다 |
-| `harness-run` 독립 phase 병렬 (Fan-out) | `after`로 서로 묶이지 않은 pending phase 둘 이상을 순차로 돌려 기다린 사례 **3건** (`phases_status.py` 현황으로 센다) |
+| `sdd-run` 독립 phase 병렬 (Fan-out) | `after`로 서로 묶이지 않은 pending phase 둘 이상을 순차로 돌려 기다린 사례 **3건** (`phases_status.py` 현황으로 센다) |
 | `ai-readiness-cartography` Sanity 단계(죽은 코드 먼저) | 지도(`CODEBASE_MAP`)가 가리킨 경로가 죽은 코드였던 사례 **3건** (`harness-gaps`) |
 | step `model` 기본값 승격 (기본 → opus. step별 `model` 필드는 이미 있다) | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
 | 실제 자동 머지 켜기 (`pr-write` 4.6, 지금 dry-run) | PR 본문에 `자동 머지 조건` 줄이 있는 **머지된 PR 10건**(`gh pr list --state merged --search '"자동 머지 조건" in:body'`)에서 오판 **0건**. 오판 = `충족`이었는데 머지 뒤 그 PR 파일을 고친 `fix:`·`revert` 커밋이 나옴, 또는 `미충족`이었는데 사람이 아무것도 고치지 않고 머지함. 켜면 `block-dangerous-bash`의 `gh pr merge` ask를 같이 푼다 |

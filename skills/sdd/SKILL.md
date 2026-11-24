@@ -7,7 +7,7 @@ disable-model-invocation: false
 SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계를 해당 스킬/에이전트/참조 문서에 위임하고, **위임 구간은 자동으로 진행하되 사람 체크포인트에서만 멈춘다.** (개별 단계는 `/sdd-plan` 등으로 직접 호출도 가능.)
 
 > **한 줄 흐름**
-> **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`harness-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → 🙋빈틈 3곳 → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명) → ⑤ 마무리(`changeset` → `commit` → `pr-write`)
+> **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`sdd-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → 🙋빈틈 3곳 → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명) → ⑤ 마무리(`changeset` → `commit` → `pr-write`)
 > **디자인 트랙** — 위 흐름에 셋이 끼어든다: DESIGN에 `design-brief`(→ 레포 캔버스에 시안) → `design-critique`(시안 평가 루프), REVIEW에 `design-reconcile`. PLAN은 `sdd-plan`이 레포 캔버스를 읽는다
 >
 > 2026-10-16: DESIGN·PLAN을 **① 계획** 한 단계로 묶었다(하네스 엔지니어링 6축의 「계획」과 1:1). 밖에서 보면 하나, 안에서는 게이트 둘(Readiness → step 승인) — 묻는 것이 다르다("무엇을 왜"가 굳었나 / "어떻게 쪼갰나"). 릴리스는 REFLECT에서 떼어 **⑤ 마무리**로 — REFLECT가 pr-write 한 줄로 줄어 있었다(실측 30일: 지식 정리 0/8 세션, pr-write 125회).
@@ -37,13 +37,13 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
    **PLAN** — `sdd-plan`으로 step 분해(각 step에 `tdd: true|false` 판정 포함). 세 장이 이미 있어 PLAN만 필요하면 `sdd-plan`을 바로 부른다.
    step 파일의 `⚠️`·`TBD`·미해결 가정은 `sdd-plan` §2가 **그 자리에서** 캐묻고(질문 규칙은 `why`) 결정을 PRD 「결정」/ADR에 적는다. 승인 시점 미해결 `⚠️` 0개. → 🙋 step 계획 승인.
    🎨 **디자인 트랙**: `sdd-plan` §3-b가 레포 캔버스의 작업 탭을 읽어 step마다 보드·뷰포트·쓸 컴포넌트를 박고, DS에 없는 요소만 뽑아 신규 컴포넌트를 합의한다.
-2. **IMPLEMENT** 🤖 — `harness-run`이 step마다 호출 1번(테스트 먼저 → 구현)으로 돌리고 `sdd_runner.py judge`가 git 기록으로 판정한다. hands-off.
+2. **IMPLEMENT** 🤖 — `sdd-run`이 step마다 호출 1번(테스트 먼저 → 구현)으로 돌리고 `sdd_runner.py judge`가 git 기록으로 판정한다. hands-off.
    - **RED**: 테스트만 담긴 커밋이 먼저 있고, 그 시점으로 돌려 `verify.test`가 **실패해야** 통과 (전부 통과하면 잡는 게 없다는 뜻이라 step 실패)
    - **GREEN**: `verify` 전체 통과 **AND** RED 커밋 뒤 테스트 파일 무변경 — 둘 다 `sdd_runner.py judge`가 본다. 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스)
    - (🙋 정지: blocked / 파괴적 변경 / 재시도 3번 뒤에도 실패(최대 4회).)
    - 🙋 **빈틈 3곳** — 모든 step이 GREEN이 된 직후, REVIEW 전에 한 번. 이번 diff에서 사람이 **모를 수 있는 지점 3개**를 한 줄씩(`파일:줄` + 왜 헷갈릴 만한가) 낸다 → 사람이 고른 것만 **재료**로 12살 설명(비유 대신 이 diff의 실제 코드·상황 이름으로. 비유는 사람이 원할 때만. 정보·맥락까지만 — 이 지점의 결론 한 줄은 말하지 않는다) → **레벨 +@**: 그 지점 분야의 레벨(`~/.claude/learning-level.json`, 없으면 beginner · 형식 `${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md`)이 beginner이면 그 지점이 기대는 기술을 정본의 「beginner 기술 카드」 한 장으로 풀고(이미 본 기술이면 여기선 왜 · 조심할 것만), 뒤에 도메인 한 줄(이게 사업·사용자에게 왜 필요한가)을 붙인다. intermediate·advanced은 지금 그대로 → 사람이 **자기 말 한 줄**(모르면 "모르겠다"도 입력. 입력 뒤 고치지 않는다) → AI가 **반박 1개 + 간극 분석**(왜 그렇게 이해했나 · 재료 문장을 그대로 옮기지 않았나) → 그 **뒤에** **AI 답안**을 공개한다(`N: 무엇을 왜 — 없거나 다르게 했으면 생기는 일`, 예 `2: 플레이어가 stopPropagation 해서 document 리스너까지 안 올라가니 K가 두 번 안 먹는다. 캡처였으면 두 번 먹었다`) → `_learn/inbox.md`에 `출처: 빈틈 3곳` 카드로 쌓는다(`내 한 줄` · `AI 답안` · `간극` · `적중`). 모든 레벨이 같은 순서이고 재료의 양만 레벨을 따른다. 형식 정본은 `docs/learning-level.md` §5(2026-11-11 사용자 결정 — 2026-10-18의 'AI 요약을 바로 쌓기'를 대체. 대가: 구현 직후 한 번 마찰이 생기고 IMPLEMENT의 hands-off가 이 한 곳에서 깨진다). "pass"면 건너뛰고 한 줄 보고. step마다 묻지 않는다 — IMPLEMENT는 hands-off다. 만든 직후에 묻는 이유: PR 때 처음 보면 이미 늦어 퀴즈만 남는다
 3. **REVIEW** — `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖 → 🙋 최종 판정. 리뷰는 **같은 세션의 서브에이전트**가 한다 — 컨텍스트는 격리되고 세션은 그대로다(2026-10-16 확정. "새 세션에서 리뷰"는 쓰지 않는다).
-   위반이 나오면 **수정 step을 하나 더 만들어 `harness-run`으로 고치고(작은 수정은 `feature-builder`) `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
+   위반이 나오면 **수정 step을 하나 더 만들어 `sdd-run`으로 고치고(작은 수정은 `feature-builder`) `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
    **루프는 수렴해야 한다**(#10, 0.26.0) — 회차는 `phases/{task}/index.json`의 `reviews`에 `sdd-review`가 쌓는다. ① 2회차부터는 직전 회차 이후 바뀐 diff만 본다 ② 지적은 이 작업이 만든 것과 원래 있던 것(pre-existing)을 가르고, pre-existing은 수정 step을 만들지 않고 목록으로만 ③ 한 줄이 아니라 같은 종류의 모든 위치를 한 번에, 이미 낸 지적은 다시 내지 않는다 ④ **3회차가 끝나도 위반이 남으면 수정 step을 더 만들지 않고 🙋 멈춘다** — "접근 방식 자체를 다시 볼까요?"(① 계획으로 / 이번 지적만 한 번 더 / 남은 지적은 후속 이슈로). 근거: 에이전트 작성자 × 에이전트 리뷰어가 서로를 끝없이 바쁘게 만든다(Claude Code 팀 리뷰 글 2026-10-15 — 한 PR 50+ 라운드, 계속 나온 지적의 59%가 첫 패스부터 있던 코드).
    🎨 **디자인 트랙**: `design-reconcile`로 구현 화면을 스크린샷 대조하고 어긋남의 방향(동기화 후보 / 후속 step / 토큰)을 판정한다.
    **자동으로 덮어쓰지 않는다** — 🙋 통과 판정 뒤에만 작업 탭을 `현행` 탭에 반영하고 작업 탭을 지운다(캔버스 커밋).
@@ -60,7 +60,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
       - 남긴 자산: <파일·훅·스킬·규칙 경로> — 막힌 지점이 있으면 비울 수 없다
       - 다음 후보: 아직 안 놓은 다리 (선택)
       ```
-      숫자 줄은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/phases_status.py" --retro <task>`의 마지막 줄을 그대로 붙인다(step별 표는 막힌 지점을 고를 때 본다). 막힌 지점은 `phases/{task}/index.json`의 error·retries·`attempts`, 세션의 재지시·재교정, `sdd-review` 🔴에서 **모은다** — 기억으로 쓰지 않는다. 막힌 지점이 0이면 "막힌 지점 없음" 한 줄로 끝.
+      숫자 줄은 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/phases_status.py" --retro <task>`의 마지막 줄을 그대로 붙인다(step별 표는 막힌 지점을 고를 때 본다). 막힌 지점은 `phases/{task}/index.json`의 error·retries·`attempts`, 세션의 재지시·재교정, `sdd-review` 🔴에서 **모은다** — 기억으로 쓰지 않는다. 막힌 지점이 0이면 "막힌 지점 없음" 한 줄로 끝.
    2) **하네스 되돌림 ≥1** — 회고의 「남긴 자산」을 실제로 놓는다. 종류별 종착지:
       - **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 🔴 **종착지는 하네스 3층으로 재지정** — 기본값 CLAUDE.md는 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.** 플러그인이 없으면 건너뛰고 한 줄 보고.
       - **사고**(실제로 당한 함정) → `rules/non-obvious-patterns.md` 한 줄. 고친 커밋과 같은 PR.

@@ -184,7 +184,7 @@ echo "$out" | grep -q 'example.com' && bad "값 노출" "알림에 호스트가 
 
 # ── 케이스 2-d: phases_status — 상태 값 4개 · after 선행 점검 (2026-10-13) ──
 printf '\n[2-d] phases_status — 허용 밖 상태 · 선행 미완료면 exit 1\n'
-PS="$HOOKS/../skills/harness-run/scripts/phases_status.py"
+PS="$HOOKS/../skills/sdd-run/scripts/phases_status.py"
 mkdir -p "$TMP/ph/phases/be-a" "$TMP/ph/phases/fe-a" "$TMP/ph/phases/old" && (cd "$TMP/ph" && git init -q)
 echo '{"phase":"be-a","docs":"docs/x","after":[],"steps":[{"step":1,"status":"completed"}]}' > "$TMP/ph/phases/be-a/index.json"
 echo '{"phase":"fe-a","docs":"docs/x","after":["be-a"],"steps":[{"step":1,"status":"pending"}]}' > "$TMP/ph/phases/fe-a/index.json"
