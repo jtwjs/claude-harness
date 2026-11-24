@@ -27,13 +27,9 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 - worktree에는 `.claude/harness.json`이 없다. main clone 사본을 복사하고 `git.branchPattern`을 PR 브랜치 규칙에 맞춰 넣는다. 복사본은 커밋하지 않는다(`.claude/rules/non-obvious-patterns.md`).
 - 러너 판정은 설치본(0.40.0) `sdd_runner.py`가 한다. 레포에서 고친 러너(PR 6)는 릴리스 · 설치 뒤부터 판정에 쓰인다.
 
-## 확인 필요
+## 결정 뒤 반영
 
-| # | 정할 것 | 추천 | 이유 |
-|---|---|---|---|
-| Q7 | `learn-setup.sh`를 지우면(Q4) `hooks/test.sh` 케이스 6-b(learn-setup 검사 약 40줄) · 훅 목록 · learn env 줄도 지워야 한다. Q3 예외(기존 줄을 경로 · 문구에 맞추기)를 넘는다 | 예외를 「지운 동작을 검사하던 기존 케이스는 지운다」까지 넓힌다 | 안 지우면 PR 3 step 3 뒤 `bash hooks/test.sh`가 깨진다. 케이스를 `hooks/tests/`로 옮겨도 검사할 동작이 없다 |
-
-PR 3 step 3(`learning-card-only`)만 이 답을 기다린다. 다른 step은 영향이 없다.
+- Q7: ADR-016으로 지우기로 정한 동작(`learn-setup` 훅)을 검사하던 기존 케이스만 `hooks/test.sh`에서 지운다(ADR-016 「대가」). 지우는 곳은 `restructure-gate-summary` step 3에 이름 · 줄로 적었다.
 
 ## step 목록
 
