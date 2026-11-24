@@ -30,6 +30,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 ## 결정 뒤 반영
 
 - Q7: ADR-016으로 지우기로 정한 동작(`learn-setup` 훅)을 검사하던 기존 케이스만 `hooks/test.sh`에서 지운다(ADR-016 「대가」). 지우는 곳은 `restructure-gate-summary` step 3에 이름 · 줄로 적었다.
+- Q8: 지휘는 트랙 보고의 세 줄 요약 · 학습 카드를 사용자 보고에 그대로 싣는다(요약 · 재해석하지 않음). 카드는 사용자의 개인 기록 자리가 있으면 거기에도 붙이고, 「내 한 줄」은 사용자만 쓴다. `restructure-absorb` step 12(사용자 결정, 지휘 경유)
 
 ## step 목록
 
@@ -85,6 +86,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 | 9 | `explain-diff-to-explain` | false | `skills/explain-diff/` → `skills/explain/` · `skills/sdd/SKILL.md`(학습 카드 재료 경로) · `skills/pr-write/SKILL.md` · `docs/learning-level.md` · `README.md`(이름만) · `skills/harness-init/SKILL.md` 이름표 행 · `hooks/tests/renames.sh` 옛 이름 목록 |
 | 10 | `backlog-verification-row` | false | `BACKLOG.md` |
 | 11 | `measure-show-me-your-work` | measure | 바꿀 파일 없음 |
+| 12 | `conductor-relay-card` | false | `skills/conductor/SKILL.md` |
 
 ### PR 5 `restructure-trim` — 쪼개기 · 이력 걷기 · 입구 정리
 

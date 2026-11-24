@@ -81,6 +81,12 @@
       "status": "pending",
       "tdd": false,
       "kind": "measure"
+    },
+    {
+      "step": 12,
+      "name": "conductor-relay-card",
+      "status": "pending",
+      "tdd": false
     }
   ]
 }
