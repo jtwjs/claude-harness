@@ -34,8 +34,11 @@
     {
       "step": 4,
       "name": "remove-visual-explainer",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:08:54+0900",
+      "summary": "skills/plannotator-visual-explainer/(SKILL.md · LICENSE · references 4개)를 git rm으로 지웠고, README.md는 '무엇이 들었나' 표의 이름을 빼며 '스킬 21개'를 '스킬 20개'로 고치고 '축 밖' 행에서도 이름을 뺐다(PR 설명 자리는 explain-diff). README의 옛 이름 `explain-diff-*`는 그대로 뒀다(README 재작성 step 대상). 옛 이름은 phases/* · docs 기록과 step 6 이름표 '행 삭제' 대상에만 남는다",
+      "completed_at": "2026-11-24T20:12:55+0900"
     },
     {
       "step": 5,
