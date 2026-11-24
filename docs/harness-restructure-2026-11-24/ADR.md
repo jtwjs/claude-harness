@@ -1,0 +1,47 @@
+# ADR — 하네스 재구성 (restructure 트랙)
+
+> 번호는 지휘(`conductor`)가 발급한다. 결정 원문은 jtwjs/claude-harness 이슈 #40, 근거는 같은 폴더 `REVIEW.md`(#39).
+
+## ADR-016 자동 입구는 몇 개만 두고, 단계 스킬은 경로로 · 원칙은 문서로 잇는다
+
+- 상태: 수락 (2026-11-24)
+- 맥락: 스킬 21개 중 모델이 description으로 부를 수 있는 것이 20개다. SKILL.md 줄 수 중앙값 97 · 최대 320, 플러그인 상시 비용 약 3,442토큰(REVIEW §5). 같은 원칙(질문 규칙 · 글 규칙 · 기준 브랜치)이 여러 스킬에 복사돼 한쪽만 고쳐지고, 날짜 · 이력 · 배경 문장이 규칙 사이에 섞여 있다(REVIEW §1). 비교 대상 PStack(59개)은 줄 수 중앙값 19, 58개가 사람 호출 전용이고 총괄 표가 원칙 문서를 경로로 가리킨다.
+- 결정 (값의 정본은 #40 표, 여기는 한 줄씩):
+
+| # | 결정 | 주체 |
+|---|---|---|
+| D0 방향 | 자동 입구는 `sdd` · `why` · `conductor` · 글 스킬만, description을 날카롭게. 단계 스킬은 입구가 경로로 부르고, 슬래시 입구는 사람이 짧은 이름으로 부른다. 원칙은 부르지 않고 입구가 원칙 문서를 가리킨다(보고에 「쓴 원칙 · 바뀐 결정」). 지시문의 이유는 처음 보는 상황에서 판단을 바꾸는 한 구절만 남기고 날짜 · 이력 · 배경은 지운다 | AI 추천 수용 |
+| D1 묶음 | 굳은 묶음만 접두사, 나머지는 이름 그대로 + `sdd` 총괄 표 · README 목차. `harness-doctor`에 「README 목차 ↔ `skills/` 목록」 검사 | 사용자 |
+| D1 이름 | `harness` → `sdd-plan` · `harness-run` → `sdd-run` · `ai-readiness-cartography` → `harness-score`. 규칙: 흐름 단계는 `sdd-<단계>`, 접두사는 `sdd-` · `design-` · `harness-` 셋(새 접두사는 멤버 3개 이상 · 한동안 안 바뀐 묶음만), 나머지는 하는 일 1~2단어(도구 이름 · 비유 금지), 쪼개다 남은 절차 · 배경은 `references/<주제>.md`. 옛 이름은 `harness-init` 이름표에 한 줄씩 | AI 추천 수용 |
+| D2 원칙 | `docs/principles/<이름>.md` + `INDEX.md`(이름 · 언제 · 경로). 입구 스킬은 「판단 전에 INDEX, 쓰는 원칙은 원문을 읽는다」. 원칙 파일엔 판단 규칙만, 사실 · 절차는 스크립트(기준 브랜치 → `scripts/base-branch.sh`). 첫 원칙: 질문 규칙 · 공용 글 규칙 | AI 추천 수용 |
+| D3 | `plannotator-visual-explainer` 삭제 | 사용자 |
+| D4 | 개인 `why-logictree`를 `why`에 합침(개인본 삭제는 레포 밖) | 사용자 |
+| D5 | `harness-score` 사람만 부름 | 사용자 |
+| D6 | `skills/no-comments` + `agents/comment-hunter.md`(PStack을 고쳐 씀), 사람만. `sdd` REVIEW에 선택 한 줄 | 사용자 |
+| D7 | `interrogate`는 새 스킬 없이 `sdd-review` · `code-reviewer`에 규칙(지적마다 돌린 명령 · 출력, 못 돌리면 「확인 필요」 강등, 리뷰 전 의도 되비추기, 확신 5단계) | AI 추천 수용 |
+| D8 | `statechart` 반입, 사람만, 스크래치 폴더에서만 실행, 첫 사용 뒤 남길지 판정 | 사용자 |
+| D9 | `correct` → `harness-gaps` 종착지를 교정 위계 + 「규칙 ↔ 막는 장치」 칸. `reflect` → `sdd` REFLECT에 남기는 문턱 3줄 | 사용자 |
+| D10 | 레포 전용 검증 스킬 생성은 BACKLOG 승격 조건(「실제 동작 미실행」 3건) | 사용자 |
+| D11 | 훅 `loop-lock` · `todo-warn` · `validate-session-end`는 기록 경로부터 보강하고 다시 잰다 | 사용자 |
+| D12 | `understand-anything` 의존 선언 제거 | 사용자 |
+| D-gate | 막는 이해 관문 제거(`sdd` 빈틈 3곳 · `pr-write` 4.9 퀴즈 · draft 강제 · 「내 한 줄」 잠금). 대신 작업 끝 학습 카드를 작업 보고에 싣는다(레포에 쓰지 않음). `docs/learning-level.md`는 카드 형식만 | 사용자 |
+| D-요약 | `sdd` 마무리에서 PR 전 터미널에 세 줄 요약(무엇 · 왜 · 위험/직접 확인할 것), 입력을 받지 않는다. PR 본문 첫머리 · 학습 카드 · 지휘 보고가 같은 세 줄을 쓴다 | 사용자 제안 |
+| D13 흡수 | `reframe` · `sharpen` 별도 스킬(사람만) · `how` 새 스킬(읽기 전용) · `explain-diff` → `explain` · `why`에 「코드 결정이면 git log · PR · ADR부터」 · 원칙 문서 4장 · 글 스킬 마지막에 출처 점검 · `show-me-your-work`는 phases 기록을 보고 판단 · recall 출력 계약 → `sdd` 재개 · `conductor` 보고 | 대부분 AI 추천 수용, sharpen/reframe 분리는 사용자 |
+| 그 밖 | REVIEW §3 레포 구성 제안 12건 · §1-6 결함 5건 · §2-3 쪼개기 6개 스킬 | 사용자 |
+| D-lever | `encode-lessons-in-structure`(같은 지시 두 번째 → 구조화): 반복 3회부터 후보 유지, 두 번째는 「후보」 표시만. `build-the-lever`(원문 "The bar is triviality, not repetition."): 아이디어 흡수, 만들 도구의 결과물이 분명할 때 만들고 모호하면 반복 관찰을 기다린다(#40 댓글) | 사용자 |
+| Q1 입구 | `commit` · `pr-write`도 자동 입구로 둔다 | AI 추천 수용 |
+| Q2 how · explain | `how`는 자동(description은 「코드가 어떻게 도나 · 어느 레이어에 두나」로 `why`와 갈리게), `explain`은 사람만(`sdd` 마무리가 학습 카드 재료로 경로로 부름). After 발동 측정에 `how` 20문항(안 떠야 할 말에 why형 · 단순 검색 질문 포함) | 사용자 |
+| Q3 테스트 | `hooks/test.sh` 기존 줄을 바뀐 경로 · 문구에 맞추는 것만 허용, 새 케이스는 `hooks/tests/` | AI 추천 수용 |
+| Q4~Q6 | `learn-setup.sh`의 `_learn/` 생성 · 기록 지시를 걷는다 · PR마다 앞 브랜치에서 딴 브랜치(머지는 순서대로) · 원칙 파일 이름은 하는 일 영어 kebab | 지휘(위 결정에서 따라 나옴) |
+
+- 결정 주체: 위 표 「주체」 칸. 「사용자」는 사용자가 고르거나 일괄 승인한 것, 「AI 추천 수용」은 REVIEW · PLAN 추천안을 사용자가 그대로 받은 것, 「지휘」는 이미 내린 결정에서 지휘가 따라 정한 것.
+- 대안: 이름 접두사로 전부 묶기(이름을 바꿀 때마다 대상 레포 사본 · 습관이 같이 깨짐) / 원칙 하나 = 스킬 하나(원칙 수만큼 상시 비용과 메뉴가 늘어남) / 지금처럼 각 스킬 안에 원칙 복사(한쪽만 고쳐지는 일이 계속됨) / 이해 관문 유지(2026-11-16 이후 머지 PR 12건 동안 학습 카드 0장, #40)
+- 대가:
+  - 이름 3개가 바뀌어 대상 레포의 `.claude/README.md` 라우팅 사본과 사람의 슬래시 습관이 한 번 깨진다. `harness-init` 업그레이드 모드가 이름표로 옮긴다.
+  - 원칙 문서는 슬래시로 부를 수 없다. 입구 스킬이 경로를 빠뜨리면 아무도 안 읽는다.
+  - 실측상 스킬 본문은 원칙 문서를 `${CLAUDE_PLUGIN_ROOT}/docs/principles/…` 형태로 가리켜야 바로 열린다. 상대 경로(`docs/principles/…`)는 다른 레포 세션에서 그 레포 기준으로 풀려 첫 Read가 실패했다(아래 「결과」).
+  - 이해 관문이 빠지면 「이해하고 공유」는 강제되지 않는다. 학습 카드는 보고에만 실린다.
+  - 이 레포 규칙 「`hooks/test.sh`는 고치지 않는다」(`.claude/rules/non-obvious-patterns.md`)에 예외가 하나 생긴다: 재구성으로 바뀐 경로 · 문구를 따라 기존 줄을 맞추는 것(Q3). 새 케이스는 지금처럼 `hooks/tests/`에만 둔다.
+- 결과:
+  - D2 전제 실측(2026-11-24): 실사용 기록 58건에서 스킬 본문의 `${CLAUDE_PLUGIN_ROOT}`는 모두 설치 경로로 바뀌어 들어왔고(그대로 남은 것 0), 다른 레포(jtwjs-desk) 세션이 플러그인 `docs/learning-level.md`를 그 경로로 읽은 기록이 있다(2026-11-13, 오류 없음). 최소 플러그인으로 다른 레포 세션에서 `docs/principles/INDEX.md` → 원칙 파일을 읽게 했을 때 절대 형태는 2/2 바로 성공, 상대 형태는 2/2 첫 Read 실패(모델이 Bash로 찾아 복구). 목차 안의 형제 파일 경로는 「INDEX.md가 있는 폴더 기준」이라고 적으면 2/2 성공.
+  - 레포 밖 후속(이 레포에서 하지 않음): 개인 `why-logictree` 삭제 · desk의 README 사본 이름 바꾸기 · 학습 카드를 개인 기록에 붙이기.

@@ -1,0 +1,4202 @@
+[
+ {
+  "skill": "sdd",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "주문 목록 화면에 배송 상태 필터(배송중/완료/취소) 추가해야 돼. 기획은 노션에 대충 있는데 PRD로는 아직 안 만들었어. 어디서부터 하면 될까"
+ },
+ {
+  "skill": "sdd",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "로그인하고 새로고침하면 가끔 로그아웃되는 버그가 있어. src/features/auth/session.ts 리프레시 토큰 쪽 같은데 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "로그인하고 새로고침하면 가끔 로그아웃되는 버그가 있어. src/features/auth/session.ts 리프레시 토큰 쪽 같은데 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "주문 목록 화면에 배송 상태 필터(배송중/완료/취소) 추가해야 돼. 기획은 노션에 대충 있는데 PRD로는 아직 안 만들었어. 어디서부터 하면 될까"
+ },
+ {
+  "skill": "sdd",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "로그인하고 새로고침하면 가끔 로그아웃되는 버그가 있어. src/features/auth/session.ts 리프레시 토큰 쪽 같은데 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "주문 목록 화면에 배송 상태 필터(배송중/완료/취소) 추가해야 돼. 기획은 노션에 대충 있는데 PRD로는 아직 안 만들었어. 어디서부터 하면 될까"
+ },
+ {
+  "skill": "sdd",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "결제 실패하면 재시도 버튼 보여주는 기능 작업 시작하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "결제 실패하면 재시도 버튼 보여주는 기능 작업 시작하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "결제 실패하면 재시도 버튼 보여주는 기능 작업 시작하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "알림 설정 페이지 새로 만들어야 함. 이메일/푸시 on off 토글이랑 저장 API 연동까지"
+ },
+ {
+  "skill": "sdd",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "알림 설정 페이지 새로 만들어야 함. 이메일/푸시 on off 토글이랑 저장 API 연동까지"
+ },
+ {
+  "skill": "sdd",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "알림 설정 페이지 새로 만들어야 함. 이메일/푸시 on off 토글이랑 저장 API 연동까지"
+ },
+ {
+  "skill": "sdd",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "회원 탈퇴 기능 구현해줘. 탈퇴하면 30일 뒤에 개인정보 지우는 정책이래"
+ },
+ {
+  "skill": "sdd",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "회원 탈퇴 기능 구현해줘. 탈퇴하면 30일 뒤에 개인정보 지우는 정책이래"
+ },
+ {
+  "skill": "sdd",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "회원 탈퇴 기능 구현해줘. 탈퇴하면 30일 뒤에 개인정보 지우는 정책이래"
+ },
+ {
+  "skill": "sdd",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "막연한데, 주문 대시보드가 느리다는 얘기가 계속 나와. 이걸 과제로 잡아서 진행해보고 싶어"
+ },
+ {
+  "skill": "sdd",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "막연한데, 주문 대시보드가 느리다는 얘기가 계속 나와. 이걸 과제로 잡아서 진행해보고 싶어"
+ },
+ {
+  "skill": "sdd",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "막연한데, 주문 대시보드가 느리다는 얘기가 계속 나와. 이걸 과제로 잡아서 진행해보고 싶어"
+ },
+ {
+  "skill": "sdd",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "CSV 업로드할 때 2만 줄 넘어가면 브라우저가 멈추는 버그 잡아야 함. 이슈 #212"
+ },
+ {
+  "skill": "sdd",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "CSV 업로드할 때 2만 줄 넘어가면 브라우저가 멈추는 버그 잡아야 함. 이슈 #212"
+ },
+ {
+  "skill": "sdd",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "CSV 업로드할 때 2만 줄 넘어가면 브라우저가 멈추는 버그 잡아야 함. 이슈 #212"
+ },
+ {
+  "skill": "sdd",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "상품 상세에 리뷰 사진 여러 장 올리는 기능 새로 시작하려고. 설계부터 같이 하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "상품 상세에 리뷰 사진 여러 장 올리는 기능 새로 시작하려고. 설계부터 같이 하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "상품 상세에 리뷰 사진 여러 장 올리는 기능 새로 시작하려고. 설계부터 같이 하자"
+ },
+ {
+  "skill": "sdd",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "관리자 페이지에 사용자 권한(뷰어/편집자/관리자) 나누는 거 기능으로 넣어야 돼"
+ },
+ {
+  "skill": "sdd",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "관리자 페이지에 사용자 권한(뷰어/편집자/관리자) 나누는 거 기능으로 넣어야 돼"
+ },
+ {
+  "skill": "sdd",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "관리자 페이지에 사용자 권한(뷰어/편집자/관리자) 나누는 거 기능으로 넣어야 돼"
+ },
+ {
+  "skill": "sdd",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색창에 자동완성 붙이는 작업 해야 하는데 PRD 없음. 과제 정의부터 해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색창에 자동완성 붙이는 작업 해야 하는데 PRD 없음. 과제 정의부터 해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색창에 자동완성 붙이는 작업 해야 하는데 PRD 없음. 과제 정의부터 해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 커밋 메시지 써서 커밋해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 커밋 메시지 써서 커밋해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 커밋 메시지 써서 커밋해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:harness-run",
+  "query": "phases/order-filter 계획 다 짰으니까 이제 구현 러너 돌려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:harness-run",
+  "query": "phases/order-filter 계획 다 짰으니까 이제 구현 러너 돌려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:harness-run",
+  "query": "phases/order-filter 계획 다 짰으니까 이제 구현 러너 돌려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd-review",
+  "query": "방금 구현한 거 머지 전에 ARCHITECTURE랑 ADR 기준으로 리뷰해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd-review",
+  "query": "방금 구현한 거 머지 전에 ARCHITECTURE랑 ADR 기준으로 리뷰해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd-review",
+  "query": "방금 구현한 거 머지 전에 ARCHITECTURE랑 ADR 기준으로 리뷰해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 PR 설명 써서 깃헙에 올려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 PR 설명 써서 깃헙에 올려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 PR 설명 써서 깃헙에 올려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "useEffect 의존성 배열에 함수 넣으면 왜 무한루프 돌아? 개념만 설명해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README에 오타 하나 있어. recieve → receive 로만 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "useEffect 의존성 배열에 함수 넣으면 왜 무한루프 돌아? 개념만 설명해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "useEffect 의존성 배열에 함수 넣으면 왜 무한루프 돌아? 개념만 설명해줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README에 오타 하나 있어. recieve → receive 로만 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README에 오타 하나 있어. recieve → receive 로만 고쳐줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지 근거가 약한 것 같은데 나한테 캐물어줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "SDD가 뭐야? 스펙 주도 개발이랑 TDD 차이 간단히 알려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "SDD가 뭐야? 스펙 주도 개발이랑 TDD 차이 간단히 알려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지 근거가 약한 것 같은데 나한테 캐물어줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지 근거가 약한 것 같은데 나한테 캐물어줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "SDD가 뭐야? 스펙 주도 개발이랑 TDD 차이 간단히 알려줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "어제 회의에서 정한 배송 필터 내용 팀 슬랙에 공유할 메시지 써줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "어제 회의에서 정한 배송 필터 내용 팀 슬랙에 공유할 메시지 써줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "어제 회의에서 정한 배송 필터 내용 팀 슬랙에 공유할 메시지 써줘"
+ },
+ {
+  "skill": "sdd",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "package.json 에 react-query 버전 몇으로 돼 있어?"
+ },
+ {
+  "skill": "sdd",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "package.json 에 react-query 버전 몇으로 돼 있어?"
+ },
+ {
+  "skill": "sdd",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "package.json 에 react-query 버전 몇으로 돼 있어?"
+ },
+ {
+  "skill": "why",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "팀장이 다음 분기에 모노레포로 옮기자는데 솔직히 왜 해야 하는지 모르겠어. 같이 따져보자"
+ },
+ {
+  "skill": "why",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "팀장이 다음 분기에 모노레포로 옮기자는데 솔직히 왜 해야 하는지 모르겠어. 같이 따져보자"
+ },
+ {
+  "skill": "why",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 주장 맞아? '서버 컴포넌트 쓰면 무조건 빨라진다'는 말"
+ },
+ {
+  "skill": "why",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "팀장이 다음 분기에 모노레포로 옮기자는데 솔직히 왜 해야 하는지 모르겠어. 같이 따져보자"
+ },
+ {
+  "skill": "why",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 주장 맞아? '서버 컴포넌트 쓰면 무조건 빨라진다'는 말"
+ },
+ {
+  "skill": "why",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 주장 맞아? '서버 컴포넌트 쓰면 무조건 빨라진다'는 말"
+ },
+ {
+  "skill": "why",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "캐물어줘. 나 지금 Redux 걷어내고 zustand로 가려는데 내 이유가 탄탄한지"
+ },
+ {
+  "skill": "why",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "캐물어줘. 나 지금 Redux 걷어내고 zustand로 가려는데 내 이유가 탄탄한지"
+ },
+ {
+  "skill": "why",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "캐물어줘. 나 지금 Redux 걷어내고 zustand로 가려는데 내 이유가 탄탄한지"
+ },
+ {
+  "skill": "why",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "내 기획 메모 논리 좀 점검해줘: 신규 가입자 이탈이 높다 → 온보딩 튜토리얼 넣는다 → 리텐션 오른다"
+ },
+ {
+  "skill": "why",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "내 기획 메모 논리 좀 점검해줘: 신규 가입자 이탈이 높다 → 온보딩 튜토리얼 넣는다 → 리텐션 오른다"
+ },
+ {
+  "skill": "why",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "내 기획 메모 논리 좀 점검해줘: 신규 가입자 이탈이 높다 → 온보딩 튜토리얼 넣는다 → 리텐션 오른다"
+ },
+ {
+  "skill": "why",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "슬랙에 '이번 스프린트에 검색 개편 못 한다'고 답해야 하는데 이유가 흐릿해. 답 쓰기 전에 근거부터 정리하고 싶어"
+ },
+ {
+  "skill": "why",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "슬랙에 '이번 스프린트에 검색 개편 못 한다'고 답해야 하는데 이유가 흐릿해. 답 쓰기 전에 근거부터 정리하고 싶어"
+ },
+ {
+  "skill": "why",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "슬랙에 '이번 스프린트에 검색 개편 못 한다'고 답해야 하는데 이유가 흐릿해. 답 쓰기 전에 근거부터 정리하고 싶어"
+ },
+ {
+  "skill": "why",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이거 왜 하지? 디자인팀이 버튼 컴포넌트를 다 새로 만들자고 함"
+ },
+ {
+  "skill": "why",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이거 왜 하지? 디자인팀이 버튼 컴포넌트를 다 새로 만들자고 함"
+ },
+ {
+  "skill": "why",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이거 왜 하지? 디자인팀이 버튼 컴포넌트를 다 새로 만들자고 함"
+ },
+ {
+  "skill": "why",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서에 'A/B 테스트로 전환율 개선 확인'이라고 쓰려는데 근거 충분한지 봐줘. 데이터가 3일치야"
+ },
+ {
+  "skill": "why",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서에 'A/B 테스트로 전환율 개선 확인'이라고 쓰려는데 근거 충분한지 봐줘. 데이터가 3일치야"
+ },
+ {
+  "skill": "why",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서에 'A/B 테스트로 전환율 개선 확인'이라고 쓰려는데 근거 충분한지 봐줘. 데이터가 3일치야"
+ },
+ {
+  "skill": "why",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "쿠폰 기능을 우리가 직접 만들어야 할 이유가 있을까? 외부 솔루션 쓰자는 의견도 있어서"
+ },
+ {
+  "skill": "why",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "쿠폰 기능을 우리가 직접 만들어야 할 이유가 있을까? 외부 솔루션 쓰자는 의견도 있어서"
+ },
+ {
+  "skill": "why",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "쿠폰 기능을 우리가 직접 만들어야 할 이유가 있을까? 외부 솔루션 쓰자는 의견도 있어서"
+ },
+ {
+  "skill": "why",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 결정 맞는지 모르겠어: CI에서 테스트 커버리지 80% 미만이면 실패시키기"
+ },
+ {
+  "skill": "why",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "근거 있어? GraphQL로 바꾸면 오버페칭이 사라져서 앱이 빨라진다는 거"
+ },
+ {
+  "skill": "why",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 결정 맞는지 모르겠어: CI에서 테스트 커버리지 80% 미만이면 실패시키기"
+ },
+ {
+  "skill": "why",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "근거 있어? GraphQL로 바꾸면 오버페칭이 사라져서 앱이 빨라진다는 거"
+ },
+ {
+  "skill": "why",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "근거 있어? GraphQL로 바꾸면 오버페칭이 사라져서 앱이 빨라진다는 거"
+ },
+ {
+  "skill": "why",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 결정 맞는지 모르겠어: CI에서 테스트 커버리지 80% 미만이면 실패시키기"
+ },
+ {
+  "skill": "why",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이거 왜 에러 나? TypeError: Cannot read properties of undefined (reading 'map') OrderList.tsx"
+ },
+ {
+  "skill": "why",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이거 왜 에러 나? TypeError: Cannot read properties of undefined (reading 'map') OrderList.tsx"
+ },
+ {
+  "skill": "why",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이거 왜 에러 나? TypeError: Cannot read properties of undefined (reading 'map') OrderList.tsx"
+ },
+ {
+  "skill": "why",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색 개편 과제 PRD로 만들고 설계 문서까지 써줘"
+ },
+ {
+  "skill": "why",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색 개편 과제 PRD로 만들고 설계 문서까지 써줘"
+ },
+ {
+  "skill": "why",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "검색 개편 과제 PRD로 만들고 설계 문서까지 써줘"
+ },
+ {
+  "skill": "why",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "useMemo 언제 써야 하는지 설명해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 공지 슬랙 메시지 다듬어줘: 내일 배포 10시로 변경"
+ },
+ {
+  "skill": "why",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 공지 슬랙 메시지 다듬어줘: 내일 배포 10시로 변경"
+ },
+ {
+  "skill": "why",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 공지 슬랙 메시지 다듬어줘: 내일 배포 10시로 변경"
+ },
+ {
+  "skill": "why",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "useMemo 언제 써야 하는지 설명해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "useMemo 언제 써야 하는지 설명해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 회고를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "지금 브랜치 diff 풀어서 설명해줘, 리뷰어가 이해할 수 있게"
+ },
+ {
+  "skill": "why",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "지금 브랜치 diff 풀어서 설명해줘, 리뷰어가 이해할 수 있게"
+ },
+ {
+  "skill": "why",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "지금 브랜치 diff 풀어서 설명해줘, 리뷰어가 이해할 수 있게"
+ },
+ {
+  "skill": "why",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 회고를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 회고를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "why",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "npm test 하면 auth 테스트 3개가 깨져. 원인 찾아줘"
+ },
+ {
+  "skill": "why",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "npm test 하면 auth 테스트 3개가 깨져. 원인 찾아줘"
+ },
+ {
+  "skill": "why",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "npm test 하면 auth 테스트 3개가 깨져. 원인 찾아줘"
+ },
+ {
+  "skill": "why",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "react-query staleTime이랑 gcTime 차이가 뭐야"
+ },
+ {
+  "skill": "why",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이벤트 핸들러 이름을 handleX로 짓는 게 왜 컨벤션이야? 그냥 궁금"
+ },
+ {
+  "skill": "why",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이벤트 핸들러 이름을 handleX로 짓는 게 왜 컨벤션이야? 그냥 궁금"
+ },
+ {
+  "skill": "why",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이벤트 핸들러 이름을 handleX로 짓는 게 왜 컨벤션이야? 그냥 궁금"
+ },
+ {
+  "skill": "why",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "어제 장애 원인 분석한 거 포스트모템 문서로 써줘"
+ },
+ {
+  "skill": "why",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "react-query staleTime이랑 gcTime 차이가 뭐야"
+ },
+ {
+  "skill": "conductor",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "너는 지휘 세션이야. 지금 worktree 세 개 돌고 있어(api, web, infra)"
+ },
+ {
+  "skill": "why",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "어제 장애 원인 분석한 거 포스트모템 문서로 써줘"
+ },
+ {
+  "skill": "why",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "react-query staleTime이랑 gcTime 차이가 뭐야"
+ },
+ {
+  "skill": "why",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "어제 장애 원인 분석한 거 포스트모템 문서로 써줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "너는 지휘 세션이야. 지금 worktree 세 개 돌고 있어(api, web, infra)"
+ },
+ {
+  "skill": "conductor",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "지휘 맡아줘. 결제 트랙이랑 정산 트랙이 같은 테이블 스키마를 건드려서 조율이 필요해"
+ },
+ {
+  "skill": "conductor",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "지휘 맡아줘. 결제 트랙이랑 정산 트랙이 같은 테이블 스키마를 건드려서 조율이 필요해"
+ },
+ {
+  "skill": "conductor",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "지휘 맡아줘. 결제 트랙이랑 정산 트랙이 같은 테이블 스키마를 건드려서 조율이 필요해"
+ },
+ {
+  "skill": "conductor",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "너는 지휘 세션이야. 지금 worktree 세 개 돌고 있어(api, web, infra)"
+ },
+ {
+  "skill": "conductor",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬로 트랙 두 개 열어서 진행할 건데 전체 조율은 네가 해줘. 이슈 의존 걸고 ADR 번호도 네가 매겨"
+ },
+ {
+  "skill": "conductor",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬로 트랙 두 개 열어서 진행할 건데 전체 조율은 네가 해줘. 이슈 의존 걸고 ADR 번호도 네가 매겨"
+ },
+ {
+  "skill": "conductor",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬로 트랙 두 개 열어서 진행할 건데 전체 조율은 네가 해줘. 이슈 의존 걸고 ADR 번호도 네가 매겨"
+ },
+ {
+  "skill": "conductor",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "web 트랙 세션이 API 계약 바꿔야 한다고 보고 올렸어. 지휘 입장에서 후속 이슈로 쪼개줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "web 트랙 세션이 API 계약 바꿔야 한다고 보고 올렸어. 지휘 입장에서 후속 이슈로 쪼개줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "web 트랙 세션이 API 계약 바꿔야 한다고 보고 올렸어. 지휘 입장에서 후속 이슈로 쪼개줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 세 개 상태 정리하고 다음에 뭐 풀어야 하는지 판단해줘. 너 지휘잖아"
+ },
+ {
+  "skill": "conductor",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 세 개 상태 정리하고 다음에 뭐 풀어야 하는지 판단해줘. 너 지휘잖아"
+ },
+ {
+  "skill": "conductor",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 세 개 상태 정리하고 다음에 뭐 풀어야 하는지 판단해줘. 너 지휘잖아"
+ },
+ {
+  "skill": "conductor",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "worktree 세션들 사이에 인증 방식 결정이 충돌 났어. 지휘 세션으로서 정리해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "worktree 세션들 사이에 인증 방식 결정이 충돌 났어. 지휘 세션으로서 정리해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "worktree 세션들 사이에 인증 방식 결정이 충돌 났어. 지휘 세션으로서 정리해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "conductor 역할 해줘. 트랙별 지시문 써서 각 세션에 보낼 거야"
+ },
+ {
+  "skill": "conductor",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "conductor 역할 해줘. 트랙별 지시문 써서 각 세션에 보낼 거야"
+ },
+ {
+  "skill": "conductor",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "conductor 역할 해줘. 트랙별 지시문 써서 각 세션에 보낼 거야"
+ },
+ {
+  "skill": "conductor",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 A가 끝났다고 보고 왔어. 지휘로서 판정하고 막혀 있던 트랙 B 풀어줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 A가 끝났다고 보고 왔어. 지휘로서 판정하고 막혀 있던 트랙 B 풀어줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "트랙 A가 끝났다고 보고 왔어. 지휘로서 판정하고 막혀 있던 트랙 B 풀어줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "레포 세 개(desk, harness, stack-kits)를 동시에 작업 중인데 지휘 세션 맡아줄래"
+ },
+ {
+  "skill": "conductor",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "레포 세 개(desk, harness, stack-kits)를 동시에 작업 중인데 지휘 세션 맡아줄래"
+ },
+ {
+  "skill": "conductor",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "레포 세 개(desk, harness, stack-kits)를 동시에 작업 중인데 지휘 세션 맡아줄래"
+ },
+ {
+  "skill": "conductor",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬 세션들이 보고를 너한테 보내게 할 테니 지휘해. 열린 conductor 라벨 이슈부터 봐"
+ },
+ {
+  "skill": "conductor",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬 세션들이 보고를 너한테 보내게 할 테니 지휘해. 열린 conductor 라벨 이슈부터 봐"
+ },
+ {
+  "skill": "conductor",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:conductor",
+  "query": "병렬 세션들이 보고를 너한테 보내게 할 테니 지휘해. 열린 conductor 라벨 이슈부터 봐"
+ },
+ {
+  "skill": "conductor",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 기능 나 혼자 진행할 거야. 단계별로 계획 세워줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 기능 나 혼자 진행할 거야. 단계별로 계획 세워줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 기능 나 혼자 진행할 거야. 단계별로 계획 세워줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "phases 진행 상태 보여줘. 어디까지 구현됐는지"
+ },
+ {
+  "skill": "conductor",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git worktree 하나 새로 만들어줘. feature/login 브랜치로"
+ },
+ {
+  "skill": "conductor",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git worktree 하나 새로 만들어줘. feature/login 브랜치로"
+ },
+ {
+  "skill": "conductor",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "phases 진행 상태 보여줘. 어디까지 구현됐는지"
+ },
+ {
+  "skill": "conductor",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git worktree 하나 새로 만들어줘. feature/login 브랜치로"
+ },
+ {
+  "skill": "conductor",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "phases 진행 상태 보여줘. 어디까지 구현됐는지"
+ },
+ {
+  "skill": "conductor",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "서브에이전트 세 개 병렬로 돌려서 이 레포 구조 조사해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "서브에이전트 세 개 병렬로 돌려서 이 레포 구조 조사해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "서브에이전트 세 개 병렬로 돌려서 이 레포 구조 조사해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "ADR 하나 써줘. 상태관리를 zustand로 정한 결정"
+ },
+ {
+  "skill": "conductor",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "ADR 하나 써줘. 상태관리를 zustand로 정한 결정"
+ },
+ {
+  "skill": "conductor",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "ADR 하나 써줘. 상태관리를 zustand로 정한 결정"
+ },
+ {
+  "skill": "conductor",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "오케스트라 지휘자 비유로 마이크로서비스 오케스트레이션 설명해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이슈 #40 본문 읽고 그대로 작업해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이슈 #40 본문 읽고 그대로 작업해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이슈 #40 본문 읽고 그대로 작업해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "오케스트라 지휘자 비유로 마이크로서비스 오케스트레이션 설명해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "ListAgents",
+  "skill_called": null,
+  "query": "지휘 세션한테 보고 보내줘: 리뷰 끝났고 정할 것 12건"
+ },
+ {
+  "skill": "conductor",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "ListAgents",
+  "skill_called": null,
+  "query": "지휘 세션한테 보고 보내줘: 리뷰 끝났고 정할 것 12건"
+ },
+ {
+  "skill": "conductor",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "ListAgents",
+  "skill_called": null,
+  "query": "지휘 세션한테 보고 보내줘: 리뷰 끝났고 정할 것 12건"
+ },
+ {
+  "skill": "conductor",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "GitHub 이슈 라벨 정리해줘. bug, enhancement 색깔 통일"
+ },
+ {
+  "skill": "conductor",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "오케스트라 지휘자 비유로 마이크로서비스 오케스트레이션 설명해줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "GitHub 이슈 라벨 정리해줘. bug, enhancement 색깔 통일"
+ },
+ {
+  "skill": "conductor",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "GitHub 이슈 라벨 정리해줘. bug, enhancement 색깔 통일"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 배포 지연 공지 써줘. 원래 오늘 6시였는데 QA 이슈로 내일 오전 10시로 밀림"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 배포 지연 공지 써줘. 원래 오늘 6시였는데 QA 이슈로 내일 오전 10시로 밀림"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 배포 지연 공지 써줘. 원래 오늘 6시였는데 QA 이슈로 내일 오전 10시로 밀림"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "PM한테 슬랙으로 답장해야 함: 검색 필터 이번 스프린트엔 못 넣는다고, 이유는 API 스펙 미정"
+ },
+ {
+  "skill": "conductor",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "tmux 창 세 개 띄우는 셸 스크립트 짜줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "PM한테 슬랙으로 답장해야 함: 검색 필터 이번 스프린트엔 못 넣는다고, 이유는 API 스펙 미정"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "PM한테 슬랙으로 답장해야 함: 검색 필터 이번 스프린트엔 못 넣는다고, 이유는 API 스펙 미정"
+ },
+ {
+  "skill": "conductor",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "tmux 창 세 개 띄우는 셸 스크립트 짜줘"
+ },
+ {
+  "skill": "conductor",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "tmux 창 세 개 띄우는 셸 스크립트 짜줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이 슬랙 메시지 너무 길어. 다듬어줘: '안녕하세요! 혹시 시간 되실 때 확인 부탁드려도 될까요? 다름이 아니라 ~'"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이 슬랙 메시지 너무 길어. 다듬어줘: '안녕하세요! 혹시 시간 되실 때 확인 부탁드려도 될까요? 다름이 아니라 ~'"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이 슬랙 메시지 너무 길어. 다듬어줘: '안녕하세요! 혹시 시간 되실 때 확인 부탁드려도 될까요? 다름이 아니라 ~'"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "디자이너한테 시안 수정 요청하는 DM 써줘. 버튼 간격 8→12, 에러 색 바꿔달라고"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "디자이너한테 시안 수정 요청하는 DM 써줘. 버튼 간격 8→12, 에러 색 바꿔달라고"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "디자이너한테 시안 수정 요청하는 DM 써줘. 버튼 간격 8→12, 에러 색 바꿔달라고"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 채널에 오늘 한 일 보고 올릴 거 써줘: 로그인 버그 수정, 결제 리팩터 절반"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 채널에 오늘 한 일 보고 올릴 거 써줘: 로그인 버그 수정, 결제 리팩터 절반"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "팀 채널에 오늘 한 일 보고 올릴 거 써줘: 로그인 버그 수정, 결제 리팩터 절반"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "백엔드 팀장님한테 API 스펙 확인 부탁하는 메시지. 정중하게, 짧게"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "백엔드 팀장님한테 API 스펙 확인 부탁하는 메시지. 정중하게, 짧게"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "백엔드 팀장님한테 API 스펙 확인 부탁하는 메시지. 정중하게, 짧게"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙 스레드에 회신 써줘. 질문은 '이 에러 원인 찾았어요?'였고 원인은 캐시 키 충돌이었어"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙 스레드에 회신 써줘. 질문은 '이 에러 원인 찾았어요?'였고 원인은 캐시 키 충돌이었어"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙 스레드에 회신 써줘. 질문은 '이 에러 원인 찾았어요?'였고 원인은 캐시 키 충돌이었어"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "고객사 요청(엑셀 내보내기 커스텀) 거절하는 답장 써야 해. 슬랙으로 보낼 거야"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "고객사 요청(엑셀 내보내기 커스텀) 거절하는 답장 써야 해. 슬랙으로 보낼 거야"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "고객사 요청(엑셀 내보내기 커스텀) 거절하는 답장 써야 해. 슬랙으로 보낼 거야"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이번 장애 짧게 공유하는 슬랙 글. 영향 30분, 결제 일부 실패, 원인은 DB 커넥션 풀"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이번 장애 짧게 공유하는 슬랙 글. 영향 30분, 결제 일부 실패, 원인은 DB 커넥션 풀"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "이번 장애 짧게 공유하는 슬랙 글. 영향 30분, 결제 일부 실패, 원인은 DB 커넥션 풀"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "동료한테 PR #88 코드리뷰 부탁하는 슬랙 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "동료한테 PR #88 코드리뷰 부탁하는 슬랙 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "동료한테 PR #88 코드리뷰 부탁하는 슬랙 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 웹훅으로 배포 알림 보내는 GitHub Actions 스텝 짜줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 웹훅으로 배포 알림 보내는 GitHub Actions 스텝 짜줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 웹훅으로 배포 알림 보내는 GitHub Actions 스텝 짜줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 결과를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 결과를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 결과를 노션 보고서로 정리해줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 본문 써서 올려줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 본문 써서 올려줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 본문 써서 올려줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지, 슬랙에 답하기 전에 근거부터 나랑 따져보자"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지, 슬랙에 답하기 전에 근거부터 나랑 따져보자"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "이 기능 왜 해야 하는지, 슬랙에 답하기 전에 근거부터 나랑 따져보자"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 API로 채널 메시지 가져오는 파이썬 스크립트 만들어줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 API로 채널 메시지 가져오는 파이썬 스크립트 만들어줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "슬랙 API로 채널 메시지 가져오는 파이썬 스크립트 만들어줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Agent",
+  "skill_called": null,
+  "query": "Slack 앱 OAuth scope 뭐 줘야 채널 글 읽을 수 있어?"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Agent",
+  "skill_called": null,
+  "query": "Slack 앱 OAuth scope 뭐 줘야 채널 글 읽을 수 있어?"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이메일로 보낼 퇴사 인사 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이메일로 보낼 퇴사 인사 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이메일로 보낼 퇴사 인사 써줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션 PRD를 팀 공유본으로 압축해줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "Slack 앱 OAuth scope 뭐 줘야 채널 글 읽을 수 있어?"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션 PRD를 팀 공유본으로 압축해줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션 PRD를 팀 공유본으로 압축해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 프론트 성능 개선 결과 보고서 노션에 올릴 거 써줘. LCP 3.2s→2.1s"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 프론트 성능 개선 결과 보고서 노션에 올릴 거 써줘. LCP 3.2s→2.1s"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이번 분기 프론트 성능 개선 결과 보고서 노션에 올릴 거 써줘. LCP 3.2s→2.1s"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "슬랙 알림이 너무 많이 와. 설정에서 끄는 법 알려줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "슬랙 알림이 너무 많이 와. 설정에서 끄는 법 알려줘"
+ },
+ {
+  "skill": "slack-writing",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "슬랙 알림이 너무 많이 와. 설정에서 끄는 법 알려줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "작업하면서 쓴 설계 문서를 팀 공유용으로 압축해줘. 결정할 것 위주로"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "작업하면서 쓴 설계 문서를 팀 공유용으로 압축해줘. 결정할 것 위주로"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "작업하면서 쓴 설계 문서를 팀 공유용으로 압축해줘. 결정할 것 위주로"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "why-logictree",
+  "query": "신규 기능 제안서 써야 함: 장바구니 공유 링크. 경영진이 읽을 거야"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이 PRD 초안을 기획자랑 디자이너도 읽을 수 있게 공유본으로 바꿔줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이 PRD 초안을 기획자랑 디자이너도 읽을 수 있게 공유본으로 바꿔줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이 PRD 초안을 기획자랑 디자이너도 읽을 수 있게 공유본으로 바꿔줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "why-logictree",
+  "query": "신규 기능 제안서 써야 함: 장바구니 공유 링크. 경영진이 읽을 거야"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "장애 회고 보고서 노션 페이지로 정리해줘. 타임라인이랑 재발 방지책"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "신규 기능 제안서 써야 함: 장바구니 공유 링크. 경영진이 읽을 거야"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "장애 회고 보고서 노션 페이지로 정리해줘. 타임라인이랑 재발 방지책"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "장애 회고 보고서 노션 페이지로 정리해줘. 타임라인이랑 재발 방지책"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "기술 부채 정리 제안 문서 쓰고 싶어. 팀장님한테 결정받을 항목 3개"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "기술 부채 정리 제안 문서 쓰고 싶어. 팀장님한테 결정받을 항목 3개"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션에 올릴 온보딩 개선 기획서 초안 잡아줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션에 올릴 온보딩 개선 기획서 초안 잡아줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "노션에 올릴 온보딩 개선 기획서 초안 잡아줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "기술 부채 정리 제안 문서 쓰고 싶어. 팀장님한테 결정받을 항목 3개"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 회의록 바탕으로 의사결정 요청 문서 만들어줘. 독자는 CTO"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "다음 스프린트 계획 공유 문서 노션용으로 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "다음 스프린트 계획 공유 문서 노션용으로 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 회의록 바탕으로 의사결정 요청 문서 만들어줘. 독자는 CTO"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "이 회의록 바탕으로 의사결정 요청 문서 만들어줘. 독자는 CTO"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "다음 스프린트 계획 공유 문서 노션용으로 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "QA팀에 공유할 릴리스 변경사항 정리 문서 써줘(노션)"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "QA팀에 공유할 릴리스 변경사항 정리 문서 써줘(노션)"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 짧게 공유할 메시지 써줘: 성능 개선 끝남"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:notion-writing",
+  "query": "QA팀에 공유할 릴리스 변경사항 정리 문서 써줘(노션)"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "노션 API로 데이터베이스에 행 추가하는 코드 짜줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "노션 API로 데이터베이스에 행 추가하는 코드 짜줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "노션 API로 데이터베이스에 행 추가하는 코드 짜줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 짧게 공유할 메시지 써줘: 성능 개선 끝남"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README 업데이트해줘. 설치 방법이 pnpm으로 바뀜"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:slack-writing",
+  "query": "슬랙에 짧게 공유할 메시지 써줘: 성능 개선 끝남"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README 업데이트해줘. 설치 방법이 pnpm으로 바뀜"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "README 업데이트해줘. 설치 방법이 pnpm으로 바뀜"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "이 diff 풀어서 노션 페이지로 설명해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "이 diff 풀어서 노션 페이지로 설명해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:explain-diff",
+  "query": "이 diff 풀어서 노션 페이지로 설명해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 설명 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 설명 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 설명 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:sdd",
+  "query": "검색 자동완성 기능 PRD 작성부터 같이 하자"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "검색 자동완성 기능 PRD 작성부터 같이 하자"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-md-management:claude-md-improver",
+  "query": "CLAUDE.md 정리해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "검색 자동완성 기능 PRD 작성부터 같이 하자"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-md-management:claude-md-improver",
+  "query": "CLAUDE.md 정리해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-md-management:claude-md-improver",
+  "query": "CLAUDE.md 정리해줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "레포 docs/ 에 ADR 문서 하나 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "레포 docs/ 에 ADR 문서 하나 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "notion-cli",
+  "query": "노션 페이지를 마크다운으로 내보내는 방법?"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "레포 docs/ 에 ADR 문서 하나 써줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서 쓰기 전에 내 주장 근거가 충분한지 먼저 캐물어줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서 쓰기 전에 내 주장 근거가 충분한지 먼저 캐물어줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:why",
+  "query": "보고서 쓰기 전에 내 주장 근거가 충분한지 먼저 캐물어줘"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "노션 페이지를 마크다운으로 내보내는 방법?"
+ },
+ {
+  "skill": "notion-writing",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "노션 페이지를 마크다운으로 내보내는 방법?"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "작업 끝났어. main 대상으로 풀리퀘 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "작업 끝났어. main 대상으로 풀리퀘 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "작업 끝났어. main 대상으로 풀리퀘 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 깃헙에 PR로 올리고 리뷰어는 비워둬"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 깃헙에 PR로 올리고 리뷰어는 비워둬"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "이 브랜치 깃헙에 PR로 올리고 리뷰어는 비워둬"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "pr 올려줘 제목은 알아서"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "pr 올려줘 제목은 알아서"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "pr 올려줘 제목은 알아서"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "변경사항 정리해서 Pull Request 생성해줘. 이슈 #212 닫히게"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "변경사항 정리해서 Pull Request 생성해줘. 이슈 #212 닫히게"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "변경사항 정리해서 Pull Request 생성해줘. 이슈 #212 닫히게"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "draft PR로 먼저 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "draft PR로 먼저 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "draft PR로 먼저 올려줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "리뷰 요청할 수 있게 PR 써서 생성까지 해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "리뷰 요청할 수 있게 PR 써서 생성까지 해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "리뷰 요청할 수 있게 PR 써서 생성까지 해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "push 하고 PR 열어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "feature/order-filter 브랜치 PR 생성"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "push 하고 PR 열어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "push 하고 PR 열어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "feature/order-filter 브랜치 PR 생성"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "feature/order-filter 브랜치 PR 생성"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "구현이랑 리뷰 다 끝났으니 마무리로 PR 만들자"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "구현이랑 리뷰 다 끝났으니 마무리로 PR 만들자"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "구현이랑 리뷰 다 끝났으니 마무리로 PR 만들자"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋만 해줘, PR은 아직"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋만 해줘, PR은 아직"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋만 해줘, PR은 아직"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "code-review",
+  "query": "PR #88 리뷰해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "PR #88에 달린 코멘트 반영해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "PR #88에 달린 코멘트 반영해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "code-review",
+  "query": "PR #88 리뷰해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "code-review",
+  "query": "PR #88 리뷰해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "PR #88에 달린 코멘트 반영해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이 PR 머지해도 될지 봐줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이 PR 머지해도 될지 봐줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "changeset 파일 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "changeset 파일 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 PR 머지해도 될지 봐줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "changeset 파일 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "열린 PR 목록 보여줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "열린 PR 목록 보여줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "열린 PR 목록 보여줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 템플릿 파일(.github/pull_request_template.md) 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 템플릿 파일(.github/pull_request_template.md) 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 템플릿 파일(.github/pull_request_template.md) 만들어줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이 PR diff 풀어서 설명해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이 PR diff 풀어서 설명해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "이 PR diff 풀어서 설명해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 제목 컨벤션이 뭐였지? feat: 붙이는 거 맞아?"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 제목 컨벤션이 뭐였지? feat: 붙이는 거 맞아?"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "PR 제목 컨벤션이 뭐였지? feat: 붙이는 거 맞아?"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "브랜치를 main 기준으로 rebase 해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "브랜치를 main 기준으로 rebase 해줘"
+ },
+ {
+  "skill": "pr-write",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "none",
+  "skill_called": null,
+  "query": "브랜치를 main 기준으로 rebase 해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 0,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 0,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 1,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 논리 단위로 나눠서 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 0,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 1,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 논리 단위로 나눠서 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 1,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "지금 변경사항 논리 단위로 나눠서 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 2,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써서 커밋까지"
+ },
+ {
+  "skill": "commit",
+  "idx": 2,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써서 커밋까지"
+ },
+ {
+  "skill": "commit",
+  "idx": 2,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 메시지 써서 커밋까지"
+ },
+ {
+  "skill": "commit",
+  "idx": 3,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "작업한 거 커밋 좀. 테스트 파일이랑 구현은 나눠서"
+ },
+ {
+  "skill": "commit",
+  "idx": 3,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "작업한 거 커밋 좀. 테스트 파일이랑 구현은 나눠서"
+ },
+ {
+  "skill": "commit",
+  "idx": 3,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "작업한 거 커밋 좀. 테스트 파일이랑 구현은 나눠서"
+ },
+ {
+  "skill": "commit",
+  "idx": 4,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "git commit 해줘 한국어 메시지로"
+ },
+ {
+  "skill": "commit",
+  "idx": 4,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "git commit 해줘 한국어 메시지로"
+ },
+ {
+  "skill": "commit",
+  "idx": 4,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "git commit 해줘 한국어 메시지로"
+ },
+ {
+  "skill": "commit",
+  "idx": 5,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "변경 파일 많은데 적당히 쪼개서 커밋해"
+ },
+ {
+  "skill": "commit",
+  "idx": 5,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "변경 파일 많은데 적당히 쪼개서 커밋해"
+ },
+ {
+  "skill": "commit",
+  "idx": 5,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "변경 파일 많은데 적당히 쪼개서 커밋해"
+ },
+ {
+  "skill": "commit",
+  "idx": 6,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "이거 커밋하고 끝내자"
+ },
+ {
+  "skill": "commit",
+  "idx": 6,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "이거 커밋하고 끝내자"
+ },
+ {
+  "skill": "commit",
+  "idx": 6,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "이거 커밋하고 끝내자"
+ },
+ {
+  "skill": "commit",
+  "idx": 7,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "스테이징된 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 7,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "스테이징된 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 7,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "스테이징된 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 8,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 단위 정리해서 커밋해줘(푸시는 말고)"
+ },
+ {
+  "skill": "commit",
+  "idx": 8,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 단위 정리해서 커밋해줘(푸시는 말고)"
+ },
+ {
+  "skill": "commit",
+  "idx": 8,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "커밋 단위 정리해서 커밋해줘(푸시는 말고)"
+ },
+ {
+  "skill": "commit",
+  "idx": 9,
+  "run": 0,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "로그인 리프레시 실패 로그 남기게 고친 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 9,
+  "run": 1,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "로그인 리프레시 실패 로그 남기게 고친 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 9,
+  "run": 2,
+  "should_trigger": true,
+  "triggered": true,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:commit",
+  "query": "로그인 리프레시 실패 로그 남기게 고친 거 커밋해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 10,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 올려줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 10,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 올려줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 10,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:pr-write",
+  "query": "PR 올려줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 11,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "직전 커밋 되돌려줘 revert로"
+ },
+ {
+  "skill": "commit",
+  "idx": 11,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "직전 커밋 되돌려줘 revert로"
+ },
+ {
+  "skill": "commit",
+  "idx": 11,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "직전 커밋 되돌려줘 revert로"
+ },
+ {
+  "skill": "commit",
+  "idx": 12,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 컨벤션 문서 어디 있어?"
+ },
+ {
+  "skill": "commit",
+  "idx": 12,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 컨벤션 문서 어디 있어?"
+ },
+ {
+  "skill": "commit",
+  "idx": 12,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 컨벤션 문서 어디 있어?"
+ },
+ {
+  "skill": "commit",
+  "idx": 13,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git log에서 지난주 커밋 목록 보여줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 13,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git log에서 지난주 커밋 목록 보여줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 13,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git log에서 지난주 커밋 목록 보여줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 14,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 커밋 왜 들어갔는지 찾아줘 a514189"
+ },
+ {
+  "skill": "commit",
+  "idx": 14,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 커밋 왜 들어갔는지 찾아줘 a514189"
+ },
+ {
+  "skill": "commit",
+  "idx": 14,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "이 커밋 왜 들어갔는지 찾아줘 a514189"
+ },
+ {
+  "skill": "commit",
+  "idx": 15,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "pre-commit 훅 설정해줘 lint-staged로"
+ },
+ {
+  "skill": "commit",
+  "idx": 15,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "pre-commit 훅 설정해줘 lint-staged로"
+ },
+ {
+  "skill": "commit",
+  "idx": 15,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "pre-commit 훅 설정해줘 lint-staged로"
+ },
+ {
+  "skill": "commit",
+  "idx": 16,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:changeset",
+  "query": "changeset 써줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 16,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:changeset",
+  "query": "changeset 써줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 16,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Skill",
+  "skill_called": "claude-harness:changeset",
+  "query": "changeset 써줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 17,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 전에 diff 리뷰 먼저 해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 17,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 전에 diff 리뷰 먼저 해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 17,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "커밋 전에 diff 리뷰 먼저 해줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 18,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "브랜치 새로 따줘 feature/x"
+ },
+ {
+  "skill": "commit",
+  "idx": 18,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "브랜치 새로 따줘 feature/x"
+ },
+ {
+  "skill": "commit",
+  "idx": 18,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "브랜치 새로 따줘 feature/x"
+ },
+ {
+  "skill": "commit",
+  "idx": 19,
+  "run": 1,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git stash 해둔 거 다시 꺼내줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 19,
+  "run": 0,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git stash 해둔 거 다시 꺼내줘"
+ },
+ {
+  "skill": "commit",
+  "idx": 19,
+  "run": 2,
+  "should_trigger": false,
+  "triggered": false,
+  "first_tool": "Bash",
+  "skill_called": null,
+  "query": "git stash 해둔 거 다시 꺼내줘"
+ }
+]
