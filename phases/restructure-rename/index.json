@@ -1,0 +1,69 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-rename",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "rename-harness-to-sdd-plan",
+      "status": "completed",
+      "summary": "PLAN 스킬 이름이 skills/sdd-plan/SKILL.md(name: sdd-plan)로 바뀌었고, 스킬 · 템플릿 · 문서에서 PLAN을 가리키던 `harness`는 `sdd-plan`으로 바뀌었다(목록에 없던 design-brief · design-critique · harness-gaps · sdd-review도 고침, hooks/test.sh 케이스 10은 경로만 고침). 남긴 것: harness-init 이름표의 design-plan 행(step 6에서 행 추가) · incubator/README.md · test.sh 595번 줄 주석. AC grep의 ':!docs/*-20*/'는 뒤에 붙은 /가 하위 파일을 빼지 못해 docs/harness-restructure-2026-11-24/PLAN.md:40 한 줄이 잡힌다(기록 파일이라 안 고침, ':!docs/*-20*'로는 0줄)",
+      "tdd": false,
+      "started_at": "2026-11-24T19:53:03+0900",
+      "completed_at": "2026-11-24T19:59:43+0900"
+    },
+    {
+      "step": 2,
+      "name": "rename-harness-run-to-sdd-run",
+      "status": "completed",
+      "summary": "러너 스킬이 skills/sdd-run/(SKILL.md name: sdd-run, scripts/sdd_runner.py · phases_status.py · test_sdd_runner.py · preamble.md)으로 옮겨졌고, 경로 `skills/harness-run/`과 스킬 이름 `harness-run`은 레포 전체(쌓기만 하는 기록 제외)에서 `sdd-run`으로 바뀌었다(harness-init/SKILL.md 2-b 줄 포함, hooks/test.sh는 2-d 경로 한 줄만). 옛 이름 harness-run은 phases/*·docs 기록에만 남아 step 6 이름표 행 대상",
+      "tdd": false,
+      "started_at": "2026-11-24T20:00:13+0900",
+      "completed_at": "2026-11-24T20:04:53+0900"
+    },
+    {
+      "step": 3,
+      "name": "rename-cartography-to-harness-score",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:04:58+0900",
+      "summary": "채점 스킬이 skills/harness-score/(SKILL.md name: harness-score · disable-model-invocation: true, scripts/score.py · assets/template.html · references/scoring-rubric.md)로 옮겨졌고, hooks/weekly-readiness-check.sh의 SCORER 경로 · 알림 문구, BACKLOG.md · README.md 이름, hooks/test.sh 가짜 플러그인 경로 두 줄이 harness-score로 바뀌었다. 리포트 파일 이름 ai-readiness-score.json · 상태줄 접두사 'ai-readiness — '는 그대로. 남긴 것: SKILL.md 본문 제목 'AI-Readiness Cartography'와 'cartography' 언급 문장 2곳 · score.py 독스트링(이름 바꾸기 범위 밖, 쪼개기 step 대상). 옛 이름 ai-readiness-cartography는 phases/* · docs 기록에만 남아 step 6 이름표 행 대상",
+      "completed_at": "2026-11-24T20:08:35+0900"
+    },
+    {
+      "step": 4,
+      "name": "remove-visual-explainer",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:08:54+0900",
+      "summary": "skills/plannotator-visual-explainer/(SKILL.md · LICENSE · references 4개)를 git rm으로 지웠고, README.md는 '무엇이 들었나' 표의 이름을 빼며 '스킬 21개'를 '스킬 20개'로 고치고 '축 밖' 행에서도 이름을 뺐다(PR 설명 자리는 explain-diff). README의 옛 이름 `explain-diff-*`는 그대로 뒀다(README 재작성 step 대상). 옛 이름은 phases/* · docs 기록과 step 6 이름표 '행 삭제' 대상에만 남는다",
+      "completed_at": "2026-11-24T20:12:55+0900"
+    },
+    {
+      "step": 5,
+      "name": "drop-understand-anything",
+      "status": "completed",
+      "summary": ".claude-plugin/plugin.json의 dependencies 키와 .claude-plugin/marketplace.json의 allowCrossMarketplaceDependenciesOn 키를 통째로 지웠고(항목이 understand-anything 하나뿐이라 둘 다 비었다), README.md 빠른 시작에서 Understand-Anything 설치 줄을 줄째 지웠다(설명 문장만 지우면 쓸모없는 설치 명령이 남는다). 쌓기만 하는 기록을 뺀 레포 전체에서 understand-anything 참조 0줄(대소문자 무시)",
+      "tdd": false,
+      "started_at": "2026-11-24T20:12:56+0900",
+      "completed_at": "2026-11-24T20:15:59+0900"
+    },
+    {
+      "step": 6,
+      "name": "rename-table-and-guard",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-24T20:15:59+0900",
+      "summary": "skills/harness-init/SKILL.md 이름표 끝에 harness→sdd-plan(스킬 이름 자리만) · harness-run→sdd-run · ai-readiness-cartography→harness-score · plannotator-visual-explainer→행 삭제(PR 설명은 explain-diff) 4행(언제 2026-11-24)을 더하고 design-plan 행 「지금」을 sdd-plan으로 고쳤다. 새 hooks/tests/renames.sh([renames])가 skills·agents·hooks·templates·scripts·README.md·BACKLOG.md에서 옛 이름 4개(PLAN은 'claude-harness:harness([^-a-z]|$)|skills/harness/')를 grep -I로 세어 0이면 ok(빼는 곳: hooks/test.sh·자기 자신·harness-init 이름표). weekly-readiness-check.sh 하락 알림은 /harness-score 직접 실행 안내로, harness-score/SKILL.md 제목은 'Harness Score', cartography 문장 2곳은 새 이름에 맞춤(When to use의 'repo cartography' 트리거 예시는 남김)",
+      "completed_at": "2026-11-24T20:24:17+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-24T20:27:37+0900",
+      "head": "2b20eb06a7ddc600de38ca02916edbbc5d290829",
+      "issues": []
+    }
+  ]
+}

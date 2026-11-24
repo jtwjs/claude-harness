@@ -1,10 +1,10 @@
 ---
 name: design-critique
-description: SDD ① 계획의 DESIGN — 구현 전에 시안 자체를 평가한다. 페르소나·닐슨 휴리스틱·레퍼런스 실측을 독립 병렬로 돌려 발견 표와 체크포인트(verdict 변경|승인)를 낸다. design-brief로 시안을 그린 뒤, harness 전에 쓴다.
+description: SDD ① 계획의 DESIGN — 구현 전에 시안 자체를 평가한다. 페르소나·닐슨 휴리스틱·레퍼런스 실측을 독립 병렬로 돌려 발견 표와 체크포인트(verdict 변경|승인)를 낸다. design-brief로 시안을 그린 뒤, sdd-plan 전에 쓴다.
 disable-model-invocation: false
 ---
 
-**구현 전에** 시안이 목적·사용성·레퍼런스에 맞는지 평가하고, 고칠 것과 물을 것을 가른다. 승인이 나야 `harness`로 넘어간다.
+**구현 전에** 시안이 목적·사용성·레퍼런스에 맞는지 평가하고, 고칠 것과 물을 것을 가른다. 승인이 나야 `sdd-plan`으로 넘어간다.
 
 > `design-reconcile`과 다르다 — critique는 **구현 전, 시안 자체**를 본다. reconcile은 **구현 후, 시안 ↔ 구현 화면**을 대조한다.
 
@@ -75,4 +75,4 @@ disable-model-invocation: false
 ## 5. 다음
 
 - `verdict: 변경` → §3 반영 후 다시 이 스킬.
-- `verdict: 승인` → 🙋 → **`harness`**(§3-b가 레포 캔버스를 읽는다).
+- `verdict: 승인` → 🙋 → **`sdd-plan`**(§3-b가 레포 캔버스를 읽는다).

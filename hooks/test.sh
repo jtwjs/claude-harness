@@ -184,7 +184,7 @@ echo "$out" | grep -q 'example.com' && bad "값 노출" "알림에 호스트가 
 
 # ── 케이스 2-d: phases_status — 상태 값 4개 · after 선행 점검 (2026-10-13) ──
 printf '\n[2-d] phases_status — 허용 밖 상태 · 선행 미완료면 exit 1\n'
-PS="$HOOKS/../skills/harness-run/scripts/phases_status.py"
+PS="$HOOKS/../skills/sdd-run/scripts/phases_status.py"
 mkdir -p "$TMP/ph/phases/be-a" "$TMP/ph/phases/fe-a" "$TMP/ph/phases/old" && (cd "$TMP/ph" && git init -q)
 echo '{"phase":"be-a","docs":"docs/x","after":[],"steps":[{"step":1,"status":"completed"}]}' > "$TMP/ph/phases/be-a/index.json"
 echo '{"phase":"fe-a","docs":"docs/x","after":["be-a"],"steps":[{"step":1,"status":"pending"}]}' > "$TMP/ph/phases/fe-a/index.json"
@@ -375,8 +375,8 @@ rm -rf "$TMP/rd/.claude/reports/$(date +%F)" && mkdir -p "$TMP/rd/.claude/report
 [ ! -d "$TMP/rd/.claude/reports/$(date +%F)" ] && ok "마지막 채점 5일 전 — 14일 전이라 다시 안 잰다" || bad "조기 재채점" "14일 안인데 다시 쟀다"
 rm -rf "$TMP/rd/.claude/reports/$recent"
 # 채점이 실패하면 빈 날짜 폴더를 남기지 않는다 — 가짜 플러그인 루트(실패하는 score.py)로 돌린다
-FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/ai-readiness-cartography/scripts"
-cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; cp -R "$HOOKS/lib" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/ai-readiness-cartography/scripts/score.py"
+FAKE="$TMP/fakeplugin"; mkdir -p "$FAKE/hooks" "$FAKE/skills/harness-score/scripts"
+cp "$HOOKS/weekly-readiness-check.sh" "$FAKE/hooks/"; cp -R "$HOOKS/lib" "$FAKE/hooks/"; printf 'import sys; sys.exit(3)\n' > "$FAKE/skills/harness-score/scripts/score.py"
 rm -rf "$TMP/rd/.claude/reports/$(date +%F)"
 (cd "$TMP/rd" && printf '{}' | bash "$FAKE/hooks/weekly-readiness-check.sh" >/dev/null 2>&1)
 [ -d "$TMP/rd/.claude/reports/$(date +%F)" ] && bad "빈 폴더" "채점 실패인데 날짜 폴더가 남았다" || ok "채점 실패 — 빈 날짜 폴더를 지운다"
@@ -594,7 +594,7 @@ grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\
   && ok "DESIGN 절차는 세 장 · REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
 # 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
 cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
-for need in '이 자리에서 묻는다:skills/harness/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'docs/retro/YYYY-MM-DD:skills/sdd/SKILL.md'; do
+for need in '이 자리에서 묻는다:skills/sdd-plan/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/SKILL.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '질문 규칙 — 정본:skills/why/SKILL.md' 'docs/retro/YYYY-MM-DD:skills/sdd/SKILL.md'; do
   grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
 없음: ${need}"
 done

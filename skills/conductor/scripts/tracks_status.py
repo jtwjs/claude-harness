@@ -27,7 +27,7 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "harness-run" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "sdd-run" / "scripts"))
 import phases_status  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks" / "lib"))

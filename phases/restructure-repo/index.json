@@ -1,0 +1,58 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-repo",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-trim"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "test-sh-runs-runner-unit",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "runner-recognizes-test-sh",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "ci-workflow",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "hook-log-all-exits",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "release-always-on",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "changelog-split",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 7,
+      "name": "remove-incubator",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 8,
+      "name": "nestjs-unmeasured-note",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}

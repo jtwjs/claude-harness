@@ -1,15 +1,15 @@
 # SDD 러너 — step당 호출 1번 + git 기록 판정
 
-> 2026-10-13, 0.18.0 · 0.18.1(리뷰 반영). 코드 정본은 `skills/harness-run/scripts/sdd_runner.py`, 테스트는 같은 폴더 `test_sdd_runner.py`.
+> 2026-10-13, 0.18.0 · 0.18.1(리뷰 반영). 코드 정본은 `skills/sdd-run/scripts/sdd_runner.py`, 테스트는 같은 폴더 `test_sdd_runner.py`.
 > 이 문서는 왜 이렇게 생겼는지(강의 하네스와 섞은 근거)와 판정 규칙을 적는다.
 
 ## 한 줄
 
-`harness`가 만든 `phases/{task}/` 의 step을 하나씩 **호출 1번**으로 구현하고(테스트 먼저 → 구현), 끝나면 **러너가 git 기록을 직접 보고** 통과·재시도·멈춤을 정한다. 세션 안(`harness-run` 스킬)과 헤드리스(터미널에 걸어 두고 떠남)가 같은 스크립트·같은 규칙을 쓴다.
+`sdd-plan`이 만든 `phases/{task}/` 의 step을 하나씩 **호출 1번**으로 구현하고(테스트 먼저 → 구현), 끝나면 **러너가 git 기록을 직접 보고** 통과·재시도·멈춤을 정한다. 세션 안(`sdd-run` 스킬)과 헤드리스(터미널에 걸어 두고 떠남)가 같은 스크립트·같은 규칙을 쓴다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-run/scripts/sdd_runner.py" run <task>   # 헤드리스, 끝까지
-# 세션 안: start → [prompt --base <HEAD>(stderr ▶ step N, BASE 를 index.json 에 고정) → 서브에이전트 1번 → judge --step N] 반복 (harness-run §2)
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" run <task>   # 헤드리스, 끝까지
+# 세션 안: start → [prompt --base <HEAD>(stderr ▶ step N, BASE 를 index.json 에 고정) → 서브에이전트 1번 → judge --step N] 반복 (sdd-run §2)
 ```
 종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(`judge`만)
 
@@ -54,7 +54,7 @@ flowchart TD
 - **마지막 step의 전체 실패 가리기(0.25.0)**: 전체 verify가 깨지면 같은 앱의 step 명령을 한 번 더 돌린다. 통과하면 이 step 범위 밖(앞 step) 탓이라 재시도(최대 4회 × 전체 test) 대신 blocked — 그 step 에이전트는 남의 실패를 고칠 수 없다. 측정 step(변경 없음)은 바로 blocked. step 명령이 없으면 못 가려 지금처럼 재시도
 - **BASE 고정(#11, 0.26.0)**: `prompt --base`가 그 step의 `base`를 index.json에 적고 재시도에서 덮지 않는다. `judge`는 그 값을 먼저 읽는다(없을 때만 `--base`). 헤드리스 `run`도 같은 자리를 쓴다. step이 완료·blocked·실패로 멈추면 지운다 — 재개는 새 BASE(앞 시도는 `wip:` 커밋). 세션 모드에서 모델이 BASE를 기억하다 재시도·컨텍스트 압축 때 HEAD로 다시 잡으면 이전 시도의 RED 커밋이 BASE 앞으로 밀려 엉뚱한 실패가 났을 경로를 막는다
 - **RED 테스트 파일 탓 verify 실패(#9, 0.26.0)**: 판정 4가 RED 뒤 테스트 수정을 되돌리므로, RED 테스트 파일 자체가 lint·typecheck에 걸리면 재시도로는 고칠 수 없었다(고치면 되돌림 → 4회 소진). test 밖 verify 출력에 RED 테스트 파일 경로·이름이 나오면 RED 위반처럼 이번 시도를 버리고 BASE부터 테스트를 다시 쓰게 한다. `test` 출력은 늘 테스트 이름을 담으니 보지 않는다. 대가: 구현 시그니처가 테스트와 달라 typecheck가 테스트 파일에서 나는 경우도 이 시도를 버린다(구현만 고치면 됐을 경우에도 테스트부터 다시). 재시도 지시문에는 이전 시도의 테스트 커밋이 남아 있으면 "테스트는 다시 쓰거나 고치지 않는다"를 붙인다
-- 재시도는 첫 시도 + 3회 = 최대 4회(`harness-run`·`sdd`와 같은 문장). 강의 execute.py는 **총 3회**(`range(1, MAX_RETRIES+1)`) — 우리 하네스가 원래 쓰던 "재시도 3"을 유지했다. `retries`는 승격 판단 계수기라 재개 때도 0으로 돌리지 않고, 한도는 재개(`resumed_at`) 뒤 실패 수로 센다
+- 재시도는 첫 시도 + 3회 = 최대 4회(`sdd-run`·`sdd`와 같은 문장). 강의 execute.py는 **총 3회**(`range(1, MAX_RETRIES+1)`) — 우리 하네스가 원래 쓰던 "재시도 3"을 유지했다. `retries`는 승격 판단 계수기라 재개 때도 0으로 돌리지 않고, 한도는 재개(`resumed_at`) 뒤 실패 수로 센다
 - 실패 사유는 `last_error`(다음 지시문용, 통과하면 지움)와 `attempts: [{at, error}]`(이력, 통과해도 남김 — REFLECT가 "어디서 헤맸나"를 본다, 강의 SDD §5 학습 루프)
 - RED 위반(2·3)은 같은 BASE 위에서 고칠 수 없다(1회차의 잘못된 커밋이 계속 판정 대상) → 이번 시도 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다. 지우지 않는다
 - 멈출 때(재시도 소진·blocked) 남은 코드는 `wip:` 커밋으로 남긴다(강의 `_commit_step`와 같음) — 재개 때 `start`가 더러운 트리로 거부하지 않게
@@ -88,10 +88,10 @@ flowchart TD
 
 ## 검증 상태
 
-- `python3 -m unittest skills/harness-run/scripts/test_sdd_runner.py` — 47개 통과(0.26.0 4개: 세션 BASE 재시도 고정·끝나면 지움 · BASE 없으면 judge 거부 · RED 테스트 파일이 lint 에 걸리면 버리고 다시 · 재시도 지시문 「테스트 커밋이 남아 있다」. 0.25.0 step 명령 9개: 중간 step은 step 명령 · 마지막은 전체 · 마지막 전체만 깨지면 blocked · 이 step 범위도 깨지면 재시도 · step 명령 없으면 재시도 · 앱 밖이면 전체 · 재개면 전체 · 측정 마지막 step도 전체(깨지면 blocked) · RED 확인도 step 명령 · 지시문·세션 `prompt --base`).  이하 0.18 기준 목록: 헤드리스: 한 번에 통과 · 훅 기록 파일 안 섞음 · tdd false · pending→재시도 · 3회 실패 · blocked · blocked+실행 실패 · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · RED 위반 뒤 재시도로 회복 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · verify.test 없음 · summary 전달 · 실패 이력 · 멈춘 뒤 재개. 세션: judge가 지정 step 판정 · 마지막 step도 검사 · `--step` 필수. `release.sh`가 같이 돌린다
+- `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` — 47개 통과(0.26.0 4개: 세션 BASE 재시도 고정·끝나면 지움 · BASE 없으면 judge 거부 · RED 테스트 파일이 lint 에 걸리면 버리고 다시 · 재시도 지시문 「테스트 커밋이 남아 있다」. 0.25.0 step 명령 9개: 중간 step은 step 명령 · 마지막은 전체 · 마지막 전체만 깨지면 blocked · 이 step 범위도 깨지면 재시도 · step 명령 없으면 재시도 · 앱 밖이면 전체 · 재개면 전체 · 측정 마지막 step도 전체(깨지면 blocked) · RED 확인도 step 명령 · 지시문·세션 `prompt --base`).  이하 0.18 기준 목록: 헤드리스: 한 번에 통과 · 훅 기록 파일 안 섞음 · tdd false · pending→재시도 · 3회 실패 · blocked · blocked+실행 실패 · is_error · 타임아웃 · RED 없음 · RED가 안 잡음 · RED 위반 뒤 재시도로 회복 · 테스트 수정 되돌림 · 변경 없음 · verify 실패 · after 미완료 · 더러운 트리 · verify.test 없음 · summary 전달 · 실패 이력 · 멈춘 뒤 재개. 세션: judge가 지정 step 판정 · 마지막 step도 검사 · `--step` 필수. `release.sh`가 같이 돌린다
 - **실가동 1회(2026-10-13, Finn 터미널, Claude Code 2.1.296)**: 임시 레포 phase 1개·step 2개(`tdd: true` 셸 스크립트 → `tdd: false` README), `tdd.enabled: false`
   - `exit 0`, 재시도 0. 커밋 순서 `test: (red)` → `feat:` → `chore:` → `feat:` → `chore:` — 테스트 파일만 담긴 RED 커밋이 먼저 왔고 RED 시점 실패 검사도 통과
   - started→completed 25초·21초, 턴 5·4, `summary`가 step 2 지시문에 넘어감. JSON `total_cost_usd` 0.30·0.26은 **클라이언트 추정치**다(공식 문서: 구독자에게는 청구와 무관)
   - 발견 1건: 그 레포에 `.gitignore`가 없어 훅 기록 파일(`.claude/.last-*`)이 step마다 `feat:` 커밋 하나로 더 묶였다 → 러너가 그 경로를 뺀다
 - 과금: 헤드리스 `claude -p`는 환경에 `ANTHROPIC_API_KEY`가 있으면 **항상** 그 키로 API 과금된다(공식 문서 authentication) → `start`가 경고. GitBook SDD 노트의 "6/15부터 `claude -p`는 API 과금"은 공식 문서·changelog(2.1.288~296 범위)에서 **확인 못 함**(웹 검색 미실행) — 충돌로 남겨 둔다
-- 미확인: 재시도·blocked·RED 되돌림을 실제 `claude`로 겪은 적 없음(가짜 claude로만). 세션 경로(`harness-run`)를 실제 서브에이전트로 돌린 적 없음. 앱별 verify 첫 가동은 유통 대시보드(2026-10-19, 결과 미확인). step 명령(`$step`) 실가동 없음
+- 미확인: 재시도·blocked·RED 되돌림을 실제 `claude`로 겪은 적 없음(가짜 claude로만). 세션 경로(`sdd-run`)를 실제 서브에이전트로 돌린 적 없음. 앱별 verify 첫 가동은 유통 대시보드(2026-10-19, 결과 미확인). step 명령(`$step`) 실가동 없음

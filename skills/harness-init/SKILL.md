@@ -28,13 +28,17 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 | 옛 이름 | 지금 | 언제 |
 |---|---|---|
 | `grilling` · `why-logictree` · `why-plan` | 세 장을 만드는 자리는 `sdd`(① 계획 DESIGN). 이유·근거만 보는 자리는 `why` | 2026-10-11 합침 → 2026-10-16 삭제 |
-| `design-plan` | 행 삭제(PLAN은 `harness`, 화면 시안은 `sdd` 디자인 트랙 `design-brief`·`design-critique`·`design-reconcile` — 라우팅 표에 그 행이 없으면 템플릿 행을 넣는다) | 0.9.0 삭제 (2026-10-15 이름표 추가 — 레포 사본에 남아 있었다) |
+| `design-plan` | 행 삭제(PLAN은 `sdd-plan`, 화면 시안은 `sdd` 디자인 트랙 `design-brief`·`design-critique`·`design-reconcile` — 라우팅 표에 그 행이 없으면 템플릿 행을 넣는다) | 0.9.0 삭제 (2026-10-15 이름표 추가 — 레포 사본에 남아 있었다) |
 | `systematic-debugging` | `root-cause-debugger`(규율을 에이전트 본문으로 합침) | 0.27.0 (2026-10-20) |
 | `explain-diff-html` · `explain-diff-notion` | `explain-diff`(노션이면 노션으로) | 0.27.0 (2026-10-20) |
 | `harness-new` | `project-new` | 2026-10-11 |
 | `brain-intake` | 행 삭제(raw 투입구 폐지) | 2026-10-11 |
 | `brain-walk` · `brain-sync` | 행 삭제(레포에 팀 위키 폴더를 두지 않는다, ADR-013). 「왜」는 ADR, 제품 결정은 PRD 결정 절 | 2026-11-23 |
 | `brain-recall` · 하네스판 `find-skills` | 행 삭제 | 2026-10-11 |
+| `harness` | `sdd-plan`(스킬 이름으로 쓴 자리만 — `harness.json`·`harness-*`는 그대로) | 2026-11-24 |
+| `harness-run` | `sdd-run` | 2026-11-24 |
+| `ai-readiness-cartography` | `harness-score` | 2026-11-24 |
+| `plannotator-visual-explainer` | 행 삭제(PR 설명은 `explain-diff`) | 2026-11-24 |
 
 - 전체 diff를 보여 주고 🙋 승인을 받은 뒤 쓴다. 커밋은 `chore: harness <버전> 업그레이드` 한 건, push는 하지 않는다.
 - 작업 트리가 더럽거나 기능 브랜치 위면 기본 브랜치에서 `git worktree add`로 따로 만들어 한다.
@@ -73,7 +77,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - `packageManager` ← lock 파일로 판정한다: `pnpm-lock.yaml`→`pnpm` · `yarn.lock`→`yarn` · `package-lock.json`→`npm` · `bun.lockb`→`bun` · JVM은 `gradlew`/`mvnw` 유무. 둘 이상이면 묻는다. (§6 릴리스 세팅이 이 값을 읽는데 채우는 단계가 없었다 — 2026-10-08)
 
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
-별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. 러너 step(`harness-run` 지시문)과 `test-writer`가 중첩 `describe`로 대체한다.
+별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. 러너 step(`sdd-run` 지시문)과 `test-writer`가 중첩 `describe`로 대체한다.
 
 ## 3. 인터뷰 (기계가 모르는 것만, 10개)
 

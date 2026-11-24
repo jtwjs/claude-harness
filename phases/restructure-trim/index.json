@@ -1,0 +1,70 @@
+{
+  "project": "claude-harness",
+  "phase": "restructure-trim",
+  "docs": "docs/harness-restructure-2026-11-24",
+  "after": [
+    "restructure-absorb"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "name": "split-sdd",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "conductor-issues-script",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "split-conductor",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "split-pr-write",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "renames-data-file",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 6,
+      "name": "init-ci-fill-script",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 7,
+      "name": "trim-history-flow",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 8,
+      "name": "trim-history-rest",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 9,
+      "name": "entry-and-stage-invocation",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "sharpen-entry-descriptions",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}
