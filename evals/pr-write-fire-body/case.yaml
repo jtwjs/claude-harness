@@ -1,0 +1,4 @@
+schema_version: "1.0"
+name: pr-write-fire-body
+context:
+  scaffold_script: scaffold.sh
