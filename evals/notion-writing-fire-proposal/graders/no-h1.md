@@ -4,4 +4,4 @@ match: not_contains
 flags: m
 ---
 
-^# 
+^#[ \t]
