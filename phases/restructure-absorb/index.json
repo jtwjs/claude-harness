@@ -99,9 +99,12 @@
     {
       "step": 11,
       "name": "measure-show-me-your-work",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-25T11:36:01+0900",
+      "summary": "측정만, 변경 없음. `gh api repos/cursor/plugins/contents/pstack/skills/show-me-your-work?ref=9e278fe`(SKILL.md 82줄 · log.sh · 템플릿) → 결정 로그 항목 15(칸 6 ts·phase·decision·why·evidence·result · 남길 순간 5 갈림길·완료+검증·되돌림+계기·막힘·관문 고침 · start 행 · 덮지 않기 · transcript 대조 감사 · 다른 벤더 교차 리뷰). `python3 -I measure11.py .`(스크래치) → phases 11 · step 80 · 완료 57: summary 57/57 · started_at 44/80 · attempts 1(RED 위반 되돌림, sdd-discard 브랜치 1) · retries 1 · last_error 0 · error/blocked 0 · reviews 9회(head SHA 9/9 · 이슈 9 · 모델 칸 0) · step-output 기록 0 · summary 이유 구절 10/57 · stepN.md 80/80 · feat 커밋 10/10(Claude-Session) 본문 이유 3/10; `gh pr view 15|38|41|42|43|44 --json body` → Test plan 6/6 · 회고 「막힌 지점」 6/6 · 「왜」 줄 4/4(재구성 PR). 결과 있음 12 · 일부 1(why: 계획 이유는 stepN.md · PR에 있고 step 안 즉석 선택 이유는 summary 10/57) · 없음 2(transcript 대조 감사 · 다른 벤더 교차 리뷰). 판단: 안 더함 — 12항목은 phases · 커밋 · PR에 이미 있어 TSV는 같은 것을 두 번째 파일에 쓰는 일이고(ARCHITECTURE 5절), 없는 2개는 기록 칸이 아니라 검증 절차라 로그를 더해도 안 생긴다. 일부 1 · 없음 2를 메울지(summary에 계획에 없던 선택의 이유 한 구절 · 감사/교차 리뷰 단계)는 새 설계 결정이라 지휘가 정한다. `bash hooks/test.sh` 통과 449 · 실패 0",
+      "completed_at": "2026-11-25T11:43:09+0900"
     },
     {
       "step": 12,
