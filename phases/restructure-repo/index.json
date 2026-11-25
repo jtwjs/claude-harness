@@ -18,8 +18,11 @@
     {
       "step": 2,
       "name": "runner-recognizes-test-sh",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T15:36:11+0900",
+      "summary": "skills/sdd-run/scripts/sdd_runner.py TEST_FILE 에 `(^|/)test\\.sh$` 를 더해 hooks/test.sh 를 테스트 파일로 판정한다(hooks/tests/*.sh 는 기존 `tests?/` 로 이미 잡힘), test_sdd_runner.py 에 TestFilePatternTest 2개(unittest 50→52). 구현 스크립트가 안 잡히는 반대 케이스(hooks/tdd-guard.sh · scripts/release.sh · hooks/latest.sh)도 넣었다(계획은 test.sh · tests/*.sh 판정 케이스만, 이유: 지휘 지시 — 구현 파일이 테스트로 잡히면 RED 판정이 거짓 통과한다).",
+      "completed_at": "2026-11-25T15:44:55+0900"
     },
     {
       "step": 3,
