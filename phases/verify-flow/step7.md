@@ -7,13 +7,13 @@
 
 ## 작업
 
-근거: ADR-019 C6 · E4 · E8 · E9 · E10 · G4. 선행: 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
+근거: ADR-019 C6 · E4 · E8 · E9 · E10 · E12 · G4. 선행: 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
 
 바꾸는 파일:
 
 - `skills/conductor/references/dispatch.md` · `decisions.md` · `doorbell.md` · `seat.md`
 
-- 「트랙 세션 열기」: 나눔 모드면 검증 · 구현 두 세션을 연다. 명령에 `--effort <high|medium>`을 늘 넘기고(ADR-019 C6 — 플래그 없이 띄우면 낮은 effort로 돈다), 이름은 `<레포>-<트랙>-verify` · `-impl`. FE · BE 기능이면 층마다 둘(ADR-019 E8)
+- 「트랙 세션 열기」: 나눔 모드면 검증 · 구현 두 세션을 **같은 worktree에서** 연다(worktree 하나 · 브랜치 하나, 차례는 index.json — ADR-019 E12). 명령에 `--effort <high|medium>`을 늘 넘기고(ADR-019 C6 — 플래그 없이 띄우면 낮은 effort로 돈다), 이름은 `<레포>-<트랙>-verify` · `-impl`. FE · BE 기능이면 층마다 둘(ADR-019 E8)
 - `seat.md` 「세션 종류」 표에 검증 · 구현 행(effort · 맡는 단계 · 언제 닫나)
 - 결정 이슈 틀(§1): PRD는 지휘가 결정 이슈 본문에 쓴다(ADR-019 E4) — 칸에 기능 키워드 표 · API 계약 초안(엔드포인트 · 필드 · 에러, FE · BE 기능일 때)(ADR-019 E9 · E10). 공개 레포면 PRD에도 이름 · 개인 문서 문구를 넣지 않는다. 검증 세션이 원문을 옮기고 의도 되비추기 한 줄을 보내면 지휘가 확인한다
 - §2 계약 변경 흐름에 나눔 모드 순서 한 단락(ADR-019 E9): 변경 요청은 누구든 지휘에 → `contract-change` 이슈 → 검증 BE 스펙 PR 먼저 → 검증 FE가 따라간다. 첫 step 배치(검증 BE = 계약 PR · 검증 FE = 스펙으로 MSW 핸들러 · 타입)와 끝까지 확인(검증 FE가 MSW를 끄고 실제 BE로, 머지 전)
