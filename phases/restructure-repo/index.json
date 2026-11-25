@@ -54,8 +54,11 @@
     {
       "step": 6,
       "name": "changelog-split",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T16:19:34+0900",
+      "summary": "docs/design-notes.md §9 변경 이력 bullet 40줄을 머리말 괄호의 첫 버전마다 docs/changes/<버전>.md 31개(0.13.0~0.36.0, 0.27.0만 2줄 · 0.13.0 9줄)로 바이트 그대로 옮기고(정렬 diff 0 · 40=40줄), §9는 「## 9. 변경 이력」 아래 `docs/changes/` 한 줄만 남겼다 — 이력을 더할 자리는 이제 docs/changes/<버전>.md. 자기 버전 없는 bullet 8개와 옛 §9 머리 · 소개 줄은 0.13.0.md로 보냈다(계획은 자리 미정, 이유: 지휘 지시 — 옛 머리가 0.10.7 → 0.13.0 정리분이다). 파일마다 맨 위에 `# <버전>` 제목 한 줄을 더했다(계획은 글자 그대로만, 이유: 지휘 허용 — bullet 줄은 한 바이트도 안 바꿨다).",
+      "completed_at": "2026-11-25T16:25:57+0900"
     },
     {
       "step": 7,
