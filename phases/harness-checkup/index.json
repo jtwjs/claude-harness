@@ -43,18 +43,15 @@
     {
       "step": 5,
       "name": "hooks-quiet-without-harness",
-      "status": "blocked",
+      "status": "pending",
       "tdd": true,
-      "started_at": "2026-11-25T20:33:39+0900",
-      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77",
-      "blocked_reason": "기존 테스트 hooks/tests/gate-hook.sh 가 하네스 없는 폴더에서 hypothesis-gate 판정 지시를 기대한다 — repo1·repo2 는 git init 만(.claude/harness.json 없음, test.sh 가 CLAUDE_CONDUCTOR_CONFIG 를 없는 파일로 둠), 60~61행은 「git 밖에서도 exit 0 · 판정 지시」를 명시. 구현하면 이 파일 단정 10여 개가 깨지는데 기존 테스트 수정은 금지라 착수 전 멈춤. 사람이 정할 것: gate-hook.sh 픽스처에 .claude/harness.json 을 넣고 git 밖 단정을 「0줄」로 바꾸는 것을 이 step 범위로 허용할지"
+      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77"
     },
     {
       "step": 6,
       "name": "commit-harness-json",
       "status": "pending",
       "tdd": false,
-      "started_at": "2026-11-25T20:35:03+0900",
       "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77"
     },
     {
