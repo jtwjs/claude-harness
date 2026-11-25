@@ -114,6 +114,7 @@ SDD 러너는 [`skills/sdd-run/scripts/sdd_runner.py`](skills/sdd-run/scripts/sd
 |---|---|
 | `CLAUDE.md` | 항상 읽히는 짧은 지침 — 절대 금기 · 검증 명령 · 링크 |
 | `.claude/harness.json` | 정본 설정 — 검증 명령 · TDD 범위 · 기준 브랜치 · 릴리스 도구 |
+| `.claude/settings.json` | 훅이 꺼진 환경에서도 막히는 `permissions.deny`(이미 있으면 빠진 줄만 승인 뒤 합침) |
 | `.claude/rules/` · `.claude/references/` | 경로에 걸릴 때 읽히는 판정 규칙 / 필요할 때 여는 고치는 법 |
 | `.claude/README.md` · `.claude/observations.md` | 상황별로 무엇을 부를지 / 반복을 세는 계수기 |
 | `.github/` | CI 워크플로 · PR 템플릿 · Dependabot(레포에 없을 때만) |

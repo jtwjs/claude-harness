@@ -20,6 +20,7 @@ disable-model-invocation: true
 | 레포의 옛 팀 위키 폴더(`_brain/`) | 지우지 않는다. 하네스는 더 이상 깔지도 쓰지도 않는다는 것(ADR-013)과 `rules/brain.md`가 있으면 그 규칙도 안 쓴다는 것을 한 줄 안내만 한다. 지울지는 레포 주인이 정한다 |
 | `harness.json` | `harness.version`을 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 버전으로. 템플릿에만 있는 최상위 키는 목록만 보여 주고 넣지 않는다(`harness-doctor` §0과 같은 판정) |
 | `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |
+| `.claude/settings.json` | `${CLAUDE_PLUGIN_ROOT}/templates/.claude/settings.json`의 `permissions.deny` 중 빠진 줄만 보여 주고 🙋 승인 뒤 합친다. 파일이 없으면 템플릿을 깐다 |
 | 스택 팩 규칙 (`.claude/rules/`) | `stacks.packs`의 팩마다 3방향으로 diff 한다 — 기준 = 레포 `harness.version` 판 템플릿, 새 판 = 지금 템플릿, 그리고 레포 사본. 레포 사본과 새 판만 비교하면(2방향) 어느 쪽이 바뀌었는지 몰라 「템플릿에만 / 레포에만」을 가를 수 없다. 기준 판은 마켓플레이스 clone(`~/.claude/plugins/marketplaces/<marketplace>`, git 저장소)에서 `git log -1 --format=%H -S'"version": "<harness.version>"' -- .claude-plugin/plugin.json` 커밋의 `templates/stacks/<pack>/rules/*.md`로 꺼낸다. 못 찾으면 2방향으로 하고 표 머리에 「기준 없음 — 템플릿에만 / 레포에만 구분 불가」를 적는다. 세 판 모두 비교 전에 템플릿 `paths:`에 그 팩의 `root` 접두를 붙인 판으로 맞춘다(§4 「스택 팩」과 같은 규칙. 접두가 빠지면 그 규칙은 어느 파일에도 안 걸린다). 결과를 `파일 · 템플릿에만 있음 / 레포에만 있음 / 둘 다 바뀜`으로 보여 주고 파일마다 🙋 「템플릿으로 · 레포 판 유지 · 줄 단위로 합치기」를 고르게 한다. 레포에 없는 팩 규칙 파일은 새로 깔지 묻는다. 덮어쓰지 않는다 — 레포가 일부러 고친 줄이 섞여 있다 |
 | 새로 맞는 팩 | §1-b 스택 판정을 빌드 파일로 다시 돌려 `stacks.packs`에 없는 팩이 나오면 목록만 보여 준다(예: init 뒤에 생긴 팩). 넣으면 위 행대로 규칙을 깔고 `stacks.packs`에 더한다 — 🙋 승인 뒤 |
 
@@ -79,13 +80,14 @@ disable-model-invocation: true
 
 ## 4. 생성
 
-**기본 6**
+**기본 7**
 - `CLAUDE.md` — ~40줄. **CRITICAL + 링크만.** 검증 명령은 적되 정본은 `harness.json`. 이미 있으면 덮지 않고 기존 줄(예: Next의 `@AGENTS.md`)을 보존한 채 더한다
 - `.claude/harness.json` — `harness.version` ← `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`의 `version`(어느 플러그인 버전으로 깔았는지. `harness-doctor` 검사 0이 읽는다)
 - `.claude/README.md` — 라우팅 ~10줄
 - `.claude/rules/non-obvious-patterns.md` — 플러그인 시드 2줄(셸 함정) + ②의 답 한 줄. 레포 항목은 `---` 아래부터
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
+- `.claude/settings.json` — `${CLAUDE_PLUGIN_ROOT}/templates/.claude/settings.json`의 `permissions.deny`(훅이 꺼진 환경에서도 막히게). 이미 있으면 덮지 않고 빠진 deny 줄만 보여 주고 🙋 승인 뒤 합친다
 
 **조건부**: TS면 `rules/{typescript,functional-programming}.md`(React면 `rules/react-components.md`도) · Kotlin이면 `rules/functional-programming.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`는 이 템플릿이 있으면 그 절 구조를 채운다. 레포에 이미 있으면 덮지 않는다)
 

@@ -11,7 +11,7 @@
 
 바꾸는 파일:
 
-- step 5 표의 「평문」 줄이 있는 파일 · `skills/statechart/SKILL.md`(description) · `agents/comment-hunter.md`(description) · 템플릿 references(「코드를 읽으면 안다」 문단)
+- step 7 summary의 「평문」 줄이 있는 파일 · `skills/statechart/SKILL.md`(description) · `agents/comment-hunter.md`(description) · 템플릿 references(「코드를 읽으면 안다」 문단)
 
 - 강조어를 평문으로(뜻은 그대로) · 「코드를 읽으면 안다」 문단 삭제 · 두 description을 180토큰 기준 안으로
 - tdd: false — 지시문 문장 바꾸기다
