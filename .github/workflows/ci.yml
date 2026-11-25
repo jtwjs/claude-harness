@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # hooks/test.sh 는 macOS 에서만 돌려 왔다
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 러너(sdd_runner.py)가 테스트 안에서 신원 플래그 없이 git commit 한다. 신원을 못 찾으면 단위 테스트 26개가 깨진다
+      - name: git identity
+        run: |
+          git config --global user.name ci
+          git config --global user.email ci@example.invalid
+
+      # 훅 회귀 + SDD 러너 단위 테스트(hooks/tests/sdd-runner-unit.sh 가 그 안에서 돈다)
+      - name: test
+        run: bash hooks/test.sh
