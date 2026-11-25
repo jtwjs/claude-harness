@@ -115,5 +115,15 @@
       "summary": "skills/conductor/SKILL.md §4 「사용자에게 올리는 현황」 단락 끝에 트랙 보고 전달 규칙 한 덩이(ADR-016 Q8): 세 줄 요약 · 학습 카드는 그대로 싣고 지휘가 요약 · 재해석하지 않음 · 카드는 사용자 개인 기록 자리(설정이나 사용자가 알려 준 곳)가 있으면 거기에도, 없으면 보고에만 · 「내 한 줄」은 사용자만 씀. 형식은 다시 쓰지 않고 ${CLAUDE_PLUGIN_ROOT}/skills/sdd/SKILL.md ⑤ 정본 유지, §8 표는 세션 간 메시지 표라 행 안 더함, conductor.json 새 키 없음. bash hooks/test.sh 통과 449 · 실패 0",
       "completed_at": "2026-11-25T11:46:28+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-25T11:48:15+0900",
+      "head": "c6d8643ff105988a0a7a5e78638357eae4a53636",
+      "issues": [
+        "실제 동작 확인 필요 — 미실행: 사람만 스킬(no-comments · statechart · reframe · sharpen · explain)은 Skill 도구로 못 불러 실행 안 함. --plugin-dir 실측으로 등록 · how 로드 · explain 거절 · comment-hunter 등록만 확인",
+        "계획 결함(코드 위반 아님): step 9 AC 제외 목록에 hooks/tests/renames.sh 누락 — 옛 이름을 품는 테스트라 2줄, 빼면 0줄"
+      ]
+    }
   ]
 }
