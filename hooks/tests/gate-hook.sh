@@ -1,8 +1,9 @@
 # 가설 게이트 훅(hooks/hypothesis-gate.sh, UserPromptSubmit) — AC1·AC2·AC7. test.sh 가 source 한다.
 printf '\n[gate-hook] UserPromptSubmit 훅 · 판정 지시 · 가설 요구\n'
 GH="$HOOKS/hypothesis-gate.sh"
-GHD="$TMP/gh"; rm -rf "$GHD"; mkdir -p "$GHD/repo1"
+GHD="$TMP/gh"; rm -rf "$GHD"; mkdir -p "$GHD/repo1/.claude"
 (cd "$GHD/repo1" && git init -q)
+echo '{}' > "$GHD/repo1/.claude/harness.json"   # 하네스 레포에서만 켜진다(ADR-018 B-3) — 판정 지시 단정은 하네스 레포에서 돈다
 GHL="$GHD/ledger.jsonl"
 export CLAUDE_HYPOTHESIS_LEDGER="$GHL"
 export CLAUDE_HYPOTHESIS_GATE_CONFIG="$GHD/gate.json"
@@ -55,10 +56,14 @@ rm -rf "$GHL"; mkdir -p "$GHL"
 out=$(ghrun); code=$?
 [ "$code" = "0" ] && ok "AC2 원장 경로가 디렉터리여도 exit 0" || bad "AC2 디렉터리" "exit=$code out=[$out]"
 rmdir "$GHL" 2>/dev/null
-# git 레포가 아닌 곳에서도 exit 0
+# git 레포가 아닌 곳: exit 0 · 0줄(하네스 · 지휘 자리 밖은 조용히 빠진다, ADR-018 B-3)
 mkdir -p "$GHD/plain"
-out=$(cd "$GHD/plain" && printf '{}' | bash "$GH" 2>&1); code=$?
-if [ "$code" = "0" ] && printf '%s' "$out" | grep -q '\[판정 지시\]'; then ok "git 밖에서도 exit 0 · 판정 지시"; else bad "git 밖" "exit=$code out=[$out]"; fi
+out=$(cd "$GHD/plain" && printf '{}' | GIT_CEILING_DIRECTORIES="$GHD" bash "$GH" 2>&1); code=$?
+if [ "$code" = "0" ] && [ -z "$out" ]; then ok "git 밖이면 exit 0 · 0줄"; else bad "git 밖" "exit=$code out=[$out]"; fi
+# 하네스(.claude/harness.json) 없는 git 레포: exit 0 · 0줄
+mkdir -p "$GHD/bare" && (cd "$GHD/bare" && git init -q)
+out=$(cd "$GHD/bare" && printf '{"prompt":"x"}' | bash "$GH" 2>&1); code=$?
+if [ "$code" = "0" ] && [ -z "$out" ]; then ok "하네스 없는 git 레포면 exit 0 · 0줄"; else bad "하네스 없음" "exit=$code out=[$out]"; fi
 
 # 훅은 원장에 쓰지 않는다
 rm -f "$GHL"; printf '{"threshold": 1}' > "$CLAUDE_HYPOTHESIS_GATE_CONFIG"
@@ -78,8 +83,9 @@ unset CLAUDE_HYPOTHESIS_LEDGER CLAUDE_HYPOTHESIS_GATE_CONFIG
 # task 고르기(step 8): 미완료 phase 가 여럿이면 브랜치와 맞는 것, 맞는 게 없으면 null
 export CLAUDE_HYPOTHESIS_LEDGER="$GHL"
 export CLAUDE_HYPOTHESIS_GATE_CONFIG="$GHD/gate.json"
-mkdir -p "$GHD/repo2/phases/aaa" "$GHD/repo2/phases/bbb"
+mkdir -p "$GHD/repo2/phases/aaa" "$GHD/repo2/phases/bbb" "$GHD/repo2/.claude"
 (cd "$GHD/repo2" && git init -q)
+echo '{}' > "$GHD/repo2/.claude/harness.json"
 printf '{"phase":"aaa","steps":[{"step":1,"status":"pending"}]}' > "$GHD/repo2/phases/aaa/index.json"
 printf '{"phase":"bbb","steps":[{"step":1,"status":"pending"}]}' > "$GHD/repo2/phases/bbb/index.json"
 ghrun2() { (cd "$GHD/repo2" && printf '{"prompt":"x"}' | bash "$GH" 2>&1); }
