@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "split-sdd",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "skills/sdd/SKILL.md 103→71줄: 트랙 판단 · 「단계 → 스킬 · 체크포인트」 표(옛 단계 진행 + 사람 체크포인트 합침) · ① 계획 3줄 · ③ REVIEW(서브에이전트 · 수정 step 루프 · /no-comments · 수렴 ④만, ①~③은 ${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md §2 · §4) · ④ 출구 조건 · ⑤ 마무리(세 줄 요약 · 학습 카드 정본 유지) · 재개(recall 계약 유지). REFLECT 상세(가설 원장 · 회고 1장 · 하네스 되돌림+남기는 문턱 · 지식 정리 · 이해 증명)는 새 skills/sdd/references/reflect.md로 문장 그대로 옮김. 본문 날짜 · 버전 이력 블록은 지움(이력은 docs/design-notes.md에 이미 있음). hooks/test.sh 케이스 10의 '회고 1장 새 파일' · 'docs/retro/YYYY-MM-DD' · '최신이 위' 경로만 reflect.md로. bash hooks/test.sh 통과 449 · 실패 0",
+      "tdd": false,
+      "started_at": "2026-11-25T11:49:36+0900",
+      "completed_at": "2026-11-25T12:01:15+0900"
     },
     {
       "step": 2,
