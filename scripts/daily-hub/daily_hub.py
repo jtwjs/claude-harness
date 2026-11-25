@@ -9,7 +9,7 @@
   막힌 것   phases error·blocked step · 오늘의 「막힌 질문」 카드
 출력: ~/.claude/daily/YYYY-MM-DD.html + 같은 이름 .txt(evening 브리핑용 한 줄). 같은 날 다시 돌리면 덮어씀
 
-아이디어 출처: lcalmsky/deadhd 허브(MIT — 코드는 가져오지 않음). 2026-10-18.
+아이디어 출처: 동료 레포 허브(MIT — 코드는 가져오지 않음). 2026-10-18.
 
 Usage:
     daily_hub.py [YYYY-MM-DD] [--out DIR] [--home DIR]

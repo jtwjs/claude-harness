@@ -3,7 +3,7 @@
 
 harness.json 에는 값을 적지 않고 위치만 적는다(호스트를 레포 밖·문서로 옮기지 않는다는 규칙, 2026-10-13):
     "guard": { "prodDb": {
-        "from":     ["spring:prod", "env:.env:PROD_CPM_DB_HOST"],
+        "from":     ["spring:prod", "env:.env:<운영 DB 환경 변수>"],
         "switches": ["NODE_ENV=production"] } }
 
   spring:<profile>     application-<profile>.yml|yaml|properties 의 datasource url. ${VAR} 면 레포의 .env* 에서 VAR 를 푼다
@@ -29,7 +29,7 @@ URL_HOST = re.compile(r"^[a-z][a-z0-9+.:-]*://(?:[^@/\s]*@)?\[?([^\]/:?\s;]+)", 
 VAR = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::[^}]*)?\}")
 # DB 클라이언트가 없는 명령(스크립트에 SQL 을 넘기는 등)에서만 쓰는 넓은 목록. 클라이언트 명령은 아래 허용 목록으로 가른다
 WRITE_SQL = re.compile(r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|REPLACE|CREATE|MERGE|GRANT|REVOKE|RENAME|CALL|LOAD\s+DATA|COPY)\b", re.I)
-# 허용 목록(Finn 결정 10-13): 운영 DB 를 가리키는 클라이언트 명령은 이 말로 시작하는 문장만 통과
+# 허용 목록(사용자 결정 10-13): 운영 DB 를 가리키는 클라이언트 명령은 이 말로 시작하는 문장만 통과
 READ_ONLY = {"SELECT", "SHOW", "EXPLAIN", "DESCRIBE", "DESC", "WITH"}
 READ_BUT_UNSAFE = re.compile(r"\bINTO\s+(OUT|DUMP)FILE\b|\bFOR\s+(UPDATE|SHARE)\b|\bLOCK\s+IN\s+SHARE\b", re.I)
 DB_CLIENT = re.compile(r"(^|[\s;&(/])(mysql|mariadb|psql|pgcli|mycli|sqlcmd|sqlite3|mongosh|mongo|redis-cli|"
