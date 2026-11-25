@@ -11,11 +11,13 @@
 
 바꾸는 파일:
 
-- `hooks/hypothesis-gate.sh` · 새 `hooks/tests/quiet-without-harness.sh`
+- `hooks/hypothesis-gate.sh` · 새 `hooks/tests/quiet-without-harness.sh` · `hooks/tests/gate-hook.sh`(기대값 뒤집기, 사용자 허용)
 
 - 테스트 먼저: `.claude/harness.json`이 없고 지휘 자리도 아닌 폴더에서 `hypothesis-gate`는 출력 0줄 · exit 0. harness.json이 있는 레포에서는 지금처럼 판정 지시 한 줄. 지휘 자리(임시 conductor.json의 seat)에서도 한 줄
 - `conductor-context`는 이미 지휘 자리에서만 출력한다 — 바꾸지 않고 테스트로 그 동작만 고정한다
 - `block-dangerous-bash`는 바꾸지 않는다 — 모든 레포에서 켜 두는 안전 훅이다(ADR-018 B-3). 테스트에 「하네스 없는 폴더에서도 block-dangerous-bash는 deny 패턴 명령을 여전히 막는다(exit 2)」 한 줄을 넣어 고정한다
+- `hooks/tests/gate-hook.sh`는 옛 동작(하네스 없는 폴더에서도 판정 지시)을 단정한다 — 사용자 허용(ADR-018 B-3)으로 기대값만 뒤집는다. 단정은 지우지 않고 수가 줄지 않게: 픽스처 repo1 · repo2에 `.claude/harness.json`을 넣어 「하네스 레포 → 판정 지시」를 계속 확인하고, 「하네스 없는 폴더 · git 밖 → 0줄 · exit 0」을 더한다. 이 수정은 RED 커밋에 같이 넣고 summary에 「사용자 허용: gate-hook.sh 기대값 뒤집기(B-3)」 한 줄
+- 새 테스트에 단정 둘을 꼭 넣는다: 지휘 자리(임시 conductor.json seat) 폴더 → 판정 지시 · 하네스 없는 폴더에서도 block-dangerous-bash가 deny 패턴을 막는다(exit 2)
 - tdd: true
 
 ## Acceptance Criteria
