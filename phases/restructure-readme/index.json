@@ -46,8 +46,11 @@
     {
       "step": 5,
       "name": "version-bump",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T17:29:02+0900",
+      "summary": "버전 0.40.0 → 0.41.0(.claude-plugin/plugin.json · marketplace.json claude-harness 항목, 마켓플레이스 자체 0.1.0은 그대로) · 새 docs/changes/0.41.0.md(`# 0.41.0` + bullet 18줄, 재구성 PR 1~7을 사용자 영향 순, PR 번호 #41~#46 · #48 · 이번 PR). 릴리스(scripts/release.sh)는 머지 뒤 사람이. bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:33:51+0900"
     }
   ]
 }
