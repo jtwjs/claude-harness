@@ -2,12 +2,18 @@
 # hypothesis-gate — UserPromptSubmit. 프롬프트마다 판정 지시를 모델 컨텍스트에 넣고,
 #   재요구 상태(ledger.py state)가 on 일 때만 가설 요구 한 줄을 더한다 (ADR-001·002·005).
 # 원장은 읽기만 한다(쓰기는 모델 → ledger.py append). 어떤 실패에도 exit 0, 프롬프트를 막지 않는다.
-# 모든 레포에서 돈다(하네스 유무를 보지 않음). 칸 의미·skip 기준 정본은 docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md.
+# 하네스 레포(git 루트에 .claude/harness.json)와 지휘 자리(lib/conductor.py is-seat)에서만 돈다. 그 밖 · git 밖은 무출력 exit 0(ADR-018 B-3).
+# 칸 의미·skip 기준 정본은 docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md.
 HERE="$(cd "$(dirname "$0")" && pwd)"
 . "$HERE/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
-hook_log_on_exit hypothesis-gate   # 끝나는 모든 경로에서 기록 한 줄 — off · on · ledgerfail
+hook_log_on_exit hypothesis-gate   # 끝나는 모든 경로에서 기록 한 줄 — off · on · ledgerfail · noharness
 cat >/dev/null 2>&1   # 훅 입력(프롬프트 원문)은 쓰지 않는다
 command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
+# 하네스 레포도 지휘 자리도 아니면 조용히 빠진다 — 원장 안내를 내지 않아 원장도 쌓이지 않는다
+_top="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$_top" ] || [ ! -f "$_top/.claude/harness.json" ]; then
+  python3 "$HERE/lib/conductor.py" is-seat "$PWD" >/dev/null 2>&1 || { REPO_ROOT="${_top:-$PWD}"; HOOK_RESULT=noharness; exit 0; }
+fi
 
 # repo = git toplevel 이름, task = 미완료 step 이 있는 phases/*/index.json 의 폴더 이름(없으면 null)
 ident="$(python3 - <<'PY' 2>/dev/null
