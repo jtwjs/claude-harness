@@ -19,8 +19,8 @@
 - `judge --red --step N`(검증 세션): 판정 2 · 3만 돈다(테스트만 담긴 커밋이 BASE 뒤 첫 커밋 · 그 시점에 `verify.test` 실패). 통과하면 step에 `red: <테스트 커밋 sha>`를 적고 index를 커밋, 종료 0. 실패는 지금 RedFail과 같이 이번 시도를 버리고 10(재시도 사유 기록)
 - `prompt --role impl`(구현 세션): `red`가 있는 `tdd: true` step, 또는 `tdd: false` step만 집는다(`red` 없는 `tdd: true` step은 건너뛴다). 지시문은 「테스트는 이미 있다 · 테스트 파일은 고치지 않는다 · 막히면 blocked + 이유」(ADR-019 E3)
 - `judge --step N`(구현 뒤, `red`가 있으면): 판정 2 · 3은 다시 돌지 않고 `red` sha를 기준으로 4(그 뒤 테스트 파일 무변경) · 5 · 6을 돈다. 완료 · 실패 · blocked 처리와 `retries` · `attempts` 계수는 지금과 같다. 구현 쪽 재시도는 `red`를 지우지 않는다(테스트를 다시 쓰지 않는다)
-- 나눔 모드 구현 쪽 judge에서 `RedFail`(판정 6의 `red_blame` 분기 — test 밖 verify가 RED 테스트 파일을 가리킴)이 나면 `discard_attempt`(BASE로 `reset --hard`)를 부르지 않는다. 검증 세션의 테스트 커밋이 지워지고 `red`가 고아 커밋을 가리키게 되기 때문이다. 대신 `red` sha 뒤의 구현 커밋만 버리거나, step을 `blocked`(이유: 테스트 파일이 verify에 걸림 — 검증 세션 재판정, ADR-019 E3)로 둔다
-- 차례(ADR-019 E12): 두 세션이 같은 worktree · 같은 브랜치를 쓰고 차례는 index.json이 정한다(`red` 없음 = 검증 · `red` 있고 pending = 구현 · 구현 judge 끝 = 검증 리뷰). 차례가 아닌 역할로 `prompt --role` · `judge --red`를 부르면 아무것도 바꾸지 않고 비0 + 「지금은 <역할> 차례」 한 줄 — `judge --red`의 `checkout --detach` · `reset --hard`가 구현 중인 트리를 치지 않게 하는 장치다
+- 나눔 모드 구현 쪽 judge에서 `RedFail`(판정 6의 `red_blame` 분기 — test 밖 verify가 RED 테스트 파일을 가리킴)이 나면 `discard_attempt`(BASE로 `reset --hard`)를 부르지 않는다. 검증 세션의 테스트 커밋이 지워지고 `red`가 고아 커밋을 가리키게 되기 때문이다. 대신 step을 `blocked`(이유: 테스트 파일이 verify에 걸림 — 검증 세션 재판정, ADR-019 E3)로 두고 커밋은 그대로 남긴다
+- 차례(ADR-019 E12): 두 세션이 같은 worktree · 같은 브랜치를 쓰고 차례는 index.json이 정한다(`tdd: true` · `red` 없음 = 검증 · `red` 있고 pending = 구현 · `tdd: false` pending = 구현(쓸 테스트가 없다) · `kind: measure` = 검증(측정 · 대조는 검증 몫) · blocked = 검증 재판정(ADR-019 E3) · 구현 judge 끝 = 검증 리뷰). 차례가 아닌 역할로 `prompt --role` · `judge --red`를 부르면 아무것도 바꾸지 않고 비0 + 「지금은 <역할> 차례」 한 줄 — `judge --red`의 `checkout --detach` · `reset --hard`가 구현 중인 트리를 치지 않게 하는 장치다
 - BASE는 `prompt --role test`에서 고정한 값을 구현 쪽이 그대로 쓴다(`pin_base`가 덮지 않는 지금 규칙)
 - `red`는 index.json step의 선택 칸이다. `phases_status.py --check`는 지금도 status만 본다(이미 오류로 안 잡음) — 테스트로 고정만 한다. `status` 값은 4개 그대로
 - 테스트 메서드 이름에 `red_judge`를 넣는다(AC의 `-k`)

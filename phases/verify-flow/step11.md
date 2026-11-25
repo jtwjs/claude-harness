@@ -8,7 +8,7 @@
 
 ## 작업
 
-근거: ADR-019 A3 · A4 · C1 · C2 · C3. 선행: #55(`sdd-plan`을 고친다) — 그 머지 뒤에 한다. 먼저 `gh pr view 55 -R jtwjs/claude-harness --json state -q .state`를 돌려 `MERGED`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: #55 대기)로 끝낸다.
+근거: ADR-019 A3 · A4 · C1 · C2 · C3. 선행: #55(`sdd-plan`을 고친다) — 그 머지 뒤에 한다. 먼저 이 브랜치 트리에서 `test -f docs/principles/write-for-agents.md`(#55 구현 PR이 만드는 파일)를 돌려 없으면 아무것도 바꾸지 말고 `blocked`(이유: #55 구현이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다.
 
 바꾸는 파일:
 

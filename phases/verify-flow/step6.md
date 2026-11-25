@@ -8,7 +8,7 @@
 
 ## 작업
 
-근거: ADR-019 A1 · A5 · C2 · E5 · E6 · E7 · E12. 먼저 `gh pr view 55 -R jtwjs/claude-harness --json state -q .state`를 돌려 `MERGED`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: #55 대기)로 끝낸다. 이어서 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
+근거: ADR-019 A1 · A5 · C2 · E5 · E6 · E7 · E12. 먼저 이 브랜치 트리에서 `test -f docs/principles/write-for-agents.md`(#55 구현 PR이 만드는 파일)를 돌려 없으면 아무것도 바꾸지 말고 `blocked`(이유: #55 구현이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다. 이어서 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다. 두 확인 모두 원격이 아니라 이 브랜치 트리를 본다 — 원격만 보면 통과해도 고칠 파일은 옛 상태다.
 
 #55(설계 도구 흡수 구현)가 `design.md`를 고친다. 점검 phase의 평문 step이 같은 파일의 강조어 줄을 고쳤으면 그 문장 위에서 고친다.
 

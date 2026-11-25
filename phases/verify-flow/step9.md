@@ -8,7 +8,7 @@
 
 ## 작업
 
-근거: ADR-019 A2 · A3 · B1 · B2. 선행: #55(`design.md`를 고친다) · 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 `gh pr view 55 -R jtwjs/claude-harness --json state -q .state`를 돌려 `MERGED`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: #55 대기)로 끝낸다. 이어서 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
+근거: ADR-019 A2 · A3 · B1 · B2. 선행: #55(`design.md`를 고친다) · 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 이 브랜치 트리에서 `test -f docs/principles/write-for-agents.md`(#55 구현 PR이 만드는 파일)를 돌려 없으면 아무것도 바꾸지 말고 `blocked`(이유: #55 구현이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다. 이어서 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다. 두 확인 모두 원격이 아니라 이 브랜치 트리를 본다 — 원격만 보면 통과해도 고칠 파일은 옛 상태다.
 
 바꾸는 파일:
 
@@ -18,7 +18,7 @@
 - `templates/.claude/harness.json`에 `review.gatePaths: []` + `$comment` 한 줄(무엇을 넣나 · 비면 어떻게 되나). `harness-init` 인터뷰는 바꾸지 않는다
 - 수용 조건 번호(ADR-019 A3): `design.md` PRD 항목과 `conductor` 결정 이슈 틀에 「수용 조건마다 `AC-N` 번호 + 맡는 쪽(BE 몫 · FE 몫 · 끝까지 확인 몫, 층이 하나면 생략) + 사람이 볼 것이면 `👤 <기준 한 구절>`(ADR-019 B1)」
 - `sdd-review` 「테스트 존재」 축 → 「수용 조건 대조」로 넓힌다: PRD를 늘 읽고(§1 「필요 시」 삭제) 번호별 테스트 위치 표(번호 · 테스트 파일:줄 · 통과 여부). 이 세션 몫인데 빈 번호는 🟡. 번호가 없는 옛 PRD는 지금처럼 짝 테스트 존재만 보고 「번호 없음」 한 줄
-- CRITICAL 축(ADR-019 G5): `hook 미우회(`--no-verify`)` 대조를 「deny 규칙(템플릿 `settings.json` permissions.deny, 점검 #57)이 막는다 — 리뷰는 deny가 깔렸는지만 본다」로
+- CRITICAL 축(ADR-019 G5): 「hook 미우회(--no-verify)」 대조를 「deny 규칙(템플릿 `settings.json` permissions.deny, 점검 #57)이 막는다 — 리뷰는 deny가 깔렸는지만 본다」로
 - 최종 판정(ADR-019 B2): `👤` 번호만 「사람이 볼 것」 체크리스트로 낸다. 없으면 칸 생략
 - tdd: false — 지시문 문장 바꾸기다
 

@@ -8,7 +8,7 @@
 
 ## 작업
 
-근거: ADR-019 B3 · B4 · B5 · E7(보탬) · F2. 선행: 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
+근거: ADR-019 B3 · B4 · B5 · E7(보탬) · F2. 선행: 점검 phase 평문 step(같은 스킬 문장의 강조어를 고친다) 머지 뒤. 먼저 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step이 이 브랜치에 없음 — 기준 브랜치를 받은 뒤 재개)로 끝낸다. 두 확인 모두 원격이 아니라 이 브랜치 트리를 본다 — 원격만 보면 통과해도 고칠 파일은 옛 상태다.
 
 바꾸는 파일:
 
