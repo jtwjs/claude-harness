@@ -72,8 +72,11 @@
     {
       "step": 8,
       "name": "nestjs-unmeasured-note",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T16:30:52+0900",
+      "summary": "skills/harness-init/SKILL.md §1-b 스택 판정 끝(51행)에 한 줄 — 고른 팩의 pack.md 머리에 「미실측」이 있으면 사람에게 「<pack> 팩은 미실측이다 — 검증 명령 후보를 아직 돌려 보지 않았다. §2 실측 결과로 플러그인 레포의 templates/stacks/<pack>/pack.md를 고쳐 주세요」를 알리고 막지 않고 진행한다. 팩 이름은 박지 않은 일반 규칙이라 다음 미실측 팩에도 그대로 걸린다(지금 해당 팩은 nestjs 하나).",
+      "completed_at": "2026-11-25T16:35:27+0900"
     }
   ]
 }
