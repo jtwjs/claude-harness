@@ -63,8 +63,11 @@
     {
       "step": 7,
       "name": "remove-incubator",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "summary": "incubator/ 를 지웠다(git rm -r, 파일은 incubator/README.md 하나). 남길 이유 · 이력은 docs/design-notes.md §3 로드 예산에 bullet 한 줄 — 로드 경로 밖 대기 폴더는 두지 않고, 쉬는 스킬은 git 이력에서 꺼내며 그때 부르는 쪽(주로 sdd)에 호출 지점을 같이 넣는다. README.md 구성 표의 `incubator/` 행도 지웠다(계획은 incubator/ · design-notes 한 줄만, 이유: 폴더를 지우면 그 행이 없는 경로를 가리킨다 — 지휘 지시, README 다른 줄은 안 건드림). 남은 incubator 참조는 쌓기만 하는 기록(docs/changes · docs/harness-restructure-2026-11-24 · phases)과 design-notes 새 줄뿐.",
+      "started_at": "2026-11-25T16:25:57+0900",
+      "completed_at": "2026-11-25T16:30:51+0900"
     },
     {
       "step": 8,
