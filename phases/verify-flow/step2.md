@@ -13,9 +13,10 @@
 
 - `skills/sdd-run/scripts/sdd_runner.py` · `skills/sdd-run/scripts/test_sdd_runner.py` · `docs/sdd-runner.md`(판정 표 「실패 사유」 칸 한 구절)
 
-- verify 실패(`Fail("verify 실패: …")`) 사유에 그 명령 stdout · stderr의 마지막 40줄을 붙인다. 실패한 테스트 이름 줄(`FAIL` · `FAILED` · `✗` · `bad`로 시작)은 40줄 밖이어도 앞에 모아 넣는다(최대 10줄)
+- verify 실패(`Fail("verify 실패: …")`) 사유에 그 명령 stdout · stderr의 마지막 40줄을 붙인다. 실패한 테스트 이름 줄(줄 앞 공백을 무시하고 `FAIL` · `FAILED` · `✗` · `✕` · `🔴`로 시작 — 이 레포 `hooks/test.sh`의 실패 줄은 `  🔴`)은 40줄 밖이어도 앞에 모아 넣는다(최대 10줄)
 - `last_error` · `attempts`에 같은 글이 들어가고, 다음 지시문 「이전 시도 실패」에 그대로 붙는다
 - 출력이 길어 index.json이 부푸는 것을 막는다: 붙이는 글 상한 4,000자, 넘으면 앞을 자르고 `…(앞 생략)` 표시
+- 테스트 메서드 이름에 `error_tail`을 넣는다(AC의 `-k`가 이 이름으로 고른다. RED 커밋 뒤에는 이름을 못 바꾼다)
 - 테스트 먼저: 실패 출력 끝 줄 포함 · 테스트 이름 줄 우선 · 상한 자르기
 
 ## Acceptance Criteria

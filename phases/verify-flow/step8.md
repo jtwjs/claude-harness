@@ -8,7 +8,7 @@
 
 ## 작업
 
-근거: ADR-019 C6 · E8 · E9 · E11 · G4 · G5. 선행: 점검 phase 평문 step(같은 템플릿 references를 고침).
+근거: ADR-019 C6 · E8 · E9 · E11 · G4 · G5. 선행: 점검 phase 평문 step(같은 템플릿 references를 고침). 먼저 `python3 -c "import json;print(next(s['status'] for s in json.load(open('phases/harness-checkup/index.json'))['steps'] if s['name']=='plain-wording'))"`를 돌려 `completed`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: 점검 평문 step 대기)로 끝낸다.
 
 바꾸는 파일:
 
@@ -16,7 +16,7 @@
 
 - track-brief 표에 「의도」(이 트랙이 채우는 수용 조건과 이유) · 「effort」(역할 값, ADR-019 E1 참조) · 「세션 역할」(검증 / 구현) 칸(ADR-019 C6)
 - 「끝나면 지휘에 보고」에 4번째 묶음 「지휘 자리의 지식 저장소로 올릴 것」: 도메인 사실(코드 · 문서로 확인한 것만, 출처 경로) · 반대 근거 · 남은 문제 · 저장소 쪽 할 일 후보(레포 이슈로 갈 것은 빼고). 칸마다 없으면 「없음」. 지휘에게만, 레포에 쓰지 않는다(ADR-019 G4)
-- 덜기(ADR-019 G5): 39행(「진행 방식」과 같은 말) 삭제 · 45~52행 「새 worktree 준비」 삭제(지휘가 `conductor` §5로 만든다) · 지휘가 보낸 목록의 나머지 줄
+- 덜기(ADR-019 G5, 줄 번호가 아니라 문구로 찾는다): 「금지」의 `판정함에 설계 질문을 직접 올리지 않는다` 줄(「진행 방식」과 같은 말) 삭제 · `## 새 worktree 준비` 절 통째 삭제(지휘가 `conductor` §5로 만든다). 점검 평문 step이 먼저 지웠으면 그 사실을 summary에
 - tracks.md 「세션 종류」 표에 검증 · 구현 행, 층별 상주 트랙은 유지하고 세로 조각은 층 안에서(ADR-019 E11). §5 「계약 먼저 PR」에 나눔 모드 한 줄 — 검증 BE가 제공, 검증 FE가 소비, 끝까지 확인은 검증 FE(ADR-019 E9)
 - tdd: false — 템플릿 문장 바꾸기다
 

@@ -15,7 +15,9 @@
 
 - `judge` · `run`에 `--defer-full-test` 옵션. 켜면 phase 마지막 step · 재개 step · 앱 밖 파일 때문에 「전체」로 넓어지는 verify도 `$step` 범위 명령만 돌린다. `harness.json` 키가 아니라 실행 옵션으로 두는 이유: 부하 판정은 사람이 그때그때 한다(#13 「부하 판정은 사람이 한다」)
 - 옵션으로 줄인 step은 `summary` 끝에 `전체 test 미룸 — 릴리스 전 한 번` 한 구절을 러너가 붙인다(빠뜨리지 않게)
+- 옵션은 `full_reason` 한 곳에서 건다 — 지시문의 검증 명령(`prompt`) · Stop 훅 환경(`invoke`) · `verify_scope`가 모두 이 함수로 「전체」를 정하므로, 한 곳에서 걸어야 셋이 엇갈리지 않는다
 - `$step` 명령이 없는 앱은 줄일 범위가 없으니 그대로 전체를 돌린다
+- 테스트 메서드 이름에 `defer_full`을 넣는다(AC의 `-k`)
 - 테스트 먼저: 옵션 있음 · 없음 · `$step` 없는 앱 · summary 표시
 
 ## Acceptance Criteria

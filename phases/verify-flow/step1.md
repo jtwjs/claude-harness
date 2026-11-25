@@ -14,11 +14,12 @@
 
 - `hooks/lib/ledger.py` · `hooks/hypothesis-gate.sh` · `docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md`(칸 정의 표에 세 칸) · 새 `hooks/tests/ledger-intent.sh`
 
-- `append`가 `intent=` · `effort=` · `verify=`(true | false)를 **선택 칸**으로 받는다. 빠지면 줄에 쓰지 않는다(읽는 쪽은 없음 = null). 필수 칸으로 두지 않는 이유: 세션이 시작될 때의 훅 문구가 끝까지 쓰여(ADR-018 B-11) 옛 문구 세션의 append가 「빠진 칸」으로 거부된다
+- `append`가 `intent=` · `effort=` · `verify=`를 **선택 칸**으로 받는다. 세 칸 모두 값은 `true | false`다(effort도 수준이 아니라 「말했나」). 그 밖 값은 거부. 빠지면 줄에 쓰지 않는다(읽는 쪽은 없음 = null). 필수 칸으로 두지 않는 이유: 세션이 시작될 때의 훅 문구가 끝까지 쓰여(ADR-018 B-11) 옛 문구 세션의 append가 「빠진 칸」으로 거부된다
 - 옛 줄은 고치지 않는다. `by` enum 값은 그대로(ADR-019 D2)
 - 판정 지시 문구에 세 칸 정의 한 구절씩: intent = 맡기는 말에 무엇을 왜(의도)가 있음 · effort = 얼마나 깊이 볼지 말함 · verify = 끝을 어떻게 확인할지 말함
 - 비사람 입력 거르기: 훅 입력의 프롬프트가 세션 간 메시지만으로 된 턴이면 판정 지시를 내지 않고 `HOOK_RESULT=nonhuman`으로 끝난다. 지금 훅은 입력을 버린다(`cat >/dev/null`) — 거르려면 입력을 읽어야 하고, 원문은 판별에만 쓰고 어디에도 남기지 않는다. 표식은 먼저 실제 훅 입력에서 확인하고(이 step의 첫 작업, summary에 표식 문자열), 표식을 못 찾으면 거르기만 빼고 진행한 뒤 summary에 「거르기 미적용: 이유」
 - #17의 판정 문구 5건은 고치지 않는다(데이터를 본 뒤, #17 「다음 수」)
+- 새 테스트 파일 첫 줄은 `printf '\n[ledger-intent] …\n'`(AC가 이 표식을 찾는다)
 - 테스트 먼저: 선택 칸 있음 · 없음 · 허용 밖 값 거부 · 옛 줄 읽기 · 세션 간 메시지 턴에 출력 없음 + 기록 한 줄 `nonhuman`
 
 ## Acceptance Criteria

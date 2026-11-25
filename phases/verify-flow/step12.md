@@ -7,7 +7,7 @@
 
 ## 작업
 
-근거: ADR-019 C4. 선행: #55(`write-for-agents.md`를 만든다) — 그 머지 뒤에 한다.
+근거: ADR-019 C4. 선행: #55(`write-for-agents.md`를 만든다) — 그 머지 뒤에 한다. 먼저 `gh pr view 55 -R jtwjs/claude-harness --json state -q .state`를 돌려 `MERGED`가 아니면 아무것도 바꾸지 말고 `blocked`(이유: #55 대기)로 끝낸다.
 
 바꾸는 파일:
 
