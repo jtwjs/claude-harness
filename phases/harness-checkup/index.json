@@ -83,8 +83,9 @@
     {
       "step": 10,
       "name": "fork-line",
-      "status": "pending",
-      "tdd": false
+      "status": "blocked",
+      "tdd": false,
+      "blocked_reason": "ADR-018 B-14 → #52 A절(검증자 독립), 지휘 판정"
     },
     {
       "step": 11,
