@@ -4,7 +4,7 @@
 
 - 과제: 합성(A2 ①). 자동 입구 8개(`python3 scripts/always-on.py .`의 skill 목록)마다 떠야 할 과제 1개 + 안 떠야 할 과제 1개. 문장은 `docs/harness-restructure-2026-11-24/trigger-eval/evals.json` 정답표(0.41.0 기준으로 맞춘 것)에서 골랐다. `sdd`는 REVIEW 과제를 하나 더 둬서 `code-reviewer`를 잰다(ADR-018 B-2)
 - 채점: 기본 모델이 안 하는 하네스 고유 결과만 본다. 전부 regex(결정적 채점기)라 LLM 채점기가 없다 → `--judge-model`이 필요 없다. 기본 모델도 하는 행동(요구사항부터 · 근거부터)은 기준으로 쓰지 않았다
-- `fired`(`tool_used: Skill`, arm 없음)는 ablation에서 표시만 되고 점수에 안 들어간다. 안 떠야 할 과제의 `not-fired`는 `min: 0 · max: 0 · arm: both`라 두 쪽 모두 점수에 든다
+- `fired`(`tool_used: Skill`, arm 없음)는 `--ablation with-without`에서 표시만 되고 점수에 안 들어간다. `--ablation none`(부품 변형)에서는 점수에 든다 — 변형과 통째 있음을 비교할 땐 fired 를 뺀 채점기 점수로 본다. 안 떠야 할 과제의 `not-fired`는 `min: 0 · max: 0 · arm: both`라 두 쪽 모두 점수에 든다
 - 턴 상한: 스킬 · 참조를 읽고도 답할 만큼(12 이상, git 과제 20, 리뷰 30). 턴 상한에 걸린 실행은 점수가 아니라 「무효」다 → `scripts/eval-tally.py`가 따로 센다
 - 결과 + 실행 비용(A1 ②): `scripts/eval-tally.py`가 case · 쪽마다 유효 통과 · 무효 수 · 평균 $ · 턴 · 초와 Δ를 낸다(입력은 `--json` 출력)
 
@@ -50,7 +50,7 @@ OUT="$(mktemp -d)"   # 결과는 레포 밖에 둔다
 # 1) 통째 비교 — 있음 / 없음
 #    --tag 가 필요하다: 기본 탐색이 docs/harness-checkup-2026-11-25/evals/ 의 시험 case 3개도 함께 잡는다(태그 없음 → 빠짐)
 #    --allow-tools 는 값을 여러 개 받으므로 맨 끝에 둔다
-claude plugin eval . --ablation with-without --tag fire quiet --runs 3 -j 4 \
+claude plugin eval . --ablation with-without --tag fire quiet --runs 3 -j 2 --no-publish \
   --scaffold --trust-plugin --max-cost-usd 14 \
   --output-dir "$OUT/whole" --json "$OUT/whole.json" \
   --allow-tools "Bash(git:*)"
@@ -58,7 +58,7 @@ claude plugin eval . --ablation with-without --tag fire quiet --runs 3 -j 4 \
 # 2) 부품 변형 — 떠야 할 과제마다 부품 하나를 뺀 사본, 있음 쪽만
 while read -r c part; do
   v="$(bash scripts/eval-variant.sh "$part")"
-  claude plugin eval "$v" --ablation none --case "$c" --runs 3 \
+  claude plugin eval "$v" --ablation none --case "$c" --runs 3 -j 2 --no-publish \
     --scaffold --trust-plugin --max-cost-usd 0.65 \
     --output-dir "$OUT/variant-$c" --json "$OUT/variant-$c.json" \
     --allow-tools "Bash(git:*)"
@@ -83,7 +83,7 @@ python3 scripts/eval-tally.py "$OUT/whole.json" "$OUT"/variant-*.json
 
 ## 예상 비용
 
-회당 값은 ADR-018 「시험 결과」의 시험 1회 기준이다: 있음 ~$0.15 · 없음 ~$0.06. 변형은 있음과 같은 값으로 추정했다.
+회당 값은 ADR-018 「시험 결과」의 시험 1회 기준이다: 있음 ~$0.15 · 없음 ~$0.06. 변형은 있음과 같은 값으로 추정했다. ⚠️ 첫 점검 실측은 더 컸다: 있음 $0.17~0.28 · 없음 $0.09~0.18(ADR-018 「첫 점검 결과」) — 다음 점검은 실측값으로 다시 잰다. 첫 점검에서 실제로 돈 범위는 떠야 할 8 case × 3회 + 변형 6개 × 2회($0.6씩)다.
 
 | 부분 | 계산 | 예상 |
 |---|---|---|
@@ -97,7 +97,7 @@ python3 scripts/eval-tally.py "$OUT/whole.json" "$OUT"/variant-*.json
 
 1. 안 떠야 할 과제를 2회로: `--tag quiet --runs 2`를 따로 돌린다(8 × 1회 × $0.21 ≈ $1.7 줄어듦)
 2. 변형은 통째 비교에서 있음 ≥ 없음이 나온 case만 돌린다(있음 < 없음이면 부품보다 진입부터 본다)
-3. git 과제 4개를 첫 회에서 빼고(`--tag fire quiet` 대신 `--case` 로 나머지만) 첫 결과의 회당 값을 본 뒤 따로 돌린다
+3. git 과제 4개를 첫 회에서 빼고(`--case`는 값 하나 · glob은 `*`만 받아서 case 마다 따로 돌린다) 첫 결과의 회당 값을 본 뒤 따로 돌린다
 
 ## 형식 확인 (돈 안 씀)
 
@@ -108,3 +108,8 @@ claude plugin eval . --tag fire quiet --scaffold --trust-plugin --no-publish \
   --max-cost-usd 0 --output-dir "$(mktemp -d)" --allow-tools "Bash(git:*)"
 # → "Ablation: 2 arms × 17 cases (102 runs)" · "cost ceiling $0 hit", 허가 경고(⚠ case …) 없음
 ```
+
+## 돌린 뒤 정리
+
+- `scripts/eval-variant.sh` 사본은 eval 뒤 남는다: `rm -rf "${TMPDIR:-/tmp}"/harness-variant.*`
+- eval은 구독 5시간 사용량 한도를 같이 쓴다. 한도 오류(`You've hit your 5-hour limit`) 실행은 `scripts/eval-tally.py`가 「errors」로 따로 세고 점수에서 뺀다 — 그 case만 다시 돈다

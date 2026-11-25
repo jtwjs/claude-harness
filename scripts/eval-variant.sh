@@ -6,15 +6,17 @@
 set -euo pipefail
 
 part="${1:?사용: bash scripts/eval-variant.sh <부품 경로(레포 루트 기준)>}"
-part="${part%/}"
+part="${part%/}"; part="${part#./}"
 case "$part" in
-  /*|..|../*|*/../*|*/..) echo "레포 안 상대 경로만 받는다: $part" >&2; exit 2 ;;
+  ""|.|/*|..|../*|*/../*|*/..) echo "레포 안 상대 경로만 받는다: $part" >&2; exit 2 ;;
 esac
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 [ -e "$root/$part" ] || { echo "없는 경로: $part" >&2; exit 2; }
 
-dest="$(mktemp -d "${TMPDIR:-/tmp}/harness-variant.XXXXXX")/claude-harness"
+tmp="$(mktemp -d "${TMPDIR:-/tmp}/harness-variant.XXXXXX")"
+trap 'rm -rf "$tmp"' ERR   # 실패하면 사본을 남기지 않는다. 성공한 사본은 eval 뒤 사람이 지운다(evals/README.md)
+dest="$tmp/claude-harness"
 mkdir -p "$dest"
 
 (
