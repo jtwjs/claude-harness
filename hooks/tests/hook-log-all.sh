@@ -135,4 +135,7 @@ grep -q '\[판정 지시\]' "$_ha_d/hg-unwritable.out" && ok "hypothesis-gate le
 mkdir -p "$_ha_d/old/hooks/lib"; cp "$HOOKS/hypothesis-gate.sh" "$_ha_d/old/hooks/"; cp "$HOOKS/lib/hook-log.sh" "$_ha_d/old/hooks/lib/"
 _ha_c=$(cd "$_ha_d/repo" && printf '{}' | env HOME="$_ha_d/home" CLAUDE_HARNESS_HOOK_LOG="$_ha_d/hg-noledger.tsv" $_ha_ge bash "$_ha_d/old/hooks/hypothesis-gate.sh" >/dev/null 2>&1; echo $?)
 _ha_one hg-noledger hypothesis-gate ledgerfail; _ha_code "$_ha_c" 0 "hypothesis-gate ledgerfail(ledger.py 없음)"
+# 기록 폴더가 없어도 훅 stderr 는 비어 있다(리다이렉트 실패를 숨긴다) — 안전 훅 deny 사유 뒤에 오류가 붙지 않게
+_ha_e=$(cd "$_ha_d/repo" && printf '{"tool_input":{"command":"git status"}}' | env HOME="$_ha_d/home" CLAUDE_HARNESS_HOOK_LOG="$_ha_d/nodir/x/log.tsv" bash "$HOOKS/block-dangerous-bash.sh" 2>&1 >/dev/null)
+[ -z "$_ha_e" ] && ok "기록 폴더 없음 — stderr 비어 있음" || bad "기록 폴더 없음" "stderr: $_ha_e"
 rm -rf "$_ha_d"
