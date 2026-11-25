@@ -9,69 +9,121 @@
     {
       "step": 1,
       "name": "no-comments-skill-agent",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "skills/no-comments/SKILL.md(사람만 · 범위는 scripts/base-branch.sh · 판정은 메인 · 거절 보고 1회만 재실행 · 제약 주석은 승인 뒤 타입·런타임 검사·테스트·린트로) + agents/comment-hunter.md(주석만 지우고 MUST KILL 표시 · Read/Grep/Glob/Bash/Edit · sonnet) 생성, sdd REVIEW에 「선택: /no-comments」 한 줄. PStack 「/why」 「/architect」 자리는 git log -L·blame 추적과 시그니처 스케치 + ask-questions 원칙으로 바꿈",
+      "tdd": false,
+      "started_at": "2026-11-24T22:03:37+0900",
+      "completed_at": "2026-11-25T00:11:25+0900"
     },
     {
       "step": 2,
       "name": "review-proof-rules",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:11:40+0900",
+      "summary": "agents/code-reviewer.md에 「증명 규칙」 절(정본: 의도 한 줄 되비추기 · 🔴🟡마다 돌린 명령·출력 · 못 돌리면 「⚠️ 확인 필요」 강등 · 확신 5단계 표, 동작 주장은 4단계부터 등급) 추가, skills/sdd-review/SKILL.md는 기준 로드에서 ${CLAUDE_PLUGIN_ROOT}/agents/code-reviewer.md 「증명 규칙」을 경로로 가리키고 출력에 의도 줄 · 결과 표 라벨을 「확인 필요」로 맞춤",
+      "completed_at": "2026-11-25T00:19:53+0900"
     },
     {
       "step": 3,
       "name": "statechart-import",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:19:53+0900",
+      "summary": "skills/statechart/ 반입(PStack 9e278fe 원본 410파일 blob 해시 · 실행 권한 그대로 + LICENSE MIT 사본, 진입점 scripts/statechart · scripts/statechart.ts). SKILL.md만 고침: disable-model-invocation: true(원본 유지) · 레포 밖 스크래치 폴더에서만 실행 · 첫 실행 mise로 Java·TLC 설치 + 네트워크 경고 한 줄 · PStack 출처 한 줄. 원본 SKILL.md에 Cursor 전용 문장은 없었음",
+      "completed_at": "2026-11-25T00:28:02+0900"
     },
     {
       "step": 4,
       "name": "gaps-correction-ladder",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:28:34+0900",
+      "summary": "skills/harness-gaps/SKILL.md §4 종착지를 교정 위계 표(1 구조 → 2 타입 → 3 린트(에러가 고칠 곳을 말함) → 4 테스트 → 5 문서=rules 한 줄 마지막, 칸 「막는 장치(어기면 실패하는 것)」) + 「위계 밖 종착지」 표(scripts/ · .claude/skills/ · BACKLOG.md · 버림)로 나눔. 「규칙 ↔ 막는 장치」는 observations.md 「닫힌 것」 표 새 칸 `막는 장치`(근거 실수에 돌려 실패하는 것만, 문서 단은 「없음」 → 다시 3회면 위 단 제안). 출력 둘째 줄에 단 · 막는 장치 · 위 단이 안 되는 이유. 문턱(3회 · 반복 절차 2회 예외)은 그대로, 원칙은 ${CLAUDE_PLUGIN_ROOT}/docs/principles/build-the-lever.md 경로로만 가리킴",
+      "completed_at": "2026-11-25T00:35:14+0900"
     },
     {
       "step": 5,
       "name": "reflect-thresholds",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:35:14+0900",
+      "summary": "skills/sdd/SKILL.md REFLECT 2) 하네스 되돌림 머리에 「남기는 문턱」 3줄(6개월 뒤에도 맞다 · 다음 행동을 바꾼다 · 이번 세션에 쓴 스킬로 간다 — 고칠 스킬을 먼저 읽고 이미 적힌 것은 버림, 스킬 밖 함정 · 규칙은 기존 종착지로) + SHA · 버전 · 개수 같은 낡는 값은 남기는 문장에 넣지 않음. 종류별 종착지(흘린 것 · 사고 · 반복 · 더하기만 금지)는 그대로, harness-gaps 위계는 다시 쓰지 않음",
+      "completed_at": "2026-11-25T00:40:32+0900"
     },
     {
       "step": 6,
       "name": "why-code-decision",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:40:32+0900",
+      "summary": "skills/why/SKILL.md 검증 모드 머리(1. 양방향 앞)에 한 줄: 코드 결정(왜 이 구조 · 값 · 의존인가)이면 `git log -L` · `git blame`으로 그 줄을 넣은 커밋 · PR · ADR부터 보고, 기록에 남은 이유가 근거 · 기록이 없을 때만 추정으로 판정(ADR-016 D13, no-comments · comment-hunter의 git log -L · blame 문구와 같은 형태). 11번 줄 날짜 이력은 trim-history-flow 몫이라 그대로 둠",
+      "completed_at": "2026-11-25T00:47:49+0900"
     },
     {
       "step": 7,
       "name": "reframe-sharpen",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:47:49+0900",
+      "summary": "새 skills/reframe/SKILL.md(만드는 것을 전문 용어로 가르침: 후보 문제 2~3개 · 용어 8~12개와 확인한 링크 · 이웃 분야 2~3개 · 놓친 것 · 설명 다시 쓰기) + 새 skills/sharpen/SKILL.md(크게가 아니라 깊게: 최고 실무자 · 날것 재료 · 방법과 도구 · 바깥 검증 4가지 뒤 지시문 다시 쓰기, 실험으로 가릴 선택은 프로토타입 추천 · 결정 넘기기는 ${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md, 다시 쓴 지시문을 내고 멈춤). 둘 다 disable-model-invocation: true · 본문 첫 줄에 「왜 · 근거는 why의 일」 경계 · PStack MIT 출처 한 줄 · 「쓴 원칙」 줄 없음",
+      "completed_at": "2026-11-25T00:54:08+0900"
     },
     {
       "step": 8,
       "name": "how-skill",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T00:54:08+0900",
+      "summary": "새 skills/how/SKILL.md(자동 입구 · allowed-tools [Read, Glob, Grep] 읽기 전용 · diff 없이 지금 코드를 읽음, description 「코드가 어떻게 도나 · 어느 레이어에 두나」로 why(이유 · 근거)와 갈림, 본문: 진입점 → 흐름(파일:줄, 못 찾은 연결은 [추정]) → 경계 → 손대기 전 함정 / 둘 곳은 CLAUDE.md · .claude/rules · docs/*/ARCHITECTURE.md와 이웃 코드부터, 갈리면 선택지+추천 후 사람이 고름(${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md) · 입구 원칙 줄 · 「쓴 원칙 · 바뀐 결정」 보고 줄 · PStack MIT 출처 한 줄, PStack의 서브에이전트 위임은 안 가져옴) + trigger-eval/evals.json에 \"how\" 20문항(떠야 할 10 · 안 떠야 할 10: why형 3 · 단순 검색 3 · 구현 2 · 일반 개념 1 · sdd 시작 1). trigger-eval/README.md 「스킬 7개」는 그대로라 After 측정 step이 8개로 고칠 몫",
+      "completed_at": "2026-11-25T01:08:48+0900"
     },
     {
       "step": 9,
       "name": "explain-diff-to-explain",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T01:08:48+0900",
+      "summary": "skills/explain-diff → skills/explain(git mv, 사람만 disable-model-invocation: true): how(${CLAUDE_PLUGIN_ROOT}/skills/how/SKILL.md) 「어떻게 도나」 + why(${CLAUDE_PLUGIN_ROOT}/skills/why/SKILL.md) 코드 결정 줄로 읽고 배경 → 핵심 직관 → 코드 순회로 엮음, 깊이는 사람이 그 분야를 아는 만큼, 대화가 기본 · 「문서로」 HTML · 「노션으로」 노션, 퀴즈 없음, sdd 마무리가 읽으면 learning-level.md 카드 재료만 넘김. sdd 학습 카드 재료 경로 → ${CLAUDE_PLUGIN_ROOT}/skills/explain/SKILL.md · README 이름 · harness-init 이름표에 explain-diff → explain 행 + explain-diff-html/notion · plannotator-visual-explainer 행 새 이름 칸도 explain(한 번에 풀리게) · hooks/tests/renames.sh 옛 이름에 explain-diff",
+      "completed_at": "2026-11-25T11:32:38+0900"
     },
     {
       "step": 10,
       "name": "backlog-verification-row",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T11:32:38+0900",
+      "summary": "BACKLOG.md 표 끝에 한 행: 레포 전용 검증 스킬 생성(출처 PStack create-verification-skill, ADR-016 D10) — 승격 조건은 sdd-review 「실제 동작」 축 `확인 필요 — 미실행` 3건, phases/*/index.json reviews[].issues에서 「실제 동작」과 「미실행」이 같이 든 줄로 센다. 기존 행 무변경",
+      "completed_at": "2026-11-25T11:36:01+0900"
     },
     {
       "step": 11,
       "name": "measure-show-me-your-work",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-25T11:36:01+0900",
+      "summary": "측정만, 변경 없음. `gh api repos/cursor/plugins/contents/pstack/skills/show-me-your-work?ref=9e278fe`(SKILL.md 82줄 · log.sh · 템플릿) → 결정 로그 항목 15(칸 6 ts·phase·decision·why·evidence·result · 남길 순간 5 갈림길·완료+검증·되돌림+계기·막힘·관문 고침 · start 행 · 덮지 않기 · transcript 대조 감사 · 다른 벤더 교차 리뷰). `python3 -I measure11.py .`(스크래치) → phases 11 · step 80 · 완료 57: summary 57/57 · started_at 44/80 · attempts 1(RED 위반 되돌림, sdd-discard 브랜치 1) · retries 1 · last_error 0 · error/blocked 0 · reviews 9회(head SHA 9/9 · 이슈 9 · 모델 칸 0) · step-output 기록 0 · summary 이유 구절 10/57 · stepN.md 80/80 · feat 커밋 10/10(Claude-Session) 본문 이유 3/10; `gh pr view 15|38|41|42|43|44 --json body` → Test plan 6/6 · 회고 「막힌 지점」 6/6 · 「왜」 줄 4/4(재구성 PR). 결과 있음 12 · 일부 1(why: 계획 이유는 stepN.md · PR에 있고 step 안 즉석 선택 이유는 summary 10/57) · 없음 2(transcript 대조 감사 · 다른 벤더 교차 리뷰). 판단: 안 더함 — 12항목은 phases · 커밋 · PR에 이미 있어 TSV는 같은 것을 두 번째 파일에 쓰는 일이고(ARCHITECTURE 5절), 없는 2개는 기록 칸이 아니라 검증 절차라 로그를 더해도 안 생긴다. 일부 1 · 없음 2를 메울지(summary에 계획에 없던 선택의 이유 한 구절 · 감사/교차 리뷰 단계)는 새 설계 결정이라 지휘가 정한다. `bash hooks/test.sh` 통과 449 · 실패 0",
+      "completed_at": "2026-11-25T11:43:09+0900"
+    },
+    {
+      "step": 12,
+      "name": "conductor-relay-card",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T11:43:27+0900",
+      "summary": "skills/conductor/SKILL.md §4 「사용자에게 올리는 현황」 단락 끝에 트랙 보고 전달 규칙 한 덩이(ADR-016 Q8): 세 줄 요약 · 학습 카드는 그대로 싣고 지휘가 요약 · 재해석하지 않음 · 카드는 사용자 개인 기록 자리(설정이나 사용자가 알려 준 곳)가 있으면 거기에도, 없으면 보고에만 · 「내 한 줄」은 사용자만 씀. 형식은 다시 쓰지 않고 ${CLAUDE_PLUGIN_ROOT}/skills/sdd/SKILL.md ⑤ 정본 유지, §8 표는 세션 간 메시지 표라 행 안 더함, conductor.json 새 키 없음. bash hooks/test.sh 통과 449 · 실패 0",
+      "completed_at": "2026-11-25T11:46:28+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-25T11:48:15+0900",
+      "head": "c6d8643ff105988a0a7a5e78638357eae4a53636",
+      "issues": [
+        "실제 동작 확인 필요 — 미실행: 사람만 스킬(no-comments · statechart · reframe · sharpen · explain)은 Skill 도구로 못 불러 실행 안 함. --plugin-dir 실측으로 등록 · how 로드 · explain 거절 · comment-hunter 등록만 확인",
+        "계획 결함(코드 위반 아님): step 9 AC 제외 목록에 hooks/tests/renames.sh 누락 — 옛 이름을 품는 테스트라 2줄, 빼면 0줄"
+      ]
     }
   ]
 }

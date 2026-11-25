@@ -9,9 +9,10 @@
 
 바꾸는 파일:
 
-- ARCHITECTURE §2의 단계 · 슬래시 입구 스킬 `SKILL.md` frontmatter
+- ARCHITECTURE §2의 단계 · 슬래시 입구 스킬 `SKILL.md` frontmatter(`project-new`는 description도)
 
 - 자동 입구 8개(`sdd` · `why` · `how` · `conductor` · `slack-writing` · `notion-writing` · `commit` · `pr-write`)만 모델 호출을 열어 둔다. 나머지는 `disable-model-invocation: true`(ADR-016 D0 · Q1 · Q2)
+- `skills/project-new/SKILL.md` description은 트리거를 「새 코드 레포를 stack-kits 보일러플레이트로 만들 때("Spring/Next로 새 레포", "보일러플레이트로 시작")」로 좁히고 「노트 · 문서의 프로젝트 페이지를 만드는 요청은 아니다」를 붙인다. 지금 문구의 "새 프로젝트 만들어줘"는 다른 레포에서 그 레포의 프로젝트 페이지 스킬 대신 이 스킬을 띄웠다(지휘 실측). 공개 레포라 다른 레포 이름은 적지 않는다
 - 입구가 단계 스킬을 부르는 문장이 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md` 경로로 돼 있는지 확인하고, Skill 도구 호출로 돼 있으면 경로로 바꾼다
 - tdd: false — frontmatter 한 줄씩이다
 
@@ -19,6 +20,7 @@
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
 - `for f in skills/*/SKILL.md; do n=$(basename $(dirname $f)); grep -q 'disable-model-invocation: true' $f && echo human:$n || echo auto:$n; done | grep -c '^auto:'`이 8
+- `grep -q 'disable-model-invocation: true' skills/project-new/SKILL.md && ! grep -q '새 프로젝트 만들어줘' skills/project-new/SKILL.md`
 
 ## 검증 절차
 
