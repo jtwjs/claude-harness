@@ -43,21 +43,29 @@
     {
       "step": 5,
       "name": "hooks-quiet-without-harness",
-      "status": "pending",
-      "tdd": true
+      "status": "blocked",
+      "tdd": true,
+      "started_at": "2026-11-25T20:33:39+0900",
+      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77",
+      "blocked_reason": "기존 테스트 hooks/tests/gate-hook.sh 가 하네스 없는 폴더에서 hypothesis-gate 판정 지시를 기대한다 — repo1·repo2 는 git init 만(.claude/harness.json 없음, test.sh 가 CLAUDE_CONDUCTOR_CONFIG 를 없는 파일로 둠), 60~61행은 「git 밖에서도 exit 0 · 판정 지시」를 명시. 구현하면 이 파일 단정 10여 개가 깨지는데 기존 테스트 수정은 금지라 착수 전 멈춤. 사람이 정할 것: gate-hook.sh 픽스처에 .claude/harness.json 을 넣고 git 밖 단정을 「0줄」로 바꾸는 것을 이 step 범위로 허용할지"
     },
     {
       "step": 6,
       "name": "commit-harness-json",
       "status": "pending",
-      "tdd": false
+      "tdd": false,
+      "started_at": "2026-11-25T20:35:03+0900",
+      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77"
     },
     {
       "step": 7,
       "name": "emphasis-triage",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-25T21:02:49+0900",
+      "summary": "강조어: `git grep -nE 'CRITICAL|반드시|MUST|절대|NEVER|ALWAYS' -- skills agents templates` → 39줄. [훅·deny 3] sdd-review/SKILL.md:29(--no-verify — 이미 hooks/deny-patterns.yaml commit-no-verify가 막음 → 템플릿 permissions.deny로 옮길 후보) · harness-init/SKILL.md:106(rules/ paths: frontmatter — 기계 검사 후보, deny 아님) · sdd-plan/SKILL.md:65(index.json docs 필드 — 러너 검사 후보, deny 아님). [평문 14] agents/code-reviewer.md:9 · agents/feature-builder.md:60 · agents/root-cause-debugger.md:62 · skills/commit/SKILL.md:22 · skills/conductor/SKILL.md:48 · skills/conductor/references/doorbell.md:20 · skills/harness-score/SKILL.md:9,66 · skills/notion-writing/SKILL.md:18 · skills/slack-writing/SKILL.md:18 · skills/sdd-plan/SKILL.md:31 · templates/.claude/harness.json:29 · skills/sdd-run/scripts/sdd_runner.py:296,298(재시도 프롬프트 문자열). [그대로 22] 섹션 이름 「🔴 CRITICAL」을 가리킴 11: agents/code-reviewer.md:17 · agents/root-cause-debugger.md:31 · skills/harness-init/SKILL.md:69,83 · skills/sdd-plan/SKILL.md:34,87 · skills/sdd-review/SKILL.md:3,37 · skills/sdd/references/reflect.md:39 · templates/CLAUDE.md.tmpl:5,7(이름을 바꾸면 위 참조가 같이 깨짐) / `MUST KILL` 표시 라벨 8: agents/comment-hunter.md:3,20,29,30,31,40 · skills/no-comments/SKILL.md:19,21 / 오탐(「절(節)대로」) 2: agents/code-reviewer.md:103 · skills/conductor/SKILL.md:24 / 탐지 정규식 1: skills/harness-score/scripts/score.py:46. references(`cat -n templates/.claude/references/*.md`, 문단별 「코드로 아나 / 판단 바꾸나」): implementation-patterns.md 3·156-159 유지(판단 바꿈), §1~6(9-152) 코드로는 모르나 일반 FP 지식 → 유지하되 기본 모델과 겹침은 A 변형으로 재기 · tracks.md 덜기 후보 = 5(원형 출처 설명, 판단 안 바꿈) · 37-41,44(일반 git worktree 명령 — 코드·문서로 앎), 나머지(9-31·35·43·45·51-53·57-64·68-95) 유지(소유 규칙·함정·절차) · track-brief.md 덜기 후보 = 45-52(tracks.md §1과 중복 → 참조로) · 39(34와 같은 말), 나머지 유지(양식·금지). 검증 `bash hooks/test.sh` → 통과 604 · 실패 0.",
+      "completed_at": "2026-11-25T21:06:26+0900"
     },
     {
       "step": 8,
