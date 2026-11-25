@@ -81,8 +81,11 @@
     {
       "step": 9,
       "name": "entry-and-stage-invocation",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:17:21+0900",
+      "summary": "단계 · 슬래시 입구 11개(changeset · design-brief · design-critique · design-reconcile · harness-doctor · harness-gaps · harness-init · project-new · sdd-plan · sdd-review · sdd-run) frontmatter에 disable-model-invocation: true — 모델 호출이 열린 스킬은 자동 입구 8개만(AC auto 8). project-new description: 「새 코드 레포를 stack-kits 보일러플레이트(…)로 만들 때(\"Spring/Next로 새 레포\", \"보일러플레이트로 시작\") 쓰고, 바로 harness-init 까지 돌린다. 노트 · 문서의 프로젝트 페이지를 만드는 요청은 아니다. …」. 닫힌 스킬을 부르던 문장을 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md`를 읽고 따르는 꼴로: sdd 표 DESIGN · PLAN · IMPLEMENT · REVIEW · SHIP 칸과 ③ REVIEW 수정 루프 줄 · project-new §4(harness-init) · sdd-plan §5(sdd-run) · sdd-run §4(sdd-review) · design-brief §6 · design-critique §5(sdd-plan). sdd 표 위에 「단계 스킬은 경로를 읽고 그대로 따른다 — 닫혀 있어 Skill 도구로 부르면 오류, commit · pr-write는 Skill 도구」 한 줄을 더했다(계획은 부르는 문장만 경로로, 이유: 표 칸마다 「읽고 따른다」를 되풀이하지 않고 이름만 적힌 흐름 요약 줄에서도 Skill 도구를 안 쓰게). 그 줄에는 `disable-model-invocation: true` 글자를 그대로 쓰지 않았다(이유: AC grep이 본문까지 세서 sdd가 사람 전용으로 잡혀서). 다른 스킬 절을 실행하라는 문장(sdd-plan · design-critique · design-reconcile의 `design-brief` §4 · §5, commit의 changeset 판정 근거, harness-doctor §6 · sdd/references/reflect.md의 harness-gaps 승격 판정)도 경로로 바꿨다(계획은 입구가 단계 스킬을 부르는 문장, 이유: 단계 스킬 안의 그 문장도 Skill 도구로는 안 열려서). sdd-plan §5 · sdd-run §4의 「`X` 스킬로 … 안내」는 「넘어가도록 안내 — 이어서 하면 경로를 읽고 따른다(사람은 `/X`)」로 했다(이유: 사람이 「진행해」라고 하면 모델이 이어 받아서). 상대 경로 sdd-plan의 skills/sdd/references/design.md · harness-gaps의 skills/harness-gaps/scripts/weekly.sh와 함께 design-brief 닐슨 렌즈의 ../design-critique/references/nielsen-heuristics.md도 ${CLAUDE_PLUGIN_ROOT}/…로 했다(계획은 두 곳, 이유: 같은 종류의 다른 스킬 폴더 상대 경로라서). 범위 밖이라 안 고친 것: changeset description 「모델이 직접 호출」(이제 틀린 말) · skills/ 밖에서 모델에게 닫힌 스킬을 부르게 하는 hooks/cadence-reminder.sh:49 · 56(harness-doctor) · templates/.claude/README.md:9-11 · 15-16(라우팅 표) · templates/.claude/references/tracks.md:87(sdd-review). bash hooks/test.sh 통과 490 · 실패 0",
+      "completed_at": "2026-11-25T13:29:43+0900"
     },
     {
       "step": 10,
