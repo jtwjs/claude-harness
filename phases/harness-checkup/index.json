@@ -96,8 +96,11 @@
     {
       "step": 11,
       "name": "eval-frame",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T22:09:59+0900",
+      "summary": "evals/ case 17개(자동 입구 8 × 떠야 fire·안 떠야 quiet 태그 + sdd-fire-review로 code-reviewer 재기, 계획은 16개, 이유: ADR B-2가 code-reviewer부터 재라고 함) · 채점은 전부 regex 하네스 고유 결과(LLM 채점기 없음 → --judge-model 불필요), fired는 표시용 · not-fired는 arm both · scripts/eval-variant.sh <부품> → 부품 뺀 임시 사본 경로(eval에 --plugin-dir 없음, 대상 경로로 주고 --ablation none) · scripts/eval-tally.py <--json 결과> → 턴 상한 실행 무효 분리 + $·턴·초·Δ · evals/README.md에 case 표 · step 12 명령(--tag fire quiet 필수: 기본 탐색이 docs/harness-checkup-2026-11-25/evals 시험 case 3개도 잡음 · --scaffold · --allow-tools \"Bash(git:*)\" 맨 끝) · 예상 약 $14.8(통째 17×3×$0.21 + 변형 9×3×$0.15, 상한 통째 $14 + 변형 9×$0.65). 형식 확인은 --max-cost-usd 0(돈 안 씀, 17 cases·102 runs 인식, 허가 경고 없음). .claude-plugin/plugin.json 은 기본 evals/ 라 안 고침. 기계 검사 후보: harness-init/SKILL.md `paths:` frontmatter 필수(지휘 판정 — 평문으로 바꾸지 않고 검사로 막을 후보)",
+      "completed_at": "2026-11-25T22:26:28+0900"
     },
     {
       "step": 12,
