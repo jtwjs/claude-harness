@@ -36,6 +36,7 @@
 
 - worktree는 커밋하지 않은 변경을 가져가지 않는다. 필요한 것은 기준 브랜치에 먼저 병합해 둔다
 - 새 worktree에는 설치물(`node_modules` 등)이 없다. 의존성 설치부터 돌린다. 패키지 저장소·빌드 캐시는 전역이라 짧다
+- 폴더만 지우면 git에 worktree 기록이 남는다 — `git worktree remove`로 지우거나 `git worktree prune`으로 치운다. 지우는 절차는 `conductor` 스킬 `references/session-end.md`
 
 ## 2. 로컬 자원 충돌
 

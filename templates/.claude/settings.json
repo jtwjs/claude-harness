@@ -1,12 +1,19 @@
 {
   "permissions": {
     "deny": [
-      "Bash(git commit *--no-verify*)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit * --no-verify)",
       "Bash(git commit -n *)",
       "Bash(git push *--force* main)",
       "Bash(git push *--force* develop)",
       "Bash(git push -f * main)",
       "Bash(git push -f * develop)",
+      "Bash(git push * main --force*)",
+      "Bash(git push * develop --force*)",
+      "Bash(git push * main -f)",
+      "Bash(git push * develop -f)",
+      "Bash(git push * -f main)",
+      "Bash(git push * -f develop)",
       "Bash(git reset --hard origin/*)",
       "Bash(git reset --hard upstream/*)",
       "Bash(git branch -D main)",
