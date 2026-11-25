@@ -54,8 +54,11 @@
     {
       "step": 6,
       "name": "init-ci-fill-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:43:06+0900",
+      "summary": "새 skills/harness-init/scripts/fill_ci.py: `python3 \"${CLAUDE_PLUGIN_ROOT}/skills/harness-init/scripts/fill_ci.py\" <레포>/.claude/harness.json <ci.yml>` — 템플릿 플레이스홀더 7개(BASE_BRANCH · SETUP_STEPS · VERIFY_FORMAT · LINT · TYPECHECK · TEST · BUILD)를 ci.yml 그 자리에서 채우고 빈 verify 단계는 `- name:` 스텝째 지운다. exit 0 남은 것 0 / 1 남음(stderr에 이름 · 이유, 채울 수 있는 것은 채워 둠 — 고치고 다시 돌림) / 2 사용법 · 파일 못 읽음. skills/harness-init/SKILL.md §4는 플레이스홀더 표 + grep 문단을 이 호출과 2줄로 바꿈. 테스트 hooks/tests/fill-ci.sh 21건. {{SETUP_STEPS}}는 팩이 없을 때만 줄째 지우고, 팩이 있으면 모델이 pack.md로 먼저 채우게 했다(계획은 7개를 harness.json으로 채움, 이유: 셋업 스텝은 Java 버전 · 패키지 매니저를 고르는 판단이라 harness.json에 출처가 없어서). verify가 앱별이면 VERIFY_*를 건드리지 않고 exit 1, SKILL.md에 「jobs를 앱별 형태로 바꾼 뒤 다시 돌린다」 한 줄을 남겼다(계획은 표 전부를 스크립트 호출로, 이유: paths 필터 · 계약 경로가 판단이고, 빈 값으로 보고 스텝을 지우면 조용히 틀려서). BASE_BRANCH는 git.baseBranch를 직접 읽지 않고 scripts/base-branch.sh <harness.json 두 단계 위 폴더>에 맡겼다(계획은 표의 git.baseBranch → base-branch.sh, 이유: 기준 브랜치 규칙 한 곳(A4) — 그래서 harness.json 인자는 <레포>/.claude/ 자리여야 한다). 「: 」 · 「 #」 · 끝 콜론 · 앞 지시자가 든 명령은 run: 값을 따옴표로 감싼다(계획에 없음, 이유: 깨진 YAML은 워크플로째 거부돼서). fill-ci.sh에 템플릿 플레이스홀더 7개 가드 · harness-init 호출 · 표 없음 검사를 더했다(계획은 채움 · 남은 것 0 · 빈 값 exit 1, 이유: 템플릿에 플레이스홀더가 늘면 스크립트가 모르고, 표가 남으면 규칙이 두 곳이 돼서). templates/.github/workflows/ci.yml 머리 주석 · skills/harness-doctor/SKILL.md 1-b의 「harness-init §4 표」 말은 범위 밖이라 그대로 둠. bash hooks/test.sh 통과 486 · 실패 0(RED 시점 통과 467 · 실패 19)",
+      "completed_at": "2026-11-25T12:55:14+0900"
     },
     {
       "step": 7,
