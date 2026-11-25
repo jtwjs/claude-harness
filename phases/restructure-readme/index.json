@@ -52,5 +52,14 @@
       "summary": "버전 0.40.0 → 0.41.0(.claude-plugin/plugin.json · marketplace.json claude-harness 항목, 마켓플레이스 자체 0.1.0은 그대로) · 새 docs/changes/0.41.0.md(`# 0.41.0` + bullet 18줄, 재구성 PR 1~7을 사용자 영향 순, PR 번호 #41~#46 · #48 · 이번 PR). 릴리스(scripts/release.sh)는 머지 뒤 사람이. bash hooks/test.sh 통과 518 · 실패 0.",
       "completed_at": "2026-11-25T17:33:51+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-25T17:36:07+09:00",
+      "head": "0b3374f1739609433b2208f428d016535c8474ab",
+      "issues": [
+        "README 「python3 없으면 훅 10개가 조용히 꺼진다」 — block-dangerous-bash는 경고를 낸다(PATH에서 python3 뺀 실행으로 확인) → 문구 고침"
+      ]
+    }
   ]
 }

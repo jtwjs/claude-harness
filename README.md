@@ -35,7 +35,7 @@ flowchart TD
 
 `sdd`가 이 흐름을 이어 돌리고, 단계마다 정해 둔 🙋에서만 멈춘다. 🙋 자리의 정본은 [`skills/sdd/SKILL.md`](skills/sdd/SKILL.md) 「단계 → 스킬 · 체크포인트」 표다.
 
-필요한 것: git · python3(없으면 훅 10개가 조용히 꺼진다) · (선택) gh · (선택) claude-md-management.
+필요한 것: git · python3(없으면 훅 10개가 꺼진다 — 경고를 내는 건 `block-dangerous-bash` 하나뿐) · (선택) gh · (선택) claude-md-management.
 
 ## 왜 만들었나
 
