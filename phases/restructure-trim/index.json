@@ -99,8 +99,11 @@
     {
       "step": 11,
       "name": "summary-unplanned-reason",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:37:57+0900",
+      "summary": "skills/sdd-run/scripts/preamble.md 16행(작업 규칙 6 · summary 형식 줄) 끝에 「step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다」를 더함 — 규칙 자리는 이 한 곳(ADR-016 Q9), skills/sdd-plan · skills/sdd-run/SKILL.md에는 같은 문장 0. 템플릿 자리 9개(tdd_rule · verify_cmds · task · step 등) 그대로. After 측정은 같은 정규식으로 restructure-trim · restructure-repo · restructure-readme summary를 재서 마지막 PR 보고에. bash hooks/test.sh 통과 490 · 실패 0, test_sdd_runner.py 50건 OK",
+      "completed_at": "2026-11-25T13:41:43+0900"
     },
     {
       "step": 12,
