@@ -19,6 +19,8 @@
 #     날짜가 아니라 '쌓인 양'으로 잰다 — 커밋 0인 2주는 감사할 것이 없고,
 #     3일에 커밋 40개면 2주를 기다릴 이유가 없다. 세 축 모두 같은 원리다.
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit cadence-reminder   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
 cat >/dev/null 2>&1 || true   # hook 입력(JSON) 소비
 
 MSGS=()
@@ -31,11 +33,11 @@ say() { MSGS+=("$1"); }
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DOCTOR_MD="$PLUGIN_ROOT/skills/harness-doctor/SKILL.md"
 
-command -v git >/dev/null 2>&1 || exit 0
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -n "$REPO_ROOT" ] || exit 0
-[ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
-cd "$REPO_ROOT" 2>/dev/null || exit 0
+command -v git >/dev/null 2>&1 || { HOOK_RESULT=nogit; exit 0; }
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=norepo; exit 0; }
+[ -n "$REPO_ROOT" ] || { HOOK_RESULT=norepo; exit 0; }
+[ -f "$REPO_ROOT/.claude/harness.json" ] || { HOOK_RESULT=nocfg; exit 0; }
+cd "$REPO_ROOT" 2>/dev/null || { HOOK_RESULT=norepo HOOK_DETAIL="cd 실패"; exit 0; }
 
 HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
 HINT_KEY="$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
@@ -100,6 +102,9 @@ if [ "${#MSGS[@]}" -gt 0 ]; then
     msg="${msg}${msg:+  }⚠️ ${m}"
   done
   printf '{"systemMessage":"%s","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$msg" "$msg"
+  HOOK_RESULT=warn HOOK_DETAIL="${HINTS[*]:-}"
+else
+  HOOK_RESULT=clean
 fi
 
 exit 0

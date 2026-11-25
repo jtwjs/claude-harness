@@ -5,9 +5,13 @@
 # gh 는 레포당 5초 제한, 실패하면 (조회 실패). CLAUDE_CONDUCTOR_GH·CLAUDE_CONDUCTOR_TS 로 gh·tracks_status 를 바꿔 끼운다(테스트).
 # 전체 마감 CLAUDE_CONDUCTOR_DEADLINE(기본 25초, hooks.json timeout 30 안) — 넘으면 남은 레포는 건너뛰고 모은 현황은 낸다(REVIEW 1회차).
 HERE="$(cd "$(dirname "$0")" && pwd)"
+. "$HERE/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit conductor-context   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
+REPO_ROOT="$PWD"   # 기록의 레포 칸 — 지휘 자리 폴더 이름
 cat >/dev/null 2>&1   # 훅 입력은 쓰지 않는다
-command -v python3 >/dev/null 2>&1 || exit 0
-HERE="$HERE" python3 - <<'PY' 2>/dev/null
+command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
+# 지휘 자리가 아니면 무출력 exit 0, 자리면 JSON 한 줄. 출력을 받아 그대로 내보낸다 — 기록에서 둘을 가르려고
+out="$(HERE="$HERE" python3 - <<'PY' 2>/dev/null
 import json, os, re, subprocess, sys, time
 from pathlib import Path
 
@@ -70,4 +74,10 @@ for r in repos:
 print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart",
                                          "additionalContext": "\n".join(lines)}}, ensure_ascii=False))
 PY
+)"; rc=$?
+if [ "$rc" -ne 0 ]; then HOOK_RESULT=error HOOK_DETAIL="exit $rc"
+elif [ -z "$out" ]; then HOOK_RESULT=noseat
+else HOOK_RESULT=shown
+fi
+[ -n "$out" ] && printf '%s\n' "$out"
 exit 0
