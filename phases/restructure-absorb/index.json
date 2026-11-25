@@ -81,8 +81,11 @@
     {
       "step": 9,
       "name": "explain-diff-to-explain",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T01:08:48+0900",
+      "summary": "skills/explain-diff → skills/explain(git mv, 사람만 disable-model-invocation: true): how(${CLAUDE_PLUGIN_ROOT}/skills/how/SKILL.md) 「어떻게 도나」 + why(${CLAUDE_PLUGIN_ROOT}/skills/why/SKILL.md) 코드 결정 줄로 읽고 배경 → 핵심 직관 → 코드 순회로 엮음, 깊이는 사람이 그 분야를 아는 만큼, 대화가 기본 · 「문서로」 HTML · 「노션으로」 노션, 퀴즈 없음, sdd 마무리가 읽으면 learning-level.md 카드 재료만 넘김. sdd 학습 카드 재료 경로 → ${CLAUDE_PLUGIN_ROOT}/skills/explain/SKILL.md · README 이름 · harness-init 이름표에 explain-diff → explain 행 + explain-diff-html/notion · plannotator-visual-explainer 행 새 이름 칸도 explain(한 번에 풀리게) · hooks/tests/renames.sh 옛 이름에 explain-diff",
+      "completed_at": "2026-11-25T11:32:38+0900"
     },
     {
       "step": 10,
