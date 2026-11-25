@@ -83,6 +83,18 @@ fi
 # 환기만 94세션 떴고 채점은 0번이었다(weekly-readiness-check.sh 가 어디에도 등록돼 있지 않았다).
 # 이제 weekly-readiness-check.sh 가 SessionStart 에서 조건부로 직접 채점하고, 떨어졌을 때만 알린다.
 
+# ── 버전 차이: 레포 harness.version ≠ 설치본 plugin.json (ADR-018 B-10) ──────────
+# 깔린 템플릿 사본은 릴리스 뒤 낡는데, harness-doctor §0 은 사람이 돌릴 때만 잡는다 → 세션 시작에 한 줄.
+# 레포 값이 비었거나 없으면(템플릿 기본값 "") · 둘 중 하나를 못 읽으면 비교하지 않고 조용히 넘어간다.
+DRIFT=""
+read_ver() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); v=(d.get(sys.argv[2]) or {}).get("version") if sys.argv[2] else d.get("version"); print(v if isinstance(v,str) else "")' "$1" "${2:-}" 2>/dev/null | tr -d '"\\'; }
+repo_ver="$(read_ver .claude/harness.json harness)"
+inst_ver="$(read_ver "$PLUGIN_ROOT/.claude-plugin/plugin.json")"
+if [ -n "$repo_ver" ] && [ -n "$inst_ver" ] && [ "$repo_ver" != "$inst_ver" ]; then
+  DRIFT="${repo_ver}→${inst_ver}"
+  say "하네스 ${repo_ver} → ${inst_ver}, /harness-init 업그레이드 모드"
+fi
+
 # ── 상태줄 권고 칸 ───────────────────────────────────────────────────────────
 # 대화 속 환기는 묻힌다(실측 2026-10-10: 환기 17~94세션에 해당 스킬 호출 0).
 # 권고 스킬 이름을 레포 밖 파일에 남기면 상태줄 스크립트(dotfiles statusline-skill-hints.sh)가 색으로 상시 띄운다.
@@ -102,7 +114,12 @@ if [ "${#MSGS[@]}" -gt 0 ]; then
     msg="${msg}${msg:+  }⚠️ ${m}"
   done
   printf '{"systemMessage":"%s","hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$msg" "$msg"
-  HOOK_RESULT=warn HOOK_DETAIL="${HINTS[*]:-}"
+  # 결과 이름은 하나 — 기존 권고가 있으면 warn 그대로 두고 상세에 drift 를 붙이고, 버전 알림만이면 drift
+  if [ "${#HINTS[@]}" -gt 0 ]; then
+    HOOK_RESULT=warn HOOK_DETAIL="${HINTS[*]}${DRIFT:+ · drift ${DRIFT}}"
+  else
+    HOOK_RESULT=drift HOOK_DETAIL="$DRIFT"
+  fi
 else
   HOOK_RESULT=clean
 fi
