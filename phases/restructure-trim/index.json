@@ -27,8 +27,11 @@
     {
       "step": 3,
       "name": "split-conductor",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T12:13:45+0900",
+      "summary": "skills/conductor/SKILL.md 325→51줄: 지휘 원칙 8줄 · 「상황 → 절」 표 · 「사용자에게 올리는 현황」 · 「주의 · 금지」 1~5(번호 순서 고침). 새 skills/conductor/references/ 7장 — why.md(「왜」 표 · 빌려 온 것) · seat.md(지휘 자리 · 세션 종류 · 세 자리 역할 · §0 준비 · 라벨 표) · decisions.md(§1~§3) · progress.md(§4, graphql 묶음 → python3 \"${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/issues.py\" block|unblock|sub|ready --repo <owner>/<repo>) · dispatch.md(§5 · 트랙 세션 열기 · §6) · session-end.md(§7) · doorbell.md(§8, 보고 행 유지). references 안 절 제목에 §0~§8 번호를 그대로 둬 track-brief · tracks.md · tracks_status.py · sdd-run · harness-init의 `conductor` §N 참조는 고치지 않고 본문 표로 찾게 했다. 「사용자에게 올리는 현황」 단락은 본문에 남겼다(계획은 본문 = 원칙 + 표, 이유: SKILL.md가 보고 형식 자리(ARCHITECTURE 3절)이고 지휘가 트랙 보고를 요약하지 않게 막는 규칙이라). 🔴 gh -R · git -C 규칙을 지휘 자리 절에서 본문 원칙으로 올렸다(계획의 원칙 목록에 없음, 이유: 모든 절의 gh · git 명령에 걸려서). 「주의 · 금지」 끝 세 줄(코드 직접 수정 · ADR 번호 · 메시지로만 정함)은 본문 원칙에 합쳐 지웠다(계획은 번호만 고침, 이유: 같은 파일에 같은 규칙 두 번). §1 · §2 · §5의 addSubIssue · addBlockedBy 언급도 issues.py sub · block으로 바꿨다(계획은 §4 graphql 묶음만, 이유: 묶음이 빠지면 그 이름을 풀 곳이 없어서). references 안 날짜 · 실측 줄은 문장 그대로 옮김(본문 날짜 정리는 step 7). bash hooks/test.sh 통과 460 · 실패 0",
+      "completed_at": "2026-11-25T12:24:23+0900"
     },
     {
       "step": 4,
