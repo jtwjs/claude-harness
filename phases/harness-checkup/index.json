@@ -80,8 +80,11 @@
     {
       "step": 9,
       "name": "plain-wording",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T21:45:18+0900",
+      "summary": "강조어 평문 11줄(step 7 「평문」 14 중 #52 파일 3줄 제외) · statechart description 277→180자 · comment-hunter 244→175자(always-on total 2219→2150) · tracks.md §1 일반 git worktree 명령(코드 블록 · remove 줄)만 삭제. AC 강조어 줄 수 28로 했다(계획은 22, 이유: 지휘 지시로 #52 파일을 안 고침 — #52로 넘김: skills/sdd-plan/SKILL.md:31 「반드시 명시한다」 평문화 · skills/sdd-run/scripts/sdd_runner.py:296,298 재시도 프롬프트 「반드시」 · skills/sdd-review/SKILL.md:29 CRITICAL 행 --no-verify(deny 후보, step 8 템플릿에 반영됨) · skills/sdd-plan/SKILL.md:65 「반드시 채운다」(러너 기계 검사 후보) / 남은 1줄 skills/harness-init/SKILL.md:107 paths: frontmatter 「반드시」는 step 7 「훅·deny」 분류(기계 검사 후보)라 평문 재료 밖이어서 그대로). statechart는 always-on.py 목록 밖(닫힌 스킬)이라 frontmatter description 글자 수로 쟀다. implementation-patterns.md · track-brief.md 안 건드림. bash hooks/test.sh 통과 620 · 실패 0",
+      "completed_at": "2026-11-25T21:51:02+0900"
     },
     {
       "step": 10,
