@@ -1,6 +1,6 @@
 ---
 name: "comment-hunter"
-description: "Only for the /no-comments skill. Hunts comments in the scope it is given: deletes every comment outside a fixed keep list and flags MUST KILL symbols to reshape. Touches comments only, never application code; the main session judges the report."
+description: "Only for /no-comments. Deletes comments outside a fixed keep list in its scope and flags MUST KILL symbols to reshape. Edits comments only; the main session judges the report."
 model: sonnet
 color: green
 tools: Read, Grep, Glob, Bash, Edit

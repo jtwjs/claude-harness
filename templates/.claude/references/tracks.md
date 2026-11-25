@@ -34,14 +34,7 @@
 
 `<기준 브랜치>` 최신에서 만들고 PR이 병합되면 지운다. 서브에이전트의 `isolation` 옵션에 기대지 않고 직접 만든다 — 옵션만 믿었다가 부모 트리의 브랜치가 바뀐 적이 있다.
 
-```bash
-git fetch origin
-git worktree add ../<레포>-<트랙>-<주제> -b feature/<트랙>-<주제> origin/<기준 브랜치>
-git worktree list
-```
-
 - worktree는 커밋하지 않은 변경을 가져가지 않는다. 필요한 것은 기준 브랜치에 먼저 병합해 둔다
-- PR이 병합되면 `git worktree remove ../<레포>-<트랙>-<주제>` 후 로컬 브랜치를 지운다. 폴더만 지우면 git에 기록이 남는다(`git worktree prune`)
 - 새 worktree에는 설치물(`node_modules` 등)이 없다. 의존성 설치부터 돌린다. 패키지 저장소·빌드 캐시는 전역이라 짧다
 
 ## 2. 로컬 자원 충돌
