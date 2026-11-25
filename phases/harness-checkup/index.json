@@ -16,8 +16,11 @@
     {
       "step": 2,
       "name": "always-on-chars",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T19:56:54+0900",
+      "summary": "scripts/always-on.py <플러그인 루트> — 자동 입구 스킬 + 에이전트 description 글자 수(따옴표 벗긴 값, 탭 구분: kind·이름·글자수 큰 순 + `total 합계 skills=N agents=M`). doctor §5 · release.sh always_on()에 details 값 옆 한 줄 추가. 설치본 0.40.0 3,957자 · 0.41.0 2,219자(레포도 2,219) — ADR B-16 값(3,969 · 2,234)과 차이는 정확히 에이전트 수 × 3(4×3·5×3): 따옴표 2자 + 1자를 더 센 셈법 차이로 추정(따옴표 포함 원문은 3,965 · 2,229). release.sh 는 설치본 캐시 폴더를 재고 없으면 레포를 잰다",
+      "completed_at": "2026-11-25T20:05:28+0900"
     },
     {
       "step": 3,
