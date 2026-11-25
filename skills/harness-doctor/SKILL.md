@@ -2,6 +2,7 @@
 name: harness-doctor
 description: 이미 깔린 하네스가 썩었는지 점검한다. 문서와 실제가 어긋난 곳, 존재하지 않는 경로를 가리키는 참조, 비어 있는 축적소, 조용히 자란 컨텍스트 로드량을 찾는다. 주기적으로 또는 "하네스 점검해줘"라고 할 때 실행한다. CLAUDE.md 자체의 품질 감사는 공식 claude-md-management 플러그인이 하므로 여기서 하지 않는다.
 allowed-tools: [Read, Bash, Glob, Grep]
+disable-model-invocation: true
 ---
 
 **하네스 고유 검사 8개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
@@ -50,7 +51,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 
 ## 6. 반복 계수 (`harness-gaps`)
 
-`.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 같이 돈다. 파일이 없으면 "아직 안 셌다"로 **보고만** 한다 — 만드는 것은 `harness-gaps` 몫이다(이 스킬에는 Write가 없다).
+`.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 `${CLAUDE_PLUGIN_ROOT}/skills/harness-gaps/SKILL.md`대로 같이 돈다. 파일이 없으면 "아직 안 셌다"로 **보고만** 한다 — 만드는 것은 `harness-gaps` 몫이다(이 스킬에는 Write가 없다).
 
 > 검사 3(빈 축적소)과 다르다 — 저기는 *비어 있나*를 보고, 여기는 *찬 것을 안 옮겼나*를 본다. 3회를 넘긴 행이 방치되면 계수기를 둔 값이 없어진다.
 

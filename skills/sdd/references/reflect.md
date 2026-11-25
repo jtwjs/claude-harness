@@ -38,7 +38,7 @@
 
 - **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 🔴 **종착지는 하네스 3층으로 재지정** — 기본값 CLAUDE.md는 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.** 플러그인이 없으면 건너뛰고 한 줄 보고.
 - **사고**(실제로 당한 함정) → `rules/non-obvious-patterns.md` 한 줄. 고친 커밋과 같은 PR.
-- **반복**(같은 지시·같은 교정·안 불린 스킬·못 맡긴 것·같은 수작업) → `harness-gaps`가 `.claude/observations.md`에 +1. 3회에 닿은 것만 승격 제안, 🙋 판정은 사람. 2회에 만들지 않는다.
+- **반복**(같은 지시·같은 교정·안 불린 스킬·못 맡긴 것·같은 수작업) → `${CLAUDE_PLUGIN_ROOT}/skills/harness-gaps/SKILL.md`를 읽고 그대로 `.claude/observations.md`에 +1. 3회에 닿은 것만 승격 제안, 🙋 판정은 사람. 2회에 만들지 않는다.
 - **더하기만 금지** — 하나 넣었으면 안 쓰는 규칙·스킬·가드레일 하나를 지울 후보로 한 줄 낸다(없으면 "없음"). 개선은 다듬기다.
 
 ⚖️ `revise-claude-md`(매 세션·줍는다)와 `harness-gaps`(3회부터·센다)는 **다른 층**이다 — 한 줄로 끝나는 것은 앞이 줍고, 그 계열이 3회 재발하면 뒤가 승격을 건다.

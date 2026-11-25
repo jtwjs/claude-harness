@@ -1,7 +1,7 @@
 ---
 name: design-critique
 description: SDD ① 계획의 DESIGN — 구현 전에 시안 자체를 평가한다. 페르소나·닐슨 휴리스틱·레퍼런스 실측을 독립 병렬로 돌려 발견 표와 체크포인트(verdict 변경|승인)를 낸다. design-brief로 시안을 그린 뒤, sdd-plan 전에 쓴다.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 **구현 전에** 시안이 목적·사용성·레퍼런스에 맞는지 평가하고, 고칠 것과 물을 것을 가른다. 승인이 나야 `sdd-plan`으로 넘어간다.
@@ -16,7 +16,7 @@ disable-model-invocation: false
 - 캔버스 코멘트 스레드 — `ArtifactComments`로 읽는다. 사람이 캔버스에 남긴 피드백도 이번 회차 입력이다
 - 회차 단계: 탐색(구성) / 다듬기(시각) / 최종(문구·접근성) — 단계에 맞는 깊이로만 지적한다
 
-**입력이 낡았는지 먼저 본다.** 평가자를 띄우기 전에 보드의 마지막 커밋 날짜와 `DESIGN.md`·brief 결정 로그의 마지막 날짜를 비교한다. 보드가 더 오래됐으면 평가 전에 알리고 원격 `canvas.json`과 머지·커밋한다(`design-brief` §4). 낡은 보드를 그대로 평가하면 이미 고친 값이 발견으로 쏟아진다. 머지할 수 없으면 발견 표 위에 「입력 기준일」을 적고, DESIGN보다 오래된 값에서 나온 발견은 `[낡은 입력]`으로 표시한다.
+**입력이 낡았는지 먼저 본다.** 평가자를 띄우기 전에 보드의 마지막 커밋 날짜와 `DESIGN.md`·brief 결정 로그의 마지막 날짜를 비교한다. 보드가 더 오래됐으면 평가 전에 알리고 원격 `canvas.json`과 머지·커밋한다(`${CLAUDE_PLUGIN_ROOT}/skills/design-brief/SKILL.md` §4). 낡은 보드를 그대로 평가하면 이미 고친 값이 발견으로 쏟아진다. 머지할 수 없으면 발견 표 위에 「입력 기준일」을 적고, DESIGN보다 오래된 값에서 나온 발견은 `[낡은 입력]`으로 표시한다.
 
 ## 1. 평가자 — 독립 병렬
 
@@ -55,7 +55,7 @@ disable-model-invocation: false
 
 **고친 것은 캔버스에 as-is | to-be로 나란히 둔다.** 글로만 된 변경 목록은 내지 않는다 — 읽는 사람이 판단하지 못한다.
 
-고친 뒤에는 `design-brief` §5 「그린 뒤」 체크리스트(실렌더 확인 · 원격 반영 확인 · 커밋)를 다시 돈다.
+고친 뒤에는 `${CLAUDE_PLUGIN_ROOT}/skills/design-brief/SKILL.md` §5 「그린 뒤」 체크리스트(실렌더 확인 · 원격 반영 확인 · 커밋)를 다시 돈다.
 
 ## 4. 체크포인트
 
@@ -75,4 +75,4 @@ disable-model-invocation: false
 ## 5. 다음
 
 - `verdict: 변경` → §3 반영 후 다시 이 스킬.
-- `verdict: 승인` → 🙋 → **`sdd-plan`**(§3-b가 레포 캔버스를 읽는다).
+- `verdict: 승인` → 🙋 → **`${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md`**를 읽고 그대로(§3-b가 레포 캔버스를 읽는다).

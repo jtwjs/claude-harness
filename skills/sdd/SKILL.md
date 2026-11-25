@@ -27,14 +27,16 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 단계 → 스킬 · 체크포인트 (🤖 자동 위임 / 🙋 여기서만 승인 대기)
 
+단계 스킬은 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md`를 읽고 그대로 따른다 — 사람만 부르게 닫혀 있어(frontmatter `disable-model-invocation`) Skill 도구로 부르면 오류가 난다. `commit` · `pr-write`는 Skill 도구로 부른다.
+
 | 단계 | 맡는 것 | 🙋 체크포인트 |
 |---|---|---|
-| ① 계획 · DESIGN | `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다. 세 장이 이미 있으면 Readiness만 돈다. 🎨 `design-brief` → 레포 캔버스에 시안 → `design-critique` | PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로 · Readiness 착수 판단(AI 채점, 착수는 사람) · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict` |
-| ① 계획 · PLAN | `sdd-plan` — step 분해와 step마다 `tdd` 판정. step의 `⚠️`·`TBD`는 §2가 그 자리에서 캐묻는다. 세 장이 이미 있어 PLAN만 필요하면 바로 부른다. 🎨 §3-b가 캔버스 작업 탭을 읽는다 | 범위 합의 → step 계획 승인(미해결 `⚠️` 0개) · 🎨 DS 신규 컴포넌트 승인 |
-| ② IMPLEMENT 🤖 | `sdd-run` — step마다 호출 1번(테스트 먼저 → 구현), `sdd_runner.py judge`가 git 기록으로 판정한다(RED · GREEN 규칙은 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md` §2). 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스) | blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패(최대 4회) |
-| ③ REVIEW | `sdd-review` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖. 🎨 `design-reconcile` | 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영) |
+| ① 계획 · DESIGN | `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다. 세 장이 이미 있으면 Readiness만 돈다. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-brief/SKILL.md` → 레포 캔버스에 시안 → `${CLAUDE_PLUGIN_ROOT}/skills/design-critique/SKILL.md` | PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로 · Readiness 착수 판단(AI 채점, 착수는 사람) · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict` |
+| ① 계획 · PLAN | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md` — step 분해와 step마다 `tdd` 판정. step의 `⚠️`·`TBD`는 §2가 그 자리에서 캐묻는다. 세 장이 이미 있어 PLAN만 필요하면 바로 부른다. 🎨 §3-b가 캔버스 작업 탭을 읽는다 | 범위 합의 → step 계획 승인(미해결 `⚠️` 0개) · 🎨 DS 신규 컴포넌트 승인 |
+| ② IMPLEMENT 🤖 | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md` — step마다 호출 1번(테스트 먼저 → 구현), `sdd_runner.py judge`가 git 기록으로 판정한다(RED · GREEN 규칙은 그 파일 §2). 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스) | blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패(최대 4회) |
+| ③ REVIEW | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-reconcile/SKILL.md` | 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영) |
 | ④ REFLECT | 커밋 전, 사람이 자리에 있을 때 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 읽고 그 순서대로 돈다 | 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · harness-gaps 승격 판정 · 🎤 설명 리허설(제안 시) · 출구 조건 확인 |
-| ⑤ 마무리(SHIP) | 세 줄 요약 → `changeset`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write` → 학습 카드 | `pr-write` 생성(commit은 REVIEW 승인이 겸한다) |
+| ⑤ 마무리(SHIP) | 세 줄 요약 → `${CLAUDE_PLUGIN_ROOT}/skills/changeset/SKILL.md`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write` → 학습 카드 | `pr-write` 생성(commit은 REVIEW 승인이 겸한다) |
 
 이 표 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 표에 넣거나 스킬을 고친다.
 
@@ -47,7 +49,7 @@ DESIGN과 PLAN은 한 단계지만 게이트가 둘이다 — 묻는 것이 다�
 ### ③ REVIEW
 
 리뷰는 **같은 세션의 서브에이전트**가 한다 — 컨텍스트는 격리되고 세션은 그대로다("새 세션에서 리뷰"는 쓰지 않는다).
-위반이 나오면 **수정 step을 하나 더 만들어 `sdd-run`으로 고치고(작은 수정은 `feature-builder`) `sdd-review`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
+위반이 나오면 **수정 step을 하나 더 만들어 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md`로 고치고(작은 수정은 `feature-builder`) `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
 선택: `/no-comments` — 사람이 부르면 `sdd-review` 전에 diff의 주석을 걷는다(`comment-hunter`가 찾고 메인이 판정). 사람만 부르는 스킬이라 흐름은 이것을 기다리지 않는다.
 **루프는 수렴해야 한다** — 수렴 규칙 ①~③(회차 · 범위 · 지적 묶기)은 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` §2 · §4가 정본이다. ④ **3회차가 끝나도 위반이 남으면 수정 step을 더 만들지 않고 🙋 멈춘다** — "접근 방식 자체를 다시 볼까요?"(① 계획으로 / 이번 지적만 한 번 더 / 남은 지적은 후속 이슈로). 에이전트 작성자 × 에이전트 리뷰어는 서로를 끝없이 바쁘게 만든다.
 

@@ -1,7 +1,8 @@
 ---
 name: project-new
-description: 새 프로젝트를 stack-kits 보일러플레이트(kotlin-spring·nextjs·fullstack 등)로 만들고 바로 harness-init 까지 돌린다. "새 프로젝트 만들어줘", "Spring/Next 보일러플레이트로 시작"일 때 쓴다. 기존 레포에 하네스만 깔 때는 harness-init 을 쓴다.
+description: 새 코드 레포를 stack-kits 보일러플레이트(kotlin-spring·nextjs·fullstack 등)로 만들 때("Spring/Next로 새 레포", "보일러플레이트로 시작") 쓰고, 바로 harness-init 까지 돌린다. 노트 · 문서의 프로젝트 페이지를 만드는 요청은 아니다. 기존 레포에 하네스만 깔 때는 harness-init 을 쓴다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
+disable-model-invocation: true
 ---
 
 코드 뼈대는 `jtwjs/stack-kits`, AI 환경은 이 플러그인의 스택 팩이 정본이다. 이 스킬은 둘을 잇기만 한다.
@@ -37,7 +38,7 @@ cd <대상 경로> && git init -q
 
 ## 4. 하네스
 
-`harness-init`을 이어서 돈다. 스택 판정은 빌드 파일로 하므로 kit과 팩이 자연히 맞는다. `CLAUDE.md`가 이미 있으면(nextjs의 `@AGENTS.md` 한 줄) 덮지 말고 그 줄을 보존한 채 위에 쓴다.
+`${CLAUDE_PLUGIN_ROOT}/skills/harness-init/SKILL.md`를 읽고 그대로 이어서 돈다. 스택 판정은 빌드 파일로 하므로 kit과 팩이 자연히 맞는다. `CLAUDE.md`가 이미 있으면(nextjs의 `@AGENTS.md` 한 줄) 덮지 말고 그 줄을 보존한 채 위에 쓴다.
 
 - `stacks.kitRef` ← §2의 값
 - `fullstack`이면 결과가 이렇게 나와야 한다. 다르면 판정을 다시 보고 보고한다:

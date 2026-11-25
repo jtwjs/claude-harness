@@ -1,7 +1,7 @@
 ---
 name: sdd-run
 description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when sdd-plan 스킬로 만든 계획을 구현할 때.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 **규칙의 정본은 `scripts/sdd_runner.py` 하나다** — 세션 안에서는 이 스킬이 그 스크립트의 `start`·`prompt`·`judge`를 부르고, 사람이 없을 때는 같은 스크립트의 `run`이 `claude -p`로 끝까지 돈다. 판정 표·근거는 `docs/sdd-runner.md`.
@@ -51,7 +51,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 ## 4. 마무리
 
-- 모든 step이 `completed`면: 요약 표(step·상태·summary)를 출력하고 **`sdd-review` 스킬**로 검증하도록 안내.
+- 모든 step이 `completed`면: 요약 표(step·상태·summary)를 출력하고 **검증으로 넘어가도록** 안내 — 이어서 하면 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md`를 읽고 그대로 따른다(사람은 `/sdd-review`).
 - error/blocked로 멈췄으면: 멈춘 step·사유·재개 방법을 보고.
 - **재개 절차** (`sdd` 「재개」와 같은 문장): 원인이 확정되고 사람이 승인하면 **메인이** 그 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 §1 `start`부터 다시 돈다(`start`가 error·blocked step이 남아 있으면 멈추기 때문). 그 한 줄은 다음 지시문 머리에 들어가고, `start`가 `resumed_at`을 찍어 재시도 한도를 새로 센다. **`retries`는 0으로 되돌리지 않는다** — 승격 판단의 계수기라서다. 고친 index.json은 커밋하지 않은 채로 와도 된다. blocked는 `blocked_reason`이 해소됐을 때만 `pending`으로.
 

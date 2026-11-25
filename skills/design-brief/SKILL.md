@@ -1,7 +1,7 @@
 ---
 name: design-brief
 description: SDD ① 계획의 DESIGN — PRD를 디자인 브리프로 만들고 레포에 묶인 캔버스에 시안을 그린다. 레퍼런스부터 정하고, 상태·권한·데이터 결정을 한 질문씩 끝낸 뒤, 제작 체크리스트로 그린다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 PRD를 **디자인 브리프**로 압축하고, 그 브리프로 **레포에 묶인 캔버스**에 시안을 그린다. 앱 코드는 만지지 않는다(문서·캔버스 산출 전용).
@@ -40,7 +40,7 @@ PRD를 **디자인 브리프**로 압축하고, 그 브리프로 **레포에 묶
 | 인터랙션 | 모달·드로어 닫기 · 포커스 · 키보드 · 모션 |
 | 기존 기능과의 관계 | 교체 / 확장 / 신규 — 보존해야 할 기존 동작 |
 
-**닐슨 렌즈** — 위 칸을 채운 뒤, 화면마다 넷이 답해졌는지 본다. 비면 그 칸의 질문으로 돌아간다. 10원칙 전체는 [`design-critique/references/nielsen-heuristics.md`](../design-critique/references/nielsen-heuristics.md).
+**닐슨 렌즈** — 위 칸을 채운 뒤, 화면마다 넷이 답해졌는지 본다. 비면 그 칸의 질문으로 돌아간다. 10원칙 전체는 `${CLAUDE_PLUGIN_ROOT}/skills/design-critique/references/nielsen-heuristics.md`.
 
 - H1(상태 보임) — 로딩·저장·완료·실패가 화면마다 정해졌나 → 「상태」 칸
 - H3(통제·탈출) — 취소·닫기·되돌리기가 정해졌나 → 「인터랙션」 칸
@@ -109,4 +109,4 @@ DS·컴포넌트 탭을 이번 기능이 바꿀 때도 as-is | to-be로 둔다. 
 
 ## 6. 다음
 
-**`design-critique`**로 시안을 평가한다. `verdict: 승인`이 나면 `sdd-plan`으로 step을 쪼갠다 — `sdd-plan` §3-b가 레포 캔버스를 읽는다.
+**`${CLAUDE_PLUGIN_ROOT}/skills/design-critique/SKILL.md`**를 읽고 그대로 시안을 평가한다. `verdict: 승인`이 나면 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md`를 읽고 그대로 step을 쪼갠다 — 그 파일 §3-b가 레포 캔버스를 읽는다.

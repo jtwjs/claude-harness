@@ -1,7 +1,7 @@
 ---
 name: sdd-review
 description: SDD REVIEW 단계 — CLAUDE.md와 기능의 ARCHITECTURE.md·ADR.md 기준으로 최근 diff를 아키텍처·ADR·테스트·CRITICAL 규칙·빌드/테스트·실제 동작으로 대조해 결과 표와 수정 제안을 낸다. Use when 구현 후 머지·커밋 전에. 깊은 리뷰는 code-reviewer.
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 `sdd-run` 산출 diff를 **설계문서 대비 체크리스트**로 빠르게 판정한다. 심층·다축 리뷰(성능·구조·보안 감사)는 **`code-reviewer` 에이전트**에 위임한다.

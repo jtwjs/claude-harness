@@ -2,6 +2,7 @@
 name: harness-gaps
 description: 반복된 것을 세어 승격 후보를 판정한다. 같은 지시를 다시 친 것·같은 교정을 다시 한 것·스킬이 있는데 안 불린 것·에이전트에 못 맡긴 것·같은 수작업 절차를 다시 밟은 것 5종만 본다. REFLECT 「하네스 되돌림」이나 harness-doctor와 같이 돈다. 3회부터 후보이고 판정까지만 한다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
+disable-model-invocation: true
 ---
 
 **`BACKLOG.md` 승격 조건의 「세는 주체」다.**
@@ -109,7 +110,7 @@ phases/*/index.json(미위임) ─┘          │
 ```
 
 - **개인 설정** `~/.claude/harness-gaps.json`: `{"ledger": "<원장 index.md 경로>"}` (예: `{"ledger": "~/vault/friction/index.md"}`). **없으면 이 절 전체가 꺼진다** — 헤드리스는 "원장 설정 없음" 한 줄로 끝나고, harness-gaps는 레포 `observations.md`만 쓴다.
-- **실행**: `skills/harness-gaps/scripts/weekly.sh [--dry-run]` — `--dry-run`은 원장 · 월별 파일을 쓰지 않고 쓸 행 · 항목을 stdout에 낸다. 마지막 줄에 후보 수 · 쓴 행 · 소요 시간.
+- **실행**: `${CLAUDE_PLUGIN_ROOT}/skills/harness-gaps/scripts/weekly.sh [--dry-run]` — `--dry-run`은 원장 · 월별 파일을 쓰지 않고 쓸 행 · 항목을 stdout에 낸다. 마지막 줄에 후보 수 · 쓴 행 · 소요 시간.
 - **상태는 늘 `후보`.** `열림`(이때부터 셈) · `버림`은 사람이 원장 쪽에서 고른다. 모델이 잘못 묶은 행이 확인 없이 `열림`으로 들어오면 3회가 가짜로 찬다.
 - **미위임은 스크립트 집계** — `phases/*/index.json`의 `blocked` · `retries ≥ 3`만 세어 0이 아니면 사유를 모델 입력에 붙인다. 나머지 4종은 모델이 판정한다.
 - 모든 쓰기는 `gaps.py append` 한 곳. 모델은 후보 JSON만 낸다.
