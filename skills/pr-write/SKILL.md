@@ -1,6 +1,6 @@
 ---
 name: pr-write
-description: git 변경 내용을 분석해서 PR을 GitHub에 실제로 생성해줘. sdd ⑤ 마무리(SHIP) — REFLECT 출구 조건 뒤 PR이 필요할 때 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
+description: PR을 올려 달라고 할 때("PR 만들어줘"·"풀리퀘 올려줘"·"push 하고 PR 열어줘", `sdd` ⑤ 마무리 포함) — 변경을 분석해 PR을 GitHub에 실제로 생성한다.
 disable-model-invocation: false
 ---
 

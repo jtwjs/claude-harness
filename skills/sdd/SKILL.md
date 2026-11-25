@@ -1,6 +1,6 @@
 ---
 name: sdd
-description: SDD 워크플로우 오케스트레이터 — 기능·버그 작업을 ① 계획(DESIGN→PLAN) → ② IMPLEMENT → ③ REVIEW → ④ REFLECT → ⑤ 마무리(SHIP)로 진행하고, 사람 체크포인트에서만 멈춘다. Use when 새 기능·버그 작업을 시작할 때. PRD 없는 막연한 과제도 여기서 시작한다.
+description: 새 기능을 만들거나 버그를 고쳐 달라는 말("~기능 추가해줘"·"~버그 고쳐줘"·"과제로 잡아 진행하자", PRD 없는 막연한 과제 포함)에 코드·git을 보기 전에 먼저 부른다 — 계획 → 구현 → 리뷰 → 회고 → 마무리를 잇고 사람 체크포인트에서만 멈춘다. 단순 수정·개념 질문은 아니다.
 disable-model-invocation: false
 ---
 

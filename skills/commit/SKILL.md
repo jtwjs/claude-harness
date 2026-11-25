@@ -1,6 +1,6 @@
 ---
 name: commit
-description: git 변경 내용을 기반으로 커밋 단위로 논리적으로 분리하고, 각 커밋에 대해 한국어 커밋 메시지를 생성해줘. sdd ⑤ 마무리(SHIP) — REFLECT 출구 조건 뒤 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
+description: 커밋을 시킬 때("커밋해줘"·"스테이징된 거 커밋해줘"·"나눠서 커밋해", `sdd` ⑤ 마무리 포함) git 상태를 보기 전에 먼저 부른다 — 변경을 논리 단위로 나눠 한국어 메시지로 커밋한다.
 disable-model-invocation: false
 ---
 
