@@ -27,7 +27,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 ## 단계 → 스킬 · 체크포인트 (🤖 자동 위임 / 🙋 여기서만 승인 대기)
 
-단계 스킬은 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md`를 읽고 그대로 따른다 — 사람만 부르게 닫혀 있어(frontmatter `disable-model-invocation`) Skill 도구로 부르면 오류가 난다. `commit` · `pr-write`는 Skill 도구로 부른다.
+단계 스킬은 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md`를 읽고 그대로 따른다 — 사람만 부르게 닫혀 있어(frontmatter `disable-model-invocation`) Skill 도구로 부르면 오류가 난다. 경로로 읽은 단계 스킬 본문의 `CLAUDE_PLUGIN_ROOT` 변수 자리는 치환되지 않고 셸에도 그 변수가 없다 — 그 자리를 `${CLAUDE_PLUGIN_ROOT}`로 바꿔 읽고 명령에도 이 값을 넣는다(루트를 따로 찾지 않는다). `commit` · `pr-write`는 Skill 도구로 부른다.
 
 | 단계 | 맡는 것 | 🙋 체크포인트 |
 |---|---|---|

@@ -6,14 +6,14 @@
 |---|---|
 | 과제가 막연하다 / PRD가 없다 | `sdd` ① 계획 DESIGN이 인터뷰로 세 장을 만든다(절차는 플러그인의 `skills/sdd/references/design.md`) |
 | 이유·근거만 확인한다(결정 전 · 슬랙 답 · 기획 검토) | `why` — 파일 없이 WHY 트리·근거 판정표만 |
-| 설계는 끝났고 구현 계획을 세운다 | `sdd-plan` |
-| step 계획에 빈칸이 많다 | `sdd-plan` §2가 그 자리에서 캐묻는다(DESIGN으로 되돌아가지 않음) |
-| 화면이 있는 기능(시안·디자인) | `sdd` 디자인 트랙: `design-brief`(DESIGN, 브리프→시안) → `design-critique`(시안 평가) → `design-reconcile`(REVIEW, 구현 화면 대조) |
+| 설계는 끝났고 구현 계획을 세운다 | `sdd` ① 계획 PLAN — 세 장이 있으면 바로 PLAN으로 간다(단계 스킬 `sdd-plan`은 `sdd`가 경로로 읽는다. 사람은 `/sdd-plan`) |
+| step 계획에 빈칸이 많다 | `sdd` PLAN에서 `sdd-plan` §2가 그 자리에서 캐묻는다(DESIGN으로 되돌아가지 않음) |
+| 화면이 있는 기능(시안·디자인) | `sdd` 디자인 트랙 — `sdd`가 `design-brief`(DESIGN, 브리프→시안) → `design-critique`(시안 평가) → `design-reconcile`(REVIEW, 구현 화면 대조)를 경로로 읽는다 |
 | 기능·버그 작업을 처음부터 끝까지 | `sdd` (위 단계를 알아서 넘긴다) |
 | 병렬 트랙을 조율한다 | `conductor` (worktree 세션 2개 이상일 때 지휘 세션 하나) |
 | 원인 모를 버그·간헐적 실패 | `root-cause-debugger` |
-| 하네스가 썩었는지 점검 | `harness-doctor` |
-| 같은 지시·같은 교정이 반복된다 | `harness-gaps` (3회부터 승격 후보. 원장은 `observations.md`) |
+| 하네스가 썩었는지 점검 | 사람이 `/harness-doctor` |
+| 같은 지시·같은 교정이 반복된다 | 사람이 `/harness-gaps` (3회부터 승격 후보. 원장은 `observations.md`) |
 | 세션에서 말로 설명하고 흘린 것 | `/revise-claude-md` (`sdd` ④ REFLECT 「하네스 되돌림」에서, 커밋 전 사람이 있을 때. 세션 끝 환기는 돌지 않는다. 종착지는 CLAUDE.md가 아니라 **아래 판정**을 따른다) |
 
 ## 이 폴더의 구조

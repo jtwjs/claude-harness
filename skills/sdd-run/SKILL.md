@@ -1,6 +1,6 @@
 ---
 name: sdd-run
-description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when sdd-plan 스킬로 만든 계획을 구현할 때.
+description: SDD IMPLEMENT 러너 — phases/{task}/의 pending step마다 서브에이전트 1번(테스트 먼저 → 구현)으로 구현하고, sdd_runner.py judge가 git 기록으로 판정해 커밋·재시도·중단한다. 사람이 없으면 헤드리스 run. Use when `sdd-plan`으로 만든 계획을 구현할 때.
 disable-model-invocation: true
 ---
 
