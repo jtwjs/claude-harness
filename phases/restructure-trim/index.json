@@ -63,8 +63,11 @@
     {
       "step": 7,
       "name": "trim-history-flow",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:55:14+0900",
+      "summary": "흐름 스킬 13개 SKILL.md에서 날짜 · 버전 · 「~에서 바꿨다」 이력과 배경 문장을 지우고 판단을 바꾸는 이유 한 구절만 남김(날짜 · 버전 줄 sdd-plan 6 · sdd-run 4 · sdd-review 1 · design-brief 1 · design-critique 2 · why 1 · conductor 1 · pr-write 1 · changeset 1 → 전부 0. 줄 안 괄호 · 문장만 지워 줄 수는 why 67→65 말고 그대로). 새 hooks/tests/no-history-flow.sh: 13개 파일에 `20[0-9]{2}-[0-9]{2}|[0-9]+\\.[0-9]+\\.[0-9]+` 0(파일이 없어도 실패) — step 8은 같은 틀을 나머지 파일에 쓰면 된다. pr-write 4.6: 「`확인 필요`(증명 못 한 지적, 등급 없음)는 `sdd-review` · `code-reviewer` 어느 쪽에서 나왔든 🟡로 센다 — 안 세면 심각도가 「없음」으로 잡혀 자동 머지 조건이 거짓으로 충족된다」. no-history-flow.sh에 pr-write 4.6 검사 2건(「🟡로 센다」 문장에 sdd-review · code-reviewer · 확인 필요, 붙여 쓴 확인필요 0)을 더했다(계획은 날짜 · 버전 줄만, 이유: Q10 문장이 테스트 없이 되돌아가면 자동 머지 판정이 다시 거짓 충족돼서). 이슈 번호(#8 · #9 · #10 · #11)는 남기고 같은 괄호의 버전 · 날짜만 지웠다(계획은 이력을 지움, 이유: 이유를 찾을 기록 주소라서 — why 「코드 결정이면 git log · PR · ADR부터」). conductor 「주의 · 금지」 4의 `(ADR-007 of single-conductor-2026-10-31)`는 날짜 없는 이름으로 바꾸지 않고 지웠다(이유: ADR-007이 desk-hypothesis-gate · single-conductor 두 폴더에 있어 번호만으로는 못 가리키고, 상한 규칙은 문장이 다 말해서). bash hooks/test.sh 통과 489 · 실패 0(RED 시점 통과 487 · 실패 2)",
+      "completed_at": "2026-11-25T13:06:04+0900"
     },
     {
       "step": 8,
