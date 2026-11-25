@@ -28,6 +28,6 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/issues.py" ready --repo 
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/tracks_status.py"            # --stale 분(기본 30) · --no-gh. 지휘 자리면 대상 레포마다 `## 레포` 절
 ```
 
-worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. 표 아래 「겹침」은 트랙 worktree 둘 이상이 같이 바꾸고 있는 파일이다(기준 브랜치와 갈라진 뒤 커밋 + 안 올린 변경) — 그대로 두면 먼저 병합된 쪽 뒤에 나머지가 충돌한다. 겹침이 나오면 §5 「겹치면」으로 판정한다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 끝난 worktree(남은 SDD step 없음)는 표 대신 아래 「지울 worktree」로 묶인다. 겹침은 진행 중 worktree끼리만 센다. 사람에게는 `--compact` 한 줄이 손댈 것만 담아 상태줄에 뜬다 — 레포 안이면 `트랙 ⛔admin 💤renderer 진행1 겹침2`, 지휘 자리면 `bv-admin ⛔fe 진행1 · dash (경로 없음)`. 손댈 것이 없으면 빈 출력이다(개인 dotfiles 상태줄이 부름). 아이디어는 lcalmsky/deadhd 레인 보드(MIT, 코드는 가져오지 않음).
+worktree마다 트랙(브랜치 `feature/<트랙>-…`로 매칭) · 그 worktree의 phases 진행 · 마지막 신호(커밋·index.json) · 안 올린 변경 수 · 열린 후속 이슈 수가 한 행이다. 표 아래 「겹침」은 트랙 worktree 둘 이상이 같이 바꾸고 있는 파일이다(기준 브랜치와 갈라진 뒤 커밋 + 안 올린 변경) — 그대로 두면 먼저 병합된 쪽 뒤에 나머지가 충돌한다. 겹침이 나오면 §5 「겹치면」으로 판정한다. ⛔(막힌 step)이 맨 위, 그다음 💤(신호 없음). ⛔은 §6 예외 판정으로, 💤은 §8 초인종으로 그 트랙 세션에 상태를 묻는다. 끝난 worktree(남은 SDD step 없음)는 표 대신 아래 「지울 worktree」로 묶인다. 겹침은 진행 중 worktree끼리만 센다. 사람에게는 `--compact` 한 줄이 손댈 것만 담아 상태줄에 뜬다 — 레포 안이면 `트랙 ⛔admin 💤renderer 진행1 겹침2`, 지휘 자리면 `사내 레포 A ⛔fe 진행1 · dash (경로 없음)`. 손댈 것이 없으면 빈 출력이다(개인 dotfiles 상태줄이 부름). 아이디어는 동료 레포 레인 보드(MIT, 코드는 가져오지 않음).
 
 사용자에게 올리는 현황의 형식은 `${CLAUDE_PLUGIN_ROOT}/skills/conductor/SKILL.md` 「사용자에게 올리는 현황」이 정본이다.

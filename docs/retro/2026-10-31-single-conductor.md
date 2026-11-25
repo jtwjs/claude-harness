@@ -3,7 +3,7 @@
 - 숫자: `phases_status.py --retro single-conductor` → step 14 · 완료 14 · 재시도 0 · error/blocked 0 · 소요 - (세션 안에서 손으로 러너 규칙을 지켜 시각 미기록). hook 테스트 191 → 252, runner 테스트 47 → 50
 - 막힌 지점:
   1. step 6 뒤 러너 단위 테스트가 600초 대기로 멈춤. 원인: verify_busy 부분 문자열 매칭에서 픽스처 verify `true`가 `… || true` 셸 줄과 맞음. TRIVIAL 첫 단어 제외로 고침
-  2. step 11 손 확인에서 bv-admin 본 트리(feature 브랜치)가 「지울 worktree」에 들어감 → RED 뒤 fix (테스트에 없던 경우: 본 트리가 기준 브랜치가 아님)
+  2. step 11 손 확인에서 사내 레포 A 본 트리(feature 브랜치)가 「지울 worktree」에 들어감 → RED 뒤 fix (테스트에 없던 경우: 본 트리가 기준 브랜치가 아님)
   3. REVIEW 1회차 🟡 9건 중 7건 수정(step 13): 검사 하나를 3개로 셈(`npm run verify` ⊂ `pnpm run verify`, 중간 turbo 줄이 ppid 고리를 끊음) · `ls || true` 를 검사로 판정 · -R 범위(label·pr ready·`&&` 뒤 조각) · 머리 레포에 하네스 없으면 운영 DB 판정 빠짐 · 현황 훅 실패를 「손댈 것 없음」으로 표시 · 30초 timeout 에 현황 통째 유실 · 러너 테스트가 진짜 ps 를 봄
   3-b. REVIEW 2회차: step 13 수정이 회귀 2건을 만듦 — `./gradlew test` 를 명령 자리로 못 봄(BE 검사가 상한 밖) · `\` 줄 이어 쓴 gh 명령을 지휘 자리에서 막음. step 14 로 수정. 1회차의 「부분 문자열 → 명령 자리」 전환이 기존 미덕(넓게 잡기)을 같이 버렸다
   4. 러너 테스트 격리(`CLAUDE_VERIFY_PS`)는 step 13 RED 커밋에서 테스트 파일을 고쳤다(step 6 RED 뒤가 아님)

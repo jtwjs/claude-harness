@@ -4,7 +4,14 @@
 HOOK_LOG_FILE="${CLAUDE_HARNESS_HOOK_LOG:-$HOME/.claude/harness-hook-log.tsv}"
 hook_now_ms() { python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null || echo 0; }
 hook_log() { # $1 훅 · $2 결과 · $3 ms(선택) · $4 상세(선택, 탭·줄바꿈은 공백으로)
-  local detail="${4:-}"; detail="${detail//$'\t'/ }"; detail="${detail//$'\n'/ }"
-  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%Y-%m-%dT%H:%M:%S)" "$(basename "${REPO_ROOT:-?}")" "$1" "$2" "${3:-}" "${detail:0:200}" \
+  local detail="${4:-}" repo="${REPO_ROOT:-?}"; detail="${detail//$'\t'/ }"; detail="${detail//$'\n'/ }"
+  # 레포 이름은 basename 대신 치환으로 — 이제 모든 Bash 호출마다 기록해서 프로세스 하나(약 3ms)도 아낀다
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%Y-%m-%dT%H:%M:%S)" "${repo##*/}" "$1" "$2" "${3:-}" "${detail:0:200}" \
     >>"$HOOK_LOG_FILE" 2>/dev/null || true
+}
+# 끝나는 모든 경로에서 정확히 한 줄(ADR-016 D11). 훅 맨 위에서 부르고, 경로마다 HOOK_RESULT(필요하면 HOOK_MS · HOOK_DETAIL)를
+# 정한 뒤 exit 한다. 쓰는 곳이 EXIT trap 하나뿐이라 두 줄이 될 수 없고, 결과를 못 정한 채 끝나도 unknown 으로 남는다.
+hook_log_on_exit() { # $1 훅
+  HOOK_NAME="$1"; HOOK_RESULT=""; HOOK_MS=""; HOOK_DETAIL=""
+  trap 'hook_log "$HOOK_NAME" "${HOOK_RESULT:-unknown}" "$HOOK_MS" "$HOOK_DETAIL"' EXIT
 }

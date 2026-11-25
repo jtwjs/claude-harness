@@ -2,7 +2,7 @@
 """지휘 설정 — 지휘 자리(seat)와 대상 레포 목록. 읽기만 한다 (ADR-001 · ADR-002, 2026-10-31).
 
 설정: CLAUDE_CONDUCTOR_CONFIG(테스트용) 또는 ~/.claude/conductor.json
-    {"seat": "~/wiki", "repos": ["~/orca/bv-admin", ...]}
+    {"seat": "~/wiki", "repos": ["~/orca/<사내 레포 A>", ...]}
 없거나 깨지면 지휘 기능이 꺼진 것으로 본다 — 모든 호출부가 지금 동작 그대로.
 
 Usage:

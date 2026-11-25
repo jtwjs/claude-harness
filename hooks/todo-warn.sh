@@ -5,27 +5,28 @@
 #   ⚠️ exit 0 의 stderr 는 디버그 로그에만 남고 모델도 사용자도 못 본다 (2026-10-08 공식 문서 확인).
 #   그 전까지 이 훅은 stderr 에 썼으므로 한 번도 전달된 적이 없다.
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit todo-warn   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
 
 # 하네스가 깔린 레포에서만 동작한다.
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
-. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log() { :; }
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=norepo; exit 0; }
+[ -f "$REPO_ROOT/.claude/harness.json" ] || { HOOK_RESULT=nocfg; exit 0; }
 
 input=$(cat 2>/dev/null || true)
 cmd=$(printf '%s' "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
-[ -z "$cmd" ] && exit 0
+[ -z "$cmd" ] && { HOOK_RESULT=noinput; exit 0; }
 
 # git commit 명령일 때만
-echo "$cmd" | grep -qE '\bgit[[:space:]]+commit\b' || exit 0
+echo "$cmd" | grep -qE '\bgit[[:space:]]+commit\b' || { HOOK_RESULT=ignore; exit 0; }
 
-command -v git >/dev/null 2>&1 || exit 0
+command -v git >/dev/null 2>&1 || { HOOK_RESULT=nogit; exit 0; }
 
 # 스테이징 diff 의 추가 라인(+) 중 TODO/FIXME
 todos=$(git diff --cached -U0 2>/dev/null | grep -E '^\+' | grep -vE '^\+\+\+' | grep -nE 'TODO|FIXME|XXX|HACK' || true)
-[ -z "$todos" ] && { hook_log todo-warn clean; exit 0; }
+[ -z "$todos" ] && { HOOK_RESULT=clean; exit 0; }
 
 count=$(printf '%s\n' "$todos" | grep -c . | tr -d ' ')
-hook_log todo-warn warn "" "${count}건"
+HOOK_RESULT=warn HOOK_DETAIL="${count}건"
 sample=$(printf '%s\n' "$todos" | head -n 8)
 
 # JSON 은 python 으로 싼다 — 코드 줄에 따옴표·백슬래시가 흔하다.

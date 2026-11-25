@@ -11,13 +11,13 @@ worktree 하나 = 트랙 작업 하나(`.claude/references/tracks.md`). worktree
            병합하면 충돌할 자리다. 표 아래에 파일별로 낸다(2026-10-21 병렬 PR 충돌 3건)
 정렬: ⛔ → 💤 → 진행 중 → 끝남.
 
-아이디어 출처: lcalmsky/deadhd 레인 보드(작업 × 단계 · 멈춤 감지, MIT — 코드는 가져오지 않음). 2026-10-18.
+아이디어 출처: 동료 레포 레인 보드(작업 × 단계 · 멈춤 감지, MIT — 코드는 가져오지 않음). 2026-10-18.
 
 Usage:
     tracks_status.py [--stale MIN] [--no-gh] [--base BRANCH]
     tracks_status.py --compact     # 상태줄용 한 줄: 트랙 ⛔admin 💤renderer 진행1 겹침2 — 손댈 것만(ADR-006). 끝난 worktree 는 안 센다.
                                    # 셋 다 0 이거나 트랙 표가 없으면 빈 출력. gh 안 부름
-    지휘 자리(conductor.json seat)에서 부르면 대상 레포마다: compact 는 `bv-admin ⛔fe 진행1 · dash (경로 없음)`, 표는 레포마다 `## 이름` 절
+    지휘 자리(conductor.json seat)에서 부르면 대상 레포마다: compact 는 `사내 레포 A ⛔fe 진행1 · dash (경로 없음)`, 표는 레포마다 `## 이름` 절
     --base 기본값은 origin/HEAD 가 가리키는 브랜치, 없으면 origin/main
 """
 import json
