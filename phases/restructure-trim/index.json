@@ -18,8 +18,11 @@
     {
       "step": 2,
       "name": "conductor-issues-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "summary": "새 skills/conductor/scripts/issues.py: `block <이슈> <막는 이슈>` · `unblock <이슈> <막는 이슈>`(§4 「풀기」, step 파일 목록 밖이지만 §4 graphql 묶음 전부를 감싸려고 더함) · `sub <부모> <자식>` · `ready` — 전부 `[--repo OWNER/NAME]`(없으면 지금 레포). ready 출력은 한 줄에 `#번호 [track:…] 제목`(decision · 열린 차단 제외), 실패는 gh 오류를 stderr + 종료 1(§4 「실패하면」으로 감), gh 경로는 CLAUDE_CONDUCTOR_GH. step 3은 §4 graphql 블록을 `python3 \"${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/issues.py\" …` 호출로 바꾸면 된다. 테스트 hooks/tests/conductor-issues.sh(가짜 gh 11케이스). bash hooks/test.sh 통과 460 · 실패 0",
+      "tdd": true,
+      "started_at": "2026-11-25T12:01:15+0900",
+      "completed_at": "2026-11-25T12:12:23+0900"
     },
     {
       "step": 3,
