@@ -29,6 +29,7 @@
 | 조사 전 HEAD ↔ `origin/<base>` 비교 한 줄(`git rev-list --count HEAD..origin/<base>`가 0보다 크면 먼저 알린다) | 뒤처진 worktree에서 조사해 틀린 결론을 적은 사례 **3건** (`harness-gaps`·재교정). 2026-10-21 1건 |
 | 차단·허용 audit log (강의 Detect 층) | 차단된 명령을 사람이 "왜 막혔지"로 다시 찾은 일 **3회** (`harness-gaps`·재지시) |
 | 러너 step을 1회 → 2회 호출(TDD 도구 test-writer → feature-builder)로 되돌리기 | 러너로 통과한 `tdd: true` step에서 머지 뒤 `fix:` 커밋이 나온 사례 **3건** — `fix:` 커밋이 고친 파일이 그 step의 `feat: step N` 커밋 파일과 겹치면 센다 — 같은 머리가 테스트와 구현을 다 써서 테스트가 구현에 맞춰진 신호. 사용량 차이는 step `usage`로 잰다 |
+| 레포 전용 검증 스킬 생성 — 앱을 사용자처럼 돌려 증거(스크린샷 · 출력)를 남기는 스킬을 레포마다 만든다 (출처: PStack `create-verification-skill`, ADR-016 D10) | `sdd-review` 「실제 동작」 축이 `확인 필요 — 미실행`으로 끝난 건 **3건** (`phases/*/index.json`의 `reviews[].issues`에서 「실제 동작」과 「미실행」이 같이 든 줄로 센다) |
 
 > ⚠️ `evals/` 행과 **품질 골든셋** 행은 이름이 비슷하지만 **다른 물건**이다 — `evals/`는 *스킬이 불리나*(트리거 회귀), 골든셋은 *산출물이 좋아졌나*(품질 점수). 한쪽을 깔았다고 다른 쪽이 덮이지 않는다.
 >
