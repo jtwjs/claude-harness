@@ -91,7 +91,7 @@
       "name": "fork-line",
       "status": "blocked",
       "tdd": false,
-      "blocked_reason": "ADR-018 B-14 → #52 A절(검증자 독립), 지휘 판정"
+      "blocked_reason": "ADR-019 A5로 이동(호출 자리 두 곳) — 이 phase에서 하지 않는다"
     },
     {
       "step": 11,
