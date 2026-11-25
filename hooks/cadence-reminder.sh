@@ -26,6 +26,11 @@ HINTS=()   # 상태줄에 띄울 권고 스킬 이름
 # ⚠️ 메시지에 큰따옴표를 쓰지 않는다 — 아래에서 JSON 으로 직접 싸므로 이스케이프를 피한다.
 say() { MSGS+=("$1"); }
 
+# 모델에게 시킬 스킬은 SKILL.md 절대 경로로 준다 — harness-doctor 는 사람만 부르게 닫혀 Skill 도구로는 안 열린다.
+# 플러그인 훅 실행이면 CLAUDE_PLUGIN_ROOT 가 있고, 테스트 · 직접 실행이면 이 스크립트 폴더의 상위다. 아래 cd 전에 정한다(상대 경로로 실행돼도 풀리게).
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+DOCTOR_MD="$PLUGIN_ROOT/skills/harness-doctor/SKILL.md"
+
 command -v git >/dev/null 2>&1 || exit 0
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 [ -n "$REPO_ROOT" ] || exit 0
@@ -46,14 +51,14 @@ anchor=$(git log -1 --format=%H -- CLAUDE.md .claude/rules/ 2>/dev/null || true)
 if [ -n "$anchor" ]; then
   fixes=$(git log --oneline "${anchor}..HEAD" --grep='^fix:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "${fixes:-0}" -ge "$FIX_THRESHOLD" ]; then
-    say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (harness-doctor 로 점검)."
+    say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (${DOCTOR_MD} 를 읽고 점검)."
     HINTS+=("harness-doctor — fix ${fixes}건")
     # 결과 먼저, 하루 한 번 (2026-10-11) — 권유만으로는 17세션 환기에 doctor 호출 0이었다.
     # 조건은 CLAUDE.md·rules 를 고치기 전까지 안 풀리므로 매 세션 돌리면 반복 비용이 된다 → 레포마다 하루 첫 세션에만.
     # 날짜 기록은 레포 밖(HINT_DIR). 레포는 건드리지 않는다.
     stamp="$HINT_DIR/$HINT_KEY.doctor-date"
     if [ "$(cat "$stamp" 2>/dev/null)" != "$TODAY" ]; then
-      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 harness-doctor 의 §2 참조 무결성 · §3 빈 축적소 두 검사만 돌려 결과를 3줄로 먼저 보여라. fix: 커밋 중 함정 후보가 있으면 non-obvious-patterns.md 한 줄 초안까지 낸다(쓰기는 승인 뒤)."
+      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 ${DOCTOR_MD} 를 읽고 §2 참조 무결성 · §3 빈 축적소 두 검사만 돌려 결과를 3줄로 먼저 보여라. fix: 커밋 중 함정 후보가 있으면 non-obvious-patterns.md 한 줄 초안까지 낸다(쓰기는 승인 뒤)."
       mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "$TODAY" > "$stamp" 2>/dev/null || true
     fi
   fi

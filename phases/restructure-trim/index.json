@@ -9,62 +9,123 @@
     {
       "step": 1,
       "name": "split-sdd",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "summary": "skills/sdd/SKILL.md 103→71줄: 트랙 판단 · 「단계 → 스킬 · 체크포인트」 표(옛 단계 진행 + 사람 체크포인트 합침) · ① 계획 3줄 · ③ REVIEW(서브에이전트 · 수정 step 루프 · /no-comments · 수렴 ④만, ①~③은 ${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md §2 · §4) · ④ 출구 조건 · ⑤ 마무리(세 줄 요약 · 학습 카드 정본 유지) · 재개(recall 계약 유지). REFLECT 상세(가설 원장 · 회고 1장 · 하네스 되돌림+남기는 문턱 · 지식 정리 · 이해 증명)는 새 skills/sdd/references/reflect.md로 문장 그대로 옮김. 본문 날짜 · 버전 이력 블록은 지움(이력은 docs/design-notes.md에 이미 있음). hooks/test.sh 케이스 10의 '회고 1장 새 파일' · 'docs/retro/YYYY-MM-DD' · '최신이 위' 경로만 reflect.md로. bash hooks/test.sh 통과 449 · 실패 0",
+      "tdd": false,
+      "started_at": "2026-11-25T11:49:36+0900",
+      "completed_at": "2026-11-25T12:01:15+0900"
     },
     {
       "step": 2,
       "name": "conductor-issues-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "summary": "새 skills/conductor/scripts/issues.py: `block <이슈> <막는 이슈>` · `unblock <이슈> <막는 이슈>`(§4 「풀기」, step 파일 목록 밖이지만 §4 graphql 묶음 전부를 감싸려고 더함) · `sub <부모> <자식>` · `ready` — 전부 `[--repo OWNER/NAME]`(없으면 지금 레포). ready 출력은 한 줄에 `#번호 [track:…] 제목`(decision · 열린 차단 제외), 실패는 gh 오류를 stderr + 종료 1(§4 「실패하면」으로 감), gh 경로는 CLAUDE_CONDUCTOR_GH. step 3은 §4 graphql 블록을 `python3 \"${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/issues.py\" …` 호출로 바꾸면 된다. 테스트 hooks/tests/conductor-issues.sh(가짜 gh 11케이스). bash hooks/test.sh 통과 460 · 실패 0",
+      "tdd": true,
+      "started_at": "2026-11-25T12:01:15+0900",
+      "completed_at": "2026-11-25T12:12:23+0900"
     },
     {
       "step": 3,
       "name": "split-conductor",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T12:13:45+0900",
+      "summary": "skills/conductor/SKILL.md 325→51줄: 지휘 원칙 8줄 · 「상황 → 절」 표 · 「사용자에게 올리는 현황」 · 「주의 · 금지」 1~5(번호 순서 고침). 새 skills/conductor/references/ 7장 — why.md(「왜」 표 · 빌려 온 것) · seat.md(지휘 자리 · 세션 종류 · 세 자리 역할 · §0 준비 · 라벨 표) · decisions.md(§1~§3) · progress.md(§4, graphql 묶음 → python3 \"${CLAUDE_PLUGIN_ROOT}/skills/conductor/scripts/issues.py\" block|unblock|sub|ready --repo <owner>/<repo>) · dispatch.md(§5 · 트랙 세션 열기 · §6) · session-end.md(§7) · doorbell.md(§8, 보고 행 유지). references 안 절 제목에 §0~§8 번호를 그대로 둬 track-brief · tracks.md · tracks_status.py · sdd-run · harness-init의 `conductor` §N 참조는 고치지 않고 본문 표로 찾게 했다. 「사용자에게 올리는 현황」 단락은 본문에 남겼다(계획은 본문 = 원칙 + 표, 이유: SKILL.md가 보고 형식 자리(ARCHITECTURE 3절)이고 지휘가 트랙 보고를 요약하지 않게 막는 규칙이라). 🔴 gh -R · git -C 규칙을 지휘 자리 절에서 본문 원칙으로 올렸다(계획의 원칙 목록에 없음, 이유: 모든 절의 gh · git 명령에 걸려서). 「주의 · 금지」 끝 세 줄(코드 직접 수정 · ADR 번호 · 메시지로만 정함)은 본문 원칙에 합쳐 지웠다(계획은 번호만 고침, 이유: 같은 파일에 같은 규칙 두 번). §1 · §2 · §5의 addSubIssue · addBlockedBy 언급도 issues.py sub · block으로 바꿨다(계획은 §4 graphql 묶음만, 이유: 묶음이 빠지면 그 이름을 풀 곳이 없어서). references 안 날짜 · 실측 줄은 문장 그대로 옮김(본문 날짜 정리는 step 7). bash hooks/test.sh 통과 460 · 실패 0",
+      "completed_at": "2026-11-25T12:24:23+0900"
     },
     {
       "step": 4,
       "name": "split-pr-write",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T12:24:23+0900",
+      "summary": "skills/pr-write/SKILL.md 188→96줄: 1~6단계 순서(4.5 · 4.6 · 4.8 · 4.95 번호 유지 — BACKLOG · block-dangerous-bash가 「pr-write 4.6」을 가리킴) + 경로. 라벨 표는 새 skills/pr-write/references/labels.md, 4단계 본문은 그 경로 한 줄. 라벨 있는지 확인 · 없을 때 처리(만들지 않고 묻기)도 labels.md로 같이 옮겼다(계획은 라벨 표만, 이유: 라벨을 고를 때마다 그 파일을 읽으니 라벨 규칙을 두 파일에 나누지 않으려고). PR 본문 템플릿(66줄)도 새 skills/pr-write/references/body-template.md로 옮기고 5단계는 그 경로 한 줄(계획은 labels.md 하나, 이유: 「본문은 1~6단계 순서와 경로만」인데 템플릿은 단계도 판단도 아닌 양식이라). 4.6 심각도 게이트 · 4.8 스크린샷 · 4.95 스키마 이유는 본문에 남겼다(계획은 본문 = 순서와 경로만, 이유: 판정 규칙이라 ARCHITECTURE 3절의 SKILL.md 자리. 배경 문단 · 4.6의 날짜 · 버전 줄은 step 7 몫). 기존 references/risk-score.md · base-branch-rescue.md 상대 경로를 ${CLAUDE_PLUGIN_ROOT}/skills/pr-write/references/… 로 바꿨다(계획에 없음, 이유: 상대 경로는 다른 레포 세션에서 그 레포 기준으로 풀린다, ADR-016 「결과」). 4.6의 `확인필요`를 `확인 필요`로 맞췄다(계획에 없음, 이유: PR 4에서 sdd-review · code-reviewer 말이 띄어 쓴 「확인 필요」로 바뀌어서). bash hooks/test.sh 통과 460 · 실패 0",
+      "completed_at": "2026-11-25T12:32:41+0900"
     },
     {
       "step": 5,
       "name": "renames-data-file",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:32:42+0900",
+      "summary": "새 skills/harness-init/references/renames.tsv(머리 줄 `옛 이름\\t지금\\t언제` + 18행, 한 줄에 옛 이름 하나 — 옛 이름표의 이름 여럿인 칸을 나눔). skills/harness-init/SKILL.md는 업그레이드 표 「지운·바뀐 스킬 이름」 행이 ${CLAUDE_PLUGIN_ROOT}/skills/harness-init/references/renames.tsv를 가리키고 옛 표는 지움 — 이름을 더 바꾸는 step은 이 tsv에 한 줄을 더한다(ARCHITECTURE 4절의 「SKILL.md 이름표」 자리가 이제 tsv). hooks/tests/renames.sh는 옛 이름을 tsv 1칸에서 읽고(5개 → 18개), 새 hooks/tests/renames-data.sh가 tsv 머리 줄 · 3칸 · harness-init 경로를 본다. renames.sh는 날짜(YYYY-MM-DD) · 버전(N.N.N)이 붙은 줄과 hooks/tests/를 세지 않게 했다(계획은 tsv 1칸 전부를 기존 범위에서 검사, 이유: 늘어난 옛 이름 why-plan · grilling · why-logictree · systematic-debugging이 skills/why/SKILL.md:11 · skills/sdd-plan/SKILL.md:24 · 120 · skills/sdd/references/design.md:7 · agents/root-cause-debugger.md:11의 날짜 · 버전 이력 줄에, brain-sync · brain-walk가 가드 테스트 hooks/tests/no-brain.sh에 걸리는데 이력 줄은 step 7 날짜 · 버전 정리 몫이고 가드 테스트는 옛 이름을 검사 데이터로 품어서. 그 파일들은 고치지 않음 — step 7이 그 줄에서 날짜만 지우고 옛 이름을 남기면 renames.sh가 잡는다). 스킬 이름 · 경로 자리로만 세는 경계는 지금 skills/ 폴더 이름의 일부인 옛 이름(harness)에 자동으로 건다(계획에 없음, 이유: 테스트에 이름을 박지 않고 tsv 하나만 정본으로 두려고). renames-data에 「1칸은 이름 하나([a-z0-9-])」 · 「harness-init 본문에 이름표 표 없음」 검사를 더했다(계획은 tsv 3칸 · 경로만, 이유: renames.sh가 1칸을 정규식에 넣고, 표가 남으면 이름표가 두 곳이 돼서). 하네스판 find-skills의 「하네스판」은 지금 칸 「행 삭제(하네스판만)」으로 옮겼다(이유: 1칸에는 이름만 둔다). bash hooks/test.sh 통과 465 · 실패 0(RED 시점 통과 459 · 실패 4)",
+      "completed_at": "2026-11-25T12:42:30+0900"
     },
     {
       "step": 6,
       "name": "init-ci-fill-script",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:43:06+0900",
+      "summary": "새 skills/harness-init/scripts/fill_ci.py: `python3 \"${CLAUDE_PLUGIN_ROOT}/skills/harness-init/scripts/fill_ci.py\" <레포>/.claude/harness.json <ci.yml>` — 템플릿 플레이스홀더 7개(BASE_BRANCH · SETUP_STEPS · VERIFY_FORMAT · LINT · TYPECHECK · TEST · BUILD)를 ci.yml 그 자리에서 채우고 빈 verify 단계는 `- name:` 스텝째 지운다. exit 0 남은 것 0 / 1 남음(stderr에 이름 · 이유, 채울 수 있는 것은 채워 둠 — 고치고 다시 돌림) / 2 사용법 · 파일 못 읽음. skills/harness-init/SKILL.md §4는 플레이스홀더 표 + grep 문단을 이 호출과 2줄로 바꿈. 테스트 hooks/tests/fill-ci.sh 21건. {{SETUP_STEPS}}는 팩이 없을 때만 줄째 지우고, 팩이 있으면 모델이 pack.md로 먼저 채우게 했다(계획은 7개를 harness.json으로 채움, 이유: 셋업 스텝은 Java 버전 · 패키지 매니저를 고르는 판단이라 harness.json에 출처가 없어서). verify가 앱별이면 VERIFY_*를 건드리지 않고 exit 1, SKILL.md에 「jobs를 앱별 형태로 바꾼 뒤 다시 돌린다」 한 줄을 남겼다(계획은 표 전부를 스크립트 호출로, 이유: paths 필터 · 계약 경로가 판단이고, 빈 값으로 보고 스텝을 지우면 조용히 틀려서). BASE_BRANCH는 git.baseBranch를 직접 읽지 않고 scripts/base-branch.sh <harness.json 두 단계 위 폴더>에 맡겼다(계획은 표의 git.baseBranch → base-branch.sh, 이유: 기준 브랜치 규칙 한 곳(A4) — 그래서 harness.json 인자는 <레포>/.claude/ 자리여야 한다). 「: 」 · 「 #」 · 끝 콜론 · 앞 지시자가 든 명령은 run: 값을 따옴표로 감싼다(계획에 없음, 이유: 깨진 YAML은 워크플로째 거부돼서). fill-ci.sh에 템플릿 플레이스홀더 7개 가드 · harness-init 호출 · 표 없음 검사를 더했다(계획은 채움 · 남은 것 0 · 빈 값 exit 1, 이유: 템플릿에 플레이스홀더가 늘면 스크립트가 모르고, 표가 남으면 규칙이 두 곳이 돼서). templates/.github/workflows/ci.yml 머리 주석 · skills/harness-doctor/SKILL.md 1-b의 「harness-init §4 표」 말은 범위 밖이라 그대로 둠. bash hooks/test.sh 통과 486 · 실패 0(RED 시점 통과 467 · 실패 19)",
+      "completed_at": "2026-11-25T12:55:14+0900"
     },
     {
       "step": 7,
       "name": "trim-history-flow",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:55:14+0900",
+      "summary": "흐름 스킬 13개 SKILL.md에서 날짜 · 버전 · 「~에서 바꿨다」 이력과 배경 문장을 지우고 판단을 바꾸는 이유 한 구절만 남김(날짜 · 버전 줄 sdd-plan 6 · sdd-run 4 · sdd-review 1 · design-brief 1 · design-critique 2 · why 1 · conductor 1 · pr-write 1 · changeset 1 → 전부 0. 줄 안 괄호 · 문장만 지워 줄 수는 why 67→65 말고 그대로). 새 hooks/tests/no-history-flow.sh: 13개 파일에 `20[0-9]{2}-[0-9]{2}|[0-9]+\\.[0-9]+\\.[0-9]+` 0(파일이 없어도 실패) — step 8은 같은 틀을 나머지 파일에 쓰면 된다. pr-write 4.6: 「`확인 필요`(증명 못 한 지적, 등급 없음)는 `sdd-review` · `code-reviewer` 어느 쪽에서 나왔든 🟡로 센다 — 안 세면 심각도가 「없음」으로 잡혀 자동 머지 조건이 거짓으로 충족된다」. no-history-flow.sh에 pr-write 4.6 검사 2건(「🟡로 센다」 문장에 sdd-review · code-reviewer · 확인 필요, 붙여 쓴 확인필요 0)을 더했다(계획은 날짜 · 버전 줄만, 이유: Q10 문장이 테스트 없이 되돌아가면 자동 머지 판정이 다시 거짓 충족돼서). 이슈 번호(#8 · #9 · #10 · #11)는 남기고 같은 괄호의 버전 · 날짜만 지웠다(계획은 이력을 지움, 이유: 이유를 찾을 기록 주소라서 — why 「코드 결정이면 git log · PR · ADR부터」). conductor 「주의 · 금지」 4의 `(ADR-007 of single-conductor-2026-10-31)`는 날짜 없는 이름으로 바꾸지 않고 지웠다(이유: ADR-007이 desk-hypothesis-gate · single-conductor 두 폴더에 있어 번호만으로는 못 가리키고, 상한 규칙은 문장이 다 말해서). bash hooks/test.sh 통과 489 · 실패 0(RED 시점 통과 487 · 실패 2)",
+      "completed_at": "2026-11-25T13:06:04+0900"
     },
     {
       "step": 8,
       "name": "trim-history-rest",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T13:06:04+0900",
+      "summary": "나머지 스킬 12개 SKILL.md에서 날짜 · 버전 · 「~에서 바꿨다」 이력과 배경 문장을 지움(날짜 · 버전 줄 harness-init 2 · harness-doctor 3 · harness-gaps 1 · project-new 2 · slack-writing 4 · notion-writing 1 → 전부 0. 줄 수 harness-doctor 75→71 · slack-writing 201→191(「출처」 절) · notion-writing 101→97(「출처」 절), 나머지는 그대로. explain · no-comments · reframe · sharpen · statechart는 이력이 없어 안 고침). 새 hooks/tests/no-history-rest.sh: 12개 파일에 `20[0-9]{2}-[0-9]{2}|[0-9]+\\.[0-9]+\\.[0-9]+` 0(파일이 없어도 실패) — no-history-flow.sh와 합쳐 skills/ 25개 전부를 덮는다. harness-doctor 4번 검사의 「2026-10-12 기준 25개」는 「플러그인 `skills/`의 스킬 전부」로, 날짜 붙은 「양방향으로 두니 늘 ⚠️」는 「역방향까지 세면 init 직후부터 늘 ⚠️다」 이유 한 구절로 바꿈. harness-doctor 1-b는 「harness-init §4(`fill_ci.py`로 채우기 · 앱별 `jobs`)」를, harness-gaps §6은 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 가리킴. harness-gaps 괄호 순서 맨 앞에 「가설 원장 →」을 더했다(계획은 경로만 바꿈, 이유: 새로 가리키는 reflect.md 순서가 가설 원장부터라서). harness-init ⑤ 줄은 지우지 않고 「빈 번호 — 이 파일 · 템플릿이 ⑦~⑨를 번호로 가리켜서 당기지 않는다」로 했다(계획은 이력 지우기, 이유: 줄째 지우면 다음 사람이 번호를 당겨 templates/.claude/references/tracks.md · rules/llm-pipeline.md의 ⑧ · ⑨ 참조가 깨져서). harness-gaps observations 예시 행 날짜와 project-new degit 예시 ref는 `YYYY-MM-DD` · `vX.Y.Z` 자리표시로 했다(계획은 이력 지우기, 이유: 이력이 아니라 형식 예시라 지우면 칸 모양이 안 보이고, 실제 값은 낡아서). PStack MIT 저작권 줄(no-comments · reframe · sharpen · statechart)은 남겼다(이유: 이력이 아니라 라이선스 표시). bash hooks/test.sh 통과 490 · 실패 0(RED 시점 통과 489 · 실패 1)",
+      "completed_at": "2026-11-25T13:17:21+0900"
     },
     {
       "step": 9,
       "name": "entry-and-stage-invocation",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:17:21+0900",
+      "summary": "단계 · 슬래시 입구 11개(changeset · design-brief · design-critique · design-reconcile · harness-doctor · harness-gaps · harness-init · project-new · sdd-plan · sdd-review · sdd-run) frontmatter에 disable-model-invocation: true — 모델 호출이 열린 스킬은 자동 입구 8개만(AC auto 8). project-new description: 「새 코드 레포를 stack-kits 보일러플레이트(…)로 만들 때(\"Spring/Next로 새 레포\", \"보일러플레이트로 시작\") 쓰고, 바로 harness-init 까지 돌린다. 노트 · 문서의 프로젝트 페이지를 만드는 요청은 아니다. …」. 닫힌 스킬을 부르던 문장을 `${CLAUDE_PLUGIN_ROOT}/skills/<이름>/SKILL.md`를 읽고 따르는 꼴로: sdd 표 DESIGN · PLAN · IMPLEMENT · REVIEW · SHIP 칸과 ③ REVIEW 수정 루프 줄 · project-new §4(harness-init) · sdd-plan §5(sdd-run) · sdd-run §4(sdd-review) · design-brief §6 · design-critique §5(sdd-plan). sdd 표 위에 「단계 스킬은 경로를 읽고 그대로 따른다 — 닫혀 있어 Skill 도구로 부르면 오류, commit · pr-write는 Skill 도구」 한 줄을 더했다(계획은 부르는 문장만 경로로, 이유: 표 칸마다 「읽고 따른다」를 되풀이하지 않고 이름만 적힌 흐름 요약 줄에서도 Skill 도구를 안 쓰게). 그 줄에는 `disable-model-invocation: true` 글자를 그대로 쓰지 않았다(이유: AC grep이 본문까지 세서 sdd가 사람 전용으로 잡혀서). 다른 스킬 절을 실행하라는 문장(sdd-plan · design-critique · design-reconcile의 `design-brief` §4 · §5, commit의 changeset 판정 근거, harness-doctor §6 · sdd/references/reflect.md의 harness-gaps 승격 판정)도 경로로 바꿨다(계획은 입구가 단계 스킬을 부르는 문장, 이유: 단계 스킬 안의 그 문장도 Skill 도구로는 안 열려서). sdd-plan §5 · sdd-run §4의 「`X` 스킬로 … 안내」는 「넘어가도록 안내 — 이어서 하면 경로를 읽고 따른다(사람은 `/X`)」로 했다(이유: 사람이 「진행해」라고 하면 모델이 이어 받아서). 상대 경로 sdd-plan의 skills/sdd/references/design.md · harness-gaps의 skills/harness-gaps/scripts/weekly.sh와 함께 design-brief 닐슨 렌즈의 ../design-critique/references/nielsen-heuristics.md도 ${CLAUDE_PLUGIN_ROOT}/…로 했다(계획은 두 곳, 이유: 같은 종류의 다른 스킬 폴더 상대 경로라서). 범위 밖이라 안 고친 것: changeset description 「모델이 직접 호출」(이제 틀린 말) · skills/ 밖에서 모델에게 닫힌 스킬을 부르게 하는 hooks/cadence-reminder.sh:49 · 56(harness-doctor) · templates/.claude/README.md:9-11 · 15-16(라우팅 표) · templates/.claude/references/tracks.md:87(sdd-review). bash hooks/test.sh 통과 490 · 실패 0",
+      "completed_at": "2026-11-25T13:29:43+0900"
     },
     {
       "step": 10,
       "name": "sharpen-entry-descriptions",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:29:43+0900",
+      "summary": "자동 입구 8개(sdd · why · how · conductor · slack-writing · notion-writing · commit · pr-write) SKILL.md description을 「언제 · 무슨 말에(예시 말) → 하는 일」 순으로 바꿈(글자 수 합계 1151→1148, 발동 After는 restructure-readme step 3 몫). sdd · commit에 「코드·git을 보기 전에 먼저 부른다」(Before 미발동이 거의 다 Bash 먼저), notion-writing에 제안서 · 기획서 · 의사결정 요청과 「노션이란 말이 없어도 읽을 윗선·다른 팀이 있으면 쓴다」, commit · pr-write의 「모델이 직접 호출 가능(워크플로우 자동 전환과 정합)」은 「`sdd` ⑤ 마무리 포함」으로, how는 「코드가 어떻게 도는지 · 어느 레이어에 둘지 물을 때」로 앞만 맞춤. sdd 끝에 「단순 수정·개념 질문은 아니다」를 더했다(계획은 언제 · 무슨 말을 앞에 쓰기만, 이유: 발동 말을 넓히면 Before 0/30이던 오발동이 늘 수 있어서). slack-writing의 「배경은 끝」 · notion-writing의 「AI 티를 지우고 기계 검사를 통과시킨다」는 description에서 뺐다(계획에 없음, 이유: 발동 말을 더한 만큼 상시 비용이 늘지 않게 — 규칙은 본문에 그대로). bash hooks/test.sh 통과 490 · 실패 0",
+      "completed_at": "2026-11-25T13:37:41+0900"
+    },
+    {
+      "step": 11,
+      "name": "summary-unplanned-reason",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:37:57+0900",
+      "summary": "skills/sdd-run/scripts/preamble.md 16행(작업 규칙 6 · summary 형식 줄) 끝에 「step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다」를 더함 — 규칙 자리는 이 한 곳(ADR-016 Q9), skills/sdd-plan · skills/sdd-run/SKILL.md에는 같은 문장 0. 템플릿 자리 9개(tdd_rule · verify_cmds · task · step 등) 그대로. After 측정은 같은 정규식으로 restructure-trim · restructure-repo · restructure-readme summary를 재서 마지막 PR 보고에. bash hooks/test.sh 통과 490 · 실패 0, test_sdd_runner.py 50건 OK",
+      "completed_at": "2026-11-25T13:41:43+0900"
+    },
+    {
+      "step": 12,
+      "name": "closed-skill-callers",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:41:44+0900",
+      "summary": "닫힌 11개를 모델에게 실행시키던 곳을 경로 읽기 · 사람 슬래시로 바꿈(AC grep 11줄 → 0, auto 8 유지): hooks/cadence-reminder.sh 축 1 두 문구가 $PLUGIN_ROOT/skills/harness-doctor/SKILL.md 를 읽게(PLUGIN_ROOT=${CLAUDE_PLUGIN_ROOT:-스크립트 폴더 상위}, cd 전에 정함) · templates/.claude/README.md 라우팅 sdd-plan 두 행 · 디자인 트랙 행은 `sdd`로, harness-doctor · harness-gaps 행은 「사람이 `/…`」 · templates/.claude/references/tracks.md:87은 `sdd` ③ REVIEW 절(사람은 `/sdd-review`) · agents/code-reviewer.md:103은 「`sdd` ③ REVIEW 절대로 수정 step」 · sdd-run description은 「`sdd-plan`으로 만든 계획」 · templates/.github/workflows/ci.yml:3은 skills/harness-init/scripts/fill_ci.py. skills/sdd/SKILL.md 표 위 줄에 「경로로 읽은 단계 스킬 본문의 `CLAUDE_PLUGIN_ROOT` 변수 자리는 치환되지 않고 셸에도 없다 — `${CLAUDE_PLUGIN_ROOT}`로 바꿔 읽고 명령에도 이 값을 넣는다」(루트 추정 도구 호출 2→0 실측은 지휘 몫). changeset description은 `sdd` ⑤ 마무리와 `commit` 둘 다 이 파일을 경로로 읽는다고 했다(계획은 `sdd` 마무리에서 `commit`이 읽음, 이유: sdd 표 ⑤ 칸이 changeset 경로를 직접 읽고 commit은 대상 패키지 판정 근거로 따로 읽어서). bash hooks/test.sh 통과 490 · 실패 0, test_sdd_runner.py 50건 OK",
+      "completed_at": "2026-11-25T13:48:53+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-25T13:52:08+09:00",
+      "head": "79fb021560384b7da0e53f899c5bcbbfdc61a4d0",
+      "issues": [
+        "확인 필요(미실행): 닫힌 단계 스킬을 경로로 읽는 흐름 중 sdd → sdd-review만 실측(루트 추정 도구 호출 2→0). 디자인 트랙 · project-new → harness-init · commit → changeset은 안 돌림",
+        "확인 필요(미실행): skills/design-critique/SKILL.md:31 자기 폴더 상대 링크 references/nielsen-heuristics.md — 경로로 읽힐 때 작업 폴더 기준으로 풀릴 수 있음",
+        "🟢 description 발동 효과 미측정(restructure-readme step 3 몫)",
+        "🟢 다른 레포에 이미 깔린 templates/.claude/README.md 사본은 닫힌 이름을 그대로 가리킴(릴리스 뒤 지휘 몫)",
+        "🟢 hooks/tests/renames.sh는 날짜 · 버전 줄을 세지 않음 — skills 25개는 no-history 테스트가 막지만 agents · templates 날짜 줄은 구멍"
+      ]
     }
   ]
 }

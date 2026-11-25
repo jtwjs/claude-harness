@@ -84,7 +84,7 @@ git worktree list
 2. 소비 트랙에서 기준 브랜치를 받고 타입을 재생성한다 — 빠뜨리면 CI 계약 단계가 생성물 불일치로 실패한다
 3. 소비 쪽 typecheck — 깨지는 곳이 곧 계약이 어긋난 곳이다
 4. `harness.json` `verify` 전체(앱별이면 앱마다)
-5. 전체 브랜치 리뷰 1회(`sdd-review`, 필요하면 `code-reviewer`)
+5. 전체 브랜치 리뷰 1회 — `sdd` ③ REVIEW 절을 따른다(체크리스트 → 필요하면 `code-reviewer`). 사람이 직접 돌리면 `/sdd-review`
 
 트랙이 끝났는지는 사람이 세션을 돌며 확인하지 않는다. 지휘가 트랙마다 걸어 둔 `notify_when_idle` 알림을 보고 1~5를 시작한다(`conductor` §8).
 

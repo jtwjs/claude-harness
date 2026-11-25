@@ -1,6 +1,6 @@
 ---
 name: commit
-description: git 변경 내용을 기반으로 커밋 단위로 논리적으로 분리하고, 각 커밋에 대해 한국어 커밋 메시지를 생성해줘. sdd ⑤ 마무리(SHIP) — REFLECT 출구 조건 뒤 모델이 직접 호출 가능(워크플로우 자동 전환과 정합).
+description: 커밋을 시킬 때("커밋해줘"·"스테이징된 거 커밋해줘"·"나눠서 커밋해", `sdd` ⑤ 마무리 포함) git 상태를 보기 전에 먼저 부른다 — 변경을 논리 단위로 나눠 한국어 메시지로 커밋한다.
 disable-model-invocation: false
 ---
 
@@ -45,4 +45,4 @@ feat: 한 줄 요약
 2. **사용자 승인 뒤 실행**한다 — 단, `sdd` ⑤ 마무리에서 불렸고 REVIEW 최종 판정(체크포인트 ③)을 이미 통과했으면 그 승인이 커밋 승인을 겸하므로 다시 묻지 않고 실행한다.
 3. 실행 뒤 `git log --oneline -n <개수>`로 만들어진 커밋을 보여주고, 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄을 단다. `--no-verify`·`--amend`(사용자 요청 없이)·force 류는 쓰지 않는다.
 
-`harness.json.release.tool`이 `changesets`이고 사용자 영향 변경인데 `.changeset/*.md`가 없으면, 커밋 계획 끝에 "먼저 `/changeset`실행 필요 (예상 bump: {patch|minor|major})" 한 줄을 덧붙인다. 대상 패키지 판정 근거는`changeset` 스킬을 따른다.
+`harness.json.release.tool`이 `changesets`이고 사용자 영향 변경인데 `.changeset/*.md`가 없으면, 커밋 계획 끝에 "먼저 `/changeset`실행 필요 (예상 bump: {patch|minor|major})" 한 줄을 덧붙인다. 대상 패키지 판정 근거는 `${CLAUDE_PLUGIN_ROOT}/skills/changeset/SKILL.md`를 따른다.

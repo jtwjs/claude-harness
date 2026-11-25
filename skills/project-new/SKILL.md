@@ -1,7 +1,8 @@
 ---
 name: project-new
-description: 새 프로젝트를 stack-kits 보일러플레이트(kotlin-spring·nextjs·fullstack 등)로 만들고 바로 harness-init 까지 돌린다. "새 프로젝트 만들어줘", "Spring/Next 보일러플레이트로 시작"일 때 쓴다. 기존 레포에 하네스만 깔 때는 harness-init 을 쓴다.
+description: 새 코드 레포를 stack-kits 보일러플레이트(kotlin-spring·nextjs·fullstack 등)로 만들 때("Spring/Next로 새 레포", "보일러플레이트로 시작") 쓰고, 바로 harness-init 까지 돌린다. 노트 · 문서의 프로젝트 페이지를 만드는 요청은 아니다. 기존 레포에 하네스만 깔 때는 harness-init 을 쓴다.
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
+disable-model-invocation: true
 ---
 
 코드 뼈대는 `jtwjs/stack-kits`, AI 환경은 이 플러그인의 스택 팩이 정본이다. 이 스킬은 둘을 잇기만 한다.
@@ -11,7 +12,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 - kit 목록은 **레포에서 읽는다** — 기억으로 적지 않는다: `gh api repos/jtwjs/stack-kits/contents --jq '.[] | select(.type=="dir" and (.name|startswith(".")|not)) | .name'`
 - 고정할 ref(태그)도 레포에서 읽는다: `gh api repos/jtwjs/stack-kits/tags --jq '.[].name'`. 최신 태그를 제안하고, 태그가 없으면 그 사실을 보고하고 묻는다(브랜치 이름으로 대신하지 않는다)
 - 사용자에게 kit · ref · 대상 경로를 묻는다. 대상 경로가 이미 있고 비어 있지 않으면 **멈춘다**(덮어쓰지 않는다). 대상 경로나 그 상위에 이미 `.git`이 있으면(`git -C <상위> rev-parse` 성공) 역시 **멈추고** 묻는다.
-- ⚠️ **web + server 는 `fullstack` kit 하나로 받는다.** 단일 kit 두 개(예: `nextjs` + `kotlin-spring`)를 한 폴더에 겹쳐 받지 않는다 — §2 가 kit 마다 `git init`을 해 레포 안에 레포가 생긴다(2026-09-29 실측).
+- ⚠️ **web + server 는 `fullstack` kit 하나로 받는다.** 단일 kit 두 개(예: `nextjs` + `kotlin-spring`)를 한 폴더에 겹쳐 받지 않는다 — §2 가 kit 마다 `git init`을 해 레포 안에 레포가 생긴다.
 
 | kit | 모양 | 팩 |
 |---|---|---|
@@ -23,7 +24,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ## 2. 복사
 
 ```bash
-npx --yes degit jtwjs/stack-kits/<kit>#<ref> <대상 경로>    # ref 고정 — 예: jtwjs/stack-kits/fullstack#v0.2.1
+npx --yes degit jtwjs/stack-kits/<kit>#<ref> <대상 경로>    # ref 고정 — 예: jtwjs/stack-kits/fullstack#vX.Y.Z
 cd <대상 경로> && git init -q
 ```
 
@@ -37,7 +38,7 @@ cd <대상 경로> && git init -q
 
 ## 4. 하네스
 
-`harness-init`을 이어서 돈다. 스택 판정은 빌드 파일로 하므로 kit과 팩이 자연히 맞는다. `CLAUDE.md`가 이미 있으면(nextjs의 `@AGENTS.md` 한 줄) 덮지 말고 그 줄을 보존한 채 위에 쓴다.
+`${CLAUDE_PLUGIN_ROOT}/skills/harness-init/SKILL.md`를 읽고 그대로 이어서 돈다. 스택 판정은 빌드 파일로 하므로 kit과 팩이 자연히 맞는다. `CLAUDE.md`가 이미 있으면(nextjs의 `@AGENTS.md` 한 줄) 덮지 말고 그 줄을 보존한 채 위에 쓴다.
 
 - `stacks.kitRef` ← §2의 값
 - `fullstack`이면 결과가 이렇게 나와야 한다. 다르면 판정을 다시 보고 보고한다:

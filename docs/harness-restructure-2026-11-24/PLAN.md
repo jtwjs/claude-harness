@@ -13,7 +13,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 | 2b | `restructure-principle-lever` | `restructure-principles` | build-the-lever 원칙 | D-lever | 1 |
 | 3 | `restructure-gate-summary` | `restructure-principle-lever` | 이해 게이트 걷기 · 세 줄 요약 · 보고 형식 | D-gate · D-요약 · D13 recall 출력 계약 · 결함 pr-write:196 | 4 |
 | 4 | `restructure-absorb` | `restructure-gate-summary` | 흡수 스킬 · 규칙 | D6 · D7 · D8 · D9 · D10 · D13 · Q2 | 11 |
-| 5 | `restructure-trim` | `restructure-absorb` | 쪼개기 · 이력 걷기 · 입구 정리 | D0 · REVIEW §2-3 · 결함 2건 · Q1 · Q2 | 10 |
+| 5 | `restructure-trim` | `restructure-absorb` | 쪼개기 · 이력 걷기 · 입구 정리 | D0 · REVIEW §2-3 · 결함 2건 · Q1 · Q2 | 12 |
 | 6 | `restructure-repo` | `restructure-trim` | 레포 구성 · CI · 훅 기록 | REVIEW §3(R1 · R5 · R6 · R7 · R9 · R11) · D11 | 8 |
 | 7 | `restructure-readme` | `restructure-repo` | README · After 측정 | REVIEW R2 · D1 doctor 검사 · 결함 2건 | 3 |
 
@@ -31,6 +31,9 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 
 - Q7: ADR-016으로 지우기로 정한 동작(`learn-setup` 훅)을 검사하던 기존 케이스만 `hooks/test.sh`에서 지운다(ADR-016 「대가」). 지우는 곳은 `restructure-gate-summary` step 3에 이름 · 줄로 적었다.
 - Q8: 지휘는 트랙 보고의 세 줄 요약 · 학습 카드를 사용자 보고에 그대로 싣는다(요약 · 재해석하지 않음). 카드는 사용자의 개인 기록 자리가 있으면 거기에도 붙이고, 「내 한 줄」은 사용자만 쓴다. `restructure-absorb` step 12(사용자 결정, 지휘 경유)
+- Q9: step 기록(summary)에 계획에 없던 선택은 이유 한 구절(「…로 했다(계획은 X, 이유: Y)」), 계획대로 한 것은 안 적는다. 자리는 러너 지시문 한 곳. Before 10/57(PR 4 step 11 정규식 추정) → After는 PR 5~7 step에서 같은 정규식으로. `restructure-trim` step 11(사용자 · 지휘 추천 수용)
+- Q10: `pr-write` 4.6이 `sdd-review` · `code-reviewer`의 「확인 필요」를 모두 🟡로 센다. `restructure-trim` step 7에 한 줄(사용자 · AI 추천 수용)
+- step 9 뒤: 닫힌 단계 스킬 11개를 모델에게 이름으로 부르게 하는 곳(훅 · 템플릿 · 에이전트 · description)을 경로 읽기 · 사람 `/이름`으로. 경로로 읽은 단계 스킬 안의 플러그인 루트 변수 처리 한 구절. `restructure-trim` step 12(D0 뒷정리, 지휘 이견 없음)
 
 ## step 목록
 
@@ -102,6 +105,8 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 | 8 | `trim-history-rest` | true | `skills/{harness-init,harness-doctor,harness-gaps,harness-score,project-new,slack-writing,notion-writing,explain,no-comments,reframe,sharpen,statechart}/SKILL.md` · 새 `hooks/tests/no-history-rest.sh` |
 | 9 | `entry-and-stage-invocation` | false | ARCHITECTURE §2의 단계 · 슬래시 입구 스킬 `SKILL.md` frontmatter |
 | 10 | `sharpen-entry-descriptions` | false | 자동 입구 8개 `SKILL.md`의 `description` |
+| 11 | `summary-unplanned-reason` | false | `skills/sdd-run/scripts/preamble.md` |
+| 12 | `closed-skill-callers` | false | `hooks/cadence-reminder.sh` · `templates/.claude/README.md` · `templates/.claude/references/tracks.md` · `templates/.github/workflows/ci.yml` · `agents/code-reviewer.md` · `skills/{sdd,changeset,sdd-run}/SKILL.md` |
 
 ### PR 6 `restructure-repo` — 레포 구성 · CI · 훅 기록
 

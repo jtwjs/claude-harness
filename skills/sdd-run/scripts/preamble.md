@@ -13,7 +13,7 @@ $done_steps$retry
 $tdd_rule
 5. 끝나기 전에 검증 명령을 직접 실행한다: $verify_cmds
 6. `phases/$task/index.json` 의 step $step 을 갱신한다. **이 파일은 커밋하지 않는다**(러너가 커밋한다):
-   - 검증 통과 → `"status": "completed"` + `"summary"`: 다음 step 에 넘길 산출물 한 줄(만든 파일·핵심 결정)
+   - 검증 통과 → `"status": "completed"` + `"summary"`: 다음 step 에 넘길 산출물 한 줄(만든 파일·핵심 결정). step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다
    - 고쳐도 실패 → `"status": "error"` + `"error_message"`: 무엇이 왜 실패했는지
    - 사람이 해야 하는 일(API 키·외부 인증·수동 설정) → `"status": "blocked"` + `"blocked_reason"` 후 즉시 멈춘다
 7. 금지: `git push` · `--no-verify` 등 훅 우회 · 요청 범위 밖 수정 · 테스트를 통과시키려고 테스트를 고치는 것.
