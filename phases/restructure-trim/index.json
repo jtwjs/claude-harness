@@ -108,8 +108,11 @@
     {
       "step": 12,
       "name": "closed-skill-callers",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T13:41:44+0900",
+      "summary": "닫힌 11개를 모델에게 실행시키던 곳을 경로 읽기 · 사람 슬래시로 바꿈(AC grep 11줄 → 0, auto 8 유지): hooks/cadence-reminder.sh 축 1 두 문구가 $PLUGIN_ROOT/skills/harness-doctor/SKILL.md 를 읽게(PLUGIN_ROOT=${CLAUDE_PLUGIN_ROOT:-스크립트 폴더 상위}, cd 전에 정함) · templates/.claude/README.md 라우팅 sdd-plan 두 행 · 디자인 트랙 행은 `sdd`로, harness-doctor · harness-gaps 행은 「사람이 `/…`」 · templates/.claude/references/tracks.md:87은 `sdd` ③ REVIEW 절(사람은 `/sdd-review`) · agents/code-reviewer.md:103은 「`sdd` ③ REVIEW 절대로 수정 step」 · sdd-run description은 「`sdd-plan`으로 만든 계획」 · templates/.github/workflows/ci.yml:3은 skills/harness-init/scripts/fill_ci.py. skills/sdd/SKILL.md 표 위 줄에 「경로로 읽은 단계 스킬 본문의 `CLAUDE_PLUGIN_ROOT` 변수 자리는 치환되지 않고 셸에도 없다 — `${CLAUDE_PLUGIN_ROOT}`로 바꿔 읽고 명령에도 이 값을 넣는다」(루트 추정 도구 호출 2→0 실측은 지휘 몫). changeset description은 `sdd` ⑤ 마무리와 `commit` 둘 다 이 파일을 경로로 읽는다고 했다(계획은 `sdd` 마무리에서 `commit`이 읽음, 이유: sdd 표 ⑤ 칸이 changeset 경로를 직접 읽고 commit은 대상 패키지 판정 근거로 따로 읽어서). bash hooks/test.sh 통과 490 · 실패 0, test_sdd_runner.py 50건 OK",
+      "completed_at": "2026-11-25T13:48:53+0900"
     }
   ]
 }
