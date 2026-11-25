@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 하네스 릴리스 — push → 마켓플레이스 갱신 → 플러그인 갱신 → 실제 반영 확인. 끝나면 gh 계정을 되돌린다.
+# 하네스 릴리스 — push → 마켓플레이스 갱신 → 플러그인 갱신 → 실제 반영 확인 → 상시 비용 표 한 줄 제안. 끝나면 gh 계정을 되돌린다.
 #
 # 왜 스크립트인가 (2026-10-11):
 #   이 레포는 jtwjs 계정 private 이다. 평소 active 계정(회사)으로 push 하면 404, 마켓플레이스 갱신은
@@ -20,6 +20,21 @@ RELEASE_GH_USER="${RELEASE_GH_USER:-jtwjs}"
 die() { printf '✗ %s\n' "$*" >&2; exit 1; }
 step() { printf '\n▶ %s\n' "$*"; }
 run() { if [ "$DRY" = 1 ]; then printf '  (dry-run) %s\n' "$*"; else "$@"; fi; }
+# 설치본 Always-on 을 읽어 design-notes §3 표에 넣을 한 줄을 제안만 한다 — 읽기 전용, 파일은 고치지 않는다
+always_on() {
+  step "상시 비용"
+  command -v claude >/dev/null 2>&1 || { printf '  claude 없음 — 상시 비용 출력 건너뜀\n'; return 0; }
+  local d v tok s a per
+  d="$(claude plugin details "$PLUGIN@$MARKETPLACE" 2>&1)" || { printf '  claude plugin details 실패 — 상시 비용 출력 건너뜀\n'; return 0; }
+  v="$(printf '%s\n' "$d" | awk -v p="$PLUGIN" '$1==p{print $2; exit}')"
+  tok="$(printf '%s\n' "$d" | awk '$1=="Always-on:"{sub(/^~/,"",$2); print $2; exit}')"
+  s="$(printf '%s\n' "$d" | awk '$1=="Skills"{gsub(/[()]/,"",$2); print $2; exit}')"
+  a="$(printf '%s\n' "$d" | awk '$1=="Agents"{gsub(/[()]/,"",$2); print $2; exit}')"
+  [ -n "$tok" ] || { printf '  Always-on 줄을 못 찾음 — 상시 비용 출력 건너뜀\n'; return 0; }
+  per="$(awk -v t="${tok//,/}" -v n="$(( ${s:-0} + ${a:-0} ))" 'BEGIN{if(n>0)printf "%.1f",t/n; else printf "?"}')"
+  printf '  Always-on ~%s tok · 스킬 %s + 에이전트 %s (설치본 %s)\n' "$tok" "${s:-?}" "${a:-?}" "${v:-?}"
+  printf '  design-notes §3 표에 넣을 줄(직접 붙인다):\n  | %s | %s + %s | %s | %s |\n' "${v:-?}" "${s:-?}" "${a:-?}" "$tok" "$per"
+}
 
 # ── 0. 사전 확인 — 하나라도 어긋나면 아무것도 바꾸기 전에 멈춘다 ─────────────
 step "사전 확인"
@@ -62,6 +77,7 @@ run claude plugin update "$PLUGIN@$MARKETPLACE"
 step "반영 확인"
 if [ "$DRY" = 1 ]; then
   printf '  (dry-run) claude plugin details %s@%s → "%s %s" · Skills (%s) 기대\n' "$PLUGIN" "$MARKETPLACE" "$PLUGIN" "$ver" "$skills"
+  always_on
   exit 0
 fi
 details="$(claude plugin details "$PLUGIN@$MARKETPLACE" 2>&1)"
@@ -70,3 +86,6 @@ got_skills="$(printf '%s\n' "$details" | sed -n 's/.*Skills (\([0-9]*\)).*/\1/p'
 [ "$got_ver" = "$ver" ] || die "설치본 버전 $got_ver ≠ $ver — 가짜 갱신일 수 있다. 다음 버전 번호는 $got_ver 와 겹치지 않게"
 [ "$got_skills" = "$skills" ] || die "설치본 스킬 ${got_skills}개 ≠ 레포 ${skills}개"
 printf '  ✓ 설치본 %s · 스킬 %s개. 새 세션부터 적용된다\n' "$got_ver" "$got_skills"
+
+# ── 6. 상시 비용 — 반영 확인 뒤에 재야 새 버전의 값이다 ─────────────────────
+always_on
