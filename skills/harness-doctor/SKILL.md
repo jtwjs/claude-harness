@@ -49,6 +49,8 @@ disable-model-invocation: true
 
 **교차 확인**: `claude plugin details <plugin>`의 `Always-on` 값도 함께 보고한다. **컴포넌트당 ≤180토큰**(`docs/design-notes.md` §3)을 넘으면 ⚠️ — 넘긴 컴포넌트를 `always-on` 내림차순 상위부터 지목한다. always-on을 키우는 것은 본문이 아니라 **`description` 길이**뿐이므로, 지목 대상은 description이다.
 
+그 옆에 모델이 실제로 보는 양도 같이 찍는다 — 플러그인 레포면 `python3 scripts/always-on.py <플러그인 루트>`(자동 입구 스킬 + 에이전트 description 글자 수 · 컴포넌트별 큰 순). details 값은 `disable-model-invocation` 스킬도 세므로 둘을 나란히 적고, details 값을 지우지 않는다.
+
 ## 6. 반복 계수 (`harness-gaps`)
 
 `.claude/observations.md`를 열고 **3회에 닿은 행**이 있으면 승격 판정을 `${CLAUDE_PLUGIN_ROOT}/skills/harness-gaps/SKILL.md`대로 같이 돈다. 파일이 없으면 "아직 안 셌다"로 **보고만** 한다 — 만드는 것은 `harness-gaps` 몫이다(이 스킬에는 Write가 없다).

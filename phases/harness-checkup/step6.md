@@ -15,7 +15,8 @@
 - 레포 밖: main clone의 `.git/info/exclude`에서 `.claude/harness.json` 줄을 뺀다(커밋 대상 아님 — summary에 적는다)
 
 - 처음에 뺀 이유는 git 기록에 없다(exclude 파일은 추적되지 않는다). 이 사실을 summary에 한 줄
-- 커밋하는 harness.json에 `git.branchPattern`을 넣지 않는다(worktree 사본에만 있던 값). main clone 사본과 같은 내용으로
+- 커밋하는 harness.json은 main clone 사본에 `"git.branchPattern": "feature/{task}"`를 더한 내용으로 한다. 이유: 러너(`sdd_runner.py` `start`)는 branchPattern이 없으면 `feat-{task}`로 옮기고, 지금 브랜치를 그대로 쓰는 분기는 branchPattern이 있을 때만 탄다 — 빼고 커밋하면 지우는 규칙(2번)의 함정이 되살아난다(지휘 판정, ADR-018 B-17의 목적)
+- 확인: `feature/*` worktree에서는 지금 브랜치를 그대로 쓰고, main에서 `start`하면 `feature/{task}`를 새로 만든다 — 임시 레포에서 한 번씩 돌려 summary에 적는다(러너 테스트 파일은 #52와 겹쳐 고치지 않는다)
 - non-obvious-patterns 2번(「worktree에는 harness.json이 없다 · 복사한다」)을 지운다. 파일에 항목이 하나도 안 남으면 제목만 둔다
 - tdd: false — 설정 파일 추적과 규칙 한 줄 삭제다
 

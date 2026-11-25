@@ -7,45 +7,66 @@
     {
       "step": 1,
       "name": "answer-key-0-41",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T19:51:16+0900",
+      "summary": "trigger-eval/evals.json 정답 3문항을 자동 입구 기준으로 바꿈(sdd#11·#12 → sdd, notion-writing#13, 이유는 같은 폴더 README 표) · 재채점은 trigger-eval/rescore.py <결과.json> evals.json. 0.41.0 After 96.7%(464/480, 오발동 0 · 미발동 16: sdd#1·#12, how#3, notion-writing#7, why#7, slack-writing#2), Before 90.0%(378/420) → 설명 좁히기 후보 오발동 없음. README 스킬 수 7→8 정정도 했다(계획은 정답 표만, 이유: how 가 이미 evals.json 에 있어 문서가 틀려 있었음)",
+      "completed_at": "2026-11-25T19:56:54+0900"
     },
     {
       "step": 2,
       "name": "always-on-chars",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T19:56:54+0900",
+      "summary": "scripts/always-on.py <플러그인 루트> — 자동 입구 스킬 + 에이전트 description 글자 수(따옴표 벗긴 값, 탭 구분: kind·이름·글자수 큰 순 + `total 합계 skills=N agents=M`). doctor §5 · release.sh always_on()에 details 값 옆 한 줄 추가. 설치본 0.40.0 3,957자 · 0.41.0 2,219자(레포도 2,219) — ADR B-16 값(3,969 · 2,234)과 차이는 정확히 에이전트 수 × 3(4×3·5×3): 따옴표 2자 + 1자를 더 센 셈법 차이로 추정(따옴표 포함 원문은 3,965 · 2,229). release.sh 는 설치본 캐시 폴더를 재고 없으면 레포를 잰다",
+      "completed_at": "2026-11-25T20:05:28+0900"
     },
     {
       "step": 3,
       "name": "hook-log-all",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T20:05:29+0900",
+      "summary": "훅 8개(auto-format · block-dangerous-bash · tdd-guard · prod-db-check · cadence-reminder · weekly-readiness-check · conductor-context · hypothesis-gate)도 hooks/lib/hook-log.sh hook_log_on_exit 로 끝나는 모든 경로에서 ~/.claude/harness-hook-log.tsv 에 한 줄 — 막음 blocked · 확인 ask · 알림 warn/shown · 그 밖은 건너뜀 이름(norepo·nocfg·ignore 등), 테스트 hooks/tests/hook-log-all.sh. hypothesis-gate 는 append 실패를 직접 못 보므로 실패할 조건(ledger.py 없음 · 원장 못 씀)을 ledgerfail 로 남기게 했다(계획은 쓰기 실패 기록, 이유: append 는 모델이 나중에 불러 훅이 결과를 못 봄). 회전 미구현 — 1주 실측 뒤: `wc -c ~/.claude/harness-hook-log.tsv` · `wc -l` 를 머지일과 7일 뒤 두 번(계획은 blocked, 이유: 지휘 지시로 completed 두고 러너 진행). 일찍 끝나는 경로 20회 평균 ms 전→후: auto-format 11.7→17.6 · tdd-guard 11.4→17.2 · prod-db-check 14.0→19.1 · cadence 18.2→22.3 · weekly 18.8→22.6 · conductor 49.1→51.4 · hypothesis-gate 105.2→99.9 · block-dangerous-bash(git status 통과) 179.9→171.0",
+      "completed_at": "2026-11-25T20:20:27+0900"
     },
     {
       "step": 4,
       "name": "version-drift-notice",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T20:20:27+0900",
+      "summary": "hooks/cadence-reminder.sh 가 SessionStart(세션마다 1회, stamp 없음)에 레포 .claude/harness.json harness.version ≠ ${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json version 이면 「하네스 <레포> → <설치본>, /harness-init 업그레이드 모드」 한 줄(기존 권고와 같은 JSON 한 줄에 합침), 테스트 hooks/tests/version-drift.sh. 레포 값이 비었거나 없으면 · 둘 중 하나를 못 읽으면 알리지 않는다. 기록 결과는 버전 알림만이면 drift, 기존 권고와 같이 나오면 warn 그대로 두고 상세에 「drift a→b」를 붙였다(결과 이름이 하나뿐이라). 레드 커밋은 구현 커밋 전에 한 번 고쳐 다시 올렸다(계획은 레드 커밋 그대로, 이유: 「$_vd_line」 이 bash 3.2 에서 변수 이름에 붙어 set -u 로 통과 경로에서만 죽음 — 고친 뒤 RED 600/4 재확인)",
+      "completed_at": "2026-11-25T20:33:39+0900"
     },
     {
       "step": 5,
       "name": "hooks-quiet-without-harness",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T21:06:35+0900",
+      "summary": "사용자 허용: gate-hook.sh 기대값 뒤집기(B-3) — 단정 23→24(repo1·repo2에 .claude/harness.json, git 밖 → 0줄·exit 0 로 뒤집음, 하네스 없는 git 레포 → 0줄 추가). hooks/hypothesis-gate.sh 가 nopython 확인 뒤 git rev-parse --show-toplevel 루트에 .claude/harness.json 이 없고 python3 lib/conductor.py is-seat $PWD 도 아니면 무출력 exit 0, 기록 결과 noharness(기존 nopython·off·on·ledgerfail·출력 그대로). 테스트 hooks/tests/quiet-without-harness.sh — hypothesis-gate 하네스 레포·하위 폴더·지휘 자리 → 판정 지시, 하네스 없는 git 레포·git 밖·지휘 설정 없는 seat → 0줄, conductor-context 지휘 자리에서만, block-dangerous-bash 하네스 없는 폴더·git 밖에서도 deny 패턴 exit 2. RED 613/6 → GREEN 619/0",
+      "completed_at": "2026-11-25T21:17:22+0900"
     },
     {
       "step": 6,
       "name": "commit-harness-json",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T21:17:22+0900",
+      "summary": ".claude/harness.json 추적 시작(main clone 사본 + git.branchPattern \"feature/{task}\") · .claude/rules/non-obvious-patterns.md 는 항목이 없어져 제목만 남김 · 레포 밖: main clone .git/info/exclude 에서 `.claude/harness.json` 줄 삭제(커밋 대상 아님). 처음에 exclude 로 뺀 이유는 git 기록에 없다(exclude 파일은 추적되지 않음). 러너 확인(임시 레포, 설치본 0.41.0 sdd_runner.py start demo — start 는 git 만 부르고 claude 는 안 부름을 코드로 확인 뒤 실행): feature/other 에서 → feature/other 그대로 · main 에서 → feature/demo 새로 만듦. 본문과 다르게 한 이유: 러너 231~248행(branchPattern 없으면 feat-{task}, 현재 브랜치 유지 분기는 branchPattern 있을 때만). 검증 bash hooks/test.sh 통과 619 · 실패 0",
+      "completed_at": "2026-11-25T21:22:42+0900"
     },
     {
       "step": 7,
       "name": "emphasis-triage",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-25T21:02:49+0900",
+      "summary": "강조어: `git grep -nE 'CRITICAL|반드시|MUST|절대|NEVER|ALWAYS' -- skills agents templates` → 39줄. [훅·deny 3] sdd-review/SKILL.md:29(--no-verify — 이미 hooks/deny-patterns.yaml commit-no-verify가 막음 → 템플릿 permissions.deny로 옮길 후보) · harness-init/SKILL.md:106(rules/ paths: frontmatter — 기계 검사 후보, deny 아님) · sdd-plan/SKILL.md:65(index.json docs 필드 — 러너 검사 후보, deny 아님). [평문 14] agents/code-reviewer.md:9 · agents/feature-builder.md:60 · agents/root-cause-debugger.md:62 · skills/commit/SKILL.md:22 · skills/conductor/SKILL.md:48 · skills/conductor/references/doorbell.md:20 · skills/harness-score/SKILL.md:9,66 · skills/notion-writing/SKILL.md:18 · skills/slack-writing/SKILL.md:18 · skills/sdd-plan/SKILL.md:31 · templates/.claude/harness.json:29 · skills/sdd-run/scripts/sdd_runner.py:296,298(재시도 프롬프트 문자열). [그대로 22] 섹션 이름 「🔴 CRITICAL」을 가리킴 11: agents/code-reviewer.md:17 · agents/root-cause-debugger.md:31 · skills/harness-init/SKILL.md:69,83 · skills/sdd-plan/SKILL.md:34,87 · skills/sdd-review/SKILL.md:3,37 · skills/sdd/references/reflect.md:39 · templates/CLAUDE.md.tmpl:5,7(이름을 바꾸면 위 참조가 같이 깨짐) / `MUST KILL` 표시 라벨 8: agents/comment-hunter.md:3,20,29,30,31,40 · skills/no-comments/SKILL.md:19,21 / 오탐(「절(節)대로」) 2: agents/code-reviewer.md:103 · skills/conductor/SKILL.md:24 / 탐지 정규식 1: skills/harness-score/scripts/score.py:46. references(`cat -n templates/.claude/references/*.md`, 문단별 「코드로 아나 / 판단 바꾸나」): implementation-patterns.md 3·156-159 유지(판단 바꿈), §1~6(9-152) 코드로는 모르나 일반 FP 지식 → 유지하되 기본 모델과 겹침은 A 변형으로 재기 · tracks.md 덜기 후보 = 5(원형 출처 설명, 판단 안 바꿈) · 37-41,44(일반 git worktree 명령 — 코드·문서로 앎), 나머지(9-31·35·43·45·51-53·57-64·68-95) 유지(소유 규칙·함정·절차) · track-brief.md 덜기 후보 = 45-52(tracks.md §1과 중복 → 참조로) · 39(34와 같은 말), 나머지 유지(양식·금지). 검증 `bash hooks/test.sh` → 통과 604 · 실패 0.",
+      "completed_at": "2026-11-25T21:06:26+0900"
     },
     {
       "step": 8,

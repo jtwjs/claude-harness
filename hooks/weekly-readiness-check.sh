@@ -16,28 +16,30 @@
 # 레포에 쓰는 것: .claude/reports/<날짜>/ai-readiness-score.json 뿐이다. .claude/reports/ 는 .git/info/exclude 에도 넣어
 #   gitignore 가 없는 옛 레포에서도 git status 에 뜨지 않게 한다. 권고·확인 기록은 레포 밖(HINT_DIR).
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit weekly-readiness-check   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
 cat >/dev/null 2>&1 || true   # hook 입력(JSON) 소비
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"          # 🔴 채점기는 '플러그인'에, 리포트는 '프로젝트'에
-command -v git >/dev/null 2>&1 || exit 0
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -n "$REPO_ROOT" ] || exit 0
-[ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
+command -v git >/dev/null 2>&1 || { HOOK_RESULT=nogit; exit 0; }
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=norepo; exit 0; }
+[ -n "$REPO_ROOT" ] || { HOOK_RESULT=norepo; exit 0; }
+[ -f "$REPO_ROOT/.claude/harness.json" ] || { HOOK_RESULT=nocfg; exit 0; }
 # 본 레포(메인 워크트리) 기준으로 잰다 — 워크트리마다 재면 새 워크트리 첫 세션마다 채점이 돌고,
 # 리포트가 워크트리와 함께 지워져 하락 비교가 쌓이지 않는다(2026-10-11 리뷰).
 COMMON="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
 case "$COMMON" in */.git) [ -d "${COMMON%/.git}" ] && REPO_ROOT="${COMMON%/.git}" ;; esac
-cd "$REPO_ROOT" 2>/dev/null || exit 0
-command -v python3 >/dev/null 2>&1 || exit 0
+cd "$REPO_ROOT" 2>/dev/null || { HOOK_RESULT=norepo HOOK_DETAIL="cd 실패"; exit 0; }
+command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
 
 SCORER="$PLUGIN_ROOT/skills/harness-score/scripts/score.py"
-[ -f "$SCORER" ] || exit 0
+[ -f "$SCORER" ] || { HOOK_RESULT=noscorer; exit 0; }
 OUT_DIR=".claude/reports"
 DATE="$(date +%F)"
 GAP_DAYS=14
 # shellcheck source=lib/active-repo.sh
-. "$SCRIPT_DIR/lib/active-repo.sh" 2>/dev/null || exit 0
+. "$SCRIPT_DIR/lib/active-repo.sh" 2>/dev/null || { HOOK_RESULT=nolib; exit 0; }
 HINT_DIR="${CLAUDE_SKILL_HINTS_DIR:-$HOME/.claude/skill-hints}"
 HINT_KEY="$(printf '%s' "$REPO_ROOT" | tr '/' '-')"
 HINT_FILE="$HINT_DIR/$HINT_KEY.readiness"
@@ -70,6 +72,7 @@ else:
 PY
 )"
 msg=""
+HOOK_RESULT=clean
 case "$cmp_line" in
   drop*)
     IFS=$'\t' read -r _ rdate before after fell <<<"$cmp_line"
@@ -98,7 +101,8 @@ if active_repo "$REPO_ROOT"; then
   fi
 fi
 if [ "$due" = 1 ] && [ ! -d "$OUT_DIR/$DATE" ]; then   # 같은 날 두 번 띄우지 않는다(백그라운드 채점 중일 수 있다)
-  mkdir -p "$OUT_DIR/$DATE" 2>/dev/null || exit 0
+  mkdir -p "$OUT_DIR/$DATE" 2>/dev/null || { HOOK_RESULT=clean HOOK_DETAIL="리포트 폴더 못 만듦"; exit 0; }
+  HOOK_RESULT=scoring
   run() {
     # score.py 인자는 repo · --json · --markdown · --quiet 뿐이다. 실패하면 빈 날짜 폴더를 지운다(채점했다고 믿지 않게).
     python3 "$SCORER" "$REPO_ROOT" --quiet --json "$OUT_DIR/$DATE/ai-readiness-score.json" >/dev/null 2>&1 \
@@ -107,5 +111,10 @@ if [ "$due" = 1 ] && [ ! -d "$OUT_DIR/$DATE" ]; then   # 같은 날 두 번 띄�
   if [ -n "${CLAUDE_READINESS_SYNC:-}" ]; then run; else ( run & ) >/dev/null 2>&1; fi   # 테스트만 동기 실행
 fi
 
+# 알림이 채점 시작보다 앞선다 — 같은 세션이면 warn 에 채점 시작을 상세로
+if [ -n "$msg" ]; then
+  [ "$HOOK_RESULT" = scoring ] && HOOK_DETAIL="채점 시작"
+  HOOK_RESULT=warn HOOK_DETAIL="${before:-}→${after:-}${HOOK_DETAIL:+ · $HOOK_DETAIL}"
+fi
 [ -n "$msg" ] && printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$msg"
 exit 0

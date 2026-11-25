@@ -33,6 +33,10 @@ always_on() {
   [ -n "$tok" ] || { printf '  Always-on 줄을 못 찾음 — 상시 비용 출력 건너뜀\n'; return 0; }
   per="$(awk -v t="${tok//,/}" -v n="$(( ${s:-0} + ${a:-0} ))" 'BEGIN{if(n>0)printf "%.1f",t/n; else printf "?"}')"
   printf '  Always-on ~%s tok · 스킬 %s + 에이전트 %s (설치본 %s)\n' "$tok" "${s:-?}" "${a:-?}" "${v:-?}"
+  local idir="$HOME/.claude/plugins/cache/$MARKETPLACE/$PLUGIN/${v:-?}" chars
+  [ -d "$idir" ] || idir="."   # 설치본 폴더가 없으면 레포를 잰다
+  chars="$(python3 scripts/always-on.py "$idir" 2>/dev/null | awk -F'\t' '$1=="total"{print $2" 자 · "$3}')"
+  printf '  모델이 보는 설명 %s (자동 입구 스킬 + 에이전트 description, scripts/always-on.py %s)\n' "${chars:-? (always-on.py 실패)}" "$idir"
   printf '  design-notes §3 표에 넣을 줄(직접 붙인다):\n  | %s | %s + %s | %s | %s |\n' "${v:-?}" "${s:-?}" "${a:-?}" "$tok" "$per"
 }
 

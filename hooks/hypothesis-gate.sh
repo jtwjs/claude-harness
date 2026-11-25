@@ -2,10 +2,18 @@
 # hypothesis-gate — UserPromptSubmit. 프롬프트마다 판정 지시를 모델 컨텍스트에 넣고,
 #   재요구 상태(ledger.py state)가 on 일 때만 가설 요구 한 줄을 더한다 (ADR-001·002·005).
 # 원장은 읽기만 한다(쓰기는 모델 → ledger.py append). 어떤 실패에도 exit 0, 프롬프트를 막지 않는다.
-# 모든 레포에서 돈다(하네스 유무를 보지 않음). 칸 의미·skip 기준 정본은 docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md.
+# 하네스 레포(git 루트에 .claude/harness.json)와 지휘 자리(lib/conductor.py is-seat)에서만 돈다. 그 밖 · git 밖은 무출력 exit 0(ADR-018 B-3).
+# 칸 의미·skip 기준 정본은 docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md.
 HERE="$(cd "$(dirname "$0")" && pwd)"
+. "$HERE/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit hypothesis-gate   # 끝나는 모든 경로에서 기록 한 줄 — off · on · ledgerfail · noharness
 cat >/dev/null 2>&1   # 훅 입력(프롬프트 원문)은 쓰지 않는다
-command -v python3 >/dev/null 2>&1 || exit 0
+command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
+# 하네스 레포도 지휘 자리도 아니면 조용히 빠진다 — 원장 안내를 내지 않아 원장도 쌓이지 않는다
+_top="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$_top" ] || [ ! -f "$_top/.claude/harness.json" ]; then
+  python3 "$HERE/lib/conductor.py" is-seat "$PWD" >/dev/null 2>&1 || { REPO_ROOT="${_top:-$PWD}"; HOOK_RESULT=noharness; exit 0; }
+fi
 
 # repo = git toplevel 이름, task = 미완료 step 이 있는 phases/*/index.json 의 폴더 이름(없으면 null)
 ident="$(python3 - <<'PY' 2>/dev/null
@@ -46,8 +54,24 @@ PY
 )"
 set -- $ident
 repo="${1:-unknown}"; task="${2:-null}"
+REPO_ROOT="$repo"   # 기록의 레포 칸
 
-state="$(python3 "$HERE/lib/ledger.py" state "$repo" "$task" 2>/dev/null | head -n 1)"
+state="$(python3 "$HERE/lib/ledger.py" state "$repo" "$task" 2>/dev/null)"; src=$?
+state="${state%%$'\n'*}"
+HOOK_RESULT="${state:-off}"
+# 원장 쓰기 실패를 미리 한 줄로 (ADR-018 B-11). append 는 모델이 나중에 부르므로 훅은 그 실패를 직접 못 본다 —
+# 대신 안내하는 append 가 실패할 조건 두 가지를 본다: ① ledger.py 가 없다(옛 설치 캐시 폴더가 지워진 오래된 세션)
+# ② 원장 파일 · 폴더에 쓸 수 없다. 경로 규칙은 lib/ledger.py ledger_path() 와 같다. 판정 지시는 그대로 낸다.
+LEDGER="${CLAUDE_HYPOTHESIS_LEDGER:-$HOME/.claude/hypothesis-ledger.jsonl}"
+if [ "$src" -ne 0 ] || [ ! -f "$HERE/lib/ledger.py" ]; then
+  HOOK_RESULT=ledgerfail HOOK_DETAIL="ledger.py 없음 $HERE/lib"
+elif [ -e "$LEDGER" ]; then
+  [ -f "$LEDGER" ] && [ -w "$LEDGER" ] || { HOOK_RESULT=ledgerfail HOOK_DETAIL="원장 쓰기 불가 $LEDGER"; }
+else
+  _p="$LEDGER"   # 있는 가장 가까운 상위 폴더에 쓸 수 있어야 mkdir -p 가 된다
+  while [ -n "$_p" ] && [ ! -e "$_p" ]; do case "$_p" in */*) _p="${_p%/*}" ;; *) _p=. ;; esac; done
+  [ -d "${_p:-/}" ] && [ -w "${_p:-/}" ] || { HOOK_RESULT=ledgerfail HOOK_DETAIL="원장 폴더 못 만듦 $LEDGER"; }
+fi
 
 printf '%s\n' "[판정 지시] 이 프롬프트를 맡김 한 건으로 보고, 응답 중에 Bash 로 python3 \"${HERE}/lib/ledger.py\" append repo=${repo} task=${task} gate=<schema|api|error|delete|security|null> diff=<easy|mid|hard|null> area=<FE|BE|infra|domain|unknown> hyp=<true|false> rec=<true|false> acc=<true|false> why=<true|false> rebut=<true|false> skip=<true|false> 를 불러 판정 한 줄을 붙여라(사용자 지시를 대체하지 않는다. 이름·원문·코드는 적지 않는다). hyp: 사용자 본인의 예상·가설이 한 줄이라도 있음(\"모르겠다\"는 false). rec: 직전 AI 응답에 추천·권장안이 있었고 이 프롬프트가 그에 응답함. acc: rec 이고 그대로 받아들임. why: 선택의 근거를 설명하는 말이 있음(\"기억 안 난다\"·\"모르겠다\"는 false). rebut: 직전 AI 응답이 사용자의 가설에 반박·이견을 냈음. skip: 가설 요구를 받은 동안 hyp=false 로 넘어감. gate: 설계 결정(스키마·API 계약·에러 처리·삭제·보안)이 아니면 null. diff: 가설을 맞히기 어려운 정도. 범위(여러 레이어에 걸침)·되돌리기 어려움(마이그레이션·삭제·공개 API 계약)·선례 없음(레포에 같은 패턴이 없음) 중 하나라도 해당하면 hard, 하나도 해당하지 않으면 easy, 해당 여부가 애매하면 mid, hyp=false 면 null."
 if [ "$state" = "on" ]; then

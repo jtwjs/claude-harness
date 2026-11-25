@@ -4,24 +4,26 @@
 # stdin: { tool_input: { command: "..." } }
 # exit 2 = 차단 (Claude가 stderr 메시지를 deny 사유로 인식)
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit block-dangerous-bash   # 끝나는 모든 경로에서 기록 한 줄 — blocked(exit 2) · ask · pass 로 가른다
 
 # 이 훅만 harness.json 게이팅 없이 항상 켜진다. 그래서 꺼지는 조건은 소리 내서 꺼진다 —
 # python3 가 없으면 cmd="" 로 조용히 exit 0 하던 것이 "차단이 켜져 있는 줄" 알게 만들었다 (2026-10-08).
 if ! command -v python3 >/dev/null 2>&1; then
   printf '⚠️ block-dangerous-bash: python3 없음 — 위험 명령 차단이 꺼져 있습니다\n' >&2
-  exit 0
+  HOOK_RESULT=nopython; exit 0
 fi
 
 input=$(cat 2>/dev/null || true)
 cmd=$(printf '%s' "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
 
-[ -z "$cmd" ] && exit 0
+[ -z "$cmd" ] && { HOOK_RESULT=noinput; exit 0; }
 
 # 플러그인 hooks/ 안에 정책 데이터가 같이 있다.
 # ⚠️ 이 훅만 harness.json 게이팅 없이 항상 동작한다 (하네스 미설치 레포도 보호).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 YAML="$SCRIPT_DIR/deny-patterns.yaml"
-[ -f "$YAML" ] || exit 0
+[ -f "$YAML" ] || { HOOK_RESULT=noyaml; exit 0; }
 
 # python3 로 YAML 파싱 후, 명령에 매칭되는 첫 패턴을 stdout에 (id|title|reason) 한 줄로 출력.
 # PyYAML 없이 표준 라이브러리만 사용: 단순 키-값 YAML이라 정규식으로 추출.
@@ -89,7 +91,7 @@ if [ -n "$matched" ]; then
   title=$(printf '%s' "$matched" | awk -F'|' '{print $2}')
   reason=$(printf '%s' "$matched" | awk -F'|' '{print $3}')
   printf '🚫 차단됨: %s\n   사유: %s\n' "$title" "$reason" >&2
-  exit 2
+  HOOK_RESULT=blocked HOOK_DETAIL="deny:${matched%%|*}"; exit 2
 fi
 
 # GitHub 쓰기 계정 — ~/.claude/gh-accounts.txt 에 「owner 계정」 줄이 있으면, 그 owner 레포에 이슈·PR·릴리스를 쓰는 명령은
@@ -108,7 +110,7 @@ $(printf '%s' "$unqw" | sed -e ':a' -e '/\\$/N; s/\\\n/ /; ta' | awk '{gsub(/&&|
 EOF_SEGS
 if [ -n "$no_r" ] && python3 "$SCRIPT_DIR/lib/conductor.py" is-seat "$PWD" 2>/dev/null; then
   printf '🚫 차단됨: 지휘 자리에서는 -R <owner>/<repo> 로 대상 레포를 적는다\n   사유: -R 이 없으면 지금 폴더의 레포에 이슈·댓글이 생긴다 (conductor ADR-003)\n' >&2
-  exit 2
+  HOOK_RESULT=blocked HOOK_DETAIL=seat; exit 2
 fi
 
 GH_ACCOUNTS="${CLAUDE_GH_ACCOUNTS:-$HOME/.claude/gh-accounts.txt}"
@@ -122,7 +124,7 @@ if [ -f "$GH_ACCOUNTS" ]; then
       active="${CLAUDE_GH_ACTIVE:-$(gh config get -h github.com user 2>/dev/null)}"
       if [ "$active" != "$need" ]; then
         printf '🚫 차단됨: %s 레포는 %s 계정으로 쓴다\n   사유: 지금 gh 활성 계정은 %s — 그대로 두면 그 이름으로 올라간다. gh auth switch -u %s 로 바꾸고(같은 명령 앞에 붙여도 된다) 끝나면 원래 계정으로 되돌린다 (%s)\n' "$owner" "$need" "${active:-알 수 없음}" "$need" "$GH_ACCOUNTS" >&2
-        exit 2
+        HOOK_RESULT=blocked HOOK_DETAIL=gh-account; exit 2
       fi
     fi
   fi
@@ -133,7 +135,7 @@ fi
 unq=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
 if printf '%s' "$unq" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+merge\b'; then
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 판정은 아직 dry-run(pr-write 4.6)"}}\n'
-  exit 0
+  HOOK_RESULT=ask HOOK_DETAIL=pr-merge; exit 0
 fi
 
 # 운영 DB — 레포의 .claude/harness.json guard.prodDb 가 있을 때만 (2026-10-13). 판별은 lib/prod_db.py:
@@ -152,22 +154,22 @@ VROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 if python3 "$SCRIPT_DIR/lib/verify_busy.py" match "$VROOT" "$cmd" 2>/dev/null; then
   if n=$(python3 "$SCRIPT_DIR/lib/verify_busy.py" busy "$VROOT" 2>/dev/null); then
     printf '🚫 차단됨: 다른 세션 검사 %s개 중 — 30초 뒤 다시 실행\n   사유: 검사 동시 실행 상한(CLAUDE_VERIFY_MAX, 기본 2). 여러 세션이 전체 검사를 동시에 돌리면 머신이 멈춘다 (ADR-007)\n' "$n" >&2
-    exit 2
+    HOOK_RESULT=blocked HOOK_DETAIL=verify-busy; exit 2
   fi
 fi
 # 머리 레포에 하네스가 없으면 cwd 레포로 다시 본다 — `git -C ../docs pull && ./gradlew bootRun …` 이 cwd 가드를 지나가지 않게(REVIEW 1회차)
 [ -n "$REPO_ROOT" ] && [ ! -f "$REPO_ROOT/.claude/harness.json" ] && REPO_ROOT=""
-[ -n "$REPO_ROOT" ] || REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -f "$REPO_ROOT/.claude/harness.json" ] || exit 0
+[ -n "$REPO_ROOT" ] || REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=pass; exit 0; }
+[ -f "$REPO_ROOT/.claude/harness.json" ] || { HOOK_RESULT=pass; exit 0; }
 prod=$(python3 "$SCRIPT_DIR/lib/prod_db.py" check "$REPO_ROOT" "$cmd" 2>/dev/null); prc=$?
 # 판별이 죽으면 막는다(fail-closed). guard.prodDb 가 없는 레포는 설정을 읽자마자 끝나 여기 올 일이 없다 — 10-13 리뷰: 조용히 통과했다
 if [ "$prc" -ne 0 ]; then
   printf '🚫 차단됨: 운영 DB 가드 오류\n   사유: lib/prod_db.py 가 종료 코드 %s 로 죽었다 — 판별 못 한 명령은 통과시키지 않는다. harness.json guard.prodDb 와 설정 파일을 확인한다\n' "$prc" >&2
-  exit 2
+  HOOK_RESULT=blocked HOOK_DETAIL=prodDb-error; exit 2
 fi
 if [ -n "$prod" ]; then
   printf '🚫 차단됨: %s\n   사유: %s\n' "${prod%%|*}" "${prod#*|}" >&2
-  exit 2
+  HOOK_RESULT=blocked HOOK_DETAIL=prodDb; exit 2
 fi
 
-exit 0
+HOOK_RESULT=pass; exit 0

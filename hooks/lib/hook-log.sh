@@ -6,8 +6,9 @@ hook_now_ms() { python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/nu
 hook_log() { # $1 훅 · $2 결과 · $3 ms(선택) · $4 상세(선택, 탭·줄바꿈은 공백으로)
   local detail="${4:-}" repo="${REPO_ROOT:-?}"; detail="${detail//$'\t'/ }"; detail="${detail//$'\n'/ }"
   # 레포 이름은 basename 대신 치환으로 — 이제 모든 Bash 호출마다 기록해서 프로세스 하나(약 3ms)도 아낀다
-  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%Y-%m-%dT%H:%M:%S)" "${repo##*/}" "$1" "$2" "${3:-}" "${detail:0:200}" \
-    >>"$HOOK_LOG_FILE" 2>/dev/null || true
+  # 리다이렉트 실패(기록 폴더 없음)도 숨기려고 묶음 밖에서 stderr 를 버린다 — `>>f 2>/dev/null` 은 >> 가 먼저라 못 숨긴다
+  { printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%Y-%m-%dT%H:%M:%S)" "${repo##*/}" "$1" "$2" "${3:-}" "${detail:0:200}" \
+    >>"$HOOK_LOG_FILE"; } 2>/dev/null || true
 }
 # 끝나는 모든 경로에서 정확히 한 줄(ADR-016 D11). 훅 맨 위에서 부르고, 경로마다 HOOK_RESULT(필요하면 HOOK_MS · HOOK_DETAIL)를
 # 정한 뒤 exit 한다. 쓰는 곳이 EXIT trap 하나뿐이라 두 줄이 될 수 없고, 결과를 못 정한 채 끝나도 unknown 으로 남는다.
