@@ -88,17 +88,14 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 **스택 팩**: 판정된 팩마다 `${CLAUDE_PLUGIN_ROOT}/templates/stacks/<pack>/rules/*.md`를 `.claude/rules/`에 복사하고, `pack.md`의 CI 셋업 스텝으로 `ci.yml`의 `{{SETUP_STEPS}}`를 채운다. 모노레포면 `paths:`의 **모든 glob** 앞에 그 팩의 `root`를 붙인다(`**/controller/**` → `apps/api/**/controller/**`, `src/**/*.test.tsx` → `apps/web/src/**/*.test.tsx`). 손으로 고르지 않는다 — 하나라도 빠지면 그 규칙은 조용히 안 걸린다. 팩 규칙과 기존 규칙이 같은 파일명이면 덮지 말고 보고한다. 기존 레포(코드가 이미 있는 레포)면 `testing-fe.md` · `e2e.md`의 「이 레포 현황」 절을 진단으로 채운다 — 렌더 헬퍼 · MSW · e2e 폴더가 실제로 있는지 파일로 확인하고, 「새 코드는」 칸만 묻는다. kit으로 시작한 레포면 그 절을 지운다.
 
-**CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) 플레이스홀더 — 7개 전부 이 표로 채운다.** 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다(2026-10-08 리뷰에서 `{{SETUP_STEPS}}`만 적혀 있었다).
+**CI 워크플로 플레이스홀더** — 복사한 `.github/workflows/ci.yml`을 스크립트로 채운다. 하나라도 남기면 `run:`이 빈 스텝이 되어 GitHub Actions가 워크플로 자체를 거부한다. 팩이 있으면 `{{SETUP_STEPS}}`부터 위 「스택 팩」대로 채운 뒤 부른다.
 
-| 플레이스홀더 | 출처 (`harness.json`) | 비어 있을 때 |
-|---|---|---|
-| `{{BASE_BRANCH}}` | `git.baseBranch` | `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력. exit 2면 묻는다 |
-| `{{SETUP_STEPS}}` | 판정된 팩의 `pack.md` CI 셋업 스텝 | 팩이 없으면 주석 줄째 삭제 |
-| `{{VERIFY_FORMAT}}` `{{VERIFY_LINT}}` `{{VERIFY_TYPECHECK}}` `{{VERIFY_BUILD}}` | `verify.format` · `lint` · `typecheck` · `build` | **그 `- name:` 스텝을 통째로 삭제** (ci.yml 머리 주석 "비어 있는 단계는 넣지 않는다") |
-| `{{VERIFY_TEST}}` | `verify.test` | 스텝을 지우지 않는다. `ci.test`가 `"deferred"`면 `run: echo "test deferred — .claude/harness.json ci.test 참고"` |
-| (형태) | `verify`가 **앱별**이면 | `jobs` 전체를 `ci.yml` 맨 아래 주석 블록 형태로 바꾼다 — 앱마다 잡(`working-directory: <root>`, 스텝은 `verify["<root>"]`로 위 규칙대로) + `paths` 필터 + `ci-gate`(needs 전부, skipped 허용). 브랜치 보호 필수 체크는 `ci-gate` 하나 |
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-init/scripts/fill_ci.py" .claude/harness.json .github/workflows/ci.yml
+```
 
-채운 뒤 `grep -cE '\{\{[A-Z_]+\}\}' .github/workflows/ci.yml`이 **0**이어야 한다. (`${{ github.… }}`는 GitHub 식이라 세지 않는다. 0.10.0에서 `concurrency`가 들어가 옛 검사 `grep -c '{{'`는 항상 0이 아니다)
+- exit 0이 될 때까지 끝난 것이 아니다. exit 1이면 stderr에 남은 플레이스홀더와 이유가 나온다 — 기준 브랜치를 못 정했으면 사람에게 묻고, 나머지는 이유대로 고친 뒤 다시 돌린다.
+- `verify`가 **앱별**이면 스크립트는 `VERIFY_*`를 건드리지 않는다. `jobs` 전체를 `ci.yml` 맨 아래 주석 블록 형태로 바꾸고(앱마다 잡 · `paths` 필터 · `ci-gate`. 브랜치 보호 필수 체크는 `ci-gate` 하나) 다시 돌린다.
 
 **`.gitignore` 보강** — `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 내용을 **기존 `.gitignore`에 덧붙인다**(덮어쓰지 않는다). 훅이 남기는 `.claude/.last-*`와 리포트가 매번 untracked로 뜨는 것을 막는다.
 ⚠️ `.claude/`를 통째로 ignore하지 않는다 — `harness.json`·`rules/`·`references/`는 **커밋되어야 자산**이다(안 그러면 dotfiles다).
