@@ -28,8 +28,11 @@
     {
       "step": 3,
       "name": "doctor-readme-check",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T17:20:44+0900",
+      "summary": "skills/harness-doctor/SKILL.md에 검사 「8. README 목차 ↔ `skills/`」 추가: 플러그인 레포에서만(skills/·README 스킬 표 없으면 「해당 없음」으로 건너뜀), 규칙은 hooks/tests/readme-index.sh가 정본이고 doctor는 [readme-index] 결과를 옮겨 적는다. 머리말 「검사 8개」→「9개」 · §5 「나머지 일곱」→「여덟」으로 맞췄다(계획은 새 검사 추가만, 이유: 개수 문장이 거짓이 되지 않게). bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:24:36+0900"
     },
     {
       "step": 4,
