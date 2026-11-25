@@ -9,9 +9,12 @@
     {
       "step": 1,
       "name": "measure-after",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-25T17:07:40+0900",
+      "summary": "`wc -l skills/*/SKILL.md`: 스킬 21→25 · 줄 수 중앙값 97→72 · 최대 320→191(slack-writing). `claude plugin details claude-harness@jtwjs-plugins` 설치본이 0.40.0이라 상시 토큰(Before ~3,442) · 발동 정확도(Before trigger-eval/before-0.40.0.json)는 미측정: 릴리스 뒤 같은 명령. README 숫자 재료: `ls skills` 25 · 자동 입구 8(disable-model-invocation 없는 SKILL.md: sdd·why·how·conductor·slack-writing·notion-writing·commit·pr-write) · `ls agents` 5 · hooks/hooks.json 고유 스크립트 11 · 그중 python3 부르는 것 10(cadence-reminder만 안 부름). `bash hooks/test.sh` 통과 514 · 실패 0.",
+      "completed_at": "2026-11-25T17:10:16+0900"
     },
     {
       "step": 2,
