@@ -52,9 +52,11 @@
     {
       "step": 6,
       "name": "commit-harness-json",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77"
+      "started_at": "2026-11-25T21:17:22+0900",
+      "summary": ".claude/harness.json 추적 시작(main clone 사본 + git.branchPattern \"feature/{task}\") · .claude/rules/non-obvious-patterns.md 는 항목이 없어져 제목만 남김 · 레포 밖: main clone .git/info/exclude 에서 `.claude/harness.json` 줄 삭제(커밋 대상 아님). 처음에 exclude 로 뺀 이유는 git 기록에 없다(exclude 파일은 추적되지 않음). 러너 확인(임시 레포, 설치본 0.41.0 sdd_runner.py start demo — start 는 git 만 부르고 claude 는 안 부름을 코드로 확인 뒤 실행): feature/other 에서 → feature/other 그대로 · main 에서 → feature/demo 새로 만듦. 본문과 다르게 한 이유: 러너 231~248행(branchPattern 없으면 feat-{task}, 현재 브랜치 유지 분기는 branchPattern 있을 때만). 검증 bash hooks/test.sh 통과 619 · 실패 0",
+      "completed_at": "2026-11-25T21:22:42+0900"
     },
     {
       "step": 7,
