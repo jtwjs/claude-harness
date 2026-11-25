@@ -7,8 +7,11 @@
     {
       "step": 1,
       "name": "answer-key-0-41",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T19:51:16+0900",
+      "summary": "trigger-eval/evals.json 정답 3문항을 자동 입구 기준으로 바꿈(sdd#11·#12 → sdd, notion-writing#13, 이유는 같은 폴더 README 표) · 재채점은 trigger-eval/rescore.py <결과.json> evals.json. 0.41.0 After 96.7%(464/480, 오발동 0 · 미발동 16: sdd#1·#12, how#3, notion-writing#7, why#7, slack-writing#2), Before 90.0%(378/420) → 설명 좁히기 후보 오발동 없음. README 스킬 수 7→8 정정도 했다(계획은 정답 표만, 이유: how 가 이미 evals.json 에 있어 문서가 틀려 있었음)",
+      "completed_at": "2026-11-25T19:56:54+0900"
     },
     {
       "step": 2,
