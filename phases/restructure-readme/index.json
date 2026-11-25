@@ -37,8 +37,11 @@
     {
       "step": 4,
       "name": "remove-rehearsal",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T17:24:36+0900",
+      "summary": "이해 증명 · 설명 리허설 걷음: skills/sdd/references/reflect.md(제목 · §4 「이해 증명 🎤」 삭제) · skills/sdd/SKILL.md(코어 트랙 · REFLECT 칸) · skills/harness-gaps/SKILL.md(순서 괄호) · skills/sdd/references/design.md(73행 끝 구절, 「결정 주체」 칸은 유지). ADR.md D-gate 행에 #40 원문 「퀴즈 · 리허설은 나중 학습 흐름으로.」 + (#40 원문에서 빠진 구절 복원). reflect.md 「산출물 넷」 2곳을 「셋」으로 했다(계획은 §4 삭제만, 이유: 4절이 빠져 개수 문장이 거짓이 되지 않게). bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:29:01+0900"
     },
     {
       "step": 5,
