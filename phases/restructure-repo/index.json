@@ -9,8 +9,11 @@
     {
       "step": 1,
       "name": "test-sh-runs-runner-unit",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T15:27:05+0900",
+      "summary": "hooks/tests/sdd-runner-unit.sh 추가 — 레포 루트에서 python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py 를 돌려 ok/bad, 실패하면 bash hooks/test.sh 가 exit 1(실패 주입으로 확인). 레포 루트는 test.sh 의 $ROOT 를 썼다(계획은 $HOOKS·$TMP·ok·bad 만, 이유: 지휘 지시 — 루트 변수가 있으면 그것을 쓴다). test.sh 실행 51s→81~83s(단위 테스트 50개 약 28s).",
+      "completed_at": "2026-11-25T15:36:11+0900"
     },
     {
       "step": 2,
