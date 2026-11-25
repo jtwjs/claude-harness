@@ -1,0 +1,87 @@
+{
+  "project": "claude-harness",
+  "phase": "verify-flow",
+  "docs": "docs/verify-flow-2026-11-25",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "ledger-intent-fields",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 2,
+      "name": "runner-error-tail",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "runner-defer-full-test",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "runner-red-judge",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "runner-intent-effort",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 6,
+      "name": "sdd-two-sessions",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 7,
+      "name": "conductor-two-sessions",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 8,
+      "name": "track-brief-and-tracks",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 9,
+      "name": "review-gates",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "summary-and-merge-line",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "step-template-cells",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 12,
+      "name": "delegate-three-cells",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 13,
+      "name": "flow-walk",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
+  ]
+}
