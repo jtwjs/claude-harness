@@ -101,6 +101,12 @@
       "name": "summary-unplanned-reason",
       "status": "pending",
       "tdd": false
+    },
+    {
+      "step": 12,
+      "name": "closed-skill-callers",
+      "status": "pending",
+      "tdd": false
     }
   ]
 }
