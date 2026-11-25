@@ -658,5 +658,25 @@ class VerifySlotTest(unittest.TestCase):
         self.assertEqual(sum(slept), 15)   # 12초를 넘긴 첫 시점에 그대로 진행
 
 
+class TestFilePatternTest(unittest.TestCase):
+    """테스트 파일 판정(TEST_FILE) — RED 판정이 셸 테스트 자리를 알아봐야 한다(REVIEW R7)."""
+
+    def setUp(self):
+        sys.path.insert(0, str(HERE))
+        import sdd_runner
+        self.pat = sdd_runner.TEST_FILE
+
+    def test_shell_test_files_are_tests(self):
+        for f in ("hooks/test.sh", "test.sh", "hooks/tests/sdd-runner-unit.sh"):
+            with self.subTest(f=f):
+                self.assertIsNotNone(self.pat.search(f))
+
+    def test_other_shell_scripts_are_not_tests(self):
+        # 구현 파일이 테스트로 잡히면 「테스트 커밋에 구현 파일 없음」이 거짓으로 통과한다
+        for f in ("hooks/tdd-guard.sh", "scripts/release.sh", "hooks/latest.sh"):
+            with self.subTest(f=f):
+                self.assertIsNone(self.pat.search(f))
+
+
 if __name__ == "__main__":
     unittest.main()
