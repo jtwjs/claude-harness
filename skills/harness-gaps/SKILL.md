@@ -4,7 +4,7 @@ description: 반복된 것을 세어 승격 후보를 판정한다. 같은 지�
 allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 
-**`BACKLOG.md`가 요구하던 "세는 주체"다.** 서두에 *"세는 주체가 없는 조건은 쓰지 않는다"*고 선언해놓고 세 행(`evals/`·`testing-patterns.md`·`implementation-patterns.md` 7번째)이 세는 주체 없이 남아 있었다. 이 스킬이 그 자리를 채운다.
+**`BACKLOG.md` 승격 조건의 「세는 주체」다.**
 
 > 새 규칙을 만들지 않는다. 문턱은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/build-the-lever.md`의 `encode-lessons-in-structure` 절을 따른다: 두 번째는 「후보」 표시만, **"3번부터"** 승격 후보 — 두 번까지는 우연이고 세 번째가 패턴이다(2번째 레포 실사용 → 3번째부터 승격).
 >
@@ -34,7 +34,7 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 ## 열린 것
 | 패턴 | 종류 | 범위 | 횟수 | 마지막 | 근거 |
 |---|---|---|---|---|---|
-| PR 본문에 재현 절차를 매번 다시 요구 | 재지시 | 전역 후보 | 2 | 2026-09-06 | #41 #43 |
+| PR 본문에 재현 절차를 매번 다시 요구 | 재지시 | 전역 후보 | 2 | YYYY-MM-DD | #41 #43 |
 
 ## 닫힌 것
 | 패턴 | 횟수 | 판정 | 어디로 | 막는 장치 |
@@ -88,11 +88,11 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## 6. 언제 도나
 
-- **SDD ④ REFLECT 「하네스 되돌림」의 반복 칸** — 순서는 `sdd` SKILL.md REFLECT 절이 정본(회고 1장 → 되돌림: 흘린 것·사고·**반복(여기)** → 지식 정리 → 이해 증명 → ⑤ 마무리). 커밋 전이라 `observations.md`가 같은 PR에 실린다. 방금 끝난 작업에서 무엇을 반복했는지 되짚는다
+- **SDD ④ REFLECT 「하네스 되돌림」의 반복 칸** — 순서는 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`가 정본(가설 원장 → 회고 1장 → 되돌림: 흘린 것·사고·**반복(여기)** → 지식 정리 → 이해 증명 → ⑤ 마무리). 커밋 전이라 `observations.md`가 같은 PR에 실린다. 방금 끝난 작업에서 무엇을 반복했는지 되짚는다
 - **`harness-doctor`와 같이** — 승격 판정 쪽
 - 사람이 "반복되는 거 없나" 물을 때
 
-**상시 관찰은 하지 않는다.** CLAUDE.md에 트리거 한 줄을 박는 방식이 원본 설계지만, 이 하네스의 CLAUDE.md는 *"항상 로드되므로 여기 한 줄은 매 세션 비용"*이라고 스스로 선언했다. 되짚기가 실제로 놓치는 게 확인되면 그때 훅으로 올린다 → `BACKLOG.md`
+**상시 관찰은 하지 않는다** — CLAUDE.md 트리거 한 줄은 매 세션 로드 비용이다. 되짚기가 실제로 놓치는 게 확인되면 그때 훅으로 올린다 → `BACKLOG.md`
 
 ## 7. 전역 후보 → 개인 원장 (주 1회 헤드리스)
 
