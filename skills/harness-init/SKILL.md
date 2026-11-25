@@ -14,31 +14,13 @@ allowed-tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 | 대상 | 어떻게 |
 |---|---|
-| 지운·바뀐 스킬 이름 | 아래 이름표대로 그 자리만 고친다 |
+| 지운·바뀐 스킬 이름 | 이름표 `${CLAUDE_PLUGIN_ROOT}/skills/harness-init/references/renames.tsv`(옛 이름 · 지금 · 언제, 한 줄에 옛 이름 하나)대로 그 자리만 고친다 |
 | `.claude/README.md` 라우팅 표 | `${CLAUDE_PLUGIN_ROOT}/templates/.claude/README.md` 표와 대조해 빠진 행만 넣는다. 레포가 직접 넣은 행은 둔다 |
 | 레포의 옛 팀 위키 폴더(`_brain/`) | 지우지 않는다. 하네스는 더 이상 깔지도 쓰지도 않는다는 것(ADR-013)과 `rules/brain.md`가 있으면 그 규칙도 안 쓴다는 것을 한 줄 안내만 한다. 지울지는 레포 주인이 정한다 |
 | `harness.json` | `harness.version`을 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` 버전으로. 템플릿에만 있는 최상위 키는 목록만 보여 주고 넣지 않는다(`harness-doctor` §0과 같은 판정) |
 | `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |
 | 스택 팩 규칙 (`.claude/rules/`) | `stacks.packs`의 팩마다 3방향으로 diff 한다 — 기준 = 레포 `harness.version` 판 템플릿, 새 판 = 지금 템플릿, 그리고 레포 사본. 레포 사본과 새 판만 비교하면(2방향) 어느 쪽이 바뀌었는지 몰라 「템플릿에만 / 레포에만」을 가를 수 없다. 기준 판은 마켓플레이스 clone(`~/.claude/plugins/marketplaces/<marketplace>`, git 저장소)에서 `git log -1 --format=%H -S'"version": "<harness.version>"' -- .claude-plugin/plugin.json` 커밋의 `templates/stacks/<pack>/rules/*.md`로 꺼낸다. 못 찾으면 2방향으로 하고 표 머리에 「기준 없음 — 템플릿에만 / 레포에만 구분 불가」를 적는다. 세 판 모두 비교 전에 템플릿 `paths:`에 그 팩의 `root` 접두를 붙인 판으로 맞춘다(§4 「스택 팩」과 같은 규칙. 접두가 빠지면 그 규칙은 어느 파일에도 안 걸린다). 결과를 `파일 · 템플릿에만 있음 / 레포에만 있음 / 둘 다 바뀜`으로 보여 주고 파일마다 🙋 「템플릿으로 · 레포 판 유지 · 줄 단위로 합치기」를 고르게 한다. 레포에 없는 팩 규칙 파일은 새로 깔지 묻는다. 덮어쓰지 않는다 — 레포가 일부러 고친 줄이 섞여 있다 |
 | 새로 맞는 팩 | §1-b 스택 판정을 빌드 파일로 다시 돌려 `stacks.packs`에 없는 팩이 나오면 목록만 보여 준다(예: init 뒤에 생긴 팩). 넣으면 위 행대로 규칙을 깔고 `stacks.packs`에 더한다 — 🙋 승인 뒤 |
-
-이름표 (옛 이름 → 지금, 날짜):
-
-| 옛 이름 | 지금 | 언제 |
-|---|---|---|
-| `grilling` · `why-logictree` · `why-plan` | 세 장을 만드는 자리는 `sdd`(① 계획 DESIGN). 이유·근거만 보는 자리는 `why` | 2026-10-11 합침 → 2026-10-16 삭제 |
-| `design-plan` | 행 삭제(PLAN은 `sdd-plan`, 화면 시안은 `sdd` 디자인 트랙 `design-brief`·`design-critique`·`design-reconcile` — 라우팅 표에 그 행이 없으면 템플릿 행을 넣는다) | 0.9.0 삭제 (2026-10-15 이름표 추가 — 레포 사본에 남아 있었다) |
-| `systematic-debugging` | `root-cause-debugger`(규율을 에이전트 본문으로 합침) | 0.27.0 (2026-10-20) |
-| `explain-diff-html` · `explain-diff-notion` | `explain`(노션이면 노션으로) | 0.27.0 (2026-10-20) |
-| `harness-new` | `project-new` | 2026-10-11 |
-| `brain-intake` | 행 삭제(raw 투입구 폐지) | 2026-10-11 |
-| `brain-walk` · `brain-sync` | 행 삭제(레포에 팀 위키 폴더를 두지 않는다, ADR-013). 「왜」는 ADR, 제품 결정은 PRD 결정 절 | 2026-11-23 |
-| `brain-recall` · 하네스판 `find-skills` | 행 삭제 | 2026-10-11 |
-| `harness` | `sdd-plan`(스킬 이름으로 쓴 자리만 — `harness.json`·`harness-*`는 그대로) | 2026-11-24 |
-| `harness-run` | `sdd-run` | 2026-11-24 |
-| `ai-readiness-cartography` | `harness-score` | 2026-11-24 |
-| `plannotator-visual-explainer` | 행 삭제(PR 설명은 `explain`) | 2026-11-24 |
-| `explain-diff` | `explain` | 2026-11-25 |
 
 - 전체 diff를 보여 주고 🙋 승인을 받은 뒤 쓴다. 커밋은 `chore: harness <버전> 업그레이드` 한 건, push는 하지 않는다.
 - 작업 트리가 더럽거나 기능 브랜치 위면 기본 브랜치에서 `git worktree add`로 따로 만들어 한다.
