@@ -27,8 +27,11 @@
     {
       "step": 3,
       "name": "ci-workflow",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T15:44:55+0900",
+      "summary": ".github/workflows/ci.yml 추가 — pull_request · main push 에 macos-latest 잡 test 가 actions/checkout@v4 → bash hooks/test.sh 를 돈다(러너 단위 테스트는 그 안에서). git 신원 단계(user.name ci · user.email ci@example.invalid)를 넣었다(계획은 checkout 과 test 한 줄, 이유: sdd_runner.py 가 신원 플래그 없이 커밋해 git 이 신원을 못 찾는 러너에선 단위 테스트 26/52 가 깨진다 — 빈 HOME + user.useConfigOnly 흉내로 확인). permissions: contents: read 를 뒀다(계획에 없음, 이유: 지휘 지시 — 읽기 권한만).",
+      "completed_at": "2026-11-25T15:55:30+0900"
     },
     {
       "step": 4,
