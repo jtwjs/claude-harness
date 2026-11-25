@@ -8,22 +8,58 @@
   "steps": [
     {
       "step": 1,
-      "name": "readme-rewrite",
-      "status": "pending",
-      "tdd": true
+      "name": "measure-after",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-25T17:07:40+0900",
+      "summary": "`wc -l skills/*/SKILL.md`: 스킬 21→25 · 줄 수 중앙값 97→72 · 최대 320→191(slack-writing). `claude plugin details claude-harness@jtwjs-plugins` 설치본이 0.40.0이라 상시 토큰(Before ~3,442) · 발동 정확도(Before trigger-eval/before-0.40.0.json)는 미측정: 릴리스 뒤 같은 명령. README 숫자 재료: `ls skills` 25 · 자동 입구 8(disable-model-invocation 없는 SKILL.md: sdd·why·how·conductor·slack-writing·notion-writing·commit·pr-write) · `ls agents` 5 · hooks/hooks.json 고유 스크립트 11 · 그중 python3 부르는 것 10(cadence-reminder만 안 부름). `bash hooks/test.sh` 통과 514 · 실패 0.",
+      "completed_at": "2026-11-25T17:10:16+0900"
     },
     {
       "step": 2,
-      "name": "doctor-readme-check",
-      "status": "pending",
-      "tdd": false
+      "name": "readme-rewrite",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T17:10:17+0900",
+      "summary": "README.md 재작성(첫 화면 · 왜 만들었나 · 무엇이 들었나 · 설치하면 생기는 것 · 원칙 · 업데이트 · 끄기 · 더 보기, 166줄): 스킬 표 25행(자동 입구 8 · 단계 9 · 슬래시 입구 8, 이름은 skills/<이름>/SKILL.md 링크) · 에이전트 표 5행 · <summary>훅 11개</summary> 접기 표 · python3 없으면 훅 10개 꺼짐(hooks/*.sh 실측). 새 테스트 hooks/tests/readme-index.sh([readme-index]: 스킬 링크 집합=ls skills · 에이전트 링크=ls agents · <summary> 훅 N개=hooks.json 고유 스크립트 · 상대 링크 실재) — step 3 harness-doctor 검사가 같은 규칙을 쓸 수 있다. plugin.json keywords에서 second-brain 제거. 훅 개수는 <summary> 줄의 「훅 N개」로 읽게 했다(계획은 README의 훅 개수, 이유: 「python3 없으면 훅 10개」와 섞이지 않게). 가져온 것에 저작권자 이름 대신 「PStack(MIT), 표기는 각 SKILL.md 끝」으로 했다(계획은 외부 MIT 스킬 출처, 이유: 공개 README에 사람 이름을 쓰지 않는 규칙). 업데이트 · 끄기는 slash가 아닌 claude plugin CLI로 적었다(계획은 3줄, 이유: scripts/release.sh가 실제로 쓰는 명령). bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:20:35+0900"
     },
     {
       "step": 3,
-      "name": "measure-after",
-      "status": "pending",
+      "name": "doctor-readme-check",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "started_at": "2026-11-25T17:20:44+0900",
+      "summary": "skills/harness-doctor/SKILL.md에 검사 「8. README 목차 ↔ `skills/`」 추가: 플러그인 레포에서만(skills/·README 스킬 표 없으면 「해당 없음」으로 건너뜀), 규칙은 hooks/tests/readme-index.sh가 정본이고 doctor는 [readme-index] 결과를 옮겨 적는다. 머리말 「검사 8개」→「9개」 · §5 「나머지 일곱」→「여덟」으로 맞췄다(계획은 새 검사 추가만, 이유: 개수 문장이 거짓이 되지 않게). bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:24:36+0900"
+    },
+    {
+      "step": 4,
+      "name": "remove-rehearsal",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T17:24:36+0900",
+      "summary": "이해 증명 · 설명 리허설 걷음: skills/sdd/references/reflect.md(제목 · §4 「이해 증명 🎤」 삭제) · skills/sdd/SKILL.md(코어 트랙 · REFLECT 칸) · skills/harness-gaps/SKILL.md(순서 괄호) · skills/sdd/references/design.md(73행 끝 구절, 「결정 주체」 칸은 유지). ADR.md D-gate 행에 #40 원문 「퀴즈 · 리허설은 나중 학습 흐름으로.」 + (#40 원문에서 빠진 구절 복원). reflect.md 「산출물 넷」 2곳을 「셋」으로 했다(계획은 §4 삭제만, 이유: 4절이 빠져 개수 문장이 거짓이 되지 않게). bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:29:01+0900"
+    },
+    {
+      "step": 5,
+      "name": "version-bump",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T17:29:02+0900",
+      "summary": "버전 0.40.0 → 0.41.0(.claude-plugin/plugin.json · marketplace.json claude-harness 항목, 마켓플레이스 자체 0.1.0은 그대로) · 새 docs/changes/0.41.0.md(`# 0.41.0` + bullet 18줄, 재구성 PR 1~7을 사용자 영향 순, PR 번호 #41~#46 · #48 · 이번 PR). 릴리스(scripts/release.sh)는 머지 뒤 사람이. bash hooks/test.sh 통과 518 · 실패 0.",
+      "completed_at": "2026-11-25T17:33:51+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-25T17:36:07+09:00",
+      "head": "0b3374f1739609433b2208f428d016535c8474ab",
+      "issues": [
+        "README 「python3 없으면 훅 10개가 조용히 꺼진다」 — block-dangerous-bash는 경고를 낸다(PATH에서 python3 뺀 실행으로 확인) → 문구 고침"
+      ]
     }
   ]
 }

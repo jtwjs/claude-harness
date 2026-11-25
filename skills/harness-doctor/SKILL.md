@@ -5,7 +5,7 @@ allowed-tools: [Read, Bash, Glob, Grep]
 disable-model-invocation: true
 ---
 
-**하네스 고유 검사 8개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
+**하네스 고유 검사 9개만** 한다. CLAUDE.md 품질 감사(등급·압축 제안)는 공식 `claude-md-management`가 하므로 **중복하지 않는다.**
 
 ## 0. 버전·스키마 표류
 
@@ -38,7 +38,7 @@ disable-model-invocation: true
 
 ## 5. 🔴 컨텍스트 로드량 (두 축)
 
-이 하네스에서 **유일하게 숫자를 보는 검사**다. 나머지 일곱은 통과하면 조용하지만, **로드량은 조용히 자란다.**
+이 하네스에서 **유일하게 숫자를 보는 검사**다. 나머지 여덟은 통과하면 조용하지만, **로드량은 조용히 자란다.**
 
 | 축 | 재는 것 | 임계 | 넘으면 |
 |---|---|---|---|
@@ -62,6 +62,10 @@ disable-model-invocation: true
 **7-b. 릴리스**: `release.tool`이 `"changesets"`인데 `.changeset/config.json`이 없거나, 반대로 `.changeset/`은 있는데 `release.tool`이 `null`이면 ⚠️ — `changeset` 스킬이 0단계에서 잘못 skip 하거나 잘못 돈다.
 
 **7-c. gitignore**: 루트 `.gitignore`에 `.claude/.last-*`가 없으면 ⚠️ — 훅 stamp 가 매 세션 untracked 로 뜬다(`${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append` 미적용).
+
+## 8. README 목차 ↔ `skills/`
+
+플러그인 레포에서만 본다 — 레포에 `skills/`와 README 스킬 표가 없으면(하네스를 깐 대상 레포) 이 검사를 건너뛰고 "해당 없음"으로 적는다. 있으면 `bash hooks/test.sh`의 `[readme-index]` 결과를 옮겨 적는다. 규칙(스킬 표 링크 = `ls skills` · 에이전트 · 훅 개수 · 상대 링크)은 `hooks/tests/readme-index.sh`가 정본이다 — 여기서 다시 세지 않는다. 어긋나면 ⚠️ — README에 없는 스킬은 사람이 못 찾고, 없는 스킬을 가리키는 행은 거짓말이다.
 
 ## 출력
 

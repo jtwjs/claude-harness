@@ -1,26 +1,28 @@
-# Step 1: readme-rewrite
+# Step 1: measure-after
 
 ## 읽어야 할 파일
 
 - `docs/harness-restructure-2026-11-24/PRD.md` · `docs/harness-restructure-2026-11-24/ARCHITECTURE.md` · `docs/harness-restructure-2026-11-24/ADR.md`(ADR-016). 이 레포는 루트 `CLAUDE.md`가 없다 — 가드레일은 이 세 장과 `.claude/rules/non-obvious-patterns.md`
-- `README.md`
-- `hooks/hooks.json`
-- ARCHITECTURE §1 · §2
+- `docs/harness-restructure-2026-11-24/PRD.md` 「측정」 · `docs/harness-restructure-2026-11-24/trigger-eval/README.md`
 
 ## 작업
 
 바꾸는 파일:
 
-- `README.md`
-- 새 `hooks/tests/readme-index.sh`
+- 바꿀 파일 없음
 
-- 테스트 먼저(`hooks/tests/readme-index.sh`): README 목차의 스킬 이름 집합 = `ls skills`, README의 훅 개수 = `hooks.json`에 걸린 고유 스크립트 수. 새 테스트 파일은 `hooks/tests/no-brain.sh`처럼 `hooks/test.sh`가 source 하는 조각이다: `printf '\n[이름] …\n'`로 시작, `$HOOKS` · `$TMP` · `ok` · `bad`를 그대로 쓰고 변수는 파일 고유 접두사(`_xx_`)를 붙인다
-- README 재작성: 첫 절은 입구(처음엔 `/harness-init`, 기능 작업은 `/sdd`), 그다음 ARCHITECTURE §2 표 모양의 목차(ADR-016 D1). 「훅 10개」 · `explain-diff-*` 결함을 고친다(REVIEW §1-6)
+README보다 먼저 잰다 — step 2 README 첫 화면의 「숫자 한 줄」을 이 실측으로 채운다(지휘 메모, 사용자 승인).
+
+- Before와 같은 명령: `wc -l skills/*/SKILL.md`(중앙값 · 최대 · 개수), `claude plugin details claude-harness@jtwjs-plugins` Always-on, 발동 정확도(`trigger-eval/make_target_repo.sh`로 합성 레포를 만들고 `run_trigger.py --runs 3`, `how` 포함)
+- README 숫자 한 줄 재료도 같이 센다: 스킬 수(`ls skills`) · 자동 입구 수(frontmatter에 `disable-model-invocation: true`가 없는 SKILL.md) · 에이전트 수(`ls agents`) · 훅 수(`hooks/hooks.json`에 걸린 고유 스크립트)
+- 상시 토큰과 발동은 **레포 버전이 설치돼 있어야** 잰다. 설치본이 레포 버전이 아니면(지금 0.40.0) 그 사실을 summary에 적고 개수 · 줄 수만 잰다. 상시 토큰 · 발동은 `미측정: 릴리스 뒤 같은 명령`으로 적는다
+- summary에 명령(백틱) · Before → After 숫자. 나빠진 지표는 그대로 적는다
+- tdd: false — 측정 전용(바꿀 파일 없음)
 
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
-- `bash hooks/test.sh 2>&1 | grep -F '[readme-index]'` 출력 있음
+- summary에 백틱 명령과 결과가 있다
 
 ## 검증 절차
 

@@ -9,7 +9,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 **원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
 
 > **한 줄 흐름**
-> **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`sdd-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리 → 이해 증명) → ⑤ 마무리(세 줄 요약 → `changeset` → `commit` → `pr-write` → 학습 카드)
+> **코어 트랙** — ① 계획: DESIGN(`references/design.md` — 왜부터 캐물어 → PRD·ARCHITECTURE·ADR → 🙋 Readiness) → PLAN(`sdd-plan` 분해 · 빈칸은 그 자리에서 → 🙋 step 승인) → ② **`sdd-run`(step당 1번: 테스트 먼저 → 구현, git 기록으로 판정)** → ③ `sdd-review` → `code-reviewer` → ④ REFLECT(회고 1장 → 하네스 되돌림 → 지식 정리) → ⑤ 마무리(세 줄 요약 → `changeset` → `commit` → `pr-write` → 학습 카드)
 > **디자인 트랙** — 위 흐름에 셋이 끼어든다: DESIGN에 `design-brief`(→ 레포 캔버스에 시안) → `design-critique`(시안 평가 루프), REVIEW에 `design-reconcile`. PLAN은 `sdd-plan`이 레포 캔버스를 읽는다
 
 ## 0. 트랙 판단
@@ -35,7 +35,7 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 | ① 계획 · PLAN | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md` — step 분해와 step마다 `tdd` 판정. step의 `⚠️`·`TBD`는 §2가 그 자리에서 캐묻는다. 세 장이 이미 있어 PLAN만 필요하면 바로 부른다. 🎨 §3-b가 캔버스 작업 탭을 읽는다 | 범위 합의 → step 계획 승인(미해결 `⚠️` 0개) · 🎨 DS 신규 컴포넌트 승인 |
 | ② IMPLEMENT 🤖 | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md` — step마다 호출 1번(테스트 먼저 → 구현), `sdd_runner.py judge`가 git 기록으로 판정한다(RED · GREEN 규칙은 그 파일 §2). 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스) | blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패(최대 4회) |
 | ③ REVIEW | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-reconcile/SKILL.md` | 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영) |
-| ④ REFLECT | 커밋 전, 사람이 자리에 있을 때 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 읽고 그 순서대로 돈다 | 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · harness-gaps 승격 판정 · 🎤 설명 리허설(제안 시) · 출구 조건 확인 |
+| ④ REFLECT | 커밋 전, 사람이 자리에 있을 때 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 읽고 그 순서대로 돈다 | 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · harness-gaps 승격 판정 · 출구 조건 확인 |
 | ⑤ 마무리(SHIP) | 세 줄 요약 → `${CLAUDE_PLUGIN_ROOT}/skills/changeset/SKILL.md`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write` → 학습 카드 | `pr-write` 생성(commit은 REVIEW 승인이 겸한다) |
 
 이 표 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 표에 넣거나 스킬을 고친다.
