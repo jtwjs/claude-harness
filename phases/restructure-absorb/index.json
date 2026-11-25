@@ -90,8 +90,11 @@
     {
       "step": 10,
       "name": "backlog-verification-row",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T11:32:38+0900",
+      "summary": "BACKLOG.md 표 끝에 한 행: 레포 전용 검증 스킬 생성(출처 PStack create-verification-skill, ADR-016 D10) — 승격 조건은 sdd-review 「실제 동작」 축 `확인 필요 — 미실행` 3건, phases/*/index.json reviews[].issues에서 「실제 동작」과 「미실행」이 같이 든 줄로 센다. 기존 행 무변경",
+      "completed_at": "2026-11-25T11:36:01+0900"
     },
     {
       "step": 11,
