@@ -1,0 +1,12 @@
+{
+  "harness": {
+    "version": "0.41.0"
+  },
+  "git": {
+    "baseBranch": "main",
+    "branchPattern": "feature/{task}"
+  },
+  "verify": {
+    "test": "bash hooks/test.sh"
+  }
+}
