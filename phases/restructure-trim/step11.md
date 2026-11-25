@@ -1,0 +1,39 @@
+# Step 11: summary-unplanned-reason
+
+## 읽어야 할 파일
+
+- `docs/harness-restructure-2026-11-24/PRD.md` · `docs/harness-restructure-2026-11-24/ARCHITECTURE.md` · `docs/harness-restructure-2026-11-24/ADR.md`(ADR-016 Q9). 이 레포는 루트 `CLAUDE.md`가 없다 — 가드레일은 이 세 장과 `.claude/rules/non-obvious-patterns.md`
+- `skills/sdd-run/scripts/preamble.md`(step 서브에이전트가 받는 지시문. 16행이 `summary` 형식을 정하는 유일한 곳)
+- `skills/sdd-plan/SKILL.md` step 템플릿 「검증 절차」 3번(`summary`(1~2줄))
+
+## 작업
+
+바꾸는 파일:
+
+- `skills/sdd-run/scripts/preamble.md`
+
+- `summary` 형식 줄에 규칙 한 구절을 더한다(ADR-016 Q9, 사용자 결정): step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적는다. 계획대로 한 것은 적지 않는다
+- 규칙은 이 한 곳에만 둔다. `skills/sdd-plan/SKILL.md` 템플릿 · step 파일 · `sdd-run` SKILL.md에 같은 문장을 다시 쓰지 않는다(ARCHITECTURE 5절)
+- tdd: false — 지시문 한 구절이다. 따르는지는 PR 5~7 step summary를 재서 본다(아래 「측정」)
+- 측정(이 step에서 하지 않음, 기록만): Before는 PR 4 step 11 측정의 「summary 이유 구절 10/57」(정규식 `라서|이라|때문|몫이라|위해|하려고|해서|이유`, 정규식 추정). After는 같은 정규식으로 `restructure-trim` · `restructure-repo` · `restructure-readme` step summary를 재서 마지막 PR 보고에 한 줄
+
+## Acceptance Criteria
+
+- `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
+- `grep -q '계획은' skills/sdd-run/scripts/preamble.md && ! grep -rq '계획은 X' skills/sdd-plan skills/sdd-run/SKILL.md`
+
+## 검증 절차
+
+1. 위 AC 명령을 실제 실행한다.
+2. 아키텍처 체크리스트 대조 — `docs/harness-restructure-2026-11-24/ARCHITECTURE.md` 3절(자리) · 5절(경계 규칙), ADR-016이 정한 값은 참조만 했는지.
+3. 결과를 `phases/restructure-trim/index.json`의 step 11에 기록:
+   - 성공 → `status:"completed"` + `summary`(1~2줄, 뒤 step이 쓸 이름 · 경로를 적는다)
+   - 실패 → `status:"error"` + `error_message`
+   - 판단 불가/차단 → `status:"blocked"` + `blocked_reason`
+
+## 금지사항
+
+- hook 우회(`--no-verify`) · 자동 생성물 직접 수정 · `.claude/rules/`가 금지한 의존 방향 위반 · 요청 범위 밖 수정 · **테스트 파일 수정**(구현 step에서) 금지.
+- 쌓기만 하는 기록(로그 · 회고 · `docs/` 의 지난 설계 · ADR 본문 · `phases/*/` · design-notes 변경 이력)은 이름 · 경로를 일괄 바꿀 때도 고치지 않는다. 「옛 이름 grep 0」은 이 파일들을 빼고 센다.
+- `hooks/test.sh`를 고치지 않는다. 새 테스트는 `hooks/tests/*.sh`에만 둔다(`hooks/test.sh`가 source 한다).
+- push · PR 금지(러너 밖에서 사람이 한다).

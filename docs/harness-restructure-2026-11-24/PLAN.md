@@ -31,6 +31,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 
 - Q7: ADR-016으로 지우기로 정한 동작(`learn-setup` 훅)을 검사하던 기존 케이스만 `hooks/test.sh`에서 지운다(ADR-016 「대가」). 지우는 곳은 `restructure-gate-summary` step 3에 이름 · 줄로 적었다.
 - Q8: 지휘는 트랙 보고의 세 줄 요약 · 학습 카드를 사용자 보고에 그대로 싣는다(요약 · 재해석하지 않음). 카드는 사용자의 개인 기록 자리가 있으면 거기에도 붙이고, 「내 한 줄」은 사용자만 쓴다. `restructure-absorb` step 12(사용자 결정, 지휘 경유)
+- Q9: step 기록(summary)에 계획에 없던 선택은 이유 한 구절(「…로 했다(계획은 X, 이유: Y)」), 계획대로 한 것은 안 적는다. 자리는 러너 지시문 한 곳. Before 10/57(PR 4 step 11 정규식 추정) → After는 PR 5~7 step에서 같은 정규식으로. `restructure-trim` step 11(사용자 · 지휘 추천 수용)
 
 ## step 목록
 
@@ -102,6 +103,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 | 8 | `trim-history-rest` | true | `skills/{harness-init,harness-doctor,harness-gaps,harness-score,project-new,slack-writing,notion-writing,explain,no-comments,reframe,sharpen,statechart}/SKILL.md` · 새 `hooks/tests/no-history-rest.sh` |
 | 9 | `entry-and-stage-invocation` | false | ARCHITECTURE §2의 단계 · 슬래시 입구 스킬 `SKILL.md` frontmatter |
 | 10 | `sharpen-entry-descriptions` | false | 자동 입구 8개 `SKILL.md`의 `description` |
+| 11 | `summary-unplanned-reason` | false | `skills/sdd-run/scripts/preamble.md` |
 
 ### PR 6 `restructure-repo` — 레포 구성 · CI · 훅 기록
 

@@ -71,6 +71,12 @@
       "name": "sharpen-entry-descriptions",
       "status": "pending",
       "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "summary-unplanned-reason",
+      "status": "pending",
+      "tdd": false
     }
   ]
 }
