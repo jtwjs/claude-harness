@@ -18,14 +18,16 @@
 #   앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만 돈다. 앱 밖 파일이 코드면 전부, 기록(*.md · phases/ · .claude/ ·
 #   _learn/)이면 무시한다. 화면만 고친 worktree 에서 server 검사가 돌던 것을 막는다.
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || { hook_log_on_exit() { :; }; hook_now_ms() { echo 0; }; }
+hook_log_on_exit validate-session-end   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
 cat >/dev/null 2>&1 || true
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -n "$REPO_ROOT" ] || exit 0
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=norepo; exit 0; }
+[ -n "$REPO_ROOT" ] || { HOOK_RESULT=norepo; exit 0; }
 CFG="$REPO_ROOT/.claude/harness.json"
-[ -f "$CFG" ] || exit 0
-command -v python3 >/dev/null 2>&1 || exit 0
-cd "$REPO_ROOT" 2>/dev/null || exit 0
+[ -f "$CFG" ] || { HOOK_RESULT=nocfg; exit 0; }
+command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
+cd "$REPO_ROOT" 2>/dev/null || { HOOK_RESULT=norepo HOOK_DETAIL="cd 실패"; exit 0; }
 
 # ── 루프 가드 ────────────────────────────────────────────────────────────────
 # 해시는 "변경 내용" 기준이다. `git status --porcelain` 을 해시하면 이미 ` M` 인 파일을 더 고쳐도
@@ -37,10 +39,9 @@ cur_hash=$({ git diff HEAD 2>/dev/null;
                | xargs -0 cat 2>/dev/null; } \
            | git hash-object --stdin 2>/dev/null || echo "")
 if [ -n "$cur_hash" ] && [ -f "$stamp" ] && [ "$(cat "$stamp" 2>/dev/null)" = "$cur_hash" ]; then
-  exit 0
+  HOOK_RESULT=same; exit 0
 fi
 
-. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || { hook_log() { :; }; hook_now_ms() { echo 0; }; }
 t0=$(hook_now_ms)
 
 # ── verify 추출 (없는 키는 skip — 거짓말하지 않는다) ─────────────────────────
@@ -106,7 +107,8 @@ emit() { # $1 = 메시지 — stdout JSON systemMessage 로 낸다
 
 if [ -z "$steps" ]; then
   [ -n "$cur_hash" ] && printf '%s' "$cur_hash" >"$stamp" 2>/dev/null || true
-  if [ -n "$skipped" ]; then hook_log validate-session-end skip 0 "$skipped"; exit 0; fi   # 바뀐 앱 없음(기록만 바뀜)
+  if [ -n "$skipped" ]; then HOOK_RESULT=skip HOOK_MS=0 HOOK_DETAIL="$skipped"; exit 0; fi   # 바뀐 앱 없음(기록만 바뀜)
+  HOOK_RESULT=noverify
   emit 'ℹ️ harness.json 에 verify 명령이 없습니다 — Stop 검증 skip'
   exit 0
 fi
@@ -114,7 +116,7 @@ fi
 # 검사 상한 (ADR-007, 2026-10-31): 이 머신에서 도는 검사가 상한 이상이면 돌지 않는다. non-blocking 훅이라 기다리지 않고,
 # stamp 를 남기지 않아 다음 Stop 에서 다시 시도한다. 세션이 하나면 닿지 않는다.
 if busy_n=$(python3 "$(dirname "${BASH_SOURCE[0]}")/lib/verify_busy.py" busy "$REPO_ROOT" 2>/dev/null); then
-  hook_log validate-session-end busy 0 "$busy_n"
+  HOOK_RESULT=busy HOOK_MS=0 HOOK_DETAIL="$busy_n"
   emit "⏸ 다른 세션 검사 ${busy_n}개 중 — 건너뜀"
   exit 0
 fi
@@ -164,7 +166,7 @@ EOF
 report="${report}ℹ️ test 는 Stop 에서 돌리지 않는다 — CI · 러너 판정이 돌린다
 "
 [ -n "$failed" ] && report="${report}⚠️ 실패:${failed} (차단 아님 — CI 가 최종 게이트)"
-if [ -n "$failed" ]; then hook_log validate-session-end fail "$(( $(hook_now_ms) - t0 ))" "$failed"; else hook_log validate-session-end ok "$(( $(hook_now_ms) - t0 ))"; fi
+if [ -n "$failed" ]; then HOOK_RESULT=fail HOOK_MS=$(( $(hook_now_ms) - t0 )) HOOK_DETAIL="$failed"; else HOOK_RESULT=ok HOOK_MS=$(( $(hook_now_ms) - t0 )); fi
 
 emit "Stop 검증(읽기 전용)
 ${report}"

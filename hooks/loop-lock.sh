@@ -10,6 +10,8 @@
 #   - "검증성 명령" 판정을 harness.json 의 verify.* 값과의 일치를 1순위로 바꿨다. 옛 정규식
 #     `\b(build|lint)\b` 는 `ls build/`·`cat build.gradle` 까지 추적했다.
 set -uo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
+hook_log_on_exit loop-lock   # 끝나는 모든 경로에서 기록 한 줄 — 경로마다 HOOK_RESULT 를 정하고 exit
 
 THRESHOLD=3
 
@@ -21,16 +23,15 @@ cmd = d.get("tool_input", {}).get("command", "").replace("\n", " ")
 print(cmd.replace(" ", "\x1f") or "-", d.get("session_id", "") or "-")
 ' 2>/dev/null || echo "- -")
 cmd=${cmd//$'\x1f'/ }
-[ "$cmd" = "-" ] && exit 0
+[ "$cmd" = "-" ] && { HOOK_RESULT=noinput; exit 0; }
 
 # 🔴 stamp 는 반드시 프로젝트 루트에 둔다.
 # 플러그인 디렉토리에 두면 모든 프로젝트가 카운터를 공유해 다른 레포에서 오탐한다.
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-[ -n "$REPO_ROOT" ] || exit 0
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { HOOK_RESULT=norepo; exit 0; }
+[ -n "$REPO_ROOT" ] || { HOOK_RESULT=norepo; exit 0; }
 CFG="$REPO_ROOT/.claude/harness.json"
-[ -f "$CFG" ] || exit 0
+[ -f "$CFG" ] || { HOOK_RESULT=nocfg; exit 0; }
 stamp="$REPO_ROOT/.claude/.last-loop-lock"  # .claude/.last-* 는 .gitignore 처리
-. "$(dirname "${BASH_SOURCE[0]}")/lib/hook-log.sh" 2>/dev/null || hook_log() { :; }
 
 # 검증성(루프 위험) 명령만 추적.
 #   1순위: harness.json verify.* 에 적힌 명령 문자열이 들어 있다.
@@ -63,7 +64,7 @@ PY
 )
 if [ "$is_verify" != "1" ]; then
   rm -f "$stamp" 2>/dev/null || true
-  exit 0
+  HOOK_RESULT=ignore; exit 0
 fi
 
 # 판단 단위 = 명령 + 그 시점 코드 상태 (2026-10-13). 코드가 그대로인데 같은 검증을 다시 돌리는 것만 의미 없는 반복이다.
@@ -101,7 +102,7 @@ else
   count=1
 fi
 printf '%s\n%s\n%s\n' "$hash" "$count" "$session" >"$stamp" 2>/dev/null || true
-[ "$count" -ge "$THRESHOLD" ] && hook_log loop-lock blocked "" "${count}회 $cmd" || hook_log loop-lock seen "" "${count}회"
+if [ "$count" -ge "$THRESHOLD" ]; then HOOK_RESULT=blocked HOOK_DETAIL="${count}회 $cmd"; else HOOK_RESULT=seen HOOK_DETAIL="${count}회"; fi
 
 if [ "$count" -ge "$THRESHOLD" ]; then
   printf '🔁 LOOP LOCK: 코드가 그대로인 채 같은 검증 명령을 %s회 연속 실행했습니다. 다시 돌려도 결과가 같습니다.\n   접근을 바꾸거나(가설 재검토·다른 파일 확인) 사람에게 상황을 보고하세요. 같은 명령 반복 금지.\n' "$count" >&2
