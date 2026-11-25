@@ -14,6 +14,7 @@
 - 새 `hooks/tests/no-history-flow.sh`
 
 - 테스트 먼저(`hooks/tests/no-history-flow.sh`): 왼쪽 파일들 본문에 날짜(`20[0-9]{2}-[0-9]{2}`) · 버전(`[0-9]+\.[0-9]+\.[0-9]+`) 이력 줄이 없다. 경로 · 형식 예시(`YYYY-MM-DD`)는 숫자가 아니라 걸리지 않는다. 새 테스트 파일은 `hooks/tests/no-brain.sh`처럼 `hooks/test.sh`가 source 하는 조각이다: `printf '\n[이름] …\n'`로 시작, `$HOOKS` · `$TMP` · `ok` · `bad`를 그대로 쓰고 변수는 파일 고유 접두사(`_xx_`)를 붙인다
+- `skills/pr-write/SKILL.md` 4.6 심각도: 「`sdd-review`의 `확인 필요`는 🟡로 센다」를 `sdd-review` · `code-reviewer` 둘 다로 넓힌다(ADR-016 Q10). PR 4부터 `agents/code-reviewer.md`도 증명 못 한 지적을 등급 없이 `⚠️ 확인 필요`로 내서, 안 세면 심각도가 「없음」으로 잡혀 자동 머지 판정이 거짓 충족된다. 표기는 띄어 쓴 `확인 필요` 하나로 둔다
 - 날짜 · 버전 · 「~에서 바꿨다」 이력과 배경 문단을 지운다. 처음 보는 상황에서 판단을 바꾸는 이유는 한 구절만 남긴다(ADR-016 D0)
 
 ## Acceptance Criteria
