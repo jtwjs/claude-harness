@@ -43,9 +43,11 @@
     {
       "step": 5,
       "name": "hooks-quiet-without-harness",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
-      "base": "c7a930dc202b512a6078caf68f0aacb7500e0e77"
+      "started_at": "2026-11-25T21:06:35+0900",
+      "summary": "사용자 허용: gate-hook.sh 기대값 뒤집기(B-3) — 단정 23→24(repo1·repo2에 .claude/harness.json, git 밖 → 0줄·exit 0 로 뒤집음, 하네스 없는 git 레포 → 0줄 추가). hooks/hypothesis-gate.sh 가 nopython 확인 뒤 git rev-parse --show-toplevel 루트에 .claude/harness.json 이 없고 python3 lib/conductor.py is-seat $PWD 도 아니면 무출력 exit 0, 기록 결과 noharness(기존 nopython·off·on·ledgerfail·출력 그대로). 테스트 hooks/tests/quiet-without-harness.sh — hypothesis-gate 하네스 레포·하위 폴더·지휘 자리 → 판정 지시, 하네스 없는 git 레포·git 밖·지휘 설정 없는 seat → 0줄, conductor-context 지휘 자리에서만, block-dangerous-bash 하네스 없는 폴더·git 밖에서도 deny 패턴 exit 2. RED 613/6 → GREEN 619/0",
+      "completed_at": "2026-11-25T21:17:22+0900"
     },
     {
       "step": 6,
