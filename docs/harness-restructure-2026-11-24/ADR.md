@@ -24,7 +24,7 @@
 | D10 | 레포 전용 검증 스킬 생성은 BACKLOG 승격 조건(「실제 동작 미실행」 3건) | 사용자 |
 | D11 | 훅 `loop-lock` · `todo-warn` · `validate-session-end`는 기록 경로부터 보강하고 다시 잰다 | 사용자 |
 | D12 | `understand-anything` 의존 선언 제거 | 사용자 |
-| D-gate | 막는 이해 관문 제거(`sdd` 빈틈 3곳 · `pr-write` 4.9 퀴즈 · draft 강제 · 「내 한 줄」 잠금). 대신 작업 끝 학습 카드를 작업 보고에 싣는다(레포에 쓰지 않음). `docs/learning-level.md`는 카드 형식만 | 사용자 |
+| D-gate | 막는 이해 관문 제거(`sdd` 빈틈 3곳 · `pr-write` 4.9 퀴즈 · draft 강제 · 「내 한 줄」 잠금). 대신 작업 끝 학습 카드를 작업 보고에 싣는다(레포에 쓰지 않음). 퀴즈 · 리허설은 나중 학습 흐름으로. `docs/learning-level.md`는 카드 형식만 (#40 원문에서 빠진 구절 복원) | 사용자 |
 | D-요약 | `sdd` 마무리에서 PR 전 터미널에 세 줄 요약(무엇 · 왜 · 위험/직접 확인할 것), 입력을 받지 않는다. PR 본문 첫머리 · 학습 카드 · 지휘 보고가 같은 세 줄을 쓴다 | 사용자 제안 |
 | D13 흡수 | `reframe` · `sharpen` 별도 스킬(사람만) · `how` 새 스킬(읽기 전용) · `explain-diff` → `explain` · `why`에 「코드 결정이면 git log · PR · ADR부터」 · 원칙 문서 4장 · 글 스킬 마지막에 출처 점검 · `show-me-your-work`는 phases 기록을 보고 판단 · recall 출력 계약 → `sdd` 재개 · `conductor` 보고 | 대부분 AI 추천 수용, sharpen/reframe 분리는 사용자 |
 | 그 밖 | REVIEW §3 레포 구성 제안 12건 · §1-6 결함 5건 · §2-3 쪼개기 6개 스킬 | 사용자 |
