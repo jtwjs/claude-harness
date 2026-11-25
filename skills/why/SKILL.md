@@ -8,8 +8,6 @@ argument-hint: <막연한 요청 · 확인할 주장 · 결정 전 질문>
 
 **원칙**: 판단 전에 `${CLAUDE_PLUGIN_ROOT}/docs/principles/INDEX.md`를 보고, 쓰는 원칙은 원문을 읽는다.
 
-> 2026-10-16 why-plan(삭제)에서 범용 부분(WHY·3질문·로직트리·So What/Why So·질문 규칙)만 떼어 냈다. PRD·ARCHITECTURE·ADR을 쓰는 절차는 `sdd/references/design.md`로 갔다.
-
 ## 두 모드 — 입력을 보고 고른다
 
 | 입력 | 모드 | 하는 것 |
