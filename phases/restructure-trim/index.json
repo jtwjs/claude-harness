@@ -72,8 +72,11 @@
     {
       "step": 8,
       "name": "trim-history-rest",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T13:06:04+0900",
+      "summary": "나머지 스킬 12개 SKILL.md에서 날짜 · 버전 · 「~에서 바꿨다」 이력과 배경 문장을 지움(날짜 · 버전 줄 harness-init 2 · harness-doctor 3 · harness-gaps 1 · project-new 2 · slack-writing 4 · notion-writing 1 → 전부 0. 줄 수 harness-doctor 75→71 · slack-writing 201→191(「출처」 절) · notion-writing 101→97(「출처」 절), 나머지는 그대로. explain · no-comments · reframe · sharpen · statechart는 이력이 없어 안 고침). 새 hooks/tests/no-history-rest.sh: 12개 파일에 `20[0-9]{2}-[0-9]{2}|[0-9]+\\.[0-9]+\\.[0-9]+` 0(파일이 없어도 실패) — no-history-flow.sh와 합쳐 skills/ 25개 전부를 덮는다. harness-doctor 4번 검사의 「2026-10-12 기준 25개」는 「플러그인 `skills/`의 스킬 전부」로, 날짜 붙은 「양방향으로 두니 늘 ⚠️」는 「역방향까지 세면 init 직후부터 늘 ⚠️다」 이유 한 구절로 바꿈. harness-doctor 1-b는 「harness-init §4(`fill_ci.py`로 채우기 · 앱별 `jobs`)」를, harness-gaps §6은 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 가리킴. harness-gaps 괄호 순서 맨 앞에 「가설 원장 →」을 더했다(계획은 경로만 바꿈, 이유: 새로 가리키는 reflect.md 순서가 가설 원장부터라서). harness-init ⑤ 줄은 지우지 않고 「빈 번호 — 이 파일 · 템플릿이 ⑦~⑨를 번호로 가리켜서 당기지 않는다」로 했다(계획은 이력 지우기, 이유: 줄째 지우면 다음 사람이 번호를 당겨 templates/.claude/references/tracks.md · rules/llm-pipeline.md의 ⑧ · ⑨ 참조가 깨져서). harness-gaps observations 예시 행 날짜와 project-new degit 예시 ref는 `YYYY-MM-DD` · `vX.Y.Z` 자리표시로 했다(계획은 이력 지우기, 이유: 이력이 아니라 형식 예시라 지우면 칸 모양이 안 보이고, 실제 값은 낡아서). PStack MIT 저작권 줄(no-comments · reframe · sharpen · statechart)은 남겼다(이유: 이력이 아니라 라이선스 표시). bash hooks/test.sh 통과 490 · 실패 0(RED 시점 통과 489 · 실패 1)",
+      "completed_at": "2026-11-25T13:17:21+0900"
     },
     {
       "step": 9,
