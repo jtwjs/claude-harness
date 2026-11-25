@@ -15,7 +15,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 | 4 | `restructure-absorb` | `restructure-gate-summary` | 흡수 스킬 · 규칙 | D6 · D7 · D8 · D9 · D10 · D13 · Q2 | 11 |
 | 5 | `restructure-trim` | `restructure-absorb` | 쪼개기 · 이력 걷기 · 입구 정리 | D0 · REVIEW §2-3 · 결함 2건 · Q1 · Q2 | 12 |
 | 6 | `restructure-repo` | `restructure-trim` | 레포 구성 · CI · 훅 기록 | REVIEW §3(R1 · R5 · R6 · R7 · R9 · R11) · D11 | 8 |
-| 7 | `restructure-readme` | `restructure-repo` | README · After 측정 | REVIEW R2 · D1 doctor 검사 · 결함 2건 | 3 |
+| 7 | `restructure-readme` | `restructure-repo` | README · After 측정 | REVIEW R2 · D1 doctor 검사 · 결함 2건 | 5 |
 
 - 순서 이유: 이름부터 바꿔야 뒤 PR이 새 이름으로 쓴다. 원칙 파일이 먼저 있어야 게이트 · 흡수 · 쪼개기가 그 경로를 가리킨다. 이력 걷기(5)는 내용 변경(2~4)이 끝난 뒤 한 번에 해야 같은 파일을 두 번 손대지 않는다. README는 이름 · 개수가 다 굳은 뒤(7).
 - 모든 step AC: `bash hooks/test.sh`(`.claude/harness.json` `verify.test`). `sdd_runner.py`를 건드리는 step은 `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py`를 더한다.
@@ -34,6 +34,7 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 - Q9: step 기록(summary)에 계획에 없던 선택은 이유 한 구절(「…로 했다(계획은 X, 이유: Y)」), 계획대로 한 것은 안 적는다. 자리는 러너 지시문 한 곳. Before 10/57(PR 4 step 11 정규식 추정) → After는 PR 5~7 step에서 같은 정규식으로. `restructure-trim` step 11(사용자 · 지휘 추천 수용)
 - Q10: `pr-write` 4.6이 `sdd-review` · `code-reviewer`의 「확인 필요」를 모두 🟡로 센다. `restructure-trim` step 7에 한 줄(사용자 · AI 추천 수용)
 - step 9 뒤: 닫힌 단계 스킬 11개를 모델에게 이름으로 부르게 하는 곳(훅 · 템플릿 · 에이전트 · description)을 경로 읽기 · 사람 `/이름`으로. 경로로 읽은 단계 스킬 안의 플러그인 루트 변수 처리 한 구절. `restructure-trim` step 12(D0 뒷정리, 지휘 이견 없음)
+- PR 7 메모(지휘, 사용자 승인): measure-after를 README보다 먼저(첫 화면 숫자를 실측으로) · README 최종 구성 · 리허설 걷기 step(#40 D-gate 원문 「퀴즈 · 리허설은 나중 학습 흐름으로」가 ADR.md에 옮겨지지 않아 남은 것 — ADR.md 행 복원 포함) · 버전 0.41.0
 
 ## step 목록
 
@@ -125,6 +126,8 @@ phase 하나 = PR 하나. PR마다 앞 브랜치에서 딴 브랜치에서 돌�
 
 | # | step | tdd | 바꾸는 파일 |
 |---|---|---|---|
-| 1 | `readme-rewrite` | true | `README.md` · 새 `hooks/tests/readme-index.sh` |
-| 2 | `doctor-readme-check` | false | `skills/harness-doctor/SKILL.md` |
-| 3 | `measure-after` | measure | 바꿀 파일 없음 |
+| 1 | `measure-after` | measure | 바꿀 파일 없음 |
+| 2 | `readme-rewrite` | true | `README.md` · `.claude-plugin/plugin.json`(keywords) · 새 `hooks/tests/readme-index.sh` |
+| 3 | `doctor-readme-check` | false | `skills/harness-doctor/SKILL.md` |
+| 4 | `remove-rehearsal` | false | `skills/sdd/references/{reflect,design}.md` · `skills/{sdd,harness-gaps}/SKILL.md` · ADR.md D-gate 행 |
+| 5 | `version-bump` | false | `.claude-plugin/{plugin,marketplace}.json` · 새 `docs/changes/0.41.0.md` |

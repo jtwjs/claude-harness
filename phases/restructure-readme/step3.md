@@ -1,25 +1,23 @@
-# Step 3: measure-after
+# Step 3: doctor-readme-check
 
 ## 읽어야 할 파일
 
 - `docs/harness-restructure-2026-11-24/PRD.md` · `docs/harness-restructure-2026-11-24/ARCHITECTURE.md` · `docs/harness-restructure-2026-11-24/ADR.md`(ADR-016). 이 레포는 루트 `CLAUDE.md`가 없다 — 가드레일은 이 세 장과 `.claude/rules/non-obvious-patterns.md`
-- `docs/harness-restructure-2026-11-24/PRD.md` 「측정」 · `docs/harness-restructure-2026-11-24/trigger-eval/README.md`
+- `skills/harness-doctor/SKILL.md` 검사 목록
 
 ## 작업
 
 바꾸는 파일:
 
-- 바꿀 파일 없음
+- `skills/harness-doctor/SKILL.md`
 
-- Before와 같은 명령: `wc -l skills/*/SKILL.md`(중앙값 · 최대 · 개수), `claude plugin details claude-harness@jtwjs-plugins` Always-on, 발동 정확도(`trigger-eval/make_target_repo.sh`로 합성 레포를 만들고 `run_trigger.py --runs 3`, `how` 포함)
-- 상시 토큰과 발동은 **레포 버전이 설치돼 있어야** 잴 수 있다. 설치본이 아직 0.40.0이면 그 사실을 summary에 적고 줄 수만 잰다 [확인 필요: 레포 버전을 설치 없이 재는 법]
-- summary에 명령(백틱) · Before → After 숫자. 나빠진 지표는 그대로 적는다
-- tdd: false — 측정 전용(바꿀 파일 없음)
+- 새 검사: README 목차 ↔ `skills/` 목록 대조(ADR-016 D1)
+- tdd: false — 체크리스트 문장이다(이 레포 쪽 검사는 step 2 테스트)
 
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`. worktree에는 이 파일이 없어 main clone 사본을 쓴다)
-- summary에 백틱 명령과 결과가 있다
+- `grep -q 'README' skills/harness-doctor/SKILL.md`
 
 ## 검증 절차
 

@@ -8,22 +8,34 @@
   "steps": [
     {
       "step": 1,
+      "name": "measure-after",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 2,
       "name": "readme-rewrite",
       "status": "pending",
       "tdd": true
     },
     {
-      "step": 2,
+      "step": 3,
       "name": "doctor-readme-check",
       "status": "pending",
       "tdd": false
     },
     {
-      "step": 3,
-      "name": "measure-after",
+      "step": 4,
+      "name": "remove-rehearsal",
       "status": "pending",
-      "tdd": false,
-      "kind": "measure"
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "version-bump",
+      "status": "pending",
+      "tdd": false
     }
   ]
 }
