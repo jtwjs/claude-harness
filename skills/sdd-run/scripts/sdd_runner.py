@@ -65,8 +65,9 @@ import phases_status  # noqa: E402
 TZ = timezone(timedelta(hours=9))
 VALID = {"pending", "completed", "error", "blocked"}
 MEASURE_SUMMARY = re.compile(r"`[^`]+`")   # kind: measure step 의 summary 에 있어야 하는 측정 명령(백틱) — #8
-# 테스트 파일 판별 — tdd-guard 의 짝 테스트 자리와 같은 계열(TS *.test/*.spec · __tests__ · tests/ · JVM *Test.kt · py test_*)
-TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|/)src/test/|Tests?\.(kt|java)$|(^|/)test_[^/]+\.py$|_test\.(py|go)$)")
+# 테스트 파일 판별 — tdd-guard 의 짝 테스트 자리와 같은 계열(TS *.test/*.spec · __tests__ · tests/ · JVM *Test.kt · py test_* · 셸 test.sh)
+# 셸은 test.sh 이름만 — 넓히면 구현 스크립트가 테스트로 잡혀 「테스트 커밋에 구현 없음」이 거짓으로 통과한다
+TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|/)src/test/|Tests?\.(kt|java)$|(^|/)test_[^/]+\.py$|_test\.(py|go)$|(^|/)test\.sh$)")
 OUTPUT_GLOB = "phases/*/step*-output.json"
 HOOK_STAMPS = ":(exclude).claude/.last-*"   # 훅 기록 파일 — .gitignore 가 없는 레포에서도 커밋에 섞지 않는다(10-13 실가동)
 
