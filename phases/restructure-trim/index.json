@@ -45,8 +45,11 @@
     {
       "step": 5,
       "name": "renames-data-file",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-25T12:32:42+0900",
+      "summary": "새 skills/harness-init/references/renames.tsv(머리 줄 `옛 이름\\t지금\\t언제` + 18행, 한 줄에 옛 이름 하나 — 옛 이름표의 이름 여럿인 칸을 나눔). skills/harness-init/SKILL.md는 업그레이드 표 「지운·바뀐 스킬 이름」 행이 ${CLAUDE_PLUGIN_ROOT}/skills/harness-init/references/renames.tsv를 가리키고 옛 표는 지움 — 이름을 더 바꾸는 step은 이 tsv에 한 줄을 더한다(ARCHITECTURE 4절의 「SKILL.md 이름표」 자리가 이제 tsv). hooks/tests/renames.sh는 옛 이름을 tsv 1칸에서 읽고(5개 → 18개), 새 hooks/tests/renames-data.sh가 tsv 머리 줄 · 3칸 · harness-init 경로를 본다. renames.sh는 날짜(YYYY-MM-DD) · 버전(N.N.N)이 붙은 줄과 hooks/tests/를 세지 않게 했다(계획은 tsv 1칸 전부를 기존 범위에서 검사, 이유: 늘어난 옛 이름 why-plan · grilling · why-logictree · systematic-debugging이 skills/why/SKILL.md:11 · skills/sdd-plan/SKILL.md:24 · 120 · skills/sdd/references/design.md:7 · agents/root-cause-debugger.md:11의 날짜 · 버전 이력 줄에, brain-sync · brain-walk가 가드 테스트 hooks/tests/no-brain.sh에 걸리는데 이력 줄은 step 7 날짜 · 버전 정리 몫이고 가드 테스트는 옛 이름을 검사 데이터로 품어서. 그 파일들은 고치지 않음 — step 7이 그 줄에서 날짜만 지우고 옛 이름을 남기면 renames.sh가 잡는다). 스킬 이름 · 경로 자리로만 세는 경계는 지금 skills/ 폴더 이름의 일부인 옛 이름(harness)에 자동으로 건다(계획에 없음, 이유: 테스트에 이름을 박지 않고 tsv 하나만 정본으로 두려고). renames-data에 「1칸은 이름 하나([a-z0-9-])」 · 「harness-init 본문에 이름표 표 없음」 검사를 더했다(계획은 tsv 3칸 · 경로만, 이유: renames.sh가 1칸을 정규식에 넣고, 표가 남으면 이름표가 두 곳이 돼서). 하네스판 find-skills의 「하네스판」은 지금 칸 「행 삭제(하네스판만)」으로 옮겼다(이유: 1칸에는 이름만 둔다). bash hooks/test.sh 통과 465 · 실패 0(RED 시점 통과 459 · 실패 4)",
+      "completed_at": "2026-11-25T12:42:30+0900"
     },
     {
       "step": 6,
