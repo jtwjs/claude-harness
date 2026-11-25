@@ -1,0 +1,82 @@
+{
+  "project": "claude-harness",
+  "phase": "harness-checkup",
+  "docs": "docs/harness-checkup-2026-11-25",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "answer-key-0-41",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "always-on-chars",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "hook-log-all",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "version-drift-notice",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "hooks-quiet-without-harness",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 6,
+      "name": "commit-harness-json",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 7,
+      "name": "emphasis-triage",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 8,
+      "name": "deny-template",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 9,
+      "name": "plain-wording",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "fork-line",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "eval-frame",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 12,
+      "name": "checkup-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
+  ]
+}
