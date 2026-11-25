@@ -109,8 +109,11 @@
     {
       "step": 12,
       "name": "conductor-relay-card",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T11:43:27+0900",
+      "summary": "skills/conductor/SKILL.md §4 「사용자에게 올리는 현황」 단락 끝에 트랙 보고 전달 규칙 한 덩이(ADR-016 Q8): 세 줄 요약 · 학습 카드는 그대로 싣고 지휘가 요약 · 재해석하지 않음 · 카드는 사용자 개인 기록 자리(설정이나 사용자가 알려 준 곳)가 있으면 거기에도, 없으면 보고에만 · 「내 한 줄」은 사용자만 씀. 형식은 다시 쓰지 않고 ${CLAUDE_PLUGIN_ROOT}/skills/sdd/SKILL.md ⑤ 정본 유지, §8 표는 세션 간 메시지 표라 행 안 더함, conductor.json 새 키 없음. bash hooks/test.sh 통과 449 · 실패 0",
+      "completed_at": "2026-11-25T11:46:28+0900"
     }
   ]
 }
