@@ -79,8 +79,20 @@
     {
       "step": 5,
       "name": "runner-intent-effort",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T18:00:42+0900",
+      "summary": "sdd_runner.py: 상수 EFFORT·ONE_SHOT(검증 high · 구현 medium, 1회 모드 세션=구현 · 헤드리스=검증) → Runner.effort(role, headless) · prompt 가 stderr 「▶ effort <값>」 · invoke 가 claude -p --effort · --effort 로 덮음(prompt·run) / EDGE_AXES 상수 + md_sections·edge_axes(ac) → Runner.plan_gate(step)(의도 절 빈 본문 · 새 꼴 tdd 엣지 칸 빔 = 막는 이유, 옛 꼴 = stderr 「옛 꼴」 경고) · Runner.edge_names → red_check(step=) 가 테스트 커밋 파일 내용에서 이름 대조, 없으면 RedFail / STATUS_RULE blocked 조건 3개 · IMPL_RULE(구현 역할 「테스트는 고치지 않는다 — 막히면 … 검증 세션이 다시 판정한다」) · 재시도·재개 머리글 평문 · 새 꼴 tdd 지시문에 EDGE_NOTE · docs/sdd-runner.md 판정 2 행 + 계획 칸·effort·멈춤 조건 항목 · 테스트 test_intent_effort_* 10개 · test_edge_axes_* 10개. 세션 prompt 의 계획 칸 거부는 종료 2 로 했다(계획은 「비0」, 이유: 사람이 계획을 고쳐야 하는 멈춤이라 blocked 와 같은 코드) · 헤드리스는 빈 의도 절도 claude 없이 blocked 로 했다(계획은 엣지 칸만 지목, 이유: 같은 함수에서 같이 보고 의도 칸도 에이전트가 못 고친다) · plan_gate 는 --role impl 에도 건다(계획은 옵션 없음 · --role test, 이유: 분기를 줄이고 red 뒤엔 이미 통과한 칸이라 결과가 같다) · preamble.md 는 고치지 않고 STATUS_RULE 상수를 고쳤다(계획은 preamble.md 6번, 이유: 6번이 $status_rule 자리라 글이 상수에 있다) · 검증 차례 지시문(STATUS_RULE_TEST) blocked 조건도 「테스트로 쓸 수 없다 · 설계 문서에 없는 결정 · 사람만 할 수 있는 일」로 넓혔다(계획에 없음, 이유: C3 공용 규칙을 역할 지시문에도 맞춤) · EDGE_NOTE 는 새 꼴 step 에만 붙였다(계획은 조건 미지정, 이유: 옛 꼴엔 칸이 없어 읽을 이름이 없다) · IMPL_RULE 은 tdd: false 구현 역할 지시문에도 붙였다(계획은 구현 역할 지시문, 이유: 그 step 도 기존 테스트를 고치면 안 된다)",
+      "usage": {
+        "input_tokens": 32,
+        "cache_creation_input_tokens": 139870,
+        "cache_read_input_tokens": 1846094,
+        "output_tokens": 31574,
+        "num_turns": 19,
+        "duration_ms": 586116,
+        "total_cost_usd": 2.1197868000000004
+      },
+      "completed_at": "2026-11-26T18:14:34+0900"
     },
     {
       "step": 6,
