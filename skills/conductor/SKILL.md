@@ -26,7 +26,7 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 | 상황 | 절 | 읽을 파일 |
 |---|---|---|
 | 첫 실행 · 세션 이름 확인 · gh 쓰기 권한 · 라벨 만들기 | §0 준비 · 라벨 표 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
-| `~/.claude/conductor.json`으로 레포 여럿을 맡는다 · 세션 이름을 짓는다 · desk / 지휘 / 작업 역할 | 「지휘 자리」 · 「세션 종류」 · 「세 자리 역할」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
+| `~/.claude/conductor.json`으로 레포 여럿을 맡는다 · 세션 이름을 짓는다 · 한 곳 / 지휘 / 작업 역할 | 「지휘 자리」 · 「세션 종류」 · 「세 자리 역할」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
 | 결정이 생겼다 · 사용자에게 물을지 거른다 · ADR 번호를 낸다 | §1 결정 흐름(관문 둘 · 판정 거르기 · 결정 이슈 틀) | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
 | API 스키마 · 공유 타입 · 의미(기준 · 주기 · 단위)가 바뀐다 | §2 계약 변경 흐름 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
 | enum · 주기 · 테이블 구조를 계약으로 굳히려 한다 | §3 mock 관문 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
