@@ -52,8 +52,11 @@
     {
       "step": 6,
       "name": "question-rounds",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T21:36:17+0900",
+      "summary": "ask-questions.md 첫 줄을 「라운드가 기본이다」+ 막는 장치 셋(이유 칸 · 새 갈래 찾기 · 물러서는 조건)으로 바꿔 정본을 이 한 곳에 두고, design.md 5·33행 · design-critique 52행 · design-brief description은 「질문 규칙대로」로 가리키게 함. test.sh 541행 표식은 「물러서는 조건」. 상시 비용 always-on total 2150 → 2150. design-brief description은 「라운드로 끝낸 뒤」로 했다(계획은 「질문 규칙대로」, 이유: description 길이가 2자 늘어 「늘리지 않는다」와 부딪힘)",
+      "completed_at": "2026-11-26T21:48:18+0900"
     }
   ]
 }
