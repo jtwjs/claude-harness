@@ -18,6 +18,8 @@
   나눔 모드(검증 세션 · 구현 세션, ADR-019 A4 · E12) — 차례는 index.json 이 정한다:
   sdd_runner.py prompt TASK --role test|impl [--base SHA]     그 역할 차례일 때만 지시문(test = 테스트만 · impl = 구현만)
   sdd_runner.py judge TASK --red --step N                     검증 쪽: 판정 2·3 만, 통과하면 step 에 red 기록
+  sdd_runner.py rejudge TASK --step N                         검증 쪽: 재판정 「테스트가 틀렸다」 — 고친 테스트 커밋을 새 red 로,
+                                                              구현 커밋은 그대로 두고 구현 차례로 (ADR-023 R3)
   effort(ADR-019 C2): 역할이 정한다 — prompt 는 stderr 에 "▶ effort <값>"(Agent effort 로 넘긴다) · run 은 claude -p --effort.
   --effort 로 덮는다(prompt · run). step 파일에는 effort 칸이 없다
 
@@ -743,6 +745,75 @@ class Runner:
             print(f"step 명령: {', '.join(stepped)}", file=sys.stderr)
         return out
 
+    # ── 재판정 진입점 (ADR-023 R3) ─────────────────────────────────────────
+    def base_with_tests(self, base: str) -> str:
+        """BASE 트리에 HEAD 의 테스트 파일(BASE 뒤 바뀐 것, 지워진 것은 지움)을 얹은 임시 커밋 sha. 브랜치·트리는 그대로."""
+        git_dir = Path(self.root, self.git("rev-parse", "--git-dir").stdout.strip())
+        env = {**os.environ, "GIT_INDEX_FILE": str(git_dir / f"sdd-rejudge-{self.task}.index")}
+        run = lambda *a: subprocess.run(["git", *a], cwd=self.root, env=env, capture_output=True, text=True, check=True)
+        try:
+            run("read-tree", base)
+            for f in self.git("diff", "--name-only", base, "HEAD").stdout.splitlines():
+                if not TEST_FILE.search(f) or f.startswith("phases/"):
+                    continue
+                ls = self.git("ls-tree", "HEAD", "--", f).stdout.split()
+                if ls:
+                    run("update-index", "--add", "--cacheinfo", f"{ls[0]},{ls[2]},{f}")
+                else:
+                    run("update-index", "--force-remove", "--", f)
+            tree = run("write-tree").stdout.strip()
+            return run("commit-tree", tree, "-p", base, "-m", "sdd rejudge: BASE + 고친 테스트").stdout.strip()
+        finally:
+            Path(env["GIT_INDEX_FILE"]).unlink(missing_ok=True)
+
+    def rejudge(self, n: int) -> int:
+        """검증 재판정(ADR-019 E3)이 「테스트가 틀렸다」일 때 — 고친 테스트 커밋을 새 red 로 넘긴다. 걸리면 아무것도 안 바꾼다."""
+        cur = self.current()
+        if cur is None or cur["step"] != n:
+            print(f"지금 차례인 step 은 {cur['step'] if cur else '없음'} 이다 — step {n} 이 아니다")
+            return NOT_TURN
+        step = cur
+        if step.get("status") != "blocked" or not step.get("red"):
+            rc = self.refuse_turn(step, "test") if step.get("status") != "blocked" else None
+            if rc is None:
+                print(f"step {n} 에 red 가 없다 — 재판정 진입점은 red 뒤 구현이 막힌 step 에만 쓴다")
+                rc = NOT_TURN
+            return rc
+        if step.get("rejudged"):
+            print(f"step {n} 은 한 번 다시 판정했다 — 그래도 갈리면 사용자에게(ADR-019 E3): {step.get('blocked_reason', '')}")
+            return 2
+        if self.git("status", "--porcelain", "--", ".", f":(exclude)phases/{self.task}", HOOK_STAMPS).stdout.strip():
+            print("커밋하지 않은 변경이 있다 — 고친 테스트만 커밋한 뒤 다시 rejudge")
+            return 1
+        base, old = step["base"], step["red"]
+        fix = []
+        for sha, files in reversed(self.commits_since(base)):
+            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files):
+                break
+            fix += [f for f in files if TEST_FILE.search(f) and not f.startswith("phases/")]
+        if not fix or self.git("diff", "--quiet", old, "HEAD", "--", *sorted(set(fix))).returncode == 0:
+            print("고친 테스트 커밋이 없다 — HEAD 쪽 끝에 테스트 파일만 담은 커밋으로 고친 테스트를 올린 뒤 다시 rejudge")
+            return 1
+        tests = self.verify_cmds("test")
+        if not tests:
+            print("verify.test 가 없어 고친 테스트를 BASE 에서 돌릴 수 없다")
+            return 1
+        mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in fix)]
+        if self.red_passes(self.base_with_tests(base), self.scoped(mine or tests, base)):
+            print("고친 테스트가 구현 전(BASE)에서도 통과 — 아무것도 잡지 않는다")
+            return 1
+        head = self.git("rev-parse", "HEAD").stdout.strip()
+        idx = self.read()
+        s = self.find(idx, n)
+        s["red"], s["status"] = head, "pending"
+        s.pop("blocked_reason", None)
+        s.pop("blocked_at", None)
+        s.setdefault("rejudged", []).append({"at": stamp(), "red_before": old})
+        self.write(idx)
+        self.commit_index(n)
+        print(f"✓ step {n} 재판정 — 테스트 고침 · red: {head[:12]} · 구현 차례")
+        return 0
+
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
         head = self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
@@ -950,7 +1021,7 @@ class Runner:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="SDD 러너")
-    ap.add_argument("mode", choices=["run", "start", "prompt", "judge", "gate"])
+    ap.add_argument("mode", choices=["run", "start", "prompt", "judge", "gate", "rejudge"])
     ap.add_argument("task", help="gate 에서는 DOCS_DIR(레포 루트 기준)")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--max-retries", type=int, default=3)
@@ -971,6 +1042,10 @@ def main(argv=None) -> int:
         return r.run()
     if a.mode == "start":
         return r.start()
+    if a.mode == "rejudge":
+        if not a.step:
+            ap.error("rejudge 는 --step N 이 필요하다")
+        return r.rejudge(a.step)
     if a.mode == "prompt":
         if a.role:   # 나눔 모드: 끝나지 않은 첫 step 의 차례가 이 역할일 때만(ADR-019 E12)
             step = r.current()
