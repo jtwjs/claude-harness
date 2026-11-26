@@ -1160,6 +1160,129 @@ class RunnerCase(unittest.TestCase):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
         self.assertNotEqual(self.session("judge", "t1", "--base", "HEAD").returncode, 0)
 
+    # ── 구현 시작 관문 (ADR-023 R1 · R2) ──────────────────────────────────────
+    ADR_OPEN = textwrap.dedent('''\
+        # ADR
+        ## ADR-900 첫 결정
+        ### 결정할 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | R1 | 관문 위치 | start | 사용자(AI 추천 수용) |
+        | R2 | 세는 칸 |  |  |
+        ### 버린 방법
+        | 방법 | 이유 | 주체 |
+        |---|---|---|
+        | X | 느림 |  |
+        ## ADR-901 둘째 결정
+        ### 결정할 것 / 결정한 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | S1 | 진입점 모양 | A |   |
+        | S2 | 이름 | gate | 사람 |
+    ''')
+    ADR_CLOSED = textwrap.dedent('''\
+        # ADR
+        ## ADR-900 첫 결정
+        ### 결정할 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | R1 | 관문 위치 | start | 사용자(AI 추천 수용) |
+
+        열린 결정 0.
+    ''')
+    PRD_LABEL = textwrap.dedent('''\
+        # PRD
+        - **범위**: x
+        - **남은 ⚠️** (계획 때 정한다)
+          - ⚠️ 관문이 무엇을 세나 → 결정: ADR-900 R1
+          - ⚠️ 테스트 모양
+            - 하위 메모 ⚠️ 첫 단이 아니라 세지 않는다
+        - **수용 조건**
+          - AC-1 ⚠️ 남은 ⚠️ 범위 밖이라 세지 않는다
+    ''')
+    PRD_HEADING = textwrap.dedent('''\
+        # PRD
+        ## 남은 ⚠️
+        - ⚠️ A 정하기
+        - ⚠️ B 다음 phase 일 막지 않음: 이번 범위 밖
+        ## 다음 절
+        - ⚠️ D 범위 밖
+    ''')
+
+    def docs(self, path="docs/d", adr=None, prd=None, arch=None):
+        d = self.repo / path
+        d.mkdir(parents=True, exist_ok=True)
+        for name, body in (("ADR.md", adr), ("PRD.md", prd), ("ARCHITECTURE.md", arch)):
+            if body is not None:
+                (d / name).write_text(body)
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", f"docs {path}")
+        return path
+
+    def test_gate_no_docs_passes(self):
+        p = self.session("gate", "docs/none")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("ADR · PRD 없음", p.stdout, "문서가 없으면 막지 않는다(AC-2)")
+        path = self.docs("docs/arch-only", arch="# ARCHITECTURE\n기존 구조 그대로\n")
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("ADR · PRD 없음", p.stdout)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "관문은 아무것도 쓰지 않는다")
+
+    def test_gate_all_closed_passes(self):
+        path = self.docs(adr=self.ADR_CLOSED, prd="# PRD\n- **범위**: x\n")
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("열린 「정할 것」 0", p.stdout)
+
+    def test_gate_open_rows_stop_with_list(self):
+        path = self.docs(adr=self.ADR_OPEN, prd=self.PRD_LABEL)
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 3개", p.stdout)
+        self.assertIn("  - ADR R2: 세는 칸", p.stdout, "주체 칸이 빈 행")
+        self.assertIn("  - ADR S1: 진입점 모양", p.stdout, "주체 칸이 공백뿐인 행 · 둘째 ADR 블록")
+        self.assertIn("  - PRD: ⚠️ 테스트 모양", p.stdout)
+        self.assertNotIn("R1", p.stdout.replace("ADR-900 R1", ""), "주체가 찬 행은 닫힌 것")
+        self.assertNotIn("S2", p.stdout)
+        self.assertNotIn("느림", p.stdout, "「결정할 것」 절 밖의 표는 세지 않는다")
+
+    def test_gate_table_without_owner_column_counts_all(self):
+        adr = textwrap.dedent('''\
+            # ADR
+            ## 결정할 것
+            | # | 정할 것 | 추천 |
+            |---|---|---|
+            | Q1 | 하나 | A |
+            | Q2 | 둘 | B |
+        ''')
+        p = self.session("gate", self.docs(adr=adr))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("  - ADR Q1: 하나", p.stdout, "주체 칸이 없으면 모든 행이 열린 것(기본이 멈춤)")
+        self.assertIn("  - ADR Q2: 둘", p.stdout)
+
+    def test_gate_prd_marked_lines_excluded(self):
+        path = self.docs(prd=self.PRD_LABEL)
+        self.assertEqual(self.session("gate", path).returncode, 2, self.out)
+        self.docs(prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 → 결정: ADR-900 R2"))
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, "닫힘 표시를 달면 통과한다\n" + self.out)
+        self.docs(prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 막지 않음: 구현과 무관"))
+        self.assertEqual(self.session("gate", path).returncode, 0, "막지 않음: 표시도 뺀다\n" + self.out)
+
+    def test_gate_prd_heading_and_label_forms(self):
+        p = self.session("gate", self.docs("docs/h", prd=self.PRD_HEADING))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 1개", p.stdout)
+        self.assertIn("  - PRD: ⚠️ A 정하기", p.stdout, "제목 꼴: 다음 같은 급 제목 전까지")
+        self.assertNotIn("B 다음", p.stdout)
+        self.assertNotIn("D 범위 밖", p.stdout)
+        p = self.session("gate", self.docs("docs/l", prd=self.PRD_LABEL))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 1개", p.stdout, "불렛 라벨 꼴: 첫 단 항목만 · 라벨 범위 밖은 안 센다")
+        self.assertNotIn("하위 메모", p.stdout)
+        self.assertNotIn("AC-1", p.stdout)
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
