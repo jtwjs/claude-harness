@@ -133,8 +133,20 @@
     {
       "step": 8,
       "name": "track-brief-and-tracks",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:27:58+0900",
+      "summary": "track-brief.md 표에 세션 역할 · 의도 · effort 칸(effort 는 값 없이 conductor §5 · 하네스 ADR-019 E1 · C7a 참조) · 「끝나면 지휘에 보고」 4번째 묶음 「지휘 자리의 지식 저장소로 올릴 것」(도메인 사실·출처 / 반대 근거 / 남은 문제 / 저장소 쪽 할 일 후보, 없으면 「없음」, 레포에 안 씀) · 「금지」 판정함 줄과 「새 worktree 준비」 절 삭제(점검 평문 step 은 track-brief 를 안 건드려 이 step 이 지움) / tracks.md 세션 종류 표에 검증 `<레포>-<층>-<기능>-verify` · 구현 `-impl` 행 + 나눔·층별 상주 유지·세로 조각은 층 안 단락 · §5 5번 나눔 모드(검증 BE 제공 · 검증 FE 소비 · 끝까지 확인 검증 FE). 세션 역할 칸 값에 「하나」도 넣었다(계획은 검증 / 구현, 이유: 세션 하나 모드 트랙도 같은 지시문을 받는다) · 지휘 점검 PR 덜기 목록은 받지 않고 G5 줄만 했다(이유: 비대화 러너 세션이라 지휘 회신을 기다릴 수 없음 — 점검 step 7 summary 의 track-brief 덜기 후보와 G5 가 같다)",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 70596,
+        "cache_read_input_tokens": 636787,
+        "output_tokens": 6436,
+        "num_turns": 10,
+        "duration_ms": 205102,
+        "total_cost_usd": 0.8209254
+      },
+      "completed_at": "2026-11-26T18:33:26+0900"
     },
     {
       "step": 9,
