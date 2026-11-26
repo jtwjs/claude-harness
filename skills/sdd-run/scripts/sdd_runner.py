@@ -621,7 +621,9 @@ class Runner:
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
         scope = commits   # 판정 6 범위는 테스트 파일까지 — 테스트가 든 앱도 돈다
-        if step.get("red"):
+        if step.get("rejudged"):   # 판정 5(ADR-023 R3): red 가 고친 테스트라 구현은 그 앞에 있을 수 있다 — BASE 뒤 구현 변경
+            commits = [c for c in commits if any(not TEST_FILE.search(f) and not f.startswith("phases/") for f in c[1])]
+        elif step.get("red"):
             commits = self.commits_since(step["red"])   # 판정 5: 테스트 커밋 뒤 구현 변경
         if not commits:
             if step.get("kind") != "measure":
@@ -1060,6 +1062,8 @@ def main(argv=None) -> int:
                 return rc
             if step.get("status") == "blocked":   # 검증 재판정(E3) — 지시문이 아니라 사유를 본다
                 print(f"step {step['step']} blocked — 검증 재판정: {step.get('blocked_reason', '')}")
+                print(f"  다음 수: 테스트가 틀렸으면 테스트만 고쳐 커밋한 뒤 `rejudge {r.task} --step {step['step']}`"
+                      " · 구현이 고칠 일이면 index.json 의 status 를 pending 으로 되돌린다(ADR-023 R3)")
                 return 2
         else:
             step = r.find(r.read(), a.step) if a.step else r.next_pending()
