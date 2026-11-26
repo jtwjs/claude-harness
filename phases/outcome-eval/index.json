@@ -1,0 +1,118 @@
+{
+  "project": "claude-harness",
+  "phase": "outcome-eval",
+  "docs": "docs/outcome-eval-2026-11-26",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "outcome-check",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 2,
+      "name": "bias-case",
+      "status": "completed",
+      "tdd": false,
+      "summary": "`evals/probe-judge-bias/`(태그 probe-bias, a.md · b.md, 채점기 c1~c4 × a · b, CLAIMS.md). 설계 세션에서 먼저 만들었다(계획은 구현 단계, 이유: 설계 지시의 끌림 확인). `claude plugin eval . --tag probe-bias --max-cost-usd 0` → exit 2 · case 오류 없음. 실행 명령 · 세는 법은 docs/outcome-eval-2026-11-26/RUNS.md"
+    },
+    {
+      "step": 3,
+      "name": "sandbox-git",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "fake-gh",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "process-graders",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "bias-run",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "summary": "끌림: `claude plugin eval . --tag probe-bias --ablation none --model claude-haiku-5-5 --judge-model claude-sonnet-5-5 --runs 10 -j 2 --scaffold --trust-plugin --no-publish --keep-temp --max-cost-usd 2.0` → 8/10회에서 상한, 칸마다 24표라 판정 안 함. PASS(a · b) c1 24 · 24, c2 0 · 0, c3 24 · 24, c4 5 · 14, $2.34. 같은 명령에 `--judge-model claude-haiku-5-5 --max-cost-usd 0.5` → 10/10, c1 30 · 30, c2 0 · 0, c3 30 · 30, c4 30 · 30, 갈린 표 0, 끌림 0, $0.13. 거름: `claude plugin eval . --tag probe-strict --ablation none --model claude-haiku-5-5 --judge-model claude-haiku-5-5 --runs 10 -j 2 --scaffold --trust-plugin --no-publish --keep-temp --max-cost-usd 0.5` → c3 4/30 · c4 0/30 PASS(합격선 9 이하), $0.05. 채점 모델 `claude-haiku-5-5` 확정(ADR-020 ④-c, 사용자(AI 추천 수용)). 결과 폴더(레포 밖 $TMPDIR): `tmp.g6ZVNTfOVg` · `tmp.cQ2TKCzDXq` · `tmp.h4hIcMHHog`"
+    },
+    {
+      "step": 7,
+      "name": "env-probe-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 8,
+      "name": "tally-outcome",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 9,
+      "name": "segment-cases",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 10,
+      "name": "segment-criteria",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 11,
+      "name": "core-segments-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 12,
+      "name": "stage-split",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 13,
+      "name": "history-probe-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 14,
+      "name": "flow-cases",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 15,
+      "name": "flow-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 16,
+      "name": "why-how-run",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    },
+    {
+      "step": 17,
+      "name": "record-results",
+      "status": "pending",
+      "tdd": false
+    }
+  ]
+}
