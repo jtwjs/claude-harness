@@ -33,6 +33,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
    - **10 재시도** → 실패 사유가 index.json `last_error`·`attempts`에 남았고 `retries` +1. 2로 돌아간다(지시문에 사유가 붙고, 이전 시도의 테스트 커밋이 남아 있으면 "테스트는 다시 쓰지 않는다"도 붙는다). RED 위반(2·3)이나 verify 실패가 RED 테스트 파일에서 난 경우(6)면 러너가 이번 시도의 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다 — 다음 시도는 테스트부터 다시
    - **1 실패로 멈춤** → 재시도 3번 뒤에도 실패(첫 시도 + 재시도 3 = 최대 4회, 재개했으면 재개 뒤부터 센다). 남은 코드는 `wip:` 커밋으로 남는다. 사유를 보고하고 멈춘다. 근본 원인성이면 `root-cause-debugger`
    - **2 blocked** → `blocked_reason`을 사람에게 보고하고 멈춘다(사람 체크포인트). 「앞 step 탓」 blocked면 커밋을 거꾸로 짚어 원인 step을 찾고, 고친 뒤 이 step을 `pending`으로(재개라 전체 verify)
+   - 부하가 높아 전체 test를 돌리기 어려우면(사람이 판단) `judge`·`run`에 `--defer-full-test` — 「전체」로 넓어질 verify도 step 명령만 돌리고, 줄인 step `summary` 끝에 「전체 test 미룸 — 릴리스 전 한 번」이 붙는다(세션이면 `prompt`에도 같이 넘긴다)
 
 `judge`가 보는 것(위에서부터, 첫 실패에서 멈춤 — 정본은 `sdd_runner.py` `check`):
 | # | 검사 | 실패 사유 |

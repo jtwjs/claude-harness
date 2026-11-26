@@ -64,6 +64,7 @@ import phases_status  # noqa: E402
 
 TZ = timezone(timedelta(hours=9))
 VALID = {"pending", "completed", "error", "blocked"}
+DEFER_MARK = "전체 test 미룸 — 릴리스 전 한 번"   # --defer-full-test 로 줄인 step 의 summary 끝 — #13
 MEASURE_SUMMARY = re.compile(r"`[^`]+`")   # kind: measure step 의 summary 에 있어야 하는 측정 명령(백틱) — #8
 # 테스트 파일 판별 — tdd-guard 의 짝 테스트 자리와 같은 계열(TS *.test/*.spec · __tests__ · tests/ · JVM *Test.kt · py test_* · 셸 test.sh)
 # 셸은 test.sh 이름만 — 넓히면 구현 스크립트가 테스트로 잡혀 「테스트 커밋에 구현 없음」이 거짓으로 통과한다
@@ -109,7 +110,7 @@ class RedFail(Fail):
 
 
 class Runner:
-    def __init__(self, task: str, max_retries: int = 3, timeout: int = 1800):
+    def __init__(self, task: str, max_retries: int = 3, timeout: int = 1800, defer_full_test: bool = False):
         r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
         if r.returncode != 0:
             sys.exit("git 레포가 아니다")
@@ -119,6 +120,8 @@ class Runner:
         self.index_file = self.dir / "index.json"
         self.max_retries = max_retries
         self.timeout = timeout
+        self.defer_full_test = defer_full_test
+        self.deferred = {}   # {step 번호: 미룬 「전체」 이유} — 판정 통과 때 summary 에 표시를 붙인다
         cfg_file = self.root / ".claude/harness.json"
         self.cfg = json.loads(cfg_file.read_text(encoding="utf-8")) if cfg_file.exists() else {}
 
@@ -169,13 +172,22 @@ class Runner:
     def is_last(self, step: dict) -> bool:
         return all(s.get("status") == "completed" for s in self.read()["steps"] if s["step"] != step["step"])
 
-    def full_reason(self, step: dict):
-        """step 명령 대신 전체 명령을 쓸 이유. 재개 step 은 앞 시도의 wip 커밋이 {since} 앞에 있어 범위가 빈다."""
+    def full_reason(self, step: dict, outside=None):
+        """step 명령 대신 전체 명령을 쓸 이유. 재개 step 은 앞 시도의 wip 커밋이 {since} 앞에 있어 범위가 빈다.
+        outside = verify_scope 가 찾은 앱 밖 파일. --defer-full-test 면 이유가 있어도 None(#13) — prompt·invoke·
+        verify_scope 가 모두 여기서 「전체」를 정하므로 한 곳에서 건다. `$step` 명령이 없으면 줄일 범위가 없어 그대로."""
         if self.is_last(step):
-            return "phase 마지막 step"
-        if step.get("resumed_at"):
-            return "재개한 step"
-        return None
+            why = "phase 마지막 step"
+        elif step.get("resumed_at"):
+            why = "재개한 step"
+        elif outside:
+            why = f"앱 밖 파일 {outside}"
+        else:
+            return None
+        if self.defer_full_test and any(self.step_override(r, n) for r, n, _ in self.verify_cmds()):
+            self.deferred[step["step"]] = why
+            return None
+        return why
 
     def run_out(self, root: str, cmd: str):
         """(통과 여부, 출력). 그 시점에 앱 폴더가 아직 없으면 실행할 수 없다 = 통과 아님."""
@@ -387,7 +399,7 @@ class Runner:
             # 측정·실측·대조 전용 step(#8): 변경 0 이 정상이고 산출물은 summary 의 측정 명령 + 결과다
             if not MEASURE_SUMMARY.search(step.get("summary") or ""):
                 raise Fail("measure: summary 에 측정 명령(백틱)과 결과가 없다 — 코드 변경이 없는 step 은 측정 출력이 산출물이다")
-            if not self.is_last(step):
+            if not self.is_last(step) or not self.full_reason(step):
                 print("measure step: 코드 변경 없음 — summary 의 측정 결과로 통과, verify 생략", file=sys.stderr)
                 return None
             # phase 마지막 step 이 측정이면 여기서 phase 전체 verify 를 한 번 돌린다 — 안 하면 전체가 한 번도 안 돈다
@@ -450,7 +462,9 @@ class Runner:
             for f in sorted({f for _, fs in commits for f in fs}):
                 own = next((r for r in roots if f.startswith(r.rstrip("/") + "/")), None)
                 if own is None:
-                    full = f"앱 밖 파일 {f}"
+                    full = self.full_reason(step, f)
+                    if not full:   # 미룸 — 어느 앱 탓인지 못 고르니 모든 앱의 step 명령
+                        picked = None
                     break
                 picked.add(own)
                 for pat, extra in affects.items():
@@ -459,6 +473,8 @@ class Runner:
         if full:
             print(f"verify 범위: 전부 — {full}", file=sys.stderr)
             return cmds
+        if step["step"] in self.deferred:
+            print(f"verify 범위: 전체 미룸(--defer-full-test) — {self.deferred[step['step']]}", file=sys.stderr)
         if picked is not None:
             skipped = [r for r in roots if r not in picked]
             print(f"verify 범위: {', '.join(sorted(picked))}" + (f" (건너뜀: {', '.join(skipped)})" if skipped else ""),
@@ -544,6 +560,8 @@ class Runner:
             return 2
         if res is None:
             s["completed_at"] = stamp()
+            if n in self.deferred and DEFER_MARK not in (s.get("summary") or ""):
+                s["summary"] = " · ".join(x for x in ((s.get("summary") or "").rstrip(), DEFER_MARK) if x)
             s.pop("last_error", None)   # 실패 사유 이력은 attempts 에 남는다(REFLECT 재료)
             s.pop("error_message", None)
             s.pop("base", None)
@@ -653,8 +671,10 @@ def main(argv=None) -> int:
     ap.add_argument("--max-retries", type=int, default=3)
     ap.add_argument("--base")
     ap.add_argument("--step", type=int)
+    ap.add_argument("--defer-full-test", action="store_true",
+                    help="judge·run: 「전체」로 넓어지는 verify 도 $step 명령만(부하 중, 전체는 릴리스 전 한 번)")
     a = ap.parse_args(argv)
-    r = Runner(a.task, a.max_retries, a.timeout)
+    r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test)
     if a.mode == "run":
         return r.run()
     if a.mode == "start":
