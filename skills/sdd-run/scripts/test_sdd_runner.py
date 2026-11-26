@@ -1459,6 +1459,56 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(p.returncode, 3, "지금 차례인 step 이 아니면 거부\n" + self.out)
         self.assert_unchanged(before)
 
+    def rejudged(self, ops=(("write", "tests/a.expect", "bye"),)):
+        """blocked → 검증이 테스트 고침 → rejudge 통과. (BASE, 구현 wip sha, 고친 테스트 sha)"""
+        base, _ = self.blocked_after_red()
+        wip = self.wip_sha()
+        fixed = self.fix_tests(list(ops))
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        return base, wip, fixed
+
+    def test_rejudged_impl_already_right_completes(self):
+        self.rejudged()
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([DONE])   # 구현이 이미 맞다 — 더 고칠 것이 없다
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "rejudge 뒤 판정 5 는 BASE 뒤 구현 변경을 본다\n" + self.out)
+        self.assertEqual(self.step()["status"], "completed")
+
+    def test_rejudged_impl_edit_test_reverted(self):
+        _, _, fixed = self.rejudged()
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "zzz"], ["write", "tests/a.expect", "zzz"], ["commit", "feat: a (테스트도 고침)"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 10, self.out)
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye", "새 red(고친 테스트) 기준으로 되돌린다(판정 4)")
+        self.assertIn("테스트 파일", self.step()["last_error"])
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_round_trip_keeps_impl_and_fixed_test(self):
+        # 고친 테스트가 c 기대도 더한다 — 구현 세션이 rejudge 뒤에 더 구현해야 끝난다
+        _, wip, fixed = self.rejudged((("write", "tests/a.expect", "bye"), ("write", "tests/c.expect", "c")))
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: step 1 — c"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed")
+        for sha in (wip, fixed):
+            self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", sha, "HEAD").returncode, 0,
+                             "구현 커밋과 고친 테스트가 둘 다 브랜치에 남는다(AC-3)")
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "bye")
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye")
+        self.assertEqual((self.repo / "src/c.txt").read_text(), "c")
+        self.assertEqual(git(self.repo, "branch", "--list", "sdd-discard/*").stdout.strip(), "")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "사람 손 정리 없이 끝난다")
+
+    def test_blocked_test_prompt_mentions_rejudge(self):
+        self.blocked_after_red()
+        p = self.session("prompt", "t1", "--role", "test")
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("rejudge t1 --step 1", self.out, "테스트가 틀렸을 때의 다음 수")
+        self.assertIn("pending", self.out, "구현이 고칠 일일 때의 다음 수")
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
