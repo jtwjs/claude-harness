@@ -43,11 +43,12 @@
     {
       "step": 4,
       "name": "impl-judge-after-rejudge",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-26T21:45:25+0900",
-      "base": "7447181774dc3f16a7d615b345db54ea23165713",
-      "red": "07a394ebef245c40eb3e5bb3372aca95f5bc1ddd"
+      "red": "07a394ebef245c40eb3e5bb3372aca95f5bc1ddd",
+      "summary": "check 판정 5: rejudged 있는 step은 BASE 뒤 커밋 중 테스트·phases/ 밖 파일을 담은 커밋으로 본다(판정 4·6 그대로). prompt --role test blocked 안내에 rejudge / pending 다음 수 한 줄",
+      "completed_at": "2026-11-26T21:54:37+0900"
     },
     {
       "step": 5,
