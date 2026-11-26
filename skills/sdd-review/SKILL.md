@@ -49,6 +49,7 @@ disable-model-invocation: true
   2. `pr-write` Risk Score가 자동 머지 기준을 넘는다(기준 값은 `pr-write` 4.6단계가 정본)
   3. 이 리뷰에 「확인 필요」가 남았다
 - 세션 하나 모드는 이 조건을 보지 않는다 — `sdd` 「③ REVIEW」 절대로 이 리뷰 뒤 새 맥락 `code-reviewer`를 늘 한 번 부른다(같은 세션 자기 리뷰를 막는다).
+- 넘김에는 `INTENT`(§4 1번에서 되비춘 의도 한 줄) · `SCOPE`(diff 범위) · `CHECKED`(축별 결과)를 싣는다 — 꼴은 `${CLAUDE_PLUGIN_ROOT}/agents/code-reviewer.md` 절차 1.
 - 부를 때 fork하지 않는다 — 만든 쪽 맥락을 물려받으면 자기 리뷰가 된다(탐색 같은 보조 작업은 해도 된다). 성능/구조 건강성/보안을 깊게 봐야 할 때는 조건 밖이어도 부를 수 있다.
 - 원인 불명 회귀 → `root-cause-debugger`.
 - 이 스킬은 판정만 한다(코드 수정 없음).
