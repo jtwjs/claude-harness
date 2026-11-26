@@ -20,12 +20,14 @@ disable-model-invocation: true
 ## 2. 범위 합의 (사람 체크포인트 ① 계획 — PLAN의 첫 정지. 두 번째는 §5 step 승인)
 
 - 설계문서에서 **구현 대상 유즈케이스·수용 조건**을 뽑아 bullet로 요약한다.
+- phase 나눔은 설계 단계(`design.md` Readiness 8)에서 정해 온 대로 따른다. 기본은 PRD 하나 = phase 하나이고, 나눌 때는 층(BE → FE)이 아니라 동작 단위(생성 → 수정)로 나눈다. 설계가 FE · BE를 다른 세션에 맡겼으면 각 세션의 phase는 자기 층 안에서 끝까지 돈다.
 - 모호·누락은 **추측 말고 질문**한다(karpathy: 가정 명시). 승인 전 step 파일을 쓰지 않는다.
 - step을 쪼개다 생기는 `⚠️`·`TBD`·미해결 가정은 **이 자리에서 묻는다** — DESIGN으로 되돌아가지 않는다. 질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`를 읽고 따른다. 푼 결정은 기술이면 `ADR.md`, 제품·도메인이면 `PRD.md` 「결정」 절에 **지금** 적는다 — step 파일은 기능이 끝나면 아무도 읽지 않는 메모라 거기에만 두면 사라진다. §5 승인 시점에 step 파일의 미해결 `⚠️`는 0개다.
 
 ## 3. Step 분해 원칙
 
-- **범위 최소화**: 한 step = 하나의 작동 단위 = **한 레이어·모듈만** 만진다. 두 레이어를 같이 고쳐야 하면 step을 쪼갠다. 순서는 **의존 방향을 따라 아래 계층부터** — 타입/데이터 → 외부 연동 → 상태 → 화면 → 통합. 계층 이름은 프로젝트 규약(`CLAUDE.md` 구조 절·`.claude/rules/`)을 따른다.
+- **범위 최소화**: 한 step = 하나의 작동 단위 = **한 레이어·모듈만** 만진다. 두 레이어를 같이 고쳐야 하면 step을 쪼갠다. 순서는 **의존 방향을 따라 아래 계층부터** — 타입/데이터 → 외부 연동 → 상태 → 화면 → 통합. 계층 이름은 프로젝트 규약(`CLAUDE.md` 구조 절·`.claude/rules/`)을 따른다. phase는 세로(끝까지 도는 조각), step은 층이다.
+- **phase는 끝까지 돈다**: 그 phase의 verify가 PRD 수용 조건 1개 이상을 덮는 테스트를 돌려야 한다. FE · BE를 나눠 맡긴 세션이면 그 세션 층에서 확인되는 수용 조건이다(예: BE는 API 계약 테스트). 수용 조건을 하나도 덮지 못하는 phase는 나눔을 다시 본다.
 - **자기완결성**: step 하나만 읽어도 서브에이전트가 작업 가능해야 한다. 앞 step 결과에 의존하는 부분은 명시. 🔴 **"이전 대화에서 논의한 대로" 같은 외부 참조 금지** — 각 step은 대화 기록이 없는 새 서브에이전트 세션에서 돈다. 필요한 정보는 전부 파일 안에 적는다.
 - **관련 파일 강제 열람**: 따라야 할 기존 패턴 파일 경로를 `## 읽어야 할 파일`에 못박는다.
 - **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다. **단 멱등성·보안·데이터 무결성처럼 벗어나면 안 되는 규칙은 반드시 명시한다** — 시그니처만 주면 에이전트가 그 규칙을 모른다.
@@ -34,6 +36,7 @@ disable-model-invocation: true
 - **금지사항 명시**: 아래 템플릿 「금지사항」 두 줄은 늘 넣는다. 이름 · 경로를 바꾸는 step이면 「옛 이름 grep 0」 AC에 쌓기만 하는 기록을 뺀 범위를 적는다 — 빼지 않으면 에이전트가 지난 로그 항목까지 새 이름으로 고친다. CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 복사본은 ADR이 바뀐 뒤에도 옛 값으로 남는다.
 - **측정 전용 step은 `kind: "measure"`**: dev 실측·전후 대조·보고만 하고 바꿀 파일이 없는 step. 작업 절에 "무엇을 어떤 명령으로 재서 summary에 남기나"를 적는다. 구현 step에 측정을 섞지 않는다 — 섞으면 변경 유무로 판정할 수 없다.
 - **이동 리팩터(패키지 · 폴더 옮기기)는 세 step으로**: ① 측정 step(`kind: "measure"`) — 새 구조 규칙(ArchUnit · lint)을 임시로 돌려 RED를 확인하고 위반 목록을 summary에 남긴다 ② 이동 step(`tdd: false`, 사유 「테스트 파일도 rename · package 줄이 바뀌어 RED 뒤 테스트 무변경 판정과 못 같이 둔다」) ③ 규칙 step — 규칙을 커밋해 GREEN을 확인한다. 한 step에 묶으면 judge가 테스트 파일 변경으로 막는다
+- **넓은 리팩터(이름 · 타입을 레포 전체에서 바꾸기)는 확장 → 옮기기 → 수축**: ① 새 형태를 옛 형태 옆에 더한다 ② 호출처를 묶음(패키지 · 폴더)마다 새 형태로 옮기는 step을 묶음 수만큼, 묶음마다 verify 초록 ③ 옮기기가 다 끝난 뒤 옛 형태를 지운다. 한 step에 몰면 중간에 빨강이 길게 이어져 judge가 진짜 실패를 가리지 못한다
 - step 이름은 **kebab-case**.
 
 ## 3-b. 디자인 핸드오프가 있을 때
@@ -63,7 +66,7 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 ```
 
 - **`docs`** — §0에서 합의한 설계문서 폴더. `task` slug와 `feature-YYYY-MM-DD`는 별개 식별자라 **이 필드가 없으면 `sdd-run`·`sdd-review`가 PRD·ARCHITECTURE·ADR을 찾을 방법이 없다.** 반드시 채운다.
-- **`after`** — 이 phase보다 먼저 끝나야 하는 phase의 `task` slug 배열(같은 PRD를 여러 phase로 나눴을 때. 예: `fe-cp-name`의 `after: ["be-cp-name"]`). 선행이 없으면 `[]`. 같은 PRD 묶음은 `docs`가 같아서 알 수 있다 — **상위 `phases/index.json`(전체 현황 파일)은 만들지 않는다.** 상태가 두 곳에 적히면 어긋난다. 전체 현황은 `phases_status.py`가 phase별 `index.json`에서 계산한다(`sdd-run` §0)
+- **`after`** — 이 phase보다 먼저 끝나야 하는 phase의 `task` slug 배열(같은 PRD를 여러 phase로 나눴을 때. 한 세션이 FE · BE를 다 맡으면 동작 단위 세로 조각: `cp-name-edit`의 `after: ["cp-name-create"]`. 설계에서 FE · BE를 다른 세션에 맡겼으면 각 세션 phase는 자기 층 안에서 세로이고 계약을 먼저 굳힌다: `fe-cp-name`의 `after: ["be-cp-name"]`). 선행이 없으면 `[]`. 같은 PRD 묶음은 `docs`가 같아서 알 수 있다 — **상위 `phases/index.json`(전체 현황 파일)은 만들지 않는다.** 상태가 두 곳에 적히면 어긋난다. 전체 현황은 `phases_status.py`가 phase별 `index.json`에서 계산한다(`sdd-run` §0)
 - `status` ∈ `pending | completed | error | blocked` **4개만**. 최초 전부 `pending`. 🔴 `done`·`complete` 같은 다른 값은 쓰지 않는다 — 러너는 `completed`만 끝난 것으로 판정한다. `phases_status.py`가 다른 값을 오류로 잡는다
 - `summary`·`error_message`·`blocked_reason`·`retries`·`last_error`(직전 실패 사유)·`attempts`(실패 이력, REFLECT 재료)·`resumed_at`·timestamp·`usage`는 **구현 단계(sdd-run)**가 채운다. 여기선 비워둔다.
 - **`kind`(선택)** — `"measure"`면 **코드 변경이 없는 측정·실측·대조 전용 step**이다. 러너가 변경 0을 정상으로 보고, 대신 `summary`에 실행한 명령(백틱)과 결과를 요구한다(없으면 실패). `tdd`는 `false`. 표시하지 않으면 러너가 "completed 보고인데 변경 없음"으로 재시도한다(#8)

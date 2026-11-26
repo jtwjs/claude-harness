@@ -26,9 +26,9 @@ PRD를 **디자인 브리프**로 압축하고, 그 브리프로 **레포에 묶
 - 이미 있으면 `.claude/design/DESIGN.md`(스타일 정본)
 - 이미 있으면 `.claude/design/canvas/canvas.json`(레포 캔버스 — `현행` 탭이 지금 화면이다)
 
-## 2. 시안 전에 끝낼 결정 — 한 번에 한 질문
+## 2. 시안 전에 끝낼 결정
 
-레포(코드·PRD·기존 화면)에서 답이 나오는 것은 **스스로 찾는다.** 남은 **제품 결정만** 한 번에 하나씩, 추천 답과 함께 묻는다(질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`).
+레포(코드·PRD·기존 화면)에서 답이 나오는 것은 **스스로 찾는다.** 남은 **제품 결정만** 추천 답과 함께 질문 규칙대로 묻는다(질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`).
 
 | 칸 | 묻는 것 |
 |---|---|
