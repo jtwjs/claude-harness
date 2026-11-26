@@ -4,11 +4,44 @@
   "docs": "docs/design-phase-2026-11-26",
   "after": [],
   "steps": [
-    { "step": 1, "name": "role-boundary", "status": "pending", "tdd": false },
-    { "step": 2, "name": "design-doc-flow", "status": "pending", "tdd": false },
-    { "step": 3, "name": "design-doc-template", "status": "pending", "tdd": false },
-    { "step": 4, "name": "design-doc-screen", "status": "pending", "tdd": false },
-    { "step": 5, "name": "answer-inbox", "status": "pending", "tdd": false },
-    { "step": 6, "name": "question-rounds", "status": "pending", "tdd": true }
+    {
+      "step": 1,
+      "name": "role-boundary",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:07:43+0900",
+      "summary": "지휘 역할 경계를 ADR-022 D6으로 바꿈: seat.md 「세 자리 역할」 표가 역할 정본(지휘=설계서·관문 둘·중계, 작업=레포 문서·결정 묶음), decisions.md §1에 「관문 둘」(2번은 #83 장치 예정)·「결정 묶음 받기」(design.md 「설계서」 절 링크, step 2·3이 만듦), SKILL.md·dispatch.md·track-brief.md 이름 맞춤",
+      "completed_at": "2026-11-26T21:12:43+0900"
+    },
+    {
+      "step": 2,
+      "name": "design-doc-flow",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "design-doc-template",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "design-doc-screen",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 5,
+      "name": "answer-inbox",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "question-rounds",
+      "status": "pending",
+      "tdd": true
+    }
   ]
 }
