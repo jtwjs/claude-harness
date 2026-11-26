@@ -648,6 +648,71 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
         self.assertNotIn("base", self.step(), "끝난 step 의 BASE 는 지운다")
 
+    # ── --defer-full-test (#13) — 부하 중 전체 test 를 릴리스 전으로 미룬다 ──────────────
+    DEFER_MARK = "전체 test 미룸 — 릴리스 전 한 번"
+
+    def test_defer_full_last_step_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.two_steps()
+        rc = self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]},
+                              {"step": 2, "ops": [["write", "server/b.txt", "1"], ["commit", "feat: b"], DONE]}],
+                             "--defer-full-test")
+        self.assertEqual(rc, 0, self.out)
+        self.assertNotIn("full", self.runs(log), "마지막 step 도 step 명령만")
+        self.assertIn("echo step", self.prompt(1), "지시문 검증 명령도 step 명령")
+        self.assertNotIn("echo full", self.prompt(1))
+        self.assertTrue(self.step(2)["summary"].endswith(self.DEFER_MARK), self.step(2)["summary"])
+        self.assertNotIn(self.DEFER_MARK, self.step(1)["summary"], "줄이지 않은 step 에는 붙이지 않는다")
+
+    def test_defer_full_absent_last_step_runs_full(self):
+        log = self.step_cfg(single=True)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.runs(log), ["full"], "옵션이 없으면 지금처럼 마지막 step 은 전체")
+        self.assertNotIn(self.DEFER_MARK, self.step()["summary"])
+
+    def test_defer_full_without_step_cmd_runs_full(self):
+        log = self.tmp / "runs.log"
+        self.set_cfg({"verify": {"test": f"echo full >> {log}; sh check.sh"}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}], "--defer-full-test")
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.runs(log), ["full"], "$step 이 없으면 줄일 범위가 없어 전체")
+        self.assertNotIn(self.DEFER_MARK, self.step()["summary"], "줄이지 않았으면 표시도 없다")
+
+    def test_defer_full_outside_apps_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.two_steps()
+        self.run_runner([{"step": 1, "ops": [["write", "README.md", "x"], ["write", "server/a.txt", "1"],
+                                             ["commit", "feat: a"], DONE]}], "--defer-full-test")
+        self.assertEqual(self.step(1)["status"], "completed", self.out)
+        self.assertNotIn("full", self.runs(log), "앱 밖 파일이어도 step 명령만")
+        self.assertIn("step", " ".join(self.runs(log)))
+        self.assertTrue(self.step(1)["summary"].endswith(self.DEFER_MARK), self.step(1)["summary"])
+
+    def test_defer_full_resumed_step_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False, "failed_at": "2026-01-01T00:00:00+0900",
+                     "error_message": "원인: x"},
+                    {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}],
+                        "--defer-full-test")
+        self.assertEqual(self.step(1)["status"], "completed", self.out)
+        self.assertNotIn("full", self.runs(log), "재개 step 도 step 명령만")
+        self.assertTrue(self.step(1)["summary"].endswith(self.DEFER_MARK), self.step(1)["summary"])
+
+    def test_defer_full_session_judge(self):
+        log = self.step_cfg(single=True)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.act([IMPL, ["commit", "feat: a"], DONE])
+        p = self.session("judge", "t1", "--step", "1", "--base", base, "--defer-full-test")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.runs(log), [f"step {base}"], "judge 도 옵션을 받아 마지막 step 을 step 명령으로")
+        self.assertTrue(self.step()["summary"].endswith(self.DEFER_MARK), self.step()["summary"])
+
     def test_session_judge_without_any_base_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
         self.assertNotEqual(self.session("judge", "t1", "--step", "1").returncode, 0)
