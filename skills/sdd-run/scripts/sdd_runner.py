@@ -70,6 +70,26 @@ MEASURE_SUMMARY = re.compile(r"`[^`]+`")   # kind: measure step 의 summary 에 
 TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|/)src/test/|Tests?\.(kt|java)$|(^|/)test_[^/]+\.py$|_test\.(py|go)$|(^|/)test\.sh$)")
 OUTPUT_GLOB = "phases/*/step*-output.json"
 HOOK_STAMPS = ":(exclude).claude/.last-*"   # 훅 기록 파일 — .gitignore 가 없는 레포에서도 커밋에 섞지 않는다(10-13 실가동)
+# verify 실패 사유에 붙이는 출력 꼬리(#12): 끝 40줄 + 그 앞의 실패한 테스트 이름 줄(최대 10) · 4,000자 상한(index.json 이 붓지 않게)
+TAIL_LINES, TAIL_FAILS, TAIL_CAP, TAIL_CUT = 40, 10, 4000, "…(앞 생략)\n"
+FAIL_LINE = re.compile(r"^\s*(FAIL|✗|✕|🔴)")   # FAIL 은 FAILED 도 잡는다. 이 레포 hooks/test.sh 실패 줄은 「  🔴」
+
+
+def error_tail(out: str) -> str:
+    """verify 출력에서 다음 시도가 볼 꼬리. 넘치면 끝 줄 쪽 앞을 잘라 실패 이름 줄은 남긴다."""
+    lines = out.rstrip("\n").splitlines()
+    if not lines:
+        return ""
+    fails = [ln for ln in lines[:-TAIL_LINES] if FAIL_LINE.match(ln)][:TAIL_FAILS]
+    head = ("실패 줄(끝 40줄 앞):\n" + "\n".join(fails) + "\n\n") if fails else ""
+    body = "출력 끝:\n" + "\n".join(lines[-TAIL_LINES:])
+    text = head + body
+    if len(text) <= TAIL_CAP:
+        return text
+    keep = TAIL_CAP - len(head) - len(TAIL_CUT)
+    if keep > 0:
+        return head + TAIL_CUT + body[-keep:]
+    return TAIL_CUT + text[-(TAIL_CAP - len(TAIL_CUT)):]
 
 
 def stamp() -> str:
@@ -382,9 +402,11 @@ class Runner:
                 if hit:
                     raise RedFail(f"verify 실패: {name} (`{cmd}`) 가 RED 테스트 파일에서 난다 — {hit}. 테스트는 RED 뒤 고칠 수 없다. "
                                   f"테스트를 쓸 때 {name} 도 통과하게 쓴다")
+                tail = error_tail(out)
+                tail = f"\n\n{tail}" if tail else ""
                 if last:
-                    self.blame_earlier(root, name, cmd, commits, base)
-                raise Fail(f"verify 실패: {name} (`{cmd}`)")
+                    self.blame_earlier(root, name, cmd, commits, base, tail)
+                raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
 
     def red_blame(self, out: str, root: str, red_tests: list):
@@ -399,7 +421,7 @@ class Runner:
                 return " / ".join(lines[:3])[:300]
         return None
 
-    def blame_earlier(self, root: str, name: str, cmd: str, commits: list, base: str):
+    def blame_earlier(self, root: str, name: str, cmd: str, commits: list, base: str, tail: str = ""):
         """마지막 step 의 전체 verify 실패가 앞 step 탓이면 PhaseFail. 이 step 에이전트가 고칠 수 없는 실패를
         재시도 4회로 붙잡지 않게 한다(0.25.0). 측정 step(변경 없음)이면 언제나, 아니면 step 명령이 통과할 때.
         step 명령이 없으면 가릴 수 없어 그대로 둔다(→ 재시도)."""
@@ -413,7 +435,7 @@ class Runner:
         if self.run_cmd(root, own.replace("{since}", shlex.quote(base))):
             raise PhaseFail(f"verify 실패: {name} (`{cmd}`) — 이 step 범위(step 명령)는 통과, phase 전체({where})만 깨진다. "
                             f"앞 step 탓으로 보여 재시도하지 않는다. 커밋을 거꾸로 짚어 원인 step 을 찾는다")
-        raise Fail(f"verify 실패: {name} (`{cmd}`) — 이 step 범위에서도 깨진다")
+        raise Fail(f"verify 실패: {name} (`{cmd}`) — 이 step 범위에서도 깨진다{tail}")
 
     def verify_scope(self, step: dict, commits: list, base: str) -> list:
         """판정 6에서 돌릴 verify. 앱별 verify 면 바뀐 파일이 든 앱 + verifyAffects 만(#5, 2026-10-15),
