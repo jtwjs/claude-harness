@@ -1103,6 +1103,57 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
         self.assertIn("red", self.step())
 
+    def test_edge_axes_template_placeholder_is_empty(self):
+        # 리뷰: 템플릿 자리표시 `<테스트 이름>` 을 그대로 두면 칸이 찬 것으로 보여 재시도 4회를 다 썼다
+        cells = self.full_cells()
+        cells["실패 경로"] = "`<테스트 이름>`"
+        self.tdd_new(cells)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, self.out)
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("실패 경로", self.out)
+
+    def test_intent_effort_template_intent_refuses(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                   md={1: "# Step 1: c\n\n## 의도\n\n- 채우는 수용 조건: AC-N(, AC-M) — 이유 한 줄\n\n## 작업\n- 구현\n"})
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "의도 절이 템플릿 그대로면 빈 것과 같다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("의도", self.out)
+
+    def test_intent_effort_rejects_unknown_effort(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head(), "--effort", "hihg")
+        self.assertNotEqual(p.returncode, 0, "오타가 헤드리스 claude --effort 실패로 번지지 않게 입구에서 막는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+
+    def test_red_judge_test_turn_completed_refused(self):
+        # 리뷰: 검증 차례 에이전트가 step 파일 「검증 절차」대로 completed 를 적으면 judge --red 가 다음 step 을 보고
+        # 「차례 아님」(3)으로 끝나, 구현 없이 step 이 넘어갔다
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                       {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"], DONE])
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 1, self.out)
+        self.assertIn("status", self.out)
+        self.assertNotIn("red", self.step())
+        p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
+        self.assertIn("검증 차례에는 status 를 바꾸지 않는다", p.stdout + p.stderr,
+                      "지시문 6번이 step 파일 검증 절차보다 앞선다고 적는다")
+
+    def test_red_judge_test_turn_blocked_recorded(self):
+        # 검증 차례 에이전트가 blocked 를 적으면 1회 모드처럼 기록 · 커밋하고 종료 2(사람). 「차례 아님」(3)이 아니다
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([["status", "blocked", {"blocked_reason": "수용 조건이 모호하다"}]])
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 2, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("blocked_at", s)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "index 를 커밋한다")
+
     def test_session_judge_without_any_base_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
         self.assertNotEqual(self.session("judge", "t1", "--step", "1").returncode, 0)
