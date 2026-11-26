@@ -1283,6 +1283,51 @@ class RunnerCase(unittest.TestCase):
         self.assertNotIn("하위 메모", p.stdout)
         self.assertNotIn("AC-1", p.stdout)
 
+    def test_start_gate_no_docs_key_passes(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        d.pop("docs")
+        f.write_text(json.dumps(d, indent=2))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "docs 칸 없음")
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 0, "docs 칸이 없으면 관문은 막지 않는다(AC-2)\n" + self.out)
+
+    def test_start_gate_open_stops_before_side_effects(self):
+        self.set_cfg({"verify": {"test": "sh check.sh"}, "git": {"branchPattern": "feature/{task}"}})
+        self.docs("docs/x", adr=self.ADR_OPEN)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        exclude = self.repo / ".git/info/exclude"
+        ex_before = exclude.read_text() if exclude.exists() else ""
+        idx_before = (self.repo / "phases/t1/index.json").read_bytes()
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout)
+        self.assertIn("  - ADR R2: 세는 칸", p.stdout)
+        self.assertIn("  - ADR S1: 진입점 모양", p.stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "main",
+                         "멈추면 브랜치를 옮기지 않는다")
+        self.assertEqual(exclude.read_text() if exclude.exists() else "", ex_before, "exclude 를 쓰기 전에 멈춘다")
+        self.assertEqual((self.repo / "phases/t1/index.json").read_bytes(), idx_before)
+
+    def test_run_gate_open_never_calls_claude(self):
+        self.docs("docs/x", prd=self.PRD_HEADING)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 2, self.out)
+        self.assertIn("  - PRD: ⚠️ A 정하기", self.out)
+        self.assertEqual(self.calls_made(), 0, "관문이 열렸으면 claude 를 부르지 않는다")
+
+    def test_start_gate_closed_then_passes(self):
+        self.docs("docs/x", adr=self.ADR_OPEN, prd=self.PRD_LABEL)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.assertEqual(self.session("start", "t1").returncode, 2, self.out)
+        self.docs("docs/x", adr=self.ADR_CLOSED,
+                  prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 → 결정: ADR-900 R1"))
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 0, "닫으면 통과한다\n" + self.out)
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
