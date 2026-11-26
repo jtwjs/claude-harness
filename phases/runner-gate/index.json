@@ -68,6 +68,23 @@
       "started_at": "2026-11-26T22:02:27+0900",
       "summary": "스크래치 레포 걷기(`bash walk.sh <worktree sdd_runner.py>`): 관문 `gate docs/d` 열림 2(ADR 1 · PRD 1) → 종료 2 · `start t1` 종료 2(브랜치 main 그대로) → 닫은 뒤 `gate` 0 · `start t1` 0(feature/t1) · docs 칸 없는 `start t0` 0. 재판정 왕복 `judge --red` 0 → 구현 blocked 2 → `prompt --role test` 2(rejudge 다음 수 안내) → 테스트만 고쳐 커밋 → `rejudge t1 --step 1` 0 → 구현 `judge --step 1` 0, 끝에 wip 구현 커밋 1 · 고친 테스트 커밋 1 남음 · sdd-discard 0 · 트리 0줄 · rejudged 1. 진행 중 phase docs `gate docs/outcome-eval-2026-11-26`(읽기만) → 종료 0(PRD 없음 · ADR에 「결정할 것」 표 없음 = 장치로 못 막는 갈래). 이 트랙 `gate docs/runner-gate-2026-11-26` → 0. `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 123 OK · `bash hooks/test.sh` 통과 642 · 실패 0",
       "completed_at": "2026-11-26T22:09:07+0900"
+    },
+    {
+      "step": 7,
+      "name": "gate-none-item",
+      "status": "pending",
+      "tdd": true
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-27T03:49:13+0900",
+      "head": "b0b79f1e963b6ee08a85596526bf2bb6487aa098",
+      "issues": [
+        "🟡 관문 오탐: PRD 「남은 ⚠️」 아래 「- 없음 (…)」 항목을 열린 것으로 셈(docs/single-conductor-2026-10-31/PRD.md:132) → step 7",
+        "🟢 코드 펜스 안 표 · 제목도 셈(레포 docs 15개에선 오탐 0)",
+        "🟢 sdd_runner.py:429 `exclude =Path` 띄어쓰기"
+      ]
     }
   ]
 }
