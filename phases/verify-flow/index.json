@@ -205,8 +205,20 @@
     {
       "step": 12,
       "name": "delegate-three-cells",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:52:02+0900",
+      "summary": "write-for-agents.md 끝에 절 「맡길 때 세 칸」(의도 · effort = 역할 값, 하네스 ADR-019 C2 참조 · 검증 = 끝 확인 방법, 즉석 Agent · 지휘 지시문 · 리뷰어 넘김 공통, fork 금지는 호출 자리 sdd-run §2 · sdd-review 「위임」을 가리킴) / INDEX write-for-agents 행 「언제」에 「에이전트에 일을 맡길 때」 / sdd-review 「위임」에 넘김 꼴 한 줄(INTENT · SCOPE · CHECKED, 꼴은 code-reviewer 절차 1) / code-reviewer 절차 1에 INTENT 받으면 되비추기와 대조해 다르면 차이를 보고 첫 줄에.",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 65726,
+        "cache_read_input_tokens": 632863,
+        "output_tokens": 7284,
+        "num_turns": 14,
+        "duration_ms": 205751,
+        "total_cost_usd": 0.7981406
+      },
+      "completed_at": "2026-11-26T18:57:29+0900"
     },
     {
       "step": 13,
