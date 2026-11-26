@@ -33,6 +33,7 @@ FAKE = textwrap.dedent('''\
     n = int(state.read_text()) if state.exists() else 0
     state.write_text(str(n + 1))
     Path(os.environ["FAKE_PROMPTS"], f"{n}.txt").write_text(sys.argv[-1])
+    Path(os.environ["FAKE_PROMPTS"], f"{n}.argv").write_text(json.dumps(sys.argv[1:-1]))
     calls = json.loads(Path(os.environ["FAKE_SCENARIO"]).read_text())
     call = calls[n] if n < len(calls) else {"ops": []}
     task = os.environ["FAKE_TASK"]
@@ -101,13 +102,15 @@ class RunnerCase(unittest.TestCase):
                         FAKE_PROMPTS=str(self.tmp / "prompts"), FAKE_SCENARIO=str(self.tmp / "scenario.json"),
                         FAKE_TASK="t1")
 
-    def phase(self, steps, task="t1", after=None):
+    def phase(self, steps, task="t1", after=None, md=None):
+        """md: {step 번호: step 파일 본문} — 없으면 옛 꼴(의도 절 없음) 기본 본문."""
         d = self.repo / "phases" / task
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.json").write_text(json.dumps({"project": "p", "phase": task, "docs": "docs/x",
                                                   "after": after or [], "steps": steps}, indent=2))
         for s in steps:
-            (d / f"step{s['step']}.md").write_text(f"# Step {s['step']}: {s['name']}\n\n## 작업\n- 구현\n")
+            (d / f"step{s['step']}.md").write_text((md or {}).get(s["step"])
+                                                   or f"# Step {s['step']}: {s['name']}\n\n## 작업\n- 구현\n")
         git(self.repo, "add", "-A")
         git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", f"plan {task}")
 
@@ -896,6 +899,209 @@ class RunnerCase(unittest.TestCase):
         p = subprocess.run([sys.executable, str(HERE / "phases_status.py"), "--check", "t1"], cwd=self.repo,
                            capture_output=True, text=True)
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
+    # ── 계획 칸 · effort (ADR-019 C1 · C2 · C3 · G5) ─────────────────────────────────
+    def argv(self, i):
+        return json.loads((self.tmp / "prompts" / f"{i}.argv").read_text())
+
+    def test_intent_effort_empty_intent_refuses(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                   md={1: "# Step 1: c\n\n## 의도\n\n   \n## 작업\n- 구현\n"})
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "의도 절이 비면 지시문을 내지 않는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("의도", self.out)
+
+    def test_intent_effort_missing_intent_warns_only(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout, "옛 phase 는 지시문을 낸다")
+        self.assertIn("옛 꼴", p.stderr)
+
+    def test_intent_effort_one_shot_session_is_impl_role(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertIn("▶ effort medium", p.stderr, "세션 안 1회 모드는 구현 역할 값(C7a)")
+
+    def test_intent_effort_role_values(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.assertIn("▶ effort high", self.out, "검증 역할")
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("▶ effort medium", p.stderr, "구현 역할")
+
+    def test_intent_effort_headless_passes_effort(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        a = self.argv(0)
+        self.assertIn("--effort", a)
+        self.assertEqual(a[a.index("--effort") + 1], "high", "헤드리스 run 은 검증 역할 값(C7b)")
+
+    def test_intent_effort_override(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}], "--effort", "max")
+        self.assertEqual(rc, 0, self.out)
+        a = self.argv(0)
+        self.assertEqual(a[a.index("--effort") + 1], "max")
+        self.phase([{"step": 1, "name": "d", "status": "pending", "tdd": False}], task="t2")
+        p = self.session("prompt", "t2", "--role", "impl", "--effort", "low")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("▶ effort low", p.stderr)
+        self.assertNotIn("▶ effort medium", p.stderr)
+
+    def test_intent_effort_retry_headers_plain(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": []},
+                              {"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("이전 시도 실패", self.prompt(1))
+        self.assertNotIn("반드시", self.prompt(1))
+
+    def test_intent_effort_resume_header_plain(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False,
+                     "failed_at": "2026-01-01T00:00:00+0900", "error_message": "원인: x"}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("멈춘 원인", self.prompt(0))
+        self.assertNotIn("반드시", self.prompt(0))
+
+    def test_intent_effort_blocked_conditions(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        for c in ("사람만 할 수 있는 일", "테스트가 수용 조건과 다르다", "설계 문서에 없는 결정이 필요하다"):
+            self.assertIn(c, p.stdout)
+
+    def test_intent_effort_impl_role_does_not_edit_tests(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("테스트는 고치지 않는다 — 막히면", p.stdout)
+        self.assertIn("검증 세션이 다시 판정한다", p.stdout)
+
+    # ── 엣지 5축 칸 (ADR-019 G6) ───────────────────────────────────────────────
+    AXES = ("빈 값·경계", "비정상 입력", "실패 경로", "상태 전이", "동시성")
+
+    def edge_md(self, cells=None, name="a"):
+        """새 꼴 step 파일. cells: {축: 값} — 없는 축은 줄을 안 쓴다. None 이면 엣지 줄 자체가 없다."""
+        md = f"# Step 1: {name}\n\n## 의도\n\nAC-1 — 이유 한 줄\n\n## 작업\n- 구현\n\n## Acceptance Criteria\n\n- 테스트 통과\n"
+        if cells is not None:
+            md += "- 엣지 5축\n" + "".join(f"  - {k}: {v}\n" for k, v in cells.items())
+        return md
+
+    def full_cells(self, first="`hello`"):
+        return {"빈 값·경계": first, "비정상 입력": "해당 없음", "실패 경로": "해당 없음: 실패할 경로가 없다",
+                "상태 전이": "`hello` · `hello`", "동시성": "해당 없음"}
+
+    def tdd_new(self, cells, cfg=None):
+        if cfg:
+            self.set_cfg(cfg)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}], md={1: self.edge_md(cells)})
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+
+    def test_edge_axes_missing_cell_refuses(self):
+        self.tdd_new(None)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "새 꼴 tdd step 에 엣지 칸이 없으면 지시문을 내지 않는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("엣지 5축", self.out)
+
+    def test_edge_axes_one_empty_axis_named(self):
+        for bad in ("", "그냥 글"):
+            with self.subTest(bad=bad):
+                self.setUp()
+                cells = self.full_cells()
+                cells["상태 전이"] = bad
+                self.tdd_new(cells)
+                p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
+                self.assertNotEqual(p.returncode, 0, self.out)
+                self.assertNotIn("작업 규칙", p.stdout)
+                self.assertIn("상태 전이", self.out)
+                self.assertNotIn("비정상 입력", self.out, "빈 축만 이름을 댄다")
+
+    def test_edge_axes_missing_axis_line_is_empty(self):
+        cells = self.full_cells()
+        del cells["동시성"]
+        self.tdd_new(cells)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("동시성", self.out)
+
+    def test_edge_axes_full_cells_emit_prompt(self):
+        self.tdd_new(self.full_cells())
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout)
+        self.assertIn("엣지 5축 칸의 테스트 이름을 그대로", p.stdout, "1회 모드 tdd 규칙에 한 구절")
+        self.assertNotIn("옛 꼴", p.stderr)
+
+    def test_edge_axes_test_role_prompt_mentions_names(self):
+        self.tdd_new(self.full_cells())
+        p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("엣지 5축 칸의 테스트 이름을 그대로", p.stdout)
+
+    def test_edge_axes_old_form_warns_only(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout)
+        self.assertIn("옛 꼴", p.stderr)
+
+    def test_edge_axes_not_checked_for_tdd_false_or_measure(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                    {"step": 2, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}],
+                   md={1: self.edge_md(None, "c"), 2: self.edge_md(None, "m")})
+        self.session("start", "t1")
+        for n in ("1", "2"):
+            p = self.session("prompt", "t1", "--step", n)
+            self.assertEqual(p.returncode, 0, self.out)
+            self.assertIn("작업 규칙", p.stdout)
+
+    def test_edge_axes_headless_blocks_without_claude(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}], md={1: self.edge_md(None)})
+        rc = self.run_runner([{"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 2, self.out)
+        self.assertEqual(self.calls_made(), 0, "계획 칸이라 claude 를 부르지 않는다")
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("엣지 5축 칸이 비었다", s["blocked_reason"])
+        self.assertIn("동시성", s["blocked_reason"])
+        self.assertNotIn("retries", s, "재시도를 태우지 않는다")
+
+    def test_edge_axes_name_missing_in_red_discards_one_shot(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
+                   md={1: self.edge_md(self.full_cells("`hello` · `edge_empty_name`"))})
+        rc = self.run_runner([
+            {"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]},
+            {"step": 1, "ops": [RED, ["write", "tests/names.txt", "edge_empty_name"], ["commit", "test: a (red)"],
+                                IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        err = self.step()["attempts"][0]["error"]
+        self.assertIn("엣지 5축", err)
+        self.assertIn("edge_empty_name", err)
+        self.assertIn("sdd-discard/t1/step1-try1", git(self.repo, "branch", "--list", "sdd-discard/*").stdout,
+                      "RED 위반처럼 시도를 버린다")
+
+    def test_edge_axes_name_check_judge_red(self):
+        self.tdd_new(self.full_cells("`edge_empty_name`"))
+        self.session("prompt", "t1", "--role", "test", "--base", self.head())
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 10, self.out)
+        self.assertIn("edge_empty_name", self.step()["last_error"])
+        self.assertNotIn("red", self.step())
+        self.act([RED, ["write", "tests/names.txt", "edge_empty_name"], ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertIn("red", self.step())
 
     def test_session_judge_without_any_base_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
