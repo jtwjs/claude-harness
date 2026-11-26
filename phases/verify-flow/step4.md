@@ -23,6 +23,7 @@
 - 차례(ADR-019 E12): 두 세션이 같은 worktree · 같은 브랜치를 쓰고 차례는 index.json이 정한다(`tdd: true` · `red` 없음 = 검증 · `red` 있고 pending = 구현 · `kind: measure` = 검증(측정 · 대조는 검증 몫, 아래 줄보다 먼저 본다) · 그 밖의 `tdd: false` pending = 구현(쓸 테스트가 없다) · blocked = 검증 재판정(ADR-019 E3) · 구현 judge 끝 = 검증 리뷰). 차례가 아닌 역할로 `prompt --role` · `judge --red`를 부르면 아무것도 바꾸지 않고 비0 + 「지금은 <역할> 차례」 한 줄 — `judge --red`의 `checkout --detach` · `reset --hard`가 구현 중인 트리를 치지 않게 하는 장치다
 - BASE는 `prompt --role test`에서 고정한 값을 구현 쪽이 그대로 쓴다(`pin_base`가 덮지 않는 지금 규칙)
 - `red`는 index.json step의 선택 칸이다. `phases_status.py --check`는 지금도 status만 본다(이미 오류로 안 잡음) — 테스트로 고정만 한다. `status` 값은 4개 그대로
+- 엣지 5축 칸 검사 · 이름 대조(ADR-019 G6)는 넣지 않는다 — step 5가 이 step이 만든 `judge --red` 위에 얹는다
 - 테스트 메서드 이름에 `red_judge`를 넣는다(AC의 `-k`)
 - 테스트 먼저: 차례가 아닌 역할 호출 거부 · 나눔 모드 구현 judge의 RedFail이 테스트 커밋을 지우지 않음 · `--red` 통과 → `red` 기록 · `--red` RED 실패 → 시도 버림 · `--role impl`이 `red` 없는 step을 건너뜀 · `red` 있는 step의 judge가 2 · 3을 다시 안 돎 · 구현이 테스트 파일을 고치면 되돌림(판정 4) · 옵션 없는 1회 모드 회귀 없음
 

@@ -16,8 +16,9 @@
 - 아래를 돌려 명령(백틱)과 결과를 summary에 남긴다
   - `bash hooks/test.sh` 마지막 줄(통과 · 실패 수)
   - 옛 문장 0건: `git grep -n -e '같은 세션의 서브에이전트' -e 'escalate 판정에 따라' -e '5개 섹션 고정' -- skills templates`
-  - 걷기: 스크래치 git 레포(`.claude/harness.json`의 `verify.test` · 깨끗한 트리 — 없으면 `start`가 멈춘다. `git.branchPattern: feature/{task}` · `feature/` 브랜치가 없으면 `start`가 브랜치를 옮긴다)에 가짜 phase 하나( `tdd: true` step 1개)로 `prompt --role test` → 테스트 커밋 → `judge --red` → `red` 기록 → `prompt --role impl` → 구현 커밋 → `judge` 완료까지 한 번. 단계마다 종료 코드
-  - ADR-019 행 ↔ step 대조 표(행 이름 · 반영 step · 못 넣은 이유)
+  - 걷기: 스크래치 git 레포(`.claude/harness.json`의 `verify.test` · 깨끗한 트리 — 없으면 `start`가 멈춘다. `git.branchPattern: feature/{task}` · `feature/` 브랜치가 없으면 `start`가 브랜치를 옮긴다)에 가짜 phase 하나( `tdd: true` step 1개, 새 꼴 — `## 의도` 절 · 엣지 5축 칸 있음)로 `prompt --role test` → 테스트 커밋 → `judge --red` → `red` 기록 → `prompt --role impl` → 구현 커밋 → `judge` 완료까지 한 번. 단계마다 종료 코드
+  - 엣지 칸 걷기: 같은 스크래치 레포에서 축 하나를 비운 step으로 `prompt --role test` 종료 코드(비0이어야 함) · 칸의 이름이 없는 테스트 커밋으로 `judge --red` 종료 코드(10이어야 함)
+  - ADR-019 행 ↔ step 대조 표(행 이름 · 반영 step · 못 넣은 이유, G6 포함)
 - 실패가 있으면 고치지 않고 summary에 남기고 `status:"error"`
 
 ## Acceptance Criteria
