@@ -43,8 +43,11 @@
     {
       "step": 5,
       "name": "answer-inbox",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:31:04+0900",
+      "summary": "decisions.md §1에 「한 곳」 묶음(정본 문장 · 그 턴에 결정 이슈 · ADR · 개인 기록으로 옮김 · 탭에 「Inbox에 질문 n개」 · 지휘만 보냄 · 권한 창은 탭 · 설계서 질문은 설계서 화면 · plannotator 이름은 한 줄)을 두고, 판정 거르기 · seat.md 세 자리 역할(desk 행 → 한 곳 행, §0에 전역 안내 노트 끄기 알림) · SKILL.md · doorbell.md · track-brief.md 37행에서 판정함을 걷어 냄. 도구 줄의 되돌림 조건은 「고르기 전용 도구(다시 설계 중)가 오면」으로 했다(계획은 「판정함 도구 v2」, 이유: AC가 판정함 grep 0)",
+      "completed_at": "2026-11-26T21:36:17+0900"
     },
     {
       "step": 6,
