@@ -81,10 +81,10 @@ done
 
 ### 잰 본문 기록
 
-본 실행 · 파일럿마다 실행 직전에 아래를 돌린다. 첫 명령에 출력이 있으면(플러그인이 읽는 곳에 커밋 안 한 변경) 돌리지 않는다. 실행 뒤 그 승인 줄 「결과 한 줄」 칸에 `commit=…`과 `경로=해시`를 모두 적는다. step 커밋마다 `HEAD`가 바뀌므로 본문이 같은지는 경로 해시로 비교한다.
+본 실행 · 파일럿마다 실행 직전에 아래를 돌린다. 첫 명령에 출력이 있으면(플러그인이 읽는 곳이나 `evals/`에 커밋 안 한 변경) 돌리지 않는다. 실행 뒤 그 승인 줄 「결과 한 줄」 칸에 `commit=…`과 `경로=해시`를 모두 적는다. step 커밋마다 `HEAD`가 바뀌므로 본문과 채점기가 같은지는 경로 해시로 비교한다. `evals` 해시는 다른 case를 더해도 바뀌므로, 다르면 `git diff --stat <앞 commit> <뒤 commit> -- evals`로 잰 case가 바뀌었는지 본다.
 
 ```
-P=(.claude-plugin agents docs/learning-level.md docs/principles hooks scripts skills templates)
+P=(.claude-plugin agents docs/learning-level.md docs/principles evals hooks scripts skills templates)
 git status --porcelain -- "${P[@]}"
 echo "commit=$(git rev-parse --short HEAD)"
 for p in "${P[@]}"; do echo "$p=$(git rev-parse --short "HEAD:$p")"; done
