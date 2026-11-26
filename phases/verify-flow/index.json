@@ -223,9 +223,21 @@
     {
       "step": 13,
       "name": "flow-walk",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-26T18:57:29+0900",
+      "summary": "측정만, 레포 변경 없음. ① `bash hooks/test.sh` → 「통과 642 · 실패 0」(종료 0). ② `git grep -n -e '같은 세션의 서브에이전트' -e 'escalate 판정에 따라' -e '5개 섹션 고정' -- skills templates` → 0건(종료 1). ③ 걷기(레포 밖 /tmp 스크래치 git, harness.json verify.test=`sh check.sh` · branchPattern feature/{task} · feature/walk 브랜치, phase walk = tdd:true step 1개 새 꼴 — 의도 절 · 엣지 5축 칸): `sdd_runner.py start walk` 0 → `prompt walk --role test --base <HEAD>` 0(▶ effort high, 테스트만 지시 + 엣지 이름 구절) → (차례 확인) `prompt walk --role impl` 3 → 테스트 커밋 `test: step 1 — add-fn (red)` → `judge walk --red --step 1` 0(red 기록 + index 커밋, status pending) → (차례 확인) `prompt walk --role test` 3 → `prompt walk --role impl` 0(▶ effort medium, IMPL_RULE 구절) → 구현 커밋 + status completed → `judge walk --step 1` 0(verify 범위 전부 — 마지막 step, completed). ④ 엣지 칸 걷기: 「실패 경로」 줄을 지운 phase gap에서 `prompt gap --role test --base <HEAD>` → 2(「엣지 5축 칸이 비었다 — 실패 경로」, index.json 안 건드림) · 칸 이름 `noname_missing_fails`가 없는 테스트 커밋으로 `judge noname --red --step 1` → 10(「엣지 5축: 실패 경로 테스트 이름 … 이 테스트 커밋에 없다」, 커밋은 sdd-discard/noname/step1-try1로 옮김, red 없음). ⑤ ADR-019 행 ↔ step: A1 6 · A2 9 · A3 9·11 · A4 4·11 · A5 6 / B1·B2 9 · B3·B4·B5 10 / C1 5·11 · C2 5·6·11 · C3 5·11 · C4 12 · C5 없음(보류 결정) · C6 7·8 · C7a·C7b 5(ONE_SHOT 상수)·7 / D1 1 · D2 없음(그대로 두는 결정) · D3 1(비사람 입력 거름 — 판정 문구 5건은 #17 데이터 뒤라 이 phase 밖) / E1 5·7 · E2 4 · E3 4·5·6·7 · E4 7 · E5·E6·E7 6(E7 보탬 10) · E8·E9 7·8 · E10 7 · E11 8 · E12 4·6·7 / F1 4 · F2 6·10 / G1 2·3 · G2 1 · G3 없음(ADR-018 B-6·B-9 행은 이미 「#52 G절이 정본」을 가리키고, ADR 본문은 쌓기 기록이라 「ADR-019」로 고치지 않음 — `grep -n 'B-6\\|B-9' docs/harness-checkup-2026-11-25/ADR.md`로 확인) · G4 7·8 · G5 5·8·9·11 · G6 5·6·11. 실패 0건.",
+      "usage": {
+        "input_tokens": 40,
+        "cache_creation_input_tokens": 80901,
+        "cache_read_input_tokens": 1485142,
+        "output_tokens": 11635,
+        "num_turns": 21,
+        "duration_ms": 261640,
+        "total_cost_usd": 1.1770964000000004
+      },
+      "completed_at": "2026-11-26T19:03:58+0900"
     }
   ]
 }
