@@ -43,6 +43,6 @@ disable-model-invocation: true
 
 ## 위임
 
-- 성능/구조 건강성/보안까지 **깊게** 볼 필요가 있으면 Agent 도구로 **`code-reviewer`** 실행.
+- 성능/구조 건강성/보안까지 **깊게** 볼 필요가 있으면 Agent 도구로 **`code-reviewer`** 실행. fork하지 않는다 — 만든 쪽 맥락을 물려받으면 자기 리뷰가 된다(탐색 같은 보조 작업은 해도 된다).
 - 원인 불명 회귀 → `root-cause-debugger`.
 - 이 스킬은 판정만 한다(코드 수정 없음).

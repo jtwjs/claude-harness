@@ -8,6 +8,8 @@
 
 **질문 규칙은 `${CLAUDE_PLUGIN_ROOT}/docs/principles/ask-questions.md`를 읽고 따른다.** 여기 다시 적지 않는다.
 
+`sdd` ① 표의 「PRD를 받았을 때」 갈래로 들어왔으면 0~6과 「끝」 1번(PRD)을 건너뛰고 「끝」 2번 ARCHITECTURE부터 읽는다. 이어 Readiness로 가되, 확인 자리는 `sdd` 표의 나눔 모드 칸을 따른다.
+
 ## 0. 크기를 먼저 본다
 
 | 크기 | 기준 | 하는 것 |
