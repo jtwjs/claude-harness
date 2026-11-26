@@ -16,8 +16,11 @@
     {
       "step": 2,
       "name": "design-doc-flow",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:12:43+0900",
+      "summary": "design.md에 「설계서」 절(정의 · 누가/어디에 · mermaid 순서 6단계 · 조건 1·2 요약, 혼자 도는 sdd는 DESIGN-DOC.md)을 정본으로 만들고, 「설계서를 받았을 때」 갈래·결정 이슈 「설계서」 칸으로 바꿈(decisions.md·SKILL.md는 가리킴만). 「끝」 2번 ARCHITECTURE의 「초안을 쓰고 확인받는다」도 「쓴다」로 했다(계획은 1번만, 이유: 사람이 세 장을 고치지 않는다와 부딪힘). 결정 이슈 틀에서 「수용 조건」 칸 설명(👤 기준은 도메인 지식 링크)은 같이 빠졌다 — step 3 PRD 칸 작업 때 필요하면 design.md로",
+      "completed_at": "2026-11-26T21:19:00+0900"
     },
     {
       "step": 3,
