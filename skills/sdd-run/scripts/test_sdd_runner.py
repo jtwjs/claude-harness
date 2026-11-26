@@ -1509,6 +1509,17 @@ class RunnerCase(unittest.TestCase):
         self.assertIn("rejudge t1 --step 1", self.out, "테스트가 틀렸을 때의 다음 수")
         self.assertIn("pending", self.out, "구현이 고칠 일일 때의 다음 수")
 
+    def test_gate_prd_none_item_passes(self):
+        for prd in ("# PRD\n## 남은 ⚠️\n\n- 없음 (판정 방식은 ADR)\n",
+                    "# PRD\n- **남은 ⚠️**\n  - 없음\n"):
+            p = self.session("gate", self.docs(prd=prd))
+            self.assertEqual(p.returncode, 0, "「없음」 항목은 항목 없음 표시라 세지 않는다(리뷰 1회차)\n" + self.out)
+
+    def test_gate_prd_none_inside_text_still_counts(self):
+        p = self.session("gate", self.docs(prd="# PRD\n## 남은 ⚠️\n- ⚠️ 기본값 없음 처리\n- 없음표 정리\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout, "「없음」이 본문 가운데 있거나 낱말 일부면 그대로 센다")
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
