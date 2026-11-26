@@ -204,7 +204,8 @@ def open_decisions(docs_dir) -> list:
             bullets = [(len(m.group(1)), m.group(2)) for m in
                        (re.match(r"^(\s*)[-*]\s+(.*?)\s*$", x) for x in lines[i + 1:j]) if m]
             top = min((b[0] for b in bullets), default=0)
-            out += [f"PRD: {t}" for k, t in bullets if k == top and "→ 결정:" not in t and "막지 않음:" not in t]
+            out += [f"PRD: {t}" for k, t in bullets if k == top and "→ 결정:" not in t and "막지 않음:" not in t
+                    and not re.match(r"없음(?:$|[\s(])", t)]   # 「- 없음 (…)」은 항목 없음 표시(리뷰 1회차)
             i = j
     return out
 
