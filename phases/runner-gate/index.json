@@ -28,7 +28,10 @@
       "step": 3,
       "name": "rejudge-entry",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-26T21:29:24+0900",
+      "base": "de38a5c63ed2353dec4d1a32b542c4ad27eed222",
+      "red": "f9c77f3ac676c95b3a4b7009162dd987d93870b0"
     },
     {
       "step": 4,
