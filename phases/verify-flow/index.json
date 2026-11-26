@@ -97,8 +97,20 @@
     {
       "step": 6,
       "name": "sdd-two-sessions",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:14:34+0900",
+      "summary": "sdd SKILL.md 「세션 모드 — 나눔 / 하나」 표 + 차례 단락(E6·E12·E3) · ① DESIGN 칸 「PRD를 받았을 때」 갈래 · 🙋 칸마다 「나눔 모드:」 구절(E7) · §③ 리뷰는 코드를 쓰지 않은 쪽(나눔=검증 세션 / 하나=sdd-review 뒤 새 맥락 code-reviewer 1회) · ② 행 나눔 구절 / design.md 머리에 갈래 진입 한 줄 / reflect.md 머리에 모드별 체크포인트 단락 / sdd-run §2 2번 ▶ effort → Agent effort · fork 금지, 판정 표 2번 엣지 5축 구절, 새 「2-b. 나눔 모드」 절(차례 표는 docs/sdd-runner.md 가리킴) / sdd-review 위임 fork 금지. sdd-run 나눔 모드 절은 세션이 지시문대로 직접 하든 서브에이전트에 맡기든 열어 두고, 맡기면 §2 2번(effort · fork 금지)을 따르게 했다(계획은 방식 미지정, 이유: ADR A5는 나눔 모드에 러너 서브에이전트가 없는 듯 쓰고 C2는 서브에이전트 effort를 말해 어느 쪽인지 정해지지 않음) · 나눔 모드 REFLECT 에서 게이트 보정은 후보만 PR에 싣고 gate-fix 는 쓰지 않게 했다(계획은 「PR에 실어」만, 이유: 기존 규칙이 사람이 확정한 것만 쓰게 한다) · 나눔 모드 DESIGN 에서 ARCHITECTURE 초안 확인 자리는 정하지 않았다(ADR E5·E7에 없음)",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 91549,
+        "cache_read_input_tokens": 772969,
+        "output_tokens": 16929,
+        "num_turns": 20,
+        "duration_ms": 289586,
+        "total_cost_usd": 1.2256458000000001
+      },
+      "completed_at": "2026-11-26T18:21:31+0900"
     },
     {
       "step": 7,
