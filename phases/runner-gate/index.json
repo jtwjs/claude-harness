@@ -44,7 +44,10 @@
       "step": 4,
       "name": "impl-judge-after-rejudge",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-26T21:45:25+0900",
+      "base": "7447181774dc3f16a7d615b345db54ea23165713",
+      "red": "07a394ebef245c40eb3e5bb3372aca95f5bc1ddd"
     },
     {
       "step": 5,
