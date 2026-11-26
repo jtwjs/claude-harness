@@ -12,7 +12,7 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 
 - 트랙이 하나면 쓰지 않는다(`sdd`만). 트랙 세션 자신도 쓰지 않는다 — `sdd-run`이 열린 이슈를 읽기만 한다
 - 조율 채널은 **GitHub 이슈**다. 보드 없이 라벨 + 네이티브 의존(§4)만 쓴다. 레포 파일 원장은 worktree가 기준 브랜치를 다시 받기 전까지 옛 상태를 읽어 지연을 그대로 물려받는다
-- **설계는 지휘에서 끝내고 맡긴다.** 결정 이슈 「정할 것」이 0이고 설계 문서가 확정되기 전에는 디스패치하지 않는다(§1 디스패치 관문)
+- **설계 결정은 지휘에서 사용자와 정하고, 문서 초안 · 코드 조사는 코드 옆(트랙 세션)에서 한다.** 관문 둘 — 디스패치는 설계서 최종본 뒤, 구현 시작(계획 쪼개기 포함)은 구조 · 기술 결정 「정할 것」 0일 때(§1 관문 둘). 자리마다 하는 일은 `seat.md` 「세 자리 역할」 표가 정본이다
 - 🔴 **ADR 번호는 한 곳에서만** 발급한다 — 지휘가 §1 4번 명령으로. 막힌 질문 번호도 같다. 트랙 세션이 매기게 두지 않는다
 - 지시문에 값을 복사하지 않는다. 이슈 번호와 `ADR-NNN` 참조만 넣는다 — 복사본은 정본이 바뀐 걸 따라오지 못한다(「왜」 표 3번째 줄)
 - **메시지는 초인종이다.** `SendMessage`는 이슈가 열리거나 닫혔다고 알리는 데까지만 쓴다. 결정은 메시지로 끝내지 않고 이슈에 남긴다 — 메시지는 받은 세션의 대화 안에만 남아 새로 연 세션이나 다른 트랙은 모른다(§8)
@@ -26,8 +26,8 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 | 상황 | 절 | 읽을 파일 |
 |---|---|---|
 | 첫 실행 · 세션 이름 확인 · gh 쓰기 권한 · 라벨 만들기 | §0 준비 · 라벨 표 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
-| `~/.claude/conductor.json`으로 레포 여럿을 맡는다 · 세션 이름을 짓는다 · desk / 지휘 / 작업 역할 | 「지휘 자리」 · 「세션 종류」 · 「세 자리 역할」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
-| 결정이 생겼다 · 사용자에게 물을지 거른다 · ADR 번호를 낸다 | §1 결정 흐름(디스패치 관문 · 판정 거르기 · 결정 이슈 틀) | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
+| `~/.claude/conductor.json`으로 레포 여럿을 맡는다 · 세션 이름을 짓는다 · 한 곳 / 지휘 / 작업 역할 | 「지휘 자리」 · 「세션 종류」 · 「세 자리 역할」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/seat.md` |
+| 결정이 생겼다 · 사용자에게 물을지 거른다 · ADR 번호를 낸다 | §1 결정 흐름(관문 둘 · 판정 거르기 · 결정 이슈 틀) | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
 | API 스키마 · 공유 타입 · 의미(기준 · 주기 · 단위)가 바뀐다 | §2 계약 변경 흐름 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
 | enum · 주기 · 테이블 구조를 계약으로 굳히려 한다 | §3 mock 관문 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/decisions.md` |
 | 의존 · 하위 이슈를 건다(`issues.py`) · 지금 진행 가능한 것 · 트랙 현황 · 겹침 · 지울 worktree | §4 의존과 "지금 진행 가능한 것"(「실패하면」 · 트랙 현황) | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/progress.md` |

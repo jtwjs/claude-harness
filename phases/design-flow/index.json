@@ -1,0 +1,76 @@
+{
+  "project": "claude-harness",
+  "phase": "design-flow",
+  "docs": "docs/design-phase-2026-11-26",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "role-boundary",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:07:43+0900",
+      "summary": "지휘 역할 경계를 ADR-022 D6으로 바꿈: seat.md 「세 자리 역할」 표가 역할 정본(지휘=설계서·관문 둘·중계, 작업=레포 문서·결정 묶음), decisions.md §1에 「관문 둘」(2번은 #83 장치 예정)·「결정 묶음 받기」(design.md 「설계서」 절 링크, step 2·3이 만듦), SKILL.md·dispatch.md·track-brief.md 이름 맞춤",
+      "completed_at": "2026-11-26T21:12:43+0900"
+    },
+    {
+      "step": 2,
+      "name": "design-doc-flow",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:12:43+0900",
+      "summary": "design.md에 「설계서」 절(정의 · 누가/어디에 · mermaid 순서 6단계 · 조건 1·2 요약, 혼자 도는 sdd는 DESIGN-DOC.md)을 정본으로 만들고, 「설계서를 받았을 때」 갈래·결정 이슈 「설계서」 칸으로 바꿈(decisions.md·SKILL.md는 가리킴만). 「끝」 2번 ARCHITECTURE의 「초안을 쓰고 확인받는다」도 「쓴다」로 했다(계획은 1번만, 이유: 사람이 세 장을 고치지 않는다와 부딪힘). 결정 이슈 틀에서 「수용 조건」 칸 설명(👤 기준은 도메인 지식 링크)은 같이 빠졌다 — step 3 PRD 칸 작업 때 필요하면 design.md로",
+      "completed_at": "2026-11-26T21:19:00+0900"
+    },
+    {
+      "step": 3,
+      "name": "design-doc-template",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:19:10+0900",
+      "summary": "design.md 「설계서」 절에 설계서 틀(ADR-022 D2 칸 그대로)·결정 묶음 꼴(「개인 기록 관련 사실」 칸)을 한 곳에 두고, PRD에 비기능·제약·가정 칸·👤 기준 출처(도메인 지식 링크), ADR에 설계서 결정 번호 칸, Readiness 9~12행(설계서 있는 기능만 채점)을 더함. PRD 정의의 「설계서 원문 + 에이전트 칸」은 같은 문장 반복 대신 「설계서와 세 장」을 가리키게 했다(계획은 한 구절 추가, 이유: 같은 문장 두 곳 금지)",
+      "completed_at": "2026-11-26T21:26:11+0900"
+    },
+    {
+      "step": 4,
+      "name": "design-doc-screen",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:26:11+0900",
+      "summary": "design.md 「설계서」 절에 「화면」 묶음(늘 연다 · 질문 블록 · 질문 판은 피드백 보내기/최종본만 승인 버튼 · 체크된 선택 · 커밋 뒤 diff · 메모=이유/추천=주체 · 기다림/채팅 대안 · plan mode 안 씀)을 정본으로 두고 도구 이름은 그 안 한 줄에만, decisions.md 「설계서 흐름」은 이 묶음을 가리키게 줄임",
+      "completed_at": "2026-11-26T21:31:04+0900"
+    },
+    {
+      "step": 5,
+      "name": "answer-inbox",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:31:04+0900",
+      "summary": "decisions.md §1에 「한 곳」 묶음(정본 문장 · 그 턴에 결정 이슈 · ADR · 개인 기록으로 옮김 · 탭에 「Inbox에 질문 n개」 · 지휘만 보냄 · 권한 창은 탭 · 설계서 질문은 설계서 화면 · plannotator 이름은 한 줄)을 두고, 판정 거르기 · seat.md 세 자리 역할(desk 행 → 한 곳 행, §0에 전역 안내 노트 끄기 알림) · SKILL.md · doorbell.md · track-brief.md 37행에서 판정함을 걷어 냄. 도구 줄의 되돌림 조건은 「고르기 전용 도구(다시 설계 중)가 오면」으로 했다(계획은 「판정함 도구 v2」, 이유: AC가 판정함 grep 0)",
+      "completed_at": "2026-11-26T21:36:17+0900"
+    },
+    {
+      "step": 6,
+      "name": "question-rounds",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T21:36:17+0900",
+      "summary": "ask-questions.md 첫 줄을 「라운드가 기본이다」+ 막는 장치 셋(이유 칸 · 새 갈래 찾기 · 물러서는 조건)으로 바꿔 정본을 이 한 곳에 두고, design.md 5·33행 · design-critique 52행 · design-brief description은 「질문 규칙대로」로 가리키게 함. test.sh 541행 표식은 「물러서는 조건」. 상시 비용 always-on total 2150 → 2150. design-brief description은 「라운드로 끝낸 뒤」로 했다(계획은 「질문 규칙대로」, 이유: description 길이가 2자 늘어 「늘리지 않는다」와 부딪힘)",
+      "completed_at": "2026-11-26T21:48:18+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-26T21:58:50+09:00",
+      "head": "33d8c20e96bd6fbab073aa033884d412cdf6880b",
+      "issues": [
+        "설계서를 받았을 때 갈래가 트랙이 읽을 절까지 건너뜀(고침)",
+        "design.md 「순서」 두 절 가리킴(고침)",
+        "seat.md 한 곳 범위 ↔ decisions.md 어긋남(고침)",
+        "DESIGN-DOC.md · 결정 묶음 칸 개인정보 일반화 규칙 없음(고침)",
+        "결정 묶음 시점(최종본 전/후) · 관문 2 「정할 것」 자리 — ADR-022 흐름 자체의 긴장, 지휘 판정으로 넘김",
+        "track-brief.md :17 · :36 옛 흐름 — 승인 범위 밖, 지휘 판정으로 넘김"
+      ]
+    }
+  ]
+}

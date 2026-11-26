@@ -1,6 +1,6 @@
 ---
 name: design-brief
-description: SDD ① 계획의 DESIGN — PRD를 디자인 브리프로 만들고 레포에 묶인 캔버스에 시안을 그린다. 레퍼런스부터 정하고, 상태·권한·데이터 결정을 한 질문씩 끝낸 뒤, 제작 체크리스트로 그린다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
+description: SDD ① 계획의 DESIGN — PRD를 디자인 브리프로 만들고 레포에 묶인 캔버스에 시안을 그린다. 레퍼런스부터 정하고, 상태·권한·데이터 결정을 라운드로 끝낸 뒤, 제작 체크리스트로 그린다. PRD가 확정되고 화면을 그리기 직전에 쓴다.
 disable-model-invocation: true
 ---
 
