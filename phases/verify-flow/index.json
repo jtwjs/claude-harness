@@ -7,8 +7,20 @@
     {
       "step": 1,
       "name": "ledger-intent-fields",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T16:38:34+0900",
+      "summary": "ledger.py append 가 intent·effort·verify 를 선택 칸(true|false, 없으면 줄에 안 씀)으로 받고, hypothesis-gate.sh 판정 지시에 세 칸 안내·정의를 더함 · 테스트 hooks/tests/ledger-intent.sh. 거르기 표식: 프롬프트가 'Another Claude session sent a message:' + <cross-session-message …>…</cross-session-message> + 'This came from another Claude session' 안내 문단만이면 HOOK_RESULT=nonhuman(실제 대화 기록 640건 걸림 · 사람 프롬프트 1500건 안 걸림). 같은 머리의 <agent-message>(서브에이전트·팀원 보고, 'That \"other Claude session\" is an agent' 문단) 턴도 거르게 했다(계획은 세션 간 메시지만, 이유: 기록에서 이 꼴 160건에도 훅이 돌았고 역시 사람이 친 입력이 아님)",
+      "usage": {
+        "input_tokens": 58,
+        "cache_creation_input_tokens": 109786,
+        "cache_read_input_tokens": 2727989,
+        "output_tokens": 25580,
+        "num_turns": 32,
+        "duration_ms": 1088488,
+        "total_cost_usd": 1.9357178
+      },
+      "completed_at": "2026-11-26T17:00:16+0900"
     },
     {
       "step": 2,
