@@ -151,8 +151,20 @@
     {
       "step": 9,
       "name": "review-gates",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:33:26+0900",
+      "summary": "sdd-review: §1 PRD 늘 읽음 · 「테스트 존재」→「수용 조건 대조」 축(AC-N별 테스트 파일:줄·통과 표, 이 세션 몫 빈 번호 🟡, 옛 PRD는 짝 테스트 + 「번호 없음」) · CRITICAL 축 --no-verify는 settings.json permissions.deny가 깔렸는지만 · §4 출력에 5「사람이 볼 것」(👤 번호만 체크리스트, 없으면 생략) · 6「code-reviewer 판정」(건너뜀 이유 한 줄) · 「위임」에 나눔 모드 호출 조건 셋(review.gatePaths 닿음 · pr-write 4.6단계 기준 넘음 · 확인 필요 남음, 목록 비면 세션 판단+이유)과 세션 하나 모드는 sdd 「③ REVIEW」 절대로 늘 1회 / sdd ③ 행 escalate 구절 → 「위임」 조건 가리킴 / design.md PRD 수용 조건에 AC-N · 맡는 쪽 · 👤 + 예시 한 줄 / decisions.md 결정 이슈 틀 PRD 칸에 「### 수용 조건」 소절 / templates harness.json 최상위 review.gatePaths: [] + $comment. 「위임」의 깊은 리뷰(성능·구조·보안) 호출은 조건 밖 선택으로 남겼다(계획은 언급 없음, 이유: 기존 문장을 지우면 조건 밖 깊은 리뷰 길이 사라진다) · decisions.md 틀에는 👤 기준을 지시문 「도메인 지식 링크」 문서에서 고른다는 구절을 붙였다(계획은 번호·맡는 쪽·👤만, 이유: ADR-019 B1 원문)",
+      "usage": {
+        "input_tokens": 28,
+        "cache_creation_input_tokens": 72381,
+        "cache_read_input_tokens": 977081,
+        "output_tokens": 8027,
+        "num_turns": 15,
+        "duration_ms": 221183,
+        "total_cost_usd": 0.9351162000000001
+      },
+      "completed_at": "2026-11-26T18:39:06+0900"
     },
     {
       "step": 10,
