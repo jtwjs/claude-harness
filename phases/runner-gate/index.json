@@ -18,7 +18,10 @@
       "step": 2,
       "name": "start-runs-gate",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-26T21:21:38+0900",
+      "base": "47fe56055c428854b8eded534e9ca43279a15a57",
+      "red": "fc6fabb1e17f2e3e162f475d5ad2270315ac3802"
     },
     {
       "step": 3,
