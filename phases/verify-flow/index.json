@@ -25,8 +25,20 @@
     {
       "step": 2,
       "name": "runner-error-tail",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:30:14+0900",
+      "summary": "sdd_runner.py error_tail(out): verify 실패 Fail 사유(판정 6 · blame_earlier 「이 step 범위에서도 깨진다」)에 stdout+stderr 끝 40줄 + 그 앞 실패 이름 줄(^\\s*(FAIL|✗|✕|🔴), 최대 10줄)을 붙이고 4,000자 넘으면 끝 줄 쪽 앞을 잘라 「…(앞 생략)」 · last_error·attempts·재시도 지시문에 같은 글 · 테스트 ErrorTailTest + test_error_tail_in_last_error_and_retry_prompt. 상한을 넘으면 실패 이름 줄은 남기고 끝 40줄 쪽 앞을 자르게 했다(계획은 「앞을 자른다」, 이유: 전체 앞을 자르면 우선해 모은 실패 이름 줄이 먼저 잘린다) · PhaseFail(blocked)·RedFail 사유에는 붙이지 않았다(계획이 Fail 만 지목)",
+      "usage": {
+        "input_tokens": 26,
+        "cache_creation_input_tokens": 71153,
+        "cache_read_input_tokens": 852317,
+        "output_tokens": 11069,
+        "num_turns": 13,
+        "duration_ms": 249186,
+        "total_cost_usd": 0.9611714000000001
+      },
+      "completed_at": "2026-11-26T17:37:59+0900"
     },
     {
       "step": 3,
