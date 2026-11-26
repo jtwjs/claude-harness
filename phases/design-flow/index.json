@@ -34,8 +34,11 @@
     {
       "step": 4,
       "name": "design-doc-screen",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:26:11+0900",
+      "summary": "design.md 「설계서」 절에 「화면」 묶음(늘 연다 · 질문 블록 · 질문 판은 피드백 보내기/최종본만 승인 버튼 · 체크된 선택 · 커밋 뒤 diff · 메모=이유/추천=주체 · 기다림/채팅 대안 · plan mode 안 씀)을 정본으로 두고 도구 이름은 그 안 한 줄에만, decisions.md 「설계서 흐름」은 이 묶음을 가리키게 줄임",
+      "completed_at": "2026-11-26T21:31:04+0900"
     },
     {
       "step": 5,
