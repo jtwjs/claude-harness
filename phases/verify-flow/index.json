@@ -169,8 +169,20 @@
     {
       "step": 10,
       "name": "summary-and-merge-line",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:39:07+0900",
+      "summary": "sdd ⑤ 세 줄 요약 셋째 줄 = `위험: … · 사람이 볼 것 N개`(N = sdd-review 「사람이 볼 것」 개수, 없으면 0개, 항목 정본은 PR 본문 절) / pr-write 4.6 세션 하나 작업은 새 맥락 code-reviewer 1회가 자동 머지 조건(안 돌리면 심각도 미실행) · 5단계에 「모델이 검증한 것」 · 「사람이 볼 것」(👤 없으면 절 생략, ✅ 또는 건너뜀: <이유(선택)>) 두 절 · 세 줄 형식은 sdd ⑤를 가리키기만 / body-template 구조 줄·두 절 추가 / conductor 「사용자에게 올리는 현황」에 머지 질문 한 줄 `Risk n · 심각도 · 사람이 볼 것 n개 · 규칙 diff 있음/없음` + 규칙 파일 diff 붙이기. body-template 의 Test plan 절을 「모델이 검증한 것」 절로 바꿨다(계획은 두 절 추가, 이유: verify 결과를 두 절에 두 번 적게 된다) — 그래서 pr-write 4.8의 「Test plan 스크린샷 체크 칸은 비워 둔다」 문장도 지웠다",
+      "usage": {
+        "input_tokens": 22,
+        "cache_creation_input_tokens": 66357,
+        "cache_read_input_tokens": 696678,
+        "output_tokens": 7540,
+        "num_turns": 11,
+        "duration_ms": 322525,
+        "total_cost_usd": 0.8210795999999999
+      },
+      "completed_at": "2026-11-26T18:46:16+0900"
     },
     {
       "step": 11,
