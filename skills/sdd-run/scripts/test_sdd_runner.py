@@ -1132,16 +1132,14 @@ class RunnerCase(unittest.TestCase):
     def test_red_judge_test_turn_completed_refused(self):
         # 리뷰: 검증 차례 에이전트가 step 파일 「검증 절차」대로 completed 를 적으면 judge --red 가 다음 step 을 보고
         # 「차례 아님」(3)으로 끝나, 구현 없이 step 이 넘어갔다
-        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True},
-                       {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        _, text = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                                 {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.assertIn("검증 차례에는 status 를 바꾸지 않는다", text, "지시문 6번이 step 파일 검증 절차보다 앞선다고 적는다")
         self.act([RED, ["commit", "test: step 1 — a (red)"], DONE])
         p = self.session("judge", "t1", "--red", "--step", "1")
         self.assertEqual(p.returncode, 1, self.out)
         self.assertIn("status", self.out)
         self.assertNotIn("red", self.step())
-        p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
-        self.assertIn("검증 차례에는 status 를 바꾸지 않는다", p.stdout + p.stderr,
-                      "지시문 6번이 step 파일 검증 절차보다 앞선다고 적는다")
 
     def test_red_judge_test_turn_blocked_recorded(self):
         # 검증 차례 에이전트가 blocked 를 적으면 1회 모드처럼 기록 · 커밋하고 종료 2(사람). 「차례 아님」(3)이 아니다

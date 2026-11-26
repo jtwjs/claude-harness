@@ -86,6 +86,8 @@ NOT_TURN = 3   # 나눔 모드: 차례가 아닌 역할의 호출 — 아무것�
 EFFORT, ONE_SHOT = {"검증": "high", "구현": "medium"}, {"session": "구현", "headless": "검증"}
 EDGE_AXES = ("빈 값·경계", "비정상 입력", "실패 경로", "상태 전이", "동시성")   # testing.md §2 와 같은 글자(ADR-019 G6)
 EDGE_VALUE = re.compile(r"`[^`]+`( · `[^`]+`)*")   # 백틱 테스트 이름 하나 이상(` · ` 구분). 아니면 「해당 없음…」
+INTENT_PLACEHOLDER = "AC-N(, AC-M)"   # sdd-plan step 템플릿 의도 절의 자리표시
+EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")   # claude --effort 가 받는 값
 EDGE_NOTE = " step 파일 엣지 5축 칸의 테스트 이름을 그대로 테스트 이름에 쓴다(러너가 테스트 커밋에서 그 이름을 찾는다)."
 # 구현 쪽이 막혔을 때(ADR-019 E3) — 테스트를 고쳐 풀지 않는다
 IMPL_RULE = ("테스트는 고치지 않는다 — 막히면 `\"status\": \"blocked\"` + `\"blocked_reason\"`(이유)로 멈추고, "
@@ -95,7 +97,7 @@ STATUS_RULE = """6. `phases/{task}/index.json` 의 step {n} 을 갱신한다. **
    - 검증 통과 → `"status": "completed"` + `"summary"`: 다음 step 에 넘길 산출물 한 줄(만든 파일·핵심 결정). step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다
    - 고쳐도 실패 → `"status": "error"` + `"error_message"`: 무엇이 왜 실패했는지
    - 사람만 할 수 있는 일(API 키·외부 인증·수동 설정) · 테스트가 수용 조건과 다르다 · 설계 문서에 없는 결정이 필요하다 → `"status": "blocked"` + `"blocked_reason"` 후 즉시 멈춘다"""
-STATUS_RULE_TEST = """6. `phases/{task}/index.json` 의 step {n} status 는 `pending` 그대로 둔다 — 구현 차례로 넘기는 표시(`red`)는 러너(`judge --red`)가 적는다. 수용 조건을 테스트로 쓸 수 없다 · 설계 문서에 없는 결정이 필요하다 · 사람만 할 수 있는 일이면 `"status": "blocked"` + `"blocked_reason"` 후 멈춘다"""
+STATUS_RULE_TEST = """6. `phases/{task}/index.json` 의 step {n} status 는 `pending` 그대로 둔다 — 구현 차례로 넘기는 표시(`red`)는 러너(`judge --red`)가 적는다. 검증 차례에는 status 를 바꾸지 않는다 — 아래 step 파일 「검증 절차」의 completed 기록 줄보다 이 줄이 앞선다(completed 는 구현 차례가 적는다). 수용 조건을 테스트로 쓸 수 없다 · 설계 문서에 없는 결정이 필요하다 · 사람만 할 수 있는 일이면 `"status": "blocked"` + `"blocked_reason"` 후 멈춘다"""
 JUDGE_NOTE = ("러너가 끝난 뒤 git 기록으로 확인한다: 테스트 커밋이 구현보다 먼저인가 · 테스트 커밋 시점에 테스트가 실제로 실패하는가 · "
               "그 뒤 테스트 파일이 바뀌지 않았나 · 검증 명령이 전부 통과하는가. 하나라도 어긋나면 이 step 은 실패로 처리된다.")
 JUDGE_NOTE_TEST = ("러너(`judge --red`)가 git 기록으로 확인한다: BASE 뒤 커밋이 테스트 파일만 담았나 · 그 시점에 테스트가 실제로 실패하는가. "
@@ -151,7 +153,7 @@ def edge_axes(ac: str):
         v = got.get(ax, "")
         if v.startswith("해당 없음"):
             names[ax] = []
-        elif EDGE_VALUE.fullmatch(v):
+        elif EDGE_VALUE.fullmatch(v) and not re.search(r"<[^>]*>", v):   # 템플릿 자리표시 `<테스트 이름>` 은 빈 칸
             names[ax] = re.findall(r"`([^`]+)`", v)
         else:
             empty.append(ax)
@@ -401,7 +403,7 @@ class Runner:
         if "의도" not in secs:
             print(f"⚠ step {step['step']}: `## 의도` 절이 없다(옛 꼴) — 의도 · 엣지 5축 칸을 보지 않고 지시문을 낸다", file=sys.stderr)
             return None
-        if not secs["의도"].strip():
+        if not secs["의도"].strip() or INTENT_PLACEHOLDER in secs["의도"]:   # 템플릿 그대로도 빈 것
             return "의도 절이 비었다 — 채우는 수용 조건 번호 · 이유 한 줄, 계획을 고친 뒤 재개"
         if step.get("tdd") and step.get("kind") != "measure":
             empty = edge_axes(secs.get("Acceptance Criteria", ""))[1]
@@ -865,7 +867,7 @@ def main(argv=None) -> int:
     ap.add_argument("--step", type=int)
     ap.add_argument("--role", choices=sorted(ROLE), help="prompt: 나눔 모드 세션 역할 — test(검증) · impl(구현)")
     ap.add_argument("--red", action="store_true", help="judge: 나눔 모드 검증 쪽 — 판정 2·3 만, 통과하면 red 기록")
-    ap.add_argument("--effort", help="prompt·run: 역할이 정한 effort 를 덮는다(ADR-019 C2)")
+    ap.add_argument("--effort", choices=EFFORT_LEVELS, help="prompt·run: 역할이 정한 effort 를 덮는다(ADR-019 C2)")
     ap.add_argument("--defer-full-test", action="store_true",
                     help="judge·run: 「전체」로 넓어지는 verify 도 $step 명령만(부하 중, 전체는 릴리스 전 한 번)")
     a = ap.parse_args(argv)
@@ -916,6 +918,15 @@ def main(argv=None) -> int:
         ap.error("judge 는 --step N 과 BASE(prompt --base 로 고정했거나 --base <그 step 시작 전 HEAD>)가 필요하다")
     if a.red:   # 차례가 아니면 checkout --detach · reset --hard 가 구현 중인 트리를 친다 — 먼저 막는다
         step, cur = r.find(r.read(), a.step), r.current()
+        st = step.get("status")
+        # 검증 차례 에이전트가 status 를 바꿨으면 차례 판정보다 먼저 본다 — 아니면 current() 가 다음 step 을 집어
+        # 「차례 아님」(3)으로 끝나고, 구현 없이 step 이 넘어간다(리뷰 경고 2)
+        if st == "blocked" and not step.get("red") and not step.get("blocked_at"):
+            return r.record(a.step, base)   # 막힘 — 1회 모드처럼 기록 · 커밋하고 종료 2(사람)
+        if st not in ("pending", "blocked"):
+            print(f"step {a.step} status 가 {st} 다 — 검증 차례에는 status 를 바꾸지 않는다(red 는 러너가 적는다). "
+                  "index.json 의 status 를 pending 으로 되돌린 뒤 다시 judge --red")
+            return 1
         if cur is None or cur["step"] != a.step:
             print(f"지금 차례인 step 은 {cur['step'] if cur else '없음'} 이다 — step {a.step} 이 아니다")
             return NOT_TURN
