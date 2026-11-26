@@ -17,11 +17,12 @@
     {
       "step": 2,
       "name": "start-runs-gate",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-26T21:21:38+0900",
-      "base": "47fe56055c428854b8eded534e9ca43279a15a57",
-      "red": "fc6fabb1e17f2e3e162f475d5ad2270315ac3802"
+      "red": "fc6fabb1e17f2e3e162f475d5ad2270315ac3802",
+      "summary": "start가 error/blocked 검사 뒤 · exclude 쓰기 전에 index.json docs 폴더로 step 1의 gate()를 불러, 열리면 같은 출력 + 종료 2. run은 start 반환을 그대로 써서 고칠 것 없음",
+      "completed_at": "2026-11-26T21:29:01+0900"
     },
     {
       "step": 3,
