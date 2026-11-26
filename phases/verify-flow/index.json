@@ -7,81 +7,251 @@
     {
       "step": 1,
       "name": "ledger-intent-fields",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T16:38:34+0900",
+      "summary": "ledger.py append 가 intent·effort·verify 를 선택 칸(true|false, 없으면 줄에 안 씀)으로 받고, hypothesis-gate.sh 판정 지시에 세 칸 안내·정의를 더함 · 테스트 hooks/tests/ledger-intent.sh. 거르기 표식: 프롬프트가 'Another Claude session sent a message:' + <cross-session-message …>…</cross-session-message> + 'This came from another Claude session' 안내 문단만이면 HOOK_RESULT=nonhuman(실제 대화 기록 640건 걸림 · 사람 프롬프트 1500건 안 걸림). 같은 머리의 <agent-message>(서브에이전트·팀원 보고, 'That \"other Claude session\" is an agent' 문단) 턴도 거르게 했다(계획은 세션 간 메시지만, 이유: 기록에서 이 꼴 160건에도 훅이 돌았고 역시 사람이 친 입력이 아님)",
+      "usage": {
+        "input_tokens": 58,
+        "cache_creation_input_tokens": 109786,
+        "cache_read_input_tokens": 2727989,
+        "output_tokens": 25580,
+        "num_turns": 32,
+        "duration_ms": 1088488,
+        "total_cost_usd": 1.9357178
+      },
+      "completed_at": "2026-11-26T17:00:16+0900"
     },
     {
       "step": 2,
       "name": "runner-error-tail",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:30:14+0900",
+      "summary": "sdd_runner.py error_tail(out): verify 실패 Fail 사유(판정 6 · blame_earlier 「이 step 범위에서도 깨진다」)에 stdout+stderr 끝 40줄 + 그 앞 실패 이름 줄(^\\s*(FAIL|✗|✕|🔴), 최대 10줄)을 붙이고 4,000자 넘으면 끝 줄 쪽 앞을 잘라 「…(앞 생략)」 · last_error·attempts·재시도 지시문에 같은 글 · 테스트 ErrorTailTest + test_error_tail_in_last_error_and_retry_prompt. 상한을 넘으면 실패 이름 줄은 남기고 끝 40줄 쪽 앞을 자르게 했다(계획은 「앞을 자른다」, 이유: 전체 앞을 자르면 우선해 모은 실패 이름 줄이 먼저 잘린다) · PhaseFail(blocked)·RedFail 사유에는 붙이지 않았다(계획이 Fail 만 지목)",
+      "usage": {
+        "input_tokens": 26,
+        "cache_creation_input_tokens": 71153,
+        "cache_read_input_tokens": 852317,
+        "output_tokens": 11069,
+        "num_turns": 13,
+        "duration_ms": 249186,
+        "total_cost_usd": 0.9611714000000001
+      },
+      "completed_at": "2026-11-26T17:37:59+0900"
     },
     {
       "step": 3,
       "name": "runner-defer-full-test",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:37:59+0900",
+      "summary": "sdd_runner.py --defer-full-test(Runner(defer_full_test)): full_reason(step, outside=None) 한 곳에서 마지막·재개·앱 밖 파일 이유를 정하고, 옵션 + $step 명령이 하나라도 있으면 None 을 돌려 self.deferred 에 이유를 적는다 → 통과 때 record 가 summary 끝에 「 · 전체 test 미룸 — 릴리스 전 한 번」(DEFER_MARK) · 테스트 test_defer_full_* 6개 · SKILL.md §2 3번 한 줄 · docs/sdd-runner.md 「전체 미룸」 항목. 앱 밖 파일로 미루면 모든 앱의 step 명령을 돌리게 했다(계획은 범위 미지정, 이유: 앱 밖 파일은 어느 앱 탓인지 못 고른다) · phase 마지막 측정 step 도 미루면 verify 를 생략하게 했다(계획은 측정 step 언급 없음, 이유: 변경 0 이라 step 명령 범위가 비고, 중간 측정 step 과 같은 처리) · 옵션은 argparse 공용이라 prompt 에도 받는다(계획은 judge·run, 이유: 세션 모드 지시문 검증 명령이 judge 와 엇갈리지 않게)",
+      "usage": {
+        "input_tokens": 28,
+        "cache_creation_input_tokens": 83161,
+        "cache_read_input_tokens": 1026347,
+        "output_tokens": 12996,
+        "num_turns": 15,
+        "duration_ms": 382809,
+        "total_cost_usd": 1.1305893999999999
+      },
+      "completed_at": "2026-11-26T17:47:50+0900"
     },
     {
       "step": 4,
       "name": "runner-red-judge",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:47:50+0900",
+      "summary": "sdd_runner.py 나눔 모드: `prompt --role test|impl`(Runner.current() = 끝나지 않은 첫 step · Runner.turn(step) → 'test'|'impl'|None · refuse_turn) · `judge --red --step N`(record(red_only=True) → red_check(commits, base, only_tests=True) = 판정 2·3, 통과 시 step['red'] 기록 + index 커밋) · 구현 쪽 check 는 red 가 있으면 2·3 건너뛰고 red 기준 4·5, 6 범위·{since}는 BASE · red 있는 RedFail 은 discard 없이 blocked · preamble.md 6번·맺음말을 $status_rule·$judge_note 로(1회 모드 지시문은 글자 그대로) · docs/sdd-runner.md 「나눔 모드」 표 · 테스트 test_red_judge_* 13개. 차례 아님은 종료 3(NOT_TURN)으로 했다(계획은 「비0」, 이유: 1 = 실패로 멈춤과 갈라야 세션이 기다릴지 고칠지 안다) · judge --red 는 BASE 뒤 커밋이 모두 테스트 파일만이어야 하고 red = 그 마지막 커밋으로 했다(계획은 「테스트만 담긴 첫 커밋」, 이유: 테스트 커밋이 둘이면 뒤 것이 판정 4 에서 「RED 뒤 테스트 수정」으로 되돌려진다) · judge --red 는 커밋 안 된 변경이 있으면 판정 전에 종료 1 로 했다(계획에 없음, 이유: checkout --detach 가 더러운 트리에서 깨진다) · red 가 있으면 blocked·error 로 멈춰도 base 를 지우지 않게 했다(계획에 없음, 이유: 재판정 뒤 구현 쪽이 red 와 짝인 BASE 를 그대로 써야 한다) · blocked 에서 prompt --role test 는 사유만 보이고 종료 2 로 했다(계획에 없음, 이유: 재판정은 지시문이 아니라 사람/검증 판단)",
+      "usage": {
+        "input_tokens": 42,
+        "cache_creation_input_tokens": 137896,
+        "cache_read_input_tokens": 2434096,
+        "output_tokens": 35585,
+        "num_turns": 24,
+        "duration_ms": 552555,
+        "total_cost_usd": 2.3018552
+      },
+      "completed_at": "2026-11-26T18:00:42+0900"
     },
     {
       "step": 5,
       "name": "runner-intent-effort",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T18:00:42+0900",
+      "summary": "sdd_runner.py: 상수 EFFORT·ONE_SHOT(검증 high · 구현 medium, 1회 모드 세션=구현 · 헤드리스=검증) → Runner.effort(role, headless) · prompt 가 stderr 「▶ effort <값>」 · invoke 가 claude -p --effort · --effort 로 덮음(prompt·run) / EDGE_AXES 상수 + md_sections·edge_axes(ac) → Runner.plan_gate(step)(의도 절 빈 본문 · 새 꼴 tdd 엣지 칸 빔 = 막는 이유, 옛 꼴 = stderr 「옛 꼴」 경고) · Runner.edge_names → red_check(step=) 가 테스트 커밋 파일 내용에서 이름 대조, 없으면 RedFail / STATUS_RULE blocked 조건 3개 · IMPL_RULE(구현 역할 「테스트는 고치지 않는다 — 막히면 … 검증 세션이 다시 판정한다」) · 재시도·재개 머리글 평문 · 새 꼴 tdd 지시문에 EDGE_NOTE · docs/sdd-runner.md 판정 2 행 + 계획 칸·effort·멈춤 조건 항목 · 테스트 test_intent_effort_* 10개 · test_edge_axes_* 10개. 세션 prompt 의 계획 칸 거부는 종료 2 로 했다(계획은 「비0」, 이유: 사람이 계획을 고쳐야 하는 멈춤이라 blocked 와 같은 코드) · 헤드리스는 빈 의도 절도 claude 없이 blocked 로 했다(계획은 엣지 칸만 지목, 이유: 같은 함수에서 같이 보고 의도 칸도 에이전트가 못 고친다) · plan_gate 는 --role impl 에도 건다(계획은 옵션 없음 · --role test, 이유: 분기를 줄이고 red 뒤엔 이미 통과한 칸이라 결과가 같다) · preamble.md 는 고치지 않고 STATUS_RULE 상수를 고쳤다(계획은 preamble.md 6번, 이유: 6번이 $status_rule 자리라 글이 상수에 있다) · 검증 차례 지시문(STATUS_RULE_TEST) blocked 조건도 「테스트로 쓸 수 없다 · 설계 문서에 없는 결정 · 사람만 할 수 있는 일」로 넓혔다(계획에 없음, 이유: C3 공용 규칙을 역할 지시문에도 맞춤) · EDGE_NOTE 는 새 꼴 step 에만 붙였다(계획은 조건 미지정, 이유: 옛 꼴엔 칸이 없어 읽을 이름이 없다) · IMPL_RULE 은 tdd: false 구현 역할 지시문에도 붙였다(계획은 구현 역할 지시문, 이유: 그 step 도 기존 테스트를 고치면 안 된다)",
+      "usage": {
+        "input_tokens": 32,
+        "cache_creation_input_tokens": 139870,
+        "cache_read_input_tokens": 1846094,
+        "output_tokens": 31574,
+        "num_turns": 19,
+        "duration_ms": 586116,
+        "total_cost_usd": 2.1197868000000004
+      },
+      "completed_at": "2026-11-26T18:14:34+0900"
     },
     {
       "step": 6,
       "name": "sdd-two-sessions",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:14:34+0900",
+      "summary": "sdd SKILL.md 「세션 모드 — 나눔 / 하나」 표 + 차례 단락(E6·E12·E3) · ① DESIGN 칸 「PRD를 받았을 때」 갈래 · 🙋 칸마다 「나눔 모드:」 구절(E7) · §③ 리뷰는 코드를 쓰지 않은 쪽(나눔=검증 세션 / 하나=sdd-review 뒤 새 맥락 code-reviewer 1회) · ② 행 나눔 구절 / design.md 머리에 갈래 진입 한 줄 / reflect.md 머리에 모드별 체크포인트 단락 / sdd-run §2 2번 ▶ effort → Agent effort · fork 금지, 판정 표 2번 엣지 5축 구절, 새 「2-b. 나눔 모드」 절(차례 표는 docs/sdd-runner.md 가리킴) / sdd-review 위임 fork 금지. sdd-run 나눔 모드 절은 세션이 지시문대로 직접 하든 서브에이전트에 맡기든 열어 두고, 맡기면 §2 2번(effort · fork 금지)을 따르게 했다(계획은 방식 미지정, 이유: ADR A5는 나눔 모드에 러너 서브에이전트가 없는 듯 쓰고 C2는 서브에이전트 effort를 말해 어느 쪽인지 정해지지 않음) · 나눔 모드 REFLECT 에서 게이트 보정은 후보만 PR에 싣고 gate-fix 는 쓰지 않게 했다(계획은 「PR에 실어」만, 이유: 기존 규칙이 사람이 확정한 것만 쓰게 한다) · 나눔 모드 DESIGN 에서 ARCHITECTURE 초안 확인 자리는 정하지 않았다(ADR E5·E7에 없음)",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 91549,
+        "cache_read_input_tokens": 772969,
+        "output_tokens": 16929,
+        "num_turns": 20,
+        "duration_ms": 289586,
+        "total_cost_usd": 1.2256458000000001
+      },
+      "completed_at": "2026-11-26T18:21:31+0900"
     },
     {
       "step": 7,
       "name": "conductor-two-sessions",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:21:31+0900",
+      "summary": "conductor dispatch.md 「트랙 세션 열기」 명령에 --effort <역할 값>(값은 ADR-019 E1 · C7a 참조) + 나눔 모드 두 세션을 같은 worktree에서 여는 명령(-verify · -impl, 층마다 따로) / seat.md 세션 종류 표에 검증 · 구현 행 + 단계 정본은 sdd 「세션 모드」 / decisions.md §1 「PRD는 지휘가 쓴다」 단락 + 결정 이슈 틀에 PRD 칸(기능 키워드 표 · API 계약 초안, 꼴은 design.md 「PRD.md」) · §2 「나눔 모드 — 계약 먼저」 3줄(첫 배치 · 변경 · 끝까지 확인) / doorbell.md §8 표에 검증↔구현 두 줄 · 「step·PR을 끝냈다」 줄에 지식 저장소 4칸(G4) · 같은 트랙 두 세션은 직접 보냄. 세션 하나 모드 트랙 세션의 effort 는 C7a 값을 가리키게 했다(계획은 나눔 모드만 언급, 이유: 「늘 넘긴다」를 지키려면 단일 세션 명령에도 값 출처가 필요) · 구현 blocked 가 재판정 뒤에도 갈리면 검증이 지휘에 보고하고 지휘가 사용자에게 올리게 했다(계획에 없음, 이유: E3 「사용자」로 가는 통로가 지휘 경유라서) · AC 번호 · 👤 칸은 틀에 넣지 않았다(이 step 근거 목록 밖)",
+      "usage": {
+        "input_tokens": 28,
+        "cache_creation_input_tokens": 80679,
+        "cache_read_input_tokens": 1014749,
+        "output_tokens": 12571,
+        "num_turns": 19,
+        "duration_ms": 263500,
+        "total_cost_usd": 1.0999138
+      },
+      "completed_at": "2026-11-26T18:27:58+0900"
     },
     {
       "step": 8,
       "name": "track-brief-and-tracks",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:27:58+0900",
+      "summary": "track-brief.md 표에 세션 역할 · 의도 · effort 칸(effort 는 값 없이 conductor §5 · 하네스 ADR-019 E1 · C7a 참조) · 「끝나면 지휘에 보고」 4번째 묶음 「지휘 자리의 지식 저장소로 올릴 것」(도메인 사실·출처 / 반대 근거 / 남은 문제 / 저장소 쪽 할 일 후보, 없으면 「없음」, 레포에 안 씀) · 「금지」 판정함 줄과 「새 worktree 준비」 절 삭제(점검 평문 step 은 track-brief 를 안 건드려 이 step 이 지움) / tracks.md 세션 종류 표에 검증 `<레포>-<층>-<기능>-verify` · 구현 `-impl` 행 + 나눔·층별 상주 유지·세로 조각은 층 안 단락 · §5 5번 나눔 모드(검증 BE 제공 · 검증 FE 소비 · 끝까지 확인 검증 FE). 세션 역할 칸 값에 「하나」도 넣었다(계획은 검증 / 구현, 이유: 세션 하나 모드 트랙도 같은 지시문을 받는다) · 지휘 점검 PR 덜기 목록은 받지 않고 G5 줄만 했다(이유: 비대화 러너 세션이라 지휘 회신을 기다릴 수 없음 — 점검 step 7 summary 의 track-brief 덜기 후보와 G5 가 같다)",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 70596,
+        "cache_read_input_tokens": 636787,
+        "output_tokens": 6436,
+        "num_turns": 10,
+        "duration_ms": 205102,
+        "total_cost_usd": 0.8209254
+      },
+      "completed_at": "2026-11-26T18:33:26+0900"
     },
     {
       "step": 9,
       "name": "review-gates",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:33:26+0900",
+      "summary": "sdd-review: §1 PRD 늘 읽음 · 「테스트 존재」→「수용 조건 대조」 축(AC-N별 테스트 파일:줄·통과 표, 이 세션 몫 빈 번호 🟡, 옛 PRD는 짝 테스트 + 「번호 없음」) · CRITICAL 축 --no-verify는 settings.json permissions.deny가 깔렸는지만 · §4 출력에 5「사람이 볼 것」(👤 번호만 체크리스트, 없으면 생략) · 6「code-reviewer 판정」(건너뜀 이유 한 줄) · 「위임」에 나눔 모드 호출 조건 셋(review.gatePaths 닿음 · pr-write 4.6단계 기준 넘음 · 확인 필요 남음, 목록 비면 세션 판단+이유)과 세션 하나 모드는 sdd 「③ REVIEW」 절대로 늘 1회 / sdd ③ 행 escalate 구절 → 「위임」 조건 가리킴 / design.md PRD 수용 조건에 AC-N · 맡는 쪽 · 👤 + 예시 한 줄 / decisions.md 결정 이슈 틀 PRD 칸에 「### 수용 조건」 소절 / templates harness.json 최상위 review.gatePaths: [] + $comment. 「위임」의 깊은 리뷰(성능·구조·보안) 호출은 조건 밖 선택으로 남겼다(계획은 언급 없음, 이유: 기존 문장을 지우면 조건 밖 깊은 리뷰 길이 사라진다) · decisions.md 틀에는 👤 기준을 지시문 「도메인 지식 링크」 문서에서 고른다는 구절을 붙였다(계획은 번호·맡는 쪽·👤만, 이유: ADR-019 B1 원문)",
+      "usage": {
+        "input_tokens": 28,
+        "cache_creation_input_tokens": 72381,
+        "cache_read_input_tokens": 977081,
+        "output_tokens": 8027,
+        "num_turns": 15,
+        "duration_ms": 221183,
+        "total_cost_usd": 0.9351162000000001
+      },
+      "completed_at": "2026-11-26T18:39:06+0900"
     },
     {
       "step": 10,
       "name": "summary-and-merge-line",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:39:07+0900",
+      "summary": "sdd ⑤ 세 줄 요약 셋째 줄 = `위험: … · 사람이 볼 것 N개`(N = sdd-review 「사람이 볼 것」 개수, 없으면 0개, 항목 정본은 PR 본문 절) / pr-write 4.6 세션 하나 작업은 새 맥락 code-reviewer 1회가 자동 머지 조건(안 돌리면 심각도 미실행) · 5단계에 「모델이 검증한 것」 · 「사람이 볼 것」(👤 없으면 절 생략, ✅ 또는 건너뜀: <이유(선택)>) 두 절 · 세 줄 형식은 sdd ⑤를 가리키기만 / body-template 구조 줄·두 절 추가 / conductor 「사용자에게 올리는 현황」에 머지 질문 한 줄 `Risk n · 심각도 · 사람이 볼 것 n개 · 규칙 diff 있음/없음` + 규칙 파일 diff 붙이기. body-template 의 Test plan 절을 「모델이 검증한 것」 절로 바꿨다(계획은 두 절 추가, 이유: verify 결과를 두 절에 두 번 적게 된다) — 그래서 pr-write 4.8의 「Test plan 스크린샷 체크 칸은 비워 둔다」 문장도 지웠다",
+      "usage": {
+        "input_tokens": 22,
+        "cache_creation_input_tokens": 66357,
+        "cache_read_input_tokens": 696678,
+        "output_tokens": 7540,
+        "num_turns": 11,
+        "duration_ms": 322525,
+        "total_cost_usd": 0.8210795999999999
+      },
+      "completed_at": "2026-11-26T18:46:16+0900"
     },
     {
       "step": 11,
       "name": "step-template-cells",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:46:16+0900",
+      "summary": "sdd-plan SKILL.md: stepN.md 템플릿 6절(「읽어야 할 파일」 다음 `## 의도` = 채우는 AC-N · 이유 한 줄) · 템플릿 위 두 줄(의도 비면 지시문 안 냄 · 옛 꼴 경고, 엣지 칸은 tdd: true만 · 축 질문은 testing.md §2) · AC 절 끝에 엣지 5축 칸(step 파일 꼴 그대로) · 금지사항 끝에 (선택) step만의 멈춤 조건 한 줄 · §3 TDD 판정에 나눔 모드 구절 · 시그니처 수준 「반드시 명시」→「step에 적는다」 · §4 `red` 필드 · `docs` 「반드시」→「늘 채운다」 · model 칸 옆 effort 구절. docs 기계 검사 후보: `start`는 docs가 비어도 멈추지 않는다(Runner.start · phases_status.problems_of 둘 다 docs를 안 봄, 코드 확인). 파서 대조(스크래치 레포, 템플릿 블록을 그대로 뽑아 이름 셋만 채움): `sdd_runner.py prompt t` → 종료 0 · 「실패 경로」 줄을 지운 사본 → 종료 2(「엣지 5축 칸이 비었다 — 실패 경로」). 자리표시 `<테스트 이름>`도 백틱이라 계획 칸 검사를 통과한다(이름 대조 RED에서야 걸림) — 러너는 고치지 않았다",
+      "usage": {
+        "input_tokens": 34,
+        "cache_creation_input_tokens": 70508,
+        "cache_read_input_tokens": 1154433,
+        "output_tokens": 9186,
+        "num_turns": 25,
+        "duration_ms": 228888,
+        "total_cost_usd": 0.9788066000000001
+      },
+      "completed_at": "2026-11-26T18:52:02+0900"
     },
     {
       "step": 12,
       "name": "delegate-three-cells",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:52:02+0900",
+      "summary": "write-for-agents.md 끝에 절 「맡길 때 세 칸」(의도 · effort = 역할 값, 하네스 ADR-019 C2 참조 · 검증 = 끝 확인 방법, 즉석 Agent · 지휘 지시문 · 리뷰어 넘김 공통, fork 금지는 호출 자리 sdd-run §2 · sdd-review 「위임」을 가리킴) / INDEX write-for-agents 행 「언제」에 「에이전트에 일을 맡길 때」 / sdd-review 「위임」에 넘김 꼴 한 줄(INTENT · SCOPE · CHECKED, 꼴은 code-reviewer 절차 1) / code-reviewer 절차 1에 INTENT 받으면 되비추기와 대조해 다르면 차이를 보고 첫 줄에.",
+      "usage": {
+        "input_tokens": 20,
+        "cache_creation_input_tokens": 65726,
+        "cache_read_input_tokens": 632863,
+        "output_tokens": 7284,
+        "num_turns": 14,
+        "duration_ms": 205751,
+        "total_cost_usd": 0.7981406
+      },
+      "completed_at": "2026-11-26T18:57:29+0900"
     },
     {
       "step": 13,
       "name": "flow-walk",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-26T18:57:29+0900",
+      "summary": "측정만, 레포 변경 없음. ① `bash hooks/test.sh` → 「통과 642 · 실패 0」(종료 0). ② `git grep -n -e '같은 세션의 서브에이전트' -e 'escalate 판정에 따라' -e '5개 섹션 고정' -- skills templates` → 0건(종료 1). ③ 걷기(레포 밖 /tmp 스크래치 git, harness.json verify.test=`sh check.sh` · branchPattern feature/{task} · feature/walk 브랜치, phase walk = tdd:true step 1개 새 꼴 — 의도 절 · 엣지 5축 칸): `sdd_runner.py start walk` 0 → `prompt walk --role test --base <HEAD>` 0(▶ effort high, 테스트만 지시 + 엣지 이름 구절) → (차례 확인) `prompt walk --role impl` 3 → 테스트 커밋 `test: step 1 — add-fn (red)` → `judge walk --red --step 1` 0(red 기록 + index 커밋, status pending) → (차례 확인) `prompt walk --role test` 3 → `prompt walk --role impl` 0(▶ effort medium, IMPL_RULE 구절) → 구현 커밋 + status completed → `judge walk --step 1` 0(verify 범위 전부 — 마지막 step, completed). ④ 엣지 칸 걷기: 「실패 경로」 줄을 지운 phase gap에서 `prompt gap --role test --base <HEAD>` → 2(「엣지 5축 칸이 비었다 — 실패 경로」, index.json 안 건드림) · 칸 이름 `noname_missing_fails`가 없는 테스트 커밋으로 `judge noname --red --step 1` → 10(「엣지 5축: 실패 경로 테스트 이름 … 이 테스트 커밋에 없다」, 커밋은 sdd-discard/noname/step1-try1로 옮김, red 없음). ⑤ ADR-019 행 ↔ step: A1 6 · A2 9 · A3 9·11 · A4 4·11 · A5 6 / B1·B2 9 · B3·B4·B5 10 / C1 5·11 · C2 5·6·11 · C3 5·11 · C4 12 · C5 없음(보류 결정) · C6 7·8 · C7a·C7b 5(ONE_SHOT 상수)·7 / D1 1 · D2 없음(그대로 두는 결정) · D3 1(비사람 입력 거름 — 판정 문구 5건은 #17 데이터 뒤라 이 phase 밖) / E1 5·7 · E2 4 · E3 4·5·6·7 · E4 7 · E5·E6·E7 6(E7 보탬 10) · E8·E9 7·8 · E10 7 · E11 8 · E12 4·6·7 / F1 4 · F2 6·10 / G1 2·3 · G2 1 · G3 없음(ADR-018 B-6·B-9 행은 이미 「#52 G절이 정본」을 가리키고, ADR 본문은 쌓기 기록이라 「ADR-019」로 고치지 않음 — `grep -n 'B-6\\|B-9' docs/harness-checkup-2026-11-25/ADR.md`로 확인) · G4 7·8 · G5 5·8·9·11 · G6 5·6·11. 실패 0건.",
+      "usage": {
+        "input_tokens": 40,
+        "cache_creation_input_tokens": 80901,
+        "cache_read_input_tokens": 1485142,
+        "output_tokens": 11635,
+        "num_turns": 21,
+        "duration_ms": 261640,
+        "total_cost_usd": 1.1770964000000004
+      },
+      "completed_at": "2026-11-26T19:03:58+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-26T19:27:53+0900",
+      "head": "bb48312",
+      "issues": [
+        "나눔 모드 재판정(E3)에서 테스트가 틀렸을 때 진행할 진입점 없음 — 지휘 결정 대기",
+        "judge --red 가 검증 차례 status 변경을 차례 판정 뒤에 봄 — 고침",
+        "템플릿 자리표시가 계획 칸 검사를 통과 — 고침",
+        "--effort 값 미검사 — 고침",
+        "hypothesis-gate 안내 문단 정규식이 빈 줄 없이 붙은 사람 글까지 지울 수 있음 — 남김(실제 꼴 미확인)",
+        "나눔 모드 --red 없는 judge 에 차례 검사 없음 — 남김(고장 아님)"
+      ]
     }
   ]
 }

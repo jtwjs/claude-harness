@@ -34,9 +34,18 @@
 
 ```bash
 git -C <레포> worktree add ../<레포>-<트랙>-<주제> -b feature/<트랙>-<주제> origin/<기준 브랜치>
-cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg --permission-mode auto -n <세션 이름> "<채운 track-brief 본문>"
+cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg --permission-mode auto --effort <역할 값> -n <세션 이름> "<채운 track-brief 본문>"
 ```
 
+- `--effort`는 늘 넘긴다(ADR-019 C2 · C6). 플래그 없이 띄우면 낮은 effort로 돈다. 레포 설정 `effortLevel`은 폴더 전체에 걸려 역할마다 다르게 줄 수 없다. 값은 ADR-019 E1(역할별) · C7a(세션 하나 모드)에서 읽고 여기 옮겨 적지 않는다
+- **나눔 모드**(검증 · 구현 두 세션, `sdd` 「세션 모드 — 나눔 / 하나」)면 worktree 하나 · 브랜치 하나에 세션을 둘 연다(ADR-019 E12). 각자 worktree를 만들지 않는다. 같은 브랜치는 두 worktree에 걸 수 없고, 차례를 알리는 index.json이 한쪽에만 보인다. 차례는 `phases/{task}/index.json`이 정한다
+
+  ```bash
+  cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg --permission-mode auto --effort <검증 역할 값> -n <레포>-<트랙>-verify "<채운 track-brief 본문 — 세션 역할: 검증>"
+  cd <레포 상위>/<레포>-<트랙>-<주제> && claude --bg --permission-mode auto --effort <구현 역할 값> -n <레포>-<트랙>-impl "<채운 track-brief 본문 — 세션 역할: 구현>"
+  ```
+
+  두 세션에 같은 지시문을 넘기고 「세션 역할」 칸만 다르게 채운다. 구현 세션은 먼저 떠 있어도 러너가 차례가 아니면 거절하므로(종료 3) 검증 세션의 「red 기록」 알림(§8)을 기다린다. FE · BE 기능이면 층마다 따로 연다(ADR-019 E8). 층 사이 계약은 §2 「나눔 모드」 순서를 따른다
 - 이름은 「세션 종류」 표를 따른다. 출력 `backgrounded · <id> · <이름>`의 id는 `claude logs`·`attach`·`stop`·`rm`에 쓴다. 나중에는 `claude agents --json`에서 이름으로 찾는다
 - 띄운 세션은 `ListAgents`에 `<이름> · bg`로 보인다. 지시·보고는 지금처럼 `SendMessage`(§8)로 하고, 띄운 뒤 `notify_when_idle`을 건다
 - `-w`(Claude가 worktree를 만듦)는 쓰지 않는다. 브랜치가 `worktree-<이름>`이 되어 §4 현황의 `feature/<트랙>-…` 매칭에서 빠진다

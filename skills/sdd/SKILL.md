@@ -23,7 +23,16 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 애매하면 묻는다. 서버 내부 로직이어도 **운영 화면·대시보드가 딸려 오면 디자인 트랙**이다.
 
-병렬 트랙(worktree 세션 2개 이상)이면 지휘 세션 하나는 `conductor`로 돈다. 각 트랙 세션은 이 흐름 그대로다.
+병렬 트랙(worktree 세션 2개 이상)이면 지휘 세션 하나는 `conductor`로 돈다. 트랙 세션은 아래 두 모드 중 하나로 이 흐름을 돈다.
+
+### 세션 모드 — 나눔 / 하나
+
+| 모드 | 언제 | 누가 무엇을 |
+|---|---|---|
+| 나눔 | 지휘가 검증 · 구현 세션 둘을 띄운 트랙 | 검증 세션: ① 계획 · ③ REVIEW · ④ REFLECT · ⑤ 마무리 + step마다 테스트. 구현 세션: ② IMPLEMENT의 구현만 |
+| 하나 | 작은 작업(diff 한 문장) · 지휘 없이 혼자 도는 작업 | 한 세션이 ①~⑤를 이 흐름 그대로 |
+
+나눔 모드의 두 세션은 같은 worktree · 같은 브랜치를 차례로 쓴다. 차례는 `phases/{task}/index.json`이 정한다(차례 표는 `sdd-run` 「나눔 모드」 절이 가리키는 러너 문서). 남의 차례에는 git을 만지지 않는다 — 검증 쪽 `judge --red`가 트리를 옮기므로(`checkout --detach` · `reset --hard`) 구현 중인 트리를 치지 않게 하는 장치가 차례뿐이다. 차례가 넘어가면 상대 세션에 세션 간 메시지로 알린다. 구현 세션은 테스트를 고치지 않는다 — 막히면 이유를 남기고 blocked로 멈추고, 검증 세션이 한 번 다시 판정하고, 그래도 갈리면 사람에게 간다.
 
 ## 단계 → 스킬 · 체크포인트 (🤖 자동 위임 / 🙋 여기서만 승인 대기)
 
@@ -31,11 +40,11 @@ SDD 단계를 순서대로 이어 진행하는 오케스트레이터. 각 단계
 
 | 단계 | 맡는 것 | 🙋 체크포인트 |
 |---|---|---|
-| ① 계획 · DESIGN | `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다. 세 장이 이미 있으면 Readiness만 돈다. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-brief/SKILL.md` → 레포 캔버스에 시안 → `${CLAUDE_PLUGIN_ROOT}/skills/design-critique/SKILL.md` | PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로 · Readiness 착수 판단(AI 채점, 착수는 사람) · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict` |
-| ① 계획 · PLAN | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md` — step 분해와 step마다 `tdd` 판정. step의 `⚠️`·`TBD`는 §2가 그 자리에서 캐묻는다. 세 장이 이미 있어 PLAN만 필요하면 바로 부른다. 🎨 §3-b가 캔버스 작업 탭을 읽는다 | 범위 합의 → step 계획 승인(미해결 `⚠️` 0개) · 🎨 DS 신규 컴포넌트 승인 |
-| ② IMPLEMENT 🤖 | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md` — step마다 호출 1번(테스트 먼저 → 구현), `sdd_runner.py judge`가 git 기록으로 판정한다(RED · GREEN 규칙은 그 파일 §2). 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스) | blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패(최대 4회) |
-| ③ REVIEW | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` 체크리스트 → escalate 판정에 따라 `code-reviewer` 심층 🤖. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-reconcile/SKILL.md` | 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영) |
-| ④ REFLECT | 커밋 전, 사람이 자리에 있을 때 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 읽고 그 순서대로 돈다 | 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · harness-gaps 승격 판정 · 출구 조건 확인 |
+| ① 계획 · DESIGN | `docs/{feature-YYYY-MM-DD}/`에 PRD·ARCHITECTURE·ADR이 없거나 과제가 막연하면 **`${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/design.md`를 읽고 그 절차대로** 만든다. 세 장이 이미 있으면 Readiness만 돈다. **PRD를 받았을 때**(지휘가 결정 이슈 본문에 PRD를 쓴 나눔 모드): 원문을 `docs/{feature-YYYY-MM-DD}/PRD.md`에 고치지 않고 옮기고 이슈 링크를 단다 → 의도 되비추기 한 줄(지휘 확인) → ARCHITECTURE · ADR만 → Readiness → PLAN. 인터뷰 · 용어 겨루기는 지휘 설계 대화에서 끝났으니 돌지 않는다. 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-brief/SKILL.md` → 레포 캔버스에 시안 → `${CLAUDE_PLUGIN_ROOT}/skills/design-critique/SKILL.md` | PRD·수용 조건 확인 · ARCHITECTURE 초안 · 세 장 저장 경로 · Readiness 착수 판단(AI 채점, 착수는 사람) · 🎨 브리프 승인 · 🎨 critique 결정 질문(회차당 ≤5) · 🎨 시안 `verdict`. 나눔 모드: 의도 되비추기 · Readiness ❌는 지휘 확인(사람 아님, PRD를 고쳐야 하면 지휘가 사용자와) |
+| ① 계획 · PLAN | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-plan/SKILL.md` — step 분해와 step마다 `tdd` 판정. step의 `⚠️`·`TBD`는 §2가 그 자리에서 캐묻는다. 세 장이 이미 있어 PLAN만 필요하면 바로 부른다. 🎨 §3-b가 캔버스 작업 탭을 읽는다 | 범위 합의 → step 계획 승인(미해결 `⚠️` 0개) · 🎨 DS 신규 컴포넌트 승인. 나눔 모드: step 계획은 지휘 확인(사람 아님) |
+| ② IMPLEMENT 🤖 | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md` — step마다 호출 1번(테스트 먼저 → 구현), `sdd_runner.py judge`가 git 기록으로 판정한다(RED · GREEN 규칙은 그 파일 §2). 나눔 모드는 테스트를 검증 세션이, 구현을 구현 세션이 나눠 쓴다(그 파일 「나눔 모드」). 사람이 없을 때는 같은 규칙의 `sdd_runner.py run`(헤드리스) | blocked step · 파괴적 변경 · 재시도 3번 뒤에도 실패(최대 4회). 나눔 모드 blocked는 검증 세션 재판정이 먼저, 그래도 갈리면 사람 |
+| ③ REVIEW | `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` 체크리스트 → `code-reviewer` 심층 🤖(부르는 조건은 그 파일 「위임」, 세션 하나 모드는 아래 「③ REVIEW」 절대로 늘 1회). 🎨 `${CLAUDE_PLUGIN_ROOT}/skills/design-reconcile/SKILL.md` | 최종 판정 · 3회차 뒤에도 위반이 남을 때 접근 재검토 · 🎨 reconcile 통과 판정(현행 반영) |
+| ④ REFLECT | 커밋 전, 사람이 자리에 있을 때 `${CLAUDE_PLUGIN_ROOT}/skills/sdd/references/reflect.md`를 읽고 그 순서대로 돈다 | 적중 판정 정정 · 게이트 보정 확정 · `revise-claude-md` diff 승인(종착지 판정 포함) · harness-gaps 승격 판정 · 출구 조건 확인. 나눔 모드: 적중 판정 · 게이트 보정 · 규칙 diff · 출구 조건은 PR에 실어 사람이 PR 검증 때 보고, harness-gaps 승격만 지휘에 결정 요청 |
 | ⑤ 마무리(SHIP) | 세 줄 요약 → `${CLAUDE_PLUGIN_ROOT}/skills/changeset/SKILL.md`(릴리스 도구가 있고 사용자 영향 시) → `commit` → `pr-write` → 학습 카드 | `pr-write` 생성(commit은 REVIEW 승인이 겸한다) |
 
 이 표 밖에서 멈췄다면 스킬 쪽이 틀린 것이다 — 표에 넣거나 스킬을 고친다.
@@ -48,7 +57,7 @@ DESIGN과 PLAN은 한 단계지만 게이트가 둘이다 — 묻는 것이 다�
 
 ### ③ REVIEW
 
-리뷰는 **같은 세션의 서브에이전트**가 한다 — 컨텍스트는 격리되고 세션은 그대로다("새 세션에서 리뷰"는 쓰지 않는다).
+리뷰는 **코드를 쓰지 않은 쪽**이 한다. 나눔 모드는 검증 세션이 `sdd-review`를 돈다. 세션 하나 모드(작은 작업 · 지휘 없이 혼자 도는 작업)는 `sdd-review` 뒤 새 맥락 `code-reviewer`를 1회 부른다 — 같은 세션이 자기 코드를 리뷰하는 것을 막는다.
 위반이 나오면 **수정 step을 하나 더 만들어 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/SKILL.md`로 고치고(작은 수정은 `feature-builder`) `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md`를 다시 돈다** — REVIEW에서 IMPLEMENT로 돌아가는 유일한 경로.
 선택: `/no-comments` — 사람이 부르면 `sdd-review` 전에 diff의 주석을 걷는다(`comment-hunter`가 찾고 메인이 판정). 사람만 부르는 스킬이라 흐름은 이것을 기다리지 않는다.
 **루프는 수렴해야 한다** — 수렴 규칙 ①~③(회차 · 범위 · 지적 묶기)은 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md` §2 · §4가 정본이다. ④ **3회차가 끝나도 위반이 남으면 수정 step을 더 만들지 않고 🙋 멈춘다** — "접근 방식 자체를 다시 볼까요?"(① 계획으로 / 이번 지적만 한 번 더 / 남은 지적은 후속 이슈로). 에이전트 작성자 × 에이전트 리뷰어는 서로를 끝없이 바쁘게 만든다.
@@ -61,7 +70,7 @@ DESIGN과 PLAN은 한 단계지만 게이트가 둘이다 — 묻는 것이 다�
 
 작업이 **완전히 끝났을 때만** 돈다. 순서는 위 표 그대로다.
 
-- **세 줄 요약** — PR 전에 터미널에 무엇 · 왜 · 위험/직접 확인할 것을 한 줄씩 낸다. 입력을 받지 않고 바로 다음으로 간다. 같은 세 줄을 PR 본문 첫머리 · 학습 카드 「작업 요약」 · 지휘 보고가 그대로 쓴다 — 곳마다 새로 쓰면 세 곳이 서로 다른 말을 한다.
+- **세 줄 요약** — PR 전에 터미널에 무엇 · 왜 · `위험: … · 사람이 볼 것 N개`를 한 줄씩 낸다. 셋째 줄의 N은 `sdd-review` 「사람이 볼 것」(`👤` 수용 조건) 개수이고(없으면 0개), 항목 목록은 PR 본문 「사람이 볼 것」 절이 정본이다 — 위험과 사람 확인을 한 줄에 섞어 쓰면 둘이 갈리지 않는다. 입력을 받지 않고 바로 다음으로 간다. 같은 세 줄을 PR 본문 첫머리 · 학습 카드 「작업 요약」 · 지휘 보고가 그대로 쓴다 — 곳마다 새로 쓰면 세 곳이 서로 다른 말을 한다.
 - REFLECT 산출물(회고·규칙 한 줄·`observations.md`)을 구현과 **같은 PR**에 태운다 — 한 사이클 = 한 PR. **문서 한 줄은 고친 커밋과 같은 커밋에**(`rules/non-obvious-patterns.md` 자신의 규칙). PR 본문 끝에 회고 요약(막힌 지점 → 남긴 자산)과 `REFLECT 건너뜀` 줄을 그대로 둔다. `commit`은 REVIEW 최종 판정이 승인을 겸하므로 다시 묻지 않는다.
 - **학습 카드** — 마무리 보고에 한 장 싣는다. 레포에 쓰지 않는다. 항목: 작업 요약 · 목적 · 개념/키워드(`${CLAUDE_PLUGIN_ROOT}/docs/learning-level.md`의 기술 카드 형식) · 새로 알게 된 것 · 선택: 내 한 줄. 카드 재료는 `explain`(`${CLAUDE_PLUGIN_ROOT}/skills/explain/SKILL.md`)을 읽어 얻는다.
 - 마무리 보고 끝에 `쓴 원칙: <INDEX 이름|없음> · 바뀐 결정: <원칙을 읽고 달라진 판단 한 줄|없음>` 한 줄을 단다.

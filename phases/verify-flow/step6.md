@@ -24,6 +24,7 @@
 - 두 세션의 작업 트리 · 차례(ADR-019 E12)를 나눔 모드 절에 한 단락
 - `sdd-run`에 나눔 모드 절: 검증 세션은 `prompt --role test` → 테스트 커밋 → `judge --red`, 구현 세션은 `prompt --role impl` → 구현 → `judge`(옵션 이름은 step 4 summary대로). 통로는 index.json `red` 칸 + 세션 간 메시지(ADR-019 F1)
 - `sdd-run` §2 2번 「step에 `model`이 있으면 그 값만 넘긴다」 옆에: 러너가 stderr로 낸 `▶ effort <값>`을 Agent effort로 넘긴다(ADR-019 C2)
+- `sdd-run` 판정 표 2번 줄에 「(새 꼴 step) 엣지 5축 칸의 테스트 이름이 테스트 커밋에 있다 · 칸이 비면 돌지 않는다」 한 구절(ADR-019 G6, 정본은 러너 — 표는 가리키기만)
 - fork 금지 한 구절(ADR-019 A5): `sdd-run` §2 2번(서브에이전트를 띄우는 자리) · `sdd-review` 「위임」(`code-reviewer`를 띄우는 자리)
 - tdd: false — 지시문 문장 바꾸기다
 

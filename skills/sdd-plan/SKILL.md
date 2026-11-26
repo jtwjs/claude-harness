@@ -30,9 +30,9 @@ disable-model-invocation: true
 - **phase는 끝까지 돈다**: 그 phase의 verify가 PRD 수용 조건 1개 이상을 덮는 테스트를 돌려야 한다. FE · BE를 나눠 맡긴 세션이면 그 세션 층에서 확인되는 수용 조건이다(예: BE는 API 계약 테스트). 수용 조건을 하나도 덮지 못하는 phase는 나눔을 다시 본다.
 - **자기완결성**: step 하나만 읽어도 서브에이전트가 작업 가능해야 한다. 앞 step 결과에 의존하는 부분은 명시. 🔴 **"이전 대화에서 논의한 대로" 같은 외부 참조 금지** — 각 step은 대화 기록이 없는 새 서브에이전트 세션에서 돈다. 필요한 정보는 전부 파일 안에 적는다.
 - **관련 파일 강제 열람**: 따라야 할 기존 패턴 파일 경로를 `## 읽어야 할 파일`에 못박는다.
-- **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다. **단 멱등성·보안·데이터 무결성처럼 벗어나면 안 되는 규칙은 반드시 명시한다** — 시그니처만 주면 에이전트가 그 규칙을 모른다.
+- **시그니처 수준**: 함수/컴포넌트/타입 시그니처와 계약을 지시하되, 전체 코드를 미리 쓰지 않는다. 멱등성·보안·데이터 무결성처럼 벗어나면 안 되는 규칙은 step에 적는다 — 시그니처만 주면 에이전트가 그 규칙을 모른다.
 - **AC = 실행 가능한 쉘 명령**: 통과 여부를 기계가 판정할 수 있게. 명령은 **지어내지 말고 `.claude/harness.json`의 `verify`에서 가져온다.**
-- **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 러너가 그 step을 **한 호출 안에서 테스트 먼저 → 구현**으로 돌리고 git 기록으로 확인한다(테스트만 담긴 커밋이 먼저 · 그 시점에 테스트가 실패 · 그 뒤 테스트 파일 무변경 — `sdd-run` §2), `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
+- **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 러너가 그 step을 **한 호출 안에서 테스트 먼저 → 구현**으로 돌리고(나눔 모드면 테스트는 검증 세션이 쓰고 `judge --red`로 판정, 구현은 구현 세션 — `sdd` 「세션 모드」) git 기록으로 확인한다(테스트만 담긴 커밋이 먼저 · 그 시점에 테스트가 실패 · 그 뒤 테스트 파일 무변경 — `sdd-run` §2), `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
 - **금지사항 명시**: 아래 템플릿 「금지사항」 두 줄은 늘 넣는다. 이름 · 경로를 바꾸는 step이면 「옛 이름 grep 0」 AC에 쌓기만 하는 기록을 뺀 범위를 적는다 — 빼지 않으면 에이전트가 지난 로그 항목까지 새 이름으로 고친다. CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 복사본은 ADR이 바뀐 뒤에도 옛 값으로 남는다.
 - **측정 전용 step은 `kind: "measure"`**: dev 실측·전후 대조·보고만 하고 바꿀 파일이 없는 step. 작업 절에 "무엇을 어떤 명령으로 재서 summary에 남기나"를 적는다. 구현 step에 측정을 섞지 않는다 — 섞으면 변경 유무로 판정할 수 없다.
 - **이동 리팩터(패키지 · 폴더 옮기기)는 세 step으로**: ① 측정 step(`kind: "measure"`) — 새 구조 규칙(ArchUnit · lint)을 임시로 돌려 RED를 확인하고 위반 목록을 summary에 남긴다 ② 이동 step(`tdd: false`, 사유 「테스트 파일도 rename · package 줄이 바뀌어 RED 뒤 테스트 무변경 판정과 못 같이 둔다」) ③ 규칙 step — 규칙을 커밋해 GREEN을 확인한다. 한 step에 묶으면 judge가 테스트 파일 변경으로 막는다
@@ -65,16 +65,19 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 }
 ```
 
-- **`docs`** — §0에서 합의한 설계문서 폴더. `task` slug와 `feature-YYYY-MM-DD`는 별개 식별자라 **이 필드가 없으면 `sdd-run`·`sdd-review`가 PRD·ARCHITECTURE·ADR을 찾을 방법이 없다.** 반드시 채운다.
+- **`docs`** — §0에서 합의한 설계문서 폴더. `task` slug와 `feature-YYYY-MM-DD`는 별개 식별자라 **이 필드가 없으면 `sdd-run`·`sdd-review`가 PRD·ARCHITECTURE·ADR을 찾을 방법이 없다.** 늘 채운다.
 - **`after`** — 이 phase보다 먼저 끝나야 하는 phase의 `task` slug 배열(같은 PRD를 여러 phase로 나눴을 때. 한 세션이 FE · BE를 다 맡으면 동작 단위 세로 조각: `cp-name-edit`의 `after: ["cp-name-create"]`. 설계에서 FE · BE를 다른 세션에 맡겼으면 각 세션 phase는 자기 층 안에서 세로이고 계약을 먼저 굳힌다: `fe-cp-name`의 `after: ["be-cp-name"]`). 선행이 없으면 `[]`. 같은 PRD 묶음은 `docs`가 같아서 알 수 있다 — **상위 `phases/index.json`(전체 현황 파일)은 만들지 않는다.** 상태가 두 곳에 적히면 어긋난다. 전체 현황은 `phases_status.py`가 phase별 `index.json`에서 계산한다(`sdd-run` §0)
 - `status` ∈ `pending | completed | error | blocked` **4개만**. 최초 전부 `pending`. 🔴 `done`·`complete` 같은 다른 값은 쓰지 않는다 — 러너는 `completed`만 끝난 것으로 판정한다. `phases_status.py`가 다른 값을 오류로 잡는다
-- `summary`·`error_message`·`blocked_reason`·`retries`·`last_error`(직전 실패 사유)·`attempts`(실패 이력, REFLECT 재료)·`resumed_at`·timestamp·`usage`는 **구현 단계(sdd-run)**가 채운다. 여기선 비워둔다.
+- `summary`·`error_message`·`blocked_reason`·`retries`·`last_error`(직전 실패 사유)·`attempts`(실패 이력, REFLECT 재료)·`red`(나눔 모드에서 검증 세션이 `judge --red`로 적는 테스트 커밋)·`resumed_at`·timestamp·`usage`는 **구현 단계(sdd-run)**가 채운다. 여기선 비워둔다.
 - **`kind`(선택)** — `"measure"`면 **코드 변경이 없는 측정·실측·대조 전용 step**이다. 러너가 변경 0을 정상으로 보고, 대신 `summary`에 실행한 명령(백틱)과 결과를 요구한다(없으면 실패). `tdd`는 `false`. 표시하지 않으면 러너가 "completed 보고인데 변경 없음"으로 재시도한다(#8)
-- **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 기본 모델로 돈다(세션 안은 Agent 도구 기본값, 헤드리스는 `claude -p` 기본값).
+- **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 기본 모델로 돈다(세션 안은 Agent 도구 기본값, 헤드리스는 `claude -p` 기본값). effort 칸은 없다 — effort는 세션 역할이 정한다(ADR-019 C2).
   - 🔴 **어렵겠다는 느낌으로 적지 않는다.** step 이 자기완결적이면 정해진 것을 만드는 일이라 기본 모델로 충분하다. 올리는 근거는 느낌이 아니라 `index.json` 에 쌓인 그 step 의 `retries` 기록이다(승격 조건은 `BACKLOG.md`)
   - 올리기 전에 **step 파일이 자기완결적인지 먼저 의심한다.** 모델을 올려야 풀리는 step 은 대개 **분해가 덜 된 step** 이다
 
-### `phases/{task}/stepN.md` — 5개 섹션 고정
+### `phases/{task}/stepN.md` — 6개 섹션
+
+- `## 의도`가 비면 러너가 지시문을 내지 않는다. 이 절이 없는 옛 꼴 step은 경고만 하고 돈다.
+- 엣지 5축 칸은 `tdd: true` step에만 둔다. 축마다 이 step 테스트가 쓸 이름(프레임워크가 허용하는 글자로) 또는 「해당 없음」을 적는다. 축마다 무엇을 묻는지는 `.claude/rules/testing.md` §2. 칸 꼴은 러너가 읽으므로 아래 템플릿 글자 그대로 둔다.
 
 ```markdown
 # Step {N}: {kebab-name}
@@ -83,6 +86,10 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 
 - CLAUDE.md, docs/{feature-date}/{PRD,ARCHITECTURE,ADR}.md
 - (따라야 할 기존 패턴 경로 — 유사 entity/feature/훅/스토어)
+
+## 의도
+
+- 채우는 수용 조건: AC-N(, AC-M) — 이유 한 줄
 
 ## 작업
 
@@ -95,6 +102,12 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 - `.claude/harness.json`의 `verify.typecheck` 통과
 - `verify.test` 통과 (비어 있으면 **그 사실을 step에 명시**한다)
 - (필요 시) `verify.build`
+- 엣지 5축(축마다 테스트 이름 또는 「해당 없음」 — 비면 러너가 이 step을 돌리지 않는다):
+  - 빈 값·경계: `<테스트 이름>`
+  - 비정상 입력: 해당 없음: <이유>
+  - 실패 경로: `<테스트 이름>`
+  - 상태 전이: `<테스트 이름>`
+  - 동시성: 해당 없음
 
 ## 검증 절차
 
@@ -109,6 +122,7 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 
 - hook 우회(`--no-verify`) · 자동 생성물 직접 수정 · `.claude/rules/`가 금지한 의존 방향 위반 · 요청 범위 밖 수정 · **테스트 파일 수정**(구현 step에서) 금지.
 - 쌓기만 하는 기록(로그 · 회고 · `docs/` 의 지난 설계 · ADR 본문 · `phases/*/`)은 이름 · 경로를 일괄 바꿀 때도 고치지 않는다. 「옛 이름 grep 0」은 이 파일들을 빼고 센다.
+- (선택) 이 step만의 멈춤 조건: <예: 대상 테이블에 데이터가 있으면 blocked> — 공용 멈춤 조건은 러너 지시문이 정본이라 다시 적지 않는다
 ```
 
 ## 5. 마무리

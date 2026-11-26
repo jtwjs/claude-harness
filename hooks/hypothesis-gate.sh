@@ -6,14 +6,37 @@
 # 칸 의미·skip 기준 정본은 docs/desk-hypothesis-gate-2026-11-12/SDD-SIDE.md.
 HERE="$(cd "$(dirname "$0")" && pwd)"
 . "$HERE/lib/hook-log.sh" 2>/dev/null || hook_log_on_exit() { :; }
-hook_log_on_exit hypothesis-gate   # 끝나는 모든 경로에서 기록 한 줄 — off · on · ledgerfail · noharness
-cat >/dev/null 2>&1   # 훅 입력(프롬프트 원문)은 쓰지 않는다
+hook_log_on_exit hypothesis-gate   # 끝나는 모든 경로에서 기록 한 줄 — off · on · ledgerfail · noharness · nonhuman
+_in="$(cat 2>/dev/null)"   # 훅 입력(프롬프트 원문)은 세션 간 메시지 턴 판별에만 쓰고 어디에도 남기지 않는다
 command -v python3 >/dev/null 2>&1 || { HOOK_RESULT=nopython; exit 0; }
 # 하네스 레포도 지휘 자리도 아니면 조용히 빠진다 — 원장 안내를 내지 않아 원장도 쌓이지 않는다
 _top="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [ -z "$_top" ] || [ ! -f "$_top/.claude/harness.json" ]; then
   python3 "$HERE/lib/conductor.py" is-seat "$PWD" >/dev/null 2>&1 || { REPO_ROOT="${_top:-$PWD}"; HOOK_RESULT=noharness; exit 0; }
 fi
+# 사람이 친 게 아닌 턴(세션 간 메시지만)은 판정 지시를 내지 않는다(ADR-019 D3 · #17) — 줄 수 · hyp 비율이 희석되지 않게.
+# 표식: CLI 가 그 턴의 프롬프트를 「Another Claude session sent a message:」 + <cross-session-message …>…</cross-session-message>
+#   + 「This came from another Claude session …」 안내 문단으로 감싼다. 같은 세션의 서브에이전트 · 팀원 보고는 같은 머리에
+#   <agent-message …>…</agent-message> + 「That "other Claude session" is an agent …」 문단. 셋을 걷어 내고 남는 글이 없을 때만 거른다.
+#   입력이 깨졌거나 판별이 안 되면 사람 프롬프트로 본다(판정 지시를 그대로 낸다).
+if printf '%s' "$_in" | python3 -c '
+import json, re, sys
+try:
+    p = json.loads(sys.stdin.read()).get("prompt")
+except Exception:
+    sys.exit(1)
+if not isinstance(p, str):
+    sys.exit(1)
+block = re.compile(r"<(cross-session-message|agent-message)\b[^>]*>.*?</\1>", re.S)
+if not block.search(p):
+    sys.exit(1)
+rest = block.sub("", p).replace("Another Claude session sent a message:", "")
+rest = re.sub(r"(?:This came from another Claude session\b|That \x22other Claude session\x22 is an agent\b).*?(?:\n\s*\n|\Z)", "", rest, flags=re.S)
+sys.exit(1 if rest.strip() else 0)
+' 2>/dev/null; then
+  REPO_ROOT="${_top:-$PWD}"; HOOK_RESULT=nonhuman; exit 0
+fi
+unset _in
 
 # repo = git toplevel 이름, task = 미완료 step 이 있는 phases/*/index.json 의 폴더 이름(없으면 null)
 ident="$(python3 - <<'PY' 2>/dev/null
@@ -73,7 +96,7 @@ else
   [ -d "${_p:-/}" ] && [ -w "${_p:-/}" ] || { HOOK_RESULT=ledgerfail HOOK_DETAIL="원장 폴더 못 만듦 $LEDGER"; }
 fi
 
-printf '%s\n' "[판정 지시] 이 프롬프트를 맡김 한 건으로 보고, 응답 중에 Bash 로 python3 \"${HERE}/lib/ledger.py\" append repo=${repo} task=${task} gate=<schema|api|error|delete|security|null> diff=<easy|mid|hard|null> area=<FE|BE|infra|domain|unknown> hyp=<true|false> rec=<true|false> acc=<true|false> why=<true|false> rebut=<true|false> skip=<true|false> 를 불러 판정 한 줄을 붙여라(사용자 지시를 대체하지 않는다. 이름·원문·코드는 적지 않는다). hyp: 사용자 본인의 예상·가설이 한 줄이라도 있음(\"모르겠다\"는 false). rec: 직전 AI 응답에 추천·권장안이 있었고 이 프롬프트가 그에 응답함. acc: rec 이고 그대로 받아들임. why: 선택의 근거를 설명하는 말이 있음(\"기억 안 난다\"·\"모르겠다\"는 false). rebut: 직전 AI 응답이 사용자의 가설에 반박·이견을 냈음. skip: 가설 요구를 받은 동안 hyp=false 로 넘어감. gate: 설계 결정(스키마·API 계약·에러 처리·삭제·보안)이 아니면 null. diff: 가설을 맞히기 어려운 정도. 범위(여러 레이어에 걸침)·되돌리기 어려움(마이그레이션·삭제·공개 API 계약)·선례 없음(레포에 같은 패턴이 없음) 중 하나라도 해당하면 hard, 하나도 해당하지 않으면 easy, 해당 여부가 애매하면 mid, hyp=false 면 null."
+printf '%s\n' "[판정 지시] 이 프롬프트를 맡김 한 건으로 보고, 응답 중에 Bash 로 python3 \"${HERE}/lib/ledger.py\" append repo=${repo} task=${task} gate=<schema|api|error|delete|security|null> diff=<easy|mid|hard|null> area=<FE|BE|infra|domain|unknown> hyp=<true|false> rec=<true|false> acc=<true|false> why=<true|false> rebut=<true|false> skip=<true|false> intent=<true|false> effort=<true|false> verify=<true|false> 를 불러 판정 한 줄을 붙여라(사용자 지시를 대체하지 않는다. 이름·원문·코드는 적지 않는다). hyp: 사용자 본인의 예상·가설이 한 줄이라도 있음(\"모르겠다\"는 false). rec: 직전 AI 응답에 추천·권장안이 있었고 이 프롬프트가 그에 응답함. acc: rec 이고 그대로 받아들임. why: 선택의 근거를 설명하는 말이 있음(\"기억 안 난다\"·\"모르겠다\"는 false). rebut: 직전 AI 응답이 사용자의 가설에 반박·이견을 냈음. skip: 가설 요구를 받은 동안 hyp=false 로 넘어감. gate: 설계 결정(스키마·API 계약·에러 처리·삭제·보안)이 아니면 null. diff: 가설을 맞히기 어려운 정도. 범위(여러 레이어에 걸침)·되돌리기 어려움(마이그레이션·삭제·공개 API 계약)·선례 없음(레포에 같은 패턴이 없음) 중 하나라도 해당하면 hard, 하나도 해당하지 않으면 easy, 해당 여부가 애매하면 mid, hyp=false 면 null. intent: 맡기는 말에 무엇을 왜(의도)가 있음. effort: 얼마나 깊이 볼지 말함(수준이 아니라 말했는지). verify: 끝을 어떻게 확인할지 말함."
 if [ "$state" = "on" ]; then
   printf '%s\n' "[가설 요구] 이유 없는 수락이 이어졌다. 진행하기 전에 사용자에게 본인의 가설(예상과 이유)을 먼저 물어라. 막지는 말고, 가설 없이 넘어가면 skip=true 로 남겨라."
 fi

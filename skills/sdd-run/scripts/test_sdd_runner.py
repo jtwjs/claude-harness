@@ -33,6 +33,7 @@ FAKE = textwrap.dedent('''\
     n = int(state.read_text()) if state.exists() else 0
     state.write_text(str(n + 1))
     Path(os.environ["FAKE_PROMPTS"], f"{n}.txt").write_text(sys.argv[-1])
+    Path(os.environ["FAKE_PROMPTS"], f"{n}.argv").write_text(json.dumps(sys.argv[1:-1]))
     calls = json.loads(Path(os.environ["FAKE_SCENARIO"]).read_text())
     call = calls[n] if n < len(calls) else {"ops": []}
     task = os.environ["FAKE_TASK"]
@@ -101,13 +102,15 @@ class RunnerCase(unittest.TestCase):
                         FAKE_PROMPTS=str(self.tmp / "prompts"), FAKE_SCENARIO=str(self.tmp / "scenario.json"),
                         FAKE_TASK="t1")
 
-    def phase(self, steps, task="t1", after=None):
+    def phase(self, steps, task="t1", after=None, md=None):
+        """md: {step 번호: step 파일 본문} — 없으면 옛 꼴(의도 절 없음) 기본 본문."""
         d = self.repo / "phases" / task
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.json").write_text(json.dumps({"project": "p", "phase": task, "docs": "docs/x",
                                                   "after": after or [], "steps": steps}, indent=2))
         for s in steps:
-            (d / f"step{s['step']}.md").write_text(f"# Step {s['step']}: {s['name']}\n\n## 작업\n- 구현\n")
+            (d / f"step{s['step']}.md").write_text((md or {}).get(s["step"])
+                                                   or f"# Step {s['step']}: {s['name']}\n\n## 작업\n- 구현\n")
         git(self.repo, "add", "-A")
         git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", f"plan {task}")
 
@@ -584,6 +587,31 @@ class RunnerCase(unittest.TestCase):
         (self.tmp / "scenario.json").write_text(json.dumps([{"step": n, "ops": ops}] * 99))
         subprocess.run([str(self.tmp / "claude"), "-p", "x"], cwd=self.repo, env=self.env, capture_output=True)
 
+    def test_error_tail_in_last_error_and_retry_prompt(self):
+        # #12: 사유가 "verify 실패: test" 한 줄뿐이라 다음 시도가 무엇이 깨졌는지 모른 채 같은 실패를 되풀이했다
+        (self.repo / "loud.sh").write_text(textwrap.dedent('''\
+            #!/bin/sh
+            [ -f src/ok.txt ] && exit 0
+            echo "  🔴 early_case — 기대와 다름"
+            i=1; while [ $i -le 60 ]; do printf 'row-%03d\\n' $i; i=$((i+1)); done
+            echo "끝 줄 표식" >&2
+            exit 1
+        '''))
+        (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"test": "sh loud.sh"}}))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "loud verify")
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [["write", "src/x.txt", "x"], ["commit", "feat: x"], DONE]},
+                              {"step": 1, "ops": [["write", "src/ok.txt", "ok"], ["commit", "feat: ok"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        err = self.step()["attempts"][0]["error"]
+        self.assertIn("verify 실패: test", err)
+        self.assertIn("row-060", err, "출력 끝 줄이 붙는다")
+        self.assertIn("끝 줄 표식", err, "stderr 도 붙는다")
+        self.assertNotIn("row-001", err, "40줄 밖 일반 줄은 붙지 않는다")
+        self.assertIn("early_case", err, "40줄 밖이어도 실패한 테스트 이름 줄은 앞에 모은다")
+        self.assertIn(err, self.prompt(1), "다음 지시문 「이전 시도 실패」에 같은 글이 그대로 붙는다")
+
     def test_session_judge_targets_given_step(self):
         # 리뷰(10-13): judge 가 '첫 pending' 을 골라 방금 끝난 step 이 아니라 다음 step 을 판정했다
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True},
@@ -622,6 +650,507 @@ class RunnerCase(unittest.TestCase):
         self.act([IMPL, ["commit", "feat: a 고침"], DONE])
         self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
         self.assertNotIn("base", self.step(), "끝난 step 의 BASE 는 지운다")
+
+    # ── --defer-full-test (#13) — 부하 중 전체 test 를 릴리스 전으로 미룬다 ──────────────
+    DEFER_MARK = "전체 test 미룸 — 릴리스 전 한 번"
+
+    def test_defer_full_last_step_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.two_steps()
+        rc = self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]},
+                              {"step": 2, "ops": [["write", "server/b.txt", "1"], ["commit", "feat: b"], DONE]}],
+                             "--defer-full-test")
+        self.assertEqual(rc, 0, self.out)
+        self.assertNotIn("full", self.runs(log), "마지막 step 도 step 명령만")
+        self.assertIn("echo step", self.prompt(1), "지시문 검증 명령도 step 명령")
+        self.assertNotIn("echo full", self.prompt(1))
+        self.assertTrue(self.step(2)["summary"].endswith(self.DEFER_MARK), self.step(2)["summary"])
+        self.assertNotIn(self.DEFER_MARK, self.step(1)["summary"], "줄이지 않은 step 에는 붙이지 않는다")
+
+    def test_defer_full_absent_last_step_runs_full(self):
+        log = self.step_cfg(single=True)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.runs(log), ["full"], "옵션이 없으면 지금처럼 마지막 step 은 전체")
+        self.assertNotIn(self.DEFER_MARK, self.step()["summary"])
+
+    def test_defer_full_without_step_cmd_runs_full(self):
+        log = self.tmp / "runs.log"
+        self.set_cfg({"verify": {"test": f"echo full >> {log}; sh check.sh"}})
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}], "--defer-full-test")
+        self.assertEqual(rc, 0, self.out)
+        self.assertEqual(self.runs(log), ["full"], "$step 이 없으면 줄일 범위가 없어 전체")
+        self.assertNotIn(self.DEFER_MARK, self.step()["summary"], "줄이지 않았으면 표시도 없다")
+
+    def test_defer_full_outside_apps_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.two_steps()
+        self.run_runner([{"step": 1, "ops": [["write", "README.md", "x"], ["write", "server/a.txt", "1"],
+                                             ["commit", "feat: a"], DONE]}], "--defer-full-test")
+        self.assertEqual(self.step(1)["status"], "completed", self.out)
+        self.assertNotIn("full", self.runs(log), "앱 밖 파일이어도 step 명령만")
+        self.assertIn("step", " ".join(self.runs(log)))
+        self.assertTrue(self.step(1)["summary"].endswith(self.DEFER_MARK), self.step(1)["summary"])
+
+    def test_defer_full_resumed_step_runs_step_cmd(self):
+        log = self.step_cfg()
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False, "failed_at": "2026-01-01T00:00:00+0900",
+                     "error_message": "원인: x"},
+                    {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.run_runner([{"step": 1, "ops": [["write", "server/a.txt", "1"], ["commit", "feat: a"], DONE]}],
+                        "--defer-full-test")
+        self.assertEqual(self.step(1)["status"], "completed", self.out)
+        self.assertNotIn("full", self.runs(log), "재개 step 도 step 명령만")
+        self.assertTrue(self.step(1)["summary"].endswith(self.DEFER_MARK), self.step(1)["summary"])
+
+    def test_defer_full_session_judge(self):
+        log = self.step_cfg(single=True)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        base = git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        self.act([IMPL, ["commit", "feat: a"], DONE])
+        p = self.session("judge", "t1", "--step", "1", "--base", base, "--defer-full-test")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.runs(log), [f"step {base}"], "judge 도 옵션을 받아 마지막 step 을 step 명령으로")
+        self.assertTrue(self.step()["summary"].endswith(self.DEFER_MARK), self.step()["summary"])
+
+    # ── 나눔 모드(ADR-019 A4 · E2 · E12) — 검증 세션이 테스트 · 구현 세션이 구현 ──────────────
+    def index_bytes(self):
+        return (self.repo / "phases/t1/index.json").read_bytes()
+
+    def head(self):
+        return git(self.repo, "rev-parse", "HEAD").stdout.strip()
+
+    def red_turn(self, steps, cfg=None):
+        """start → prompt --role test --base HEAD. (BASE, 지시문)"""
+        if cfg:
+            self.set_cfg(cfg)
+        self.phase(steps)
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+        base = self.head()
+        p = self.session("prompt", "t1", "--role", "test", "--base", base)
+        self.assertEqual(p.returncode, 0, self.out)
+        return base, p.stdout
+
+    def test_red_judge_test_prompt_writes_tests_only(self):
+        _, text = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.assertIn("실패하는 테스트", text)
+        self.assertIn("test: step 1 — a (red)", text)
+        self.assertIn("구현 파일을 만들지 않는다", text)
+        self.assertNotIn("② 구현한다", text, "검증 차례 지시문은 구현을 시키지 않는다")
+
+    def test_red_judge_pass_records_red(self):
+        base, _ = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        red = self.head()
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        s = self.step()
+        self.assertEqual(s.get("red"), red, "통과하면 테스트 커밋 sha 를 red 에 적는다")
+        self.assertEqual(s["status"], "pending", "구현은 아직 — step 은 끝나지 않는다")
+        self.assertEqual(s.get("base"), base, "BASE 는 구현 쪽이 그대로 쓴다")
+        self.assertIn("chore: update phase index for step 1", self.log())
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "index 를 커밋한다")
+
+    def test_red_judge_red_fail_discards_attempt(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, IMPL, ["commit", "test: a 구현과 함께"]])
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 10, self.out)
+        self.assertNotIn("구현과 함께", self.log(), "RED 위반 시도의 커밋은 버린다")
+        self.assertIn("sdd-discard/t1/step1-try1", git(self.repo, "branch", "--list", "sdd-discard/*").stdout)
+        s = self.step()
+        self.assertNotIn("red", s)
+        self.assertIn("RED", s["last_error"])
+        self.assertEqual(s["retries"], 1)
+
+    def test_red_judge_red_catching_nothing_discards(self):
+        self.red_turn([{"step": 1, "name": "b", "status": "pending", "tdd": True}])
+        self.act([["write", "tests/b.expect", "x"], ["commit", "test: b (red)"]])   # src/b.txt 가 이미 x — 통과한다
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 10, self.out)
+        self.assertIn("아무것도 잡지", self.step()["last_error"])
+        self.assertNotIn("red", self.step())
+
+    def test_red_judge_refuses_out_of_turn(self):
+        steps = [{"step": 1, "name": "a", "status": "pending", "tdd": True}]
+        self.phase(steps)
+        self.session("start", "t1")
+        before = self.index_bytes()
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertNotEqual(p.returncode, 0, "red 없는 tdd step 은 검증 차례")
+        self.assertIn("지금은 검증 차례", self.out)
+        self.assertEqual(self.index_bytes(), before, "차례가 아니면 아무것도 바꾸지 않는다")
+        # 검증이 red 를 적은 뒤에는 구현 차례 — 검증 쪽 호출을 거부한다
+        base = self.head()
+        self.session("prompt", "t1", "--role", "test", "--base", base)
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        head, before = self.head(), self.index_bytes()
+        p = self.session("prompt", "t1", "--role", "test")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("지금은 구현 차례", self.out)
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertNotEqual(p.returncode, 0, "judge --red 가 구현 중인 트리를 치지 않는다")
+        self.assertIn("지금은 구현 차례", self.out)
+        self.assertEqual((self.head(), self.index_bytes()), (head, before))
+
+    def test_red_judge_tdd_false_is_impl_turn(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--role", "test")
+        self.assertNotEqual(p.returncode, 0, "쓸 테스트가 없는 step 은 구현 차례")
+        self.assertIn("지금은 구현 차례", self.out)
+        p = self.session("prompt", "t1", "--role", "impl", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("feat: step 1 — c", p.stdout)
+
+    def test_red_judge_measure_is_test_turn(self):
+        self.phase([{"step": 1, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertNotEqual(p.returncode, 0, "측정 · 대조는 검증 몫")
+        self.assertIn("지금은 검증 차례", self.out)
+        base = self.head()
+        p = self.session("prompt", "t1", "--role", "test", "--base", base)
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("측정 전용", p.stdout, "measure 지시문은 지금 그대로")
+        self.act([["status", "completed", {"summary": "`wc -l x` → 1"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+
+    def test_red_judge_impl_skips_step_without_red(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                    {"step": 2, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        before = self.index_bytes()
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("지금은 검증 차례", self.out)
+        self.assertNotIn("Step 2", p.stdout, "red 없는 step 을 건너뛰어 뒤 step 을 집지 않는다")
+        self.assertEqual(self.index_bytes(), before)
+
+    def test_red_judge_impl_judge_skips_red_checks(self):
+        log = self.tmp / "runs.log"
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
+                      cfg={"verify": {"test": f"echo run >> {log}; sh check.sh"}, "tdd": {"enabled": True}})
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(len(self.runs(log)), 1, "judge --red 는 RED 시점 test 를 한 번")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("테스트는 이미 있다", p.stdout)
+        self.assertIn("blocked", p.stdout)
+        self.act([IMPL, ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed")
+        self.assertEqual(len(self.runs(log)), 2, "구현 쪽 judge 는 판정 3(RED 시점 test)을 다시 돌지 않는다")
+
+    def test_red_judge_impl_reverts_test_edit_keeps_red(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.session("judge", "t1", "--red", "--step", "1")
+        red = self.step()["red"]
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "bye"], ["write", "tests/a.expect", "bye"], ["commit", "feat: a (테스트도 고침)"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "hello", "테스트 수정은 되돌린다(판정 4)")
+        self.assertIn("테스트 파일", self.step()["last_error"])
+        self.assertEqual(self.step()["red"], red, "구현 쪽 재시도는 red 를 지우지 않는다")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, "재시도도 구현 차례")
+        self.act([IMPL, ["commit", "feat: a 다시"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+
+    def test_red_judge_impl_red_blame_blocks_without_discard(self):
+        (self.repo / "lint.sh").write_text('rc=0; for f in tests/*; do grep -q BAD "$f" && echo "$f: BAD 금지" && rc=1; done; exit $rc\n')
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
+                      cfg={"verify": {"test": "sh check.sh", "lint": "sh lint.sh"}, "tdd": {"enabled": True}})
+        self.act([RED, ["write", "tests/a_note.txt", "BAD"], ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        red = self.step()["red"]
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([IMPL, ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("a_note.txt", s["blocked_reason"])
+        self.assertIn("검증", s["blocked_reason"], "검증 세션 재판정으로 넘긴다")
+        self.assertEqual(s["red"], red)
+        self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", red, "HEAD").returncode, 0,
+                         "테스트 커밋을 지우지 않는다 — red 가 고아 커밋이 되지 않게")
+        self.assertIn("test: a (red)", self.log())
+        self.assertEqual(git(self.repo, "branch", "--list", "sdd-discard/*").stdout.strip(), "", "시도를 버리지 않는다")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertNotEqual(p.returncode, 0, "blocked 는 검증 재판정 차례")
+        self.assertIn("지금은 검증 차례", self.out)
+
+    def test_red_judge_one_shot_mode_unchanged(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertIn("② 구현한다", p.stdout, "옵션 없는 prompt 는 지금 1회 지시문")
+        self.act([RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertNotIn("red", self.step(), "1회 모드는 red 를 적지 않는다")
+
+    def test_red_judge_phases_status_accepts_red(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True, "red": "abc123"}])
+        p = subprocess.run([sys.executable, str(HERE / "phases_status.py"), "--check", "t1"], cwd=self.repo,
+                           capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+
+    # ── 계획 칸 · effort (ADR-019 C1 · C2 · C3 · G5) ─────────────────────────────────
+    def argv(self, i):
+        return json.loads((self.tmp / "prompts" / f"{i}.argv").read_text())
+
+    def test_intent_effort_empty_intent_refuses(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                   md={1: "# Step 1: c\n\n## 의도\n\n   \n## 작업\n- 구현\n"})
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "의도 절이 비면 지시문을 내지 않는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("의도", self.out)
+
+    def test_intent_effort_missing_intent_warns_only(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout, "옛 phase 는 지시문을 낸다")
+        self.assertIn("옛 꼴", p.stderr)
+
+    def test_intent_effort_one_shot_session_is_impl_role(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertIn("▶ effort medium", p.stderr, "세션 안 1회 모드는 구현 역할 값(C7a)")
+
+    def test_intent_effort_role_values(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.assertIn("▶ effort high", self.out, "검증 역할")
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("▶ effort medium", p.stderr, "구현 역할")
+
+    def test_intent_effort_headless_passes_effort(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        a = self.argv(0)
+        self.assertIn("--effort", a)
+        self.assertEqual(a[a.index("--effort") + 1], "high", "헤드리스 run 은 검증 역할 값(C7b)")
+
+    def test_intent_effort_override(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}], "--effort", "max")
+        self.assertEqual(rc, 0, self.out)
+        a = self.argv(0)
+        self.assertEqual(a[a.index("--effort") + 1], "max")
+        self.phase([{"step": 1, "name": "d", "status": "pending", "tdd": False}], task="t2")
+        p = self.session("prompt", "t2", "--role", "impl", "--effort", "low")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("▶ effort low", p.stderr)
+        self.assertNotIn("▶ effort medium", p.stderr)
+
+    def test_intent_effort_retry_headers_plain(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": []},
+                              {"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("이전 시도 실패", self.prompt(1))
+        self.assertNotIn("반드시", self.prompt(1))
+
+    def test_intent_effort_resume_header_plain(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False,
+                     "failed_at": "2026-01-01T00:00:00+0900", "error_message": "원인: x"}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        self.assertIn("멈춘 원인", self.prompt(0))
+        self.assertNotIn("반드시", self.prompt(0))
+
+    def test_intent_effort_blocked_conditions(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        for c in ("사람만 할 수 있는 일", "테스트가 수용 조건과 다르다", "설계 문서에 없는 결정이 필요하다"):
+            self.assertIn(c, p.stdout)
+
+    def test_intent_effort_impl_role_does_not_edit_tests(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("테스트는 고치지 않는다 — 막히면", p.stdout)
+        self.assertIn("검증 세션이 다시 판정한다", p.stdout)
+
+    # ── 엣지 5축 칸 (ADR-019 G6) ───────────────────────────────────────────────
+    AXES = ("빈 값·경계", "비정상 입력", "실패 경로", "상태 전이", "동시성")
+
+    def edge_md(self, cells=None, name="a"):
+        """새 꼴 step 파일. cells: {축: 값} — 없는 축은 줄을 안 쓴다. None 이면 엣지 줄 자체가 없다."""
+        md = f"# Step 1: {name}\n\n## 의도\n\nAC-1 — 이유 한 줄\n\n## 작업\n- 구현\n\n## Acceptance Criteria\n\n- 테스트 통과\n"
+        if cells is not None:
+            md += "- 엣지 5축\n" + "".join(f"  - {k}: {v}\n" for k, v in cells.items())
+        return md
+
+    def full_cells(self, first="`hello`"):
+        return {"빈 값·경계": first, "비정상 입력": "해당 없음", "실패 경로": "해당 없음: 실패할 경로가 없다",
+                "상태 전이": "`hello` · `hello`", "동시성": "해당 없음"}
+
+    def tdd_new(self, cells, cfg=None):
+        if cfg:
+            self.set_cfg(cfg)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}], md={1: self.edge_md(cells)})
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+
+    def test_edge_axes_missing_cell_refuses(self):
+        self.tdd_new(None)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "새 꼴 tdd step 에 엣지 칸이 없으면 지시문을 내지 않는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("엣지 5축", self.out)
+
+    def test_edge_axes_one_empty_axis_named(self):
+        for bad in ("", "그냥 글"):
+            with self.subTest(bad=bad):
+                self.setUp()
+                cells = self.full_cells()
+                cells["상태 전이"] = bad
+                self.tdd_new(cells)
+                p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
+                self.assertNotEqual(p.returncode, 0, self.out)
+                self.assertNotIn("작업 규칙", p.stdout)
+                self.assertIn("상태 전이", self.out)
+                self.assertNotIn("비정상 입력", self.out, "빈 축만 이름을 댄다")
+
+    def test_edge_axes_missing_axis_line_is_empty(self):
+        cells = self.full_cells()
+        del cells["동시성"]
+        self.tdd_new(cells)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("동시성", self.out)
+
+    def test_edge_axes_full_cells_emit_prompt(self):
+        self.tdd_new(self.full_cells())
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout)
+        self.assertIn("엣지 5축 칸의 테스트 이름을 그대로", p.stdout, "1회 모드 tdd 규칙에 한 구절")
+        self.assertNotIn("옛 꼴", p.stderr)
+
+    def test_edge_axes_test_role_prompt_mentions_names(self):
+        self.tdd_new(self.full_cells())
+        p = self.session("prompt", "t1", "--role", "test", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("엣지 5축 칸의 테스트 이름을 그대로", p.stdout)
+
+    def test_edge_axes_old_form_warns_only(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("작업 규칙", p.stdout)
+        self.assertIn("옛 꼴", p.stderr)
+
+    def test_edge_axes_not_checked_for_tdd_false_or_measure(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                    {"step": 2, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}],
+                   md={1: self.edge_md(None, "c"), 2: self.edge_md(None, "m")})
+        self.session("start", "t1")
+        for n in ("1", "2"):
+            p = self.session("prompt", "t1", "--step", n)
+            self.assertEqual(p.returncode, 0, self.out)
+            self.assertIn("작업 규칙", p.stdout)
+
+    def test_edge_axes_headless_blocks_without_claude(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}], md={1: self.edge_md(None)})
+        rc = self.run_runner([{"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 2, self.out)
+        self.assertEqual(self.calls_made(), 0, "계획 칸이라 claude 를 부르지 않는다")
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("엣지 5축 칸이 비었다", s["blocked_reason"])
+        self.assertIn("동시성", s["blocked_reason"])
+        self.assertNotIn("retries", s, "재시도를 태우지 않는다")
+
+    def test_edge_axes_name_missing_in_red_discards_one_shot(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
+                   md={1: self.edge_md(self.full_cells("`hello` · `edge_empty_name`"))})
+        rc = self.run_runner([
+            {"step": 1, "ops": [RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE]},
+            {"step": 1, "ops": [RED, ["write", "tests/names.txt", "edge_empty_name"], ["commit", "test: a (red)"],
+                                IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        err = self.step()["attempts"][0]["error"]
+        self.assertIn("엣지 5축", err)
+        self.assertIn("edge_empty_name", err)
+        self.assertIn("sdd-discard/t1/step1-try1", git(self.repo, "branch", "--list", "sdd-discard/*").stdout,
+                      "RED 위반처럼 시도를 버린다")
+
+    def test_edge_axes_name_check_judge_red(self):
+        self.tdd_new(self.full_cells("`edge_empty_name`"))
+        self.session("prompt", "t1", "--role", "test", "--base", self.head())
+        self.act([RED, ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 10, self.out)
+        self.assertIn("edge_empty_name", self.step()["last_error"])
+        self.assertNotIn("red", self.step())
+        self.act([RED, ["write", "tests/names.txt", "edge_empty_name"], ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertIn("red", self.step())
+
+    def test_edge_axes_template_placeholder_is_empty(self):
+        # 리뷰: 템플릿 자리표시 `<테스트 이름>` 을 그대로 두면 칸이 찬 것으로 보여 재시도 4회를 다 썼다
+        cells = self.full_cells()
+        cells["실패 경로"] = "`<테스트 이름>`"
+        self.tdd_new(cells)
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, self.out)
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("실패 경로", self.out)
+
+    def test_intent_effort_template_intent_refuses(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                   md={1: "# Step 1: c\n\n## 의도\n\n- 채우는 수용 조건: AC-N(, AC-M) — 이유 한 줄\n\n## 작업\n- 구현\n"})
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head())
+        self.assertNotEqual(p.returncode, 0, "의도 절이 템플릿 그대로면 빈 것과 같다")
+        self.assertNotIn("작업 규칙", p.stdout)
+        self.assertIn("의도", self.out)
+
+    def test_intent_effort_rejects_unknown_effort(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.session("start", "t1")
+        p = self.session("prompt", "t1", "--base", self.head(), "--effort", "hihg")
+        self.assertNotEqual(p.returncode, 0, "오타가 헤드리스 claude --effort 실패로 번지지 않게 입구에서 막는다")
+        self.assertNotIn("작업 규칙", p.stdout)
+
+    def test_red_judge_test_turn_completed_refused(self):
+        # 리뷰: 검증 차례 에이전트가 step 파일 「검증 절차」대로 completed 를 적으면 judge --red 가 다음 step 을 보고
+        # 「차례 아님」(3)으로 끝나, 구현 없이 step 이 넘어갔다
+        _, text = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True},
+                                 {"step": 2, "name": "b", "status": "pending", "tdd": False}])
+        self.assertIn("검증 차례에는 status 를 바꾸지 않는다", text, "지시문 6번이 step 파일 검증 절차보다 앞선다고 적는다")
+        self.act([RED, ["commit", "test: step 1 — a (red)"], DONE])
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 1, self.out)
+        self.assertIn("status", self.out)
+        self.assertNotIn("red", self.step())
+
+    def test_red_judge_test_turn_blocked_recorded(self):
+        # 검증 차례 에이전트가 blocked 를 적으면 1회 모드처럼 기록 · 커밋하고 종료 2(사람). 「차례 아님」(3)이 아니다
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([["status", "blocked", {"blocked_reason": "수용 조건이 모호하다"}]])
+        p = self.session("judge", "t1", "--red", "--step", "1")
+        self.assertEqual(p.returncode, 2, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("blocked_at", s)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "index 를 커밋한다")
 
     def test_session_judge_without_any_base_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
@@ -676,6 +1205,49 @@ class TestFilePatternTest(unittest.TestCase):
         for f in ("hooks/tdd-guard.sh", "scripts/release.sh", "hooks/latest.sh"):
             with self.subTest(f=f):
                 self.assertIsNone(self.pat.search(f))
+
+
+class ErrorTailTest(unittest.TestCase):
+    """verify 실패 사유에 붙이는 출력 꼬리(#12) — 끝 40줄 · 실패 이름 줄 우선(최대 10) · 4,000자 상한."""
+
+    def setUp(self):
+        sys.path.insert(0, str(HERE))
+        import sdd_runner
+        self.tail = sdd_runner.error_tail
+
+    def test_error_tail_keeps_last_40_lines(self):
+        out = "\n".join(f"row-{i:03d}" for i in range(1, 101))
+        t = self.tail(out)
+        for i in (61, 80, 100):
+            self.assertIn(f"row-{i:03d}", t)
+        self.assertNotIn("row-060", t)
+        self.assertNotIn("row-001", t)
+
+    def test_error_tail_puts_failing_test_lines_first(self):
+        fails = ["  🔴 hook a — 깨짐", "FAIL: test_b (x.Y)", "FAILED tests/c.py::d", "  ✗ e 실패", "\t✕ f 실패"]
+        out = "\n".join(fails + [f"row-{i:03d}" for i in range(1, 51)])
+        t = self.tail(out)
+        for f in fails:
+            self.assertIn(f.strip(), t)
+        self.assertLess(t.index("hook a"), t.index("row-050"), "실패 이름 줄이 꼬리보다 앞")
+        self.assertNotIn("row-010", t)
+
+    def test_error_tail_caps_failing_lines_at_10(self):
+        out = "\n".join([f"  🔴 case-{i:02d}" for i in range(1, 16)] + [f"row-{i:03d}" for i in range(1, 51)])
+        self.assertEqual(self.tail(out).count("🔴"), 10)
+
+    def test_error_tail_cuts_front_over_4000_chars(self):
+        out = "\n".join(f"row-{i:03d} " + "x" * 200 for i in range(1, 41)) + "\n마지막 줄"
+        t = self.tail(out)
+        self.assertLessEqual(len(t), 4000)
+        self.assertIn("…(앞 생략)", t)
+        self.assertIn("마지막 줄", t, "자르는 쪽은 앞이다")
+
+    def test_error_tail_short_output_untouched(self):
+        t = self.tail("one\ntwo")
+        self.assertIn("one", t)
+        self.assertNotIn("…(앞 생략)", t)
+        self.assertEqual(self.tail(""), "")
 
 
 if __name__ == "__main__":
