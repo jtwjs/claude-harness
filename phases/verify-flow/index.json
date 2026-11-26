@@ -187,8 +187,20 @@
     {
       "step": 11,
       "name": "step-template-cells",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T18:46:16+0900",
+      "summary": "sdd-plan SKILL.md: stepN.md 템플릿 6절(「읽어야 할 파일」 다음 `## 의도` = 채우는 AC-N · 이유 한 줄) · 템플릿 위 두 줄(의도 비면 지시문 안 냄 · 옛 꼴 경고, 엣지 칸은 tdd: true만 · 축 질문은 testing.md §2) · AC 절 끝에 엣지 5축 칸(step 파일 꼴 그대로) · 금지사항 끝에 (선택) step만의 멈춤 조건 한 줄 · §3 TDD 판정에 나눔 모드 구절 · 시그니처 수준 「반드시 명시」→「step에 적는다」 · §4 `red` 필드 · `docs` 「반드시」→「늘 채운다」 · model 칸 옆 effort 구절. docs 기계 검사 후보: `start`는 docs가 비어도 멈추지 않는다(Runner.start · phases_status.problems_of 둘 다 docs를 안 봄, 코드 확인). 파서 대조(스크래치 레포, 템플릿 블록을 그대로 뽑아 이름 셋만 채움): `sdd_runner.py prompt t` → 종료 0 · 「실패 경로」 줄을 지운 사본 → 종료 2(「엣지 5축 칸이 비었다 — 실패 경로」). 자리표시 `<테스트 이름>`도 백틱이라 계획 칸 검사를 통과한다(이름 대조 RED에서야 걸림) — 러너는 고치지 않았다",
+      "usage": {
+        "input_tokens": 34,
+        "cache_creation_input_tokens": 70508,
+        "cache_read_input_tokens": 1154433,
+        "output_tokens": 9186,
+        "num_turns": 25,
+        "duration_ms": 228888,
+        "total_cost_usd": 0.9788066000000001
+      },
+      "completed_at": "2026-11-26T18:52:02+0900"
     },
     {
       "step": 12,
