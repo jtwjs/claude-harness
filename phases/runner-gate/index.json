@@ -53,8 +53,11 @@
     {
       "step": 5,
       "name": "runner-docs-entry-lines",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:55:10+0900",
+      "summary": "docs/sdd-runner.md: 사용 예 · 종료 코드에 gate · rejudge, 「구현 시작 관문」 항목(라벨은 「남은 ⚠️」로 시작할 때만 · 장치로 못 막는 갈래 + Readiness 6), 나눔 모드 rejudge 설명 · 차례 표 blocked 행, 검증 상태 123개(이번 21개). sdd-run §2-b · sdd-plan §0 각 한 줄",
+      "completed_at": "2026-11-26T22:02:03+0900"
     },
     {
       "step": 6,
