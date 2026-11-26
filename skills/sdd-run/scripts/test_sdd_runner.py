@@ -1431,6 +1431,7 @@ class RunnerCase(unittest.TestCase):
         # 테스트를 약하게 고침: a 기대를 지우고 BASE 에서도 맞는 b 기대(src/b.txt 가 이미 x)로 바꾼다
         self.fix_tests([("rm", "tests/a.expect"), ("write", "tests/b.expect", "x")])
         before = (self.head(), self.index_bytes())
+        branch = git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
         p = self.session("rejudge", "t1", "--step", "1")
         self.assertEqual(p.returncode, 1, "고친 테스트가 BASE 에서도 통과하면 아무것도 안 잡는다\n" + self.out)
         self.assertIn("아무것도 잡지", self.out)
@@ -1438,7 +1439,8 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.step()["red"], old)
         self.assertEqual((self.repo / "src/a.txt").read_text(), "bye", "BASE 확인 뒤 트리를 HEAD 로 돌려 둔다")
         self.assertTrue((self.repo / "tests/b.expect").exists())
-        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "main")
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), branch,
+                         "BASE 확인이 브랜치를 옮기지 않는다")
 
     def test_rejudge_out_of_turn_changes_nothing(self):
         self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
