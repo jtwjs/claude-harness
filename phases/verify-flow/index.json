@@ -43,8 +43,20 @@
     {
       "step": 3,
       "name": "runner-defer-full-test",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:37:59+0900",
+      "summary": "sdd_runner.py --defer-full-test(Runner(defer_full_test)): full_reason(step, outside=None) 한 곳에서 마지막·재개·앱 밖 파일 이유를 정하고, 옵션 + $step 명령이 하나라도 있으면 None 을 돌려 self.deferred 에 이유를 적는다 → 통과 때 record 가 summary 끝에 「 · 전체 test 미룸 — 릴리스 전 한 번」(DEFER_MARK) · 테스트 test_defer_full_* 6개 · SKILL.md §2 3번 한 줄 · docs/sdd-runner.md 「전체 미룸」 항목. 앱 밖 파일로 미루면 모든 앱의 step 명령을 돌리게 했다(계획은 범위 미지정, 이유: 앱 밖 파일은 어느 앱 탓인지 못 고른다) · phase 마지막 측정 step 도 미루면 verify 를 생략하게 했다(계획은 측정 step 언급 없음, 이유: 변경 0 이라 step 명령 범위가 비고, 중간 측정 step 과 같은 처리) · 옵션은 argparse 공용이라 prompt 에도 받는다(계획은 judge·run, 이유: 세션 모드 지시문 검증 명령이 judge 와 엇갈리지 않게)",
+      "usage": {
+        "input_tokens": 28,
+        "cache_creation_input_tokens": 83161,
+        "cache_read_input_tokens": 1026347,
+        "output_tokens": 12996,
+        "num_turns": 15,
+        "duration_ms": 382809,
+        "total_cost_usd": 1.1305893999999999
+      },
+      "completed_at": "2026-11-26T17:47:50+0900"
     },
     {
       "step": 4,
