@@ -16,6 +16,8 @@
   나눔 모드(검증 세션 · 구현 세션, ADR-019 A4 · E12) — 차례는 index.json 이 정한다:
   sdd_runner.py prompt TASK --role test|impl [--base SHA]     그 역할 차례일 때만 지시문(test = 테스트만 · impl = 구현만)
   sdd_runner.py judge TASK --red --step N                     검증 쪽: 판정 2·3 만, 통과하면 step 에 red 기록
+  effort(ADR-019 C2): 역할이 정한다 — prompt 는 stderr 에 "▶ effort <값>"(Agent effort 로 넘긴다) · run 은 claude -p --effort.
+  --effort 로 덮는다(prompt · run). step 파일에는 effort 칸이 없다
 
 종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만) · 3 차례 아님(나눔 모드, 아무것도 안 바꿈)
 claude 실행 파일은 SDD_RUNNER_CLAUDE 로 바꿀 수 있다(테스트용 가짜).
@@ -79,12 +81,21 @@ TAIL_LINES, TAIL_FAILS, TAIL_CAP, TAIL_CUT = 40, 10, 4000, "…(앞 생략)\n"
 FAIL_LINE = re.compile(r"^\s*(FAIL|✗|✕|🔴)")   # FAIL 은 FAILED 도 잡는다. 이 레포 hooks/test.sh 실패 줄은 「  🔴」
 ROLE = {"test": "검증", "impl": "구현"}   # 나눔 모드 세션 역할(ADR-019 E1)
 NOT_TURN = 3   # 나눔 모드: 차례가 아닌 역할의 호출 — 아무것도 바꾸지 않는다(ADR-019 E12)
+# effort 는 세션 역할이 정한다(ADR-019 C2 · E1). 역할 없는 1회 모드: 세션 안 prompt = 구현(C7a, 머지 전 code-reviewer 가 받침)
+# · 헤드리스 run = 검증(C7b, 사람도 검증 세션도 없이 테스트까지 쓴다)
+EFFORT, ONE_SHOT = {"검증": "high", "구현": "medium"}, {"session": "구현", "headless": "검증"}
+EDGE_AXES = ("빈 값·경계", "비정상 입력", "실패 경로", "상태 전이", "동시성")   # testing.md §2 와 같은 글자(ADR-019 G6)
+EDGE_VALUE = re.compile(r"`[^`]+`( · `[^`]+`)*")   # 백틱 테스트 이름 하나 이상(` · ` 구분). 아니면 「해당 없음…」
+EDGE_NOTE = " step 파일 엣지 5축 칸의 테스트 이름을 그대로 테스트 이름에 쓴다(러너가 테스트 커밋에서 그 이름을 찾는다)."
+# 구현 쪽이 막혔을 때(ADR-019 E3) — 테스트를 고쳐 풀지 않는다
+IMPL_RULE = ("테스트는 고치지 않는다 — 막히면 `\"status\": \"blocked\"` + `\"blocked_reason\"`(이유)로 멈추고, "
+             "검증 세션이 다시 판정한다")
 # 지시문 6번 · 맺음말(preamble.md $status_rule · $judge_note). 검증 차례는 index.json 을 고치지 않고 러너가 red 를 적는다
 STATUS_RULE = """6. `phases/{task}/index.json` 의 step {n} 을 갱신한다. **이 파일은 커밋하지 않는다**(러너가 커밋한다):
    - 검증 통과 → `"status": "completed"` + `"summary"`: 다음 step 에 넘길 산출물 한 줄(만든 파일·핵심 결정). step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다
    - 고쳐도 실패 → `"status": "error"` + `"error_message"`: 무엇이 왜 실패했는지
-   - 사람이 해야 하는 일(API 키·외부 인증·수동 설정) → `"status": "blocked"` + `"blocked_reason"` 후 즉시 멈춘다"""
-STATUS_RULE_TEST = """6. `phases/{task}/index.json` 의 step {n} status 는 `pending` 그대로 둔다 — 구현 차례로 넘기는 표시(`red`)는 러너(`judge --red`)가 적는다. 수용 조건을 테스트로 쓸 수 없거나 사람이 해야 하는 일이면 `"status": "blocked"` + `"blocked_reason"` 후 멈춘다"""
+   - 사람만 할 수 있는 일(API 키·외부 인증·수동 설정) · 테스트가 수용 조건과 다르다 · 설계 문서에 없는 결정이 필요하다 → `"status": "blocked"` + `"blocked_reason"` 후 즉시 멈춘다"""
+STATUS_RULE_TEST = """6. `phases/{task}/index.json` 의 step {n} status 는 `pending` 그대로 둔다 — 구현 차례로 넘기는 표시(`red`)는 러너(`judge --red`)가 적는다. 수용 조건을 테스트로 쓸 수 없다 · 설계 문서에 없는 결정이 필요하다 · 사람만 할 수 있는 일이면 `"status": "blocked"` + `"blocked_reason"` 후 멈춘다"""
 JUDGE_NOTE = ("러너가 끝난 뒤 git 기록으로 확인한다: 테스트 커밋이 구현보다 먼저인가 · 테스트 커밋 시점에 테스트가 실제로 실패하는가 · "
               "그 뒤 테스트 파일이 바뀌지 않았나 · 검증 명령이 전부 통과하는가. 하나라도 어긋나면 이 step 은 실패로 처리된다.")
 JUDGE_NOTE_TEST = ("러너(`judge --red`)가 git 기록으로 확인한다: BASE 뒤 커밋이 테스트 파일만 담았나 · 그 시점에 테스트가 실제로 실패하는가. "
@@ -110,6 +121,43 @@ def error_tail(out: str) -> str:
     return TAIL_CUT + text[-(TAIL_CAP - len(TAIL_CUT)):]
 
 
+def md_sections(md: str) -> dict:
+    """{`## 제목`: 본문} — `#`(h1)에서 끊고 `###` 이하는 본문에 남긴다."""
+    out, cur = {}, None
+    for ln in md.splitlines():
+        m = re.match(r"^##\s+(.+?)\s*$", ln)
+        if m:
+            cur = m.group(1)
+            out[cur] = []
+        elif ln.startswith("# "):
+            cur = None
+        elif cur is not None:
+            out[cur].append(ln)
+    return {k: "\n".join(v) for k, v in out.items()}
+
+
+def edge_axes(ac: str):
+    """Acceptance Criteria 절의 `- 엣지 5축` 하위 줄 `  - <축>: <값>`. ({축: 테스트 이름 목록(해당 없음이면 [])}, 빈 축 목록)."""
+    lines = ac.splitlines()
+    i = next((k for k, ln in enumerate(lines) if ln.startswith("- 엣지 5축")), None)
+    got = {}
+    for ln in lines[i + 1:] if i is not None else ():
+        m = re.match(r"^\s+-\s*([^:]+?)\s*:\s*(.*?)\s*$", ln)
+        if not m:
+            break
+        got[m.group(1)] = m.group(2)
+    names, empty = {}, []
+    for ax in EDGE_AXES:
+        v = got.get(ax, "")
+        if v.startswith("해당 없음"):
+            names[ax] = []
+        elif EDGE_VALUE.fullmatch(v):
+            names[ax] = re.findall(r"`([^`]+)`", v)
+        else:
+            empty.append(ax)
+    return names, empty
+
+
 def stamp() -> str:
     return datetime.now(TZ).strftime("%Y-%m-%dT%H:%M:%S%z")
 
@@ -127,7 +175,8 @@ class RedFail(Fail):
 
 
 class Runner:
-    def __init__(self, task: str, max_retries: int = 3, timeout: int = 1800, defer_full_test: bool = False):
+    def __init__(self, task: str, max_retries: int = 3, timeout: int = 1800, defer_full_test: bool = False,
+                 effort=None):
         r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
         if r.returncode != 0:
             sys.exit("git 레포가 아니다")
@@ -138,6 +187,7 @@ class Runner:
         self.max_retries = max_retries
         self.timeout = timeout
         self.defer_full_test = defer_full_test
+        self.effort_override = effort   # --effort — 역할 값을 덮는다
         self.deferred = {}   # {step 번호: 미룬 「전체」 이유} — 판정 통과 때 summary 에 표시를 붙인다
         cfg_file = self.root / ".claude/harness.json"
         self.cfg = json.loads(cfg_file.read_text(encoding="utf-8")) if cfg_file.exists() else {}
@@ -334,6 +384,37 @@ class Runner:
         return 0
 
     # ── 지시문 ─────────────────────────────────────────────────────────────
+    def effort(self, role=None, headless=False) -> str:
+        """ADR-019 C2: role 'test' · 'impl' 은 그 역할, 없으면 1회 모드 — 세션 안 · 헤드리스가 갈린다(C7a · C7b)."""
+        return self.effort_override or EFFORT[ROLE[role] if role else ONE_SHOT["headless" if headless else "session"]]
+
+    def step_md(self, step: dict) -> str:
+        return (self.dir / f"step{step['step']}.md").read_text(encoding="utf-8")
+
+    def is_new_form(self, step: dict) -> bool:
+        return "의도" in md_sections(self.step_md(step))
+
+    def plan_gate(self, step: dict):
+        """계획 칸(ADR-019 C1 의도 · G6 엣지 5축). 비면 막는 이유(에이전트가 못 고치는 칸이라 재시도하지 않는다), 아니면 None.
+        의도 절이 없는 옛 꼴은 stderr 경고 한 줄만 — 이미 쓴 phase 를 깨지 않게."""
+        secs = md_sections(self.step_md(step))
+        if "의도" not in secs:
+            print(f"⚠ step {step['step']}: `## 의도` 절이 없다(옛 꼴) — 의도 · 엣지 5축 칸을 보지 않고 지시문을 낸다", file=sys.stderr)
+            return None
+        if not secs["의도"].strip():
+            return "의도 절이 비었다 — 채우는 수용 조건 번호 · 이유 한 줄, 계획을 고친 뒤 재개"
+        if step.get("tdd") and step.get("kind") != "measure":
+            empty = edge_axes(secs.get("Acceptance Criteria", ""))[1]
+            if empty:
+                return f"엣지 5축 칸이 비었다 — {' · '.join(empty)}, 계획을 고친 뒤 재개"
+        return None
+
+    def edge_names(self, step: dict) -> dict:
+        """새 꼴 tdd step 의 {축: 테스트 이름 목록}. 옛 꼴 · tdd: false 는 빈 dict(이름 대조 안 함)."""
+        if not step.get("tdd") or not self.is_new_form(step):
+            return {}
+        return edge_axes(md_sections(self.step_md(step)).get("Acceptance Criteria", ""))[0]
+
     def guardrails(self, idx: dict) -> str:
         parts = []
         cm = self.root / "CLAUDE.md"
@@ -358,19 +439,25 @@ class Runner:
         elif step.get("tdd") and role == "test":
             tdd = (f"4. 이 step 은 **검증 차례(테스트만)** 다: 수용 조건을 **실패하는 테스트**로만 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
                    f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋한다. **구현 파일을 만들지 않는다** — 구현은 구현 세션이 한다")
+            if self.is_new_form(step):
+                tdd += "." + EDGE_NOTE
         elif step.get("tdd") and step.get("red"):
-            tdd = (f"4. **테스트는 이미 있다**(검증 세션의 테스트 커밋 `{step['red'][:12]}`). 테스트 파일은 고치지 않는다(고치면 러너가 되돌린다). "
-                   f"구현만 해서 테스트를 통과시키고 `feat: step {n} — {name}` 로 커밋한다. 테스트가 수용 조건과 다르거나 테스트 파일 자체가 "
-                   f"검증에 걸려 막히면 고치지 말고 `\"status\": \"blocked\"` + `\"blocked_reason\"`(이유)로 멈춘다 — 검증 세션이 다시 판정한다")
+            tdd = (f"4. **테스트는 이미 있다**(검증 세션의 테스트 커밋 `{step['red'][:12]}`). 구현만 해서 테스트를 통과시키고 "
+                   f"`feat: step {n} — {name}` 로 커밋한다. {IMPL_RULE}(테스트가 수용 조건과 다르거나 테스트 파일 자체가 검증에 걸릴 때도 — "
+                   f"고치면 러너가 되돌린다)")
         elif step.get("tdd"):
             tdd = (f"4. 테스트 먼저(TDD): ① 수용 조건을 **실패하는 테스트**로 먼저 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
                    f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋 ② 구현한다. 테스트 파일은 다시 고치지 않는다 "
                    f"③ 구현을 `feat: step {n} — {name}` 로 커밋")
+            if self.is_new_form(step):
+                tdd += "." + EDGE_NOTE
             if (self.cfg.get("test") or {}).get("runner"):
                 tdd += (". 테스트 구조는 `.claude/harness.json` 의 `test.runner`·`test.bddAlias` 를 따른다"
                         "(bddAlias 가 false 면 별칭 파일을 만들지 않고 중첩 describe 로 3계층)")
         else:
             tdd = f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋"
+            if role == "impl":
+                tdd += f". {IMPL_RULE}"
         retry = ""
         if step.get("last_error"):
             kept = ""
@@ -378,9 +465,9 @@ class Runner:
             if step.get("tdd") and not step.get("red") and role != "test" and base and any(TEST_FILE.search(f) for _, fs in self.commits_since(base) for f in fs):
                 kept = ("\n\n이전 시도의 테스트 커밋이 남아 있다 — 테스트는 다시 쓰거나 고치지 않는다(고치면 되돌린다). 구현만 고친다. "
                         "테스트 파일 자체가 검증에 걸리면 러너가 이 시도를 버리고 테스트부터 다시 하게 한다")
-            retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}{kept}\n\n---\n\n"
+            retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 보고 고친다\n\n{step['last_error']}{kept}\n\n---\n\n"
         elif step.get("error_message"):   # 재개: 사람이 되돌리며 적은 근본 원인
-            retry = f"## ⚠ 이전 실행이 멈춘 원인(사람이 적음) — 반드시 반영한다\n\n{step['error_message']}\n\n---\n\n"
+            retry = f"## ⚠ 이전 실행이 멈춘 원인(사람이 적음) — 이 원인을 반영해 고친다\n\n{step['error_message']}\n\n---\n\n"
         shown = self.verify_cmds()
         if base and not self.full_reason(step):
             shown = self.scoped(shown, base)
@@ -393,7 +480,7 @@ class Runner:
             retry=retry, tdd_rule=tdd, verify_cmds=cmds,
             status_rule=(STATUS_RULE_TEST if test_turn else STATUS_RULE).format(task=self.task, n=n),
             judge_note=JUDGE_NOTE_TEST if test_turn else JUDGE_NOTE_IMPL if step.get("red") else JUDGE_NOTE,
-            step_md=(self.dir / f"step{n}.md").read_text(encoding="utf-8"))
+            step_md=self.step_md(step))
 
     # ── 판정 ───────────────────────────────────────────────────────────────
     def commits_since(self, base: str) -> list:
@@ -427,7 +514,7 @@ class Runner:
                 red_sha = step["red"]
                 red_tests = [f for f in self.git("diff", "--name-only", base, red_sha).stdout.split() if TEST_FILE.search(f)]
             else:
-                red_sha, red_tests = self.red_check(commits, base)
+                red_sha, red_tests = self.red_check(commits, base, step=step)
             changed = [f for f in self.git("diff", "--name-only", f"{red_sha}..HEAD").stdout.split()
                        if TEST_FILE.search(f) and not f.startswith("phases/")]
             if changed:
@@ -469,7 +556,7 @@ class Runner:
                 raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
 
-    def red_check(self, commits: list, base: str, only_tests=False):
+    def red_check(self, commits: list, base: str, only_tests=False, step=None):
         """판정 2·3. (테스트 커밋 sha, 그 테스트 파일). only_tests(judge --red) 면 BASE 뒤 커밋이 모두 테스트만이어야 하고
         sha 는 그 마지막 커밋 — 뒤 테스트 커밋이 판정 4 에서 「RED 뒤 테스트 수정」으로 되돌려지지 않게."""
         red = next((c for c in commits if any(TEST_FILE.search(f) for f in c[1])), None)
@@ -482,6 +569,13 @@ class Runner:
                           + (f" (같이 커밋된 구현: {', '.join(impl_in_red[:3])})" if impl_in_red else ""))
         if only_tests:
             red = (commits[-1][0], sorted({f for c in commits for f in c[1]}))
+        # 엣지 5축 칸의 이름이 테스트 커밋의 테스트 파일 내용에 있어야 한다(G6). 러너 출력이 아니라 파일 — 출력 꼴은 프레임워크마다 다르다
+        wanted = [(ax, nm) for ax, nms in (self.edge_names(step) if step else {}).items() for nm in nms]
+        if wanted:
+            text = "\n".join(self.git("show", f"{red[0]}:{f}").stdout for f in red[1] if TEST_FILE.search(f))
+            miss = next(((ax, nm) for ax, nm in wanted if nm not in text), None)
+            if miss:
+                raise RedFail(f"엣지 5축: {miss[0]} 테스트 이름 {miss[1]} 이 테스트 커밋에 없다")
         tests = self.verify_cmds("test")
         if not tests:
             raise Fail("RED: verify.test 가 없어 테스트를 돌릴 수 없다")
@@ -603,7 +697,8 @@ class Runner:
             if run_failure and st != "blocked":   # 에이전트가 blocked 를 적었으면 실행 실패보다 그게 먼저다
                 raise Fail(run_failure)
             if red_only:
-                red, res = self.red_check(self.commits_since(base), base, only_tests=True)[0], None
+                red, res = self.red_check(self.commits_since(base), base, only_tests=True,
+                                          step=self.find(self.read(), n))[0], None
             else:
                 res = self.check(self.find(self.read(), n), base)
         except PhaseFail as e:
@@ -687,6 +782,7 @@ class Runner:
         cmd = [claude, "-p", "--dangerously-skip-permissions", "--output-format", "json"]
         if step.get("model"):
             cmd += ["--model", step["model"]]
+        cmd += ["--effort", self.effort(headless=True)]
         cmd.append(self.prompt(step, base))
         env = dict(os.environ)
         env.pop("SDD_RUNNER_SINCE", None)
@@ -744,6 +840,11 @@ class Runner:
             idx = self.read()
             s = self.find(idx, n)
             s.setdefault("started_at", stamp())
+            why = self.plan_gate(s)
+            if why:   # 계획 칸 — claude 를 불러도 못 고친다. 재시도 없이 blocked
+                s.update(status="blocked", blocked_reason=why)
+                self.write(idx)
+                return self.record(n, base)
             self.write(idx)
             while True:
                 failure, usage = self.invoke(self.find(self.read(), n), base)
@@ -764,12 +865,13 @@ def main(argv=None) -> int:
     ap.add_argument("--step", type=int)
     ap.add_argument("--role", choices=sorted(ROLE), help="prompt: 나눔 모드 세션 역할 — test(검증) · impl(구현)")
     ap.add_argument("--red", action="store_true", help="judge: 나눔 모드 검증 쪽 — 판정 2·3 만, 통과하면 red 기록")
+    ap.add_argument("--effort", help="prompt·run: 역할이 정한 effort 를 덮는다(ADR-019 C2)")
     ap.add_argument("--defer-full-test", action="store_true",
                     help="judge·run: 「전체」로 넓어지는 verify 도 $step 명령만(부하 중, 전체는 릴리스 전 한 번)")
     a = ap.parse_args(argv)
     if a.role and a.mode != "prompt" or a.red and a.mode != "judge":
         ap.error("--role 은 prompt, --red 는 judge 에만 쓴다")
-    r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test)
+    r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test, a.effort)
     if a.mode == "run":
         return r.run()
     if a.mode == "start":
@@ -794,11 +896,16 @@ def main(argv=None) -> int:
         if step is None:
             print("pending step 없음")
             return 0
+        why = r.plan_gate(step)
+        if why:   # 계획 칸 — 서브에이전트가 못 고친다. 지시문을 내지 않는다(ADR-019 C1 · G6)
+            print(f"step {step['step']} 지시문을 내지 않는다 — {why}")
+            return 2
         idx = r.read()
         r.find(idx, step["step"]).setdefault("started_at", stamp())
         r.write(idx)
         base = r.pin_base(step["step"], a.base) if a.base else step.get("base")
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
+        print(f"▶ effort {r.effort(a.role)}", file=sys.stderr)   # Agent effort 로 넘긴다(ADR-019 C2)
         print(r.prompt(r.find(r.read(), step["step"]), base, a.role))
         return 0
     # judge: 판정 대상은 번호로 받는다 — '첫 pending' 으로 고르면 방금 completed 로 바뀐 step 을 건너뛴다(10-13 리뷰)
