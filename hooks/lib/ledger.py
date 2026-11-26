@@ -5,7 +5,7 @@
 이름·프롬프트 원문·코드는 받지 않는다: 허용 칸·값 밖은 거부.
 
 Usage:
-    ledger.py append repo=.. task=.. gate=.. diff=<easy|mid|hard|null> area=.. hyp=.. rec=.. acc=.. why=.. rebut=.. skip=..
+    ledger.py append repo=.. task=.. gate=.. diff=<easy|mid|hard|null> area=.. hyp=.. rec=.. acc=.. why=.. rebut=.. skip=.. [intent=.. effort=.. verify=..]
     ledger.py hit <ref> <right|partial|wrong> <model|finn>
     ledger.py gate-fix <ref> <schema|api|error|delete|security|null>
     ledger.py state [repo task]          # on|off 한 줄. 줄 순서만으로 계산, 파일을 만들지 않음
@@ -31,6 +31,9 @@ HITS = ("right", "partial", "wrong")
 BYS = ("model", "finn")
 BOOLS = ("hyp", "rec", "acc", "why", "rebut", "skip")
 FIELDS = ("repo", "task", "gate", "diff", "area") + BOOLS
+# 선택 칸(ADR-019 D1) — 값은 true|false(effort 도 수준이 아니라 「말했나」). 빠지면 줄에 쓰지 않는다(읽는 쪽은 없음 = null).
+# 필수로 두지 않는 이유: 세션 시작 때의 훅 문구가 끝까지 쓰여, 옛 문구 세션의 append 가 「빠진 칸」으로 거부된다(ADR-018 B-11)
+OPTS = ("intent", "effort", "verify")
 _NAME = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
 
 
@@ -83,7 +86,7 @@ def build_entry(pairs):
     kv = {}
     for a in pairs:
         k, sep, v = a.partition("=")
-        if not sep or k not in FIELDS:
+        if not sep or (k not in FIELDS and k not in OPTS):
             raise Reject("허용 밖 칸이거나 key=value 형식이 아님")
         if k in kv:
             raise Reject(f"{k}: 중복")
@@ -111,6 +114,12 @@ def build_entry(pairs):
         if kv[b] not in ("true", "false"):
             raise Reject(f"{b}: true|false 만")
         entry[b] = kv[b] == "true"
+    for o in OPTS:
+        if o not in kv:
+            continue
+        if kv[o] not in ("true", "false"):
+            raise Reject(f"{o}: true|false 만")
+        entry[o] = kv[o] == "true"
     return entry
 
 
