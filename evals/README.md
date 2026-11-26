@@ -44,7 +44,7 @@ eval에는 `--plugin-dir` 같은 옵션이 없다. 대상(target)을 경로로 �
 
 > 돌리기 전에 사람이 확인한다. 아래 명령은 돈을 쓴다.
 
-- **유료 eval 전에 허가 옵션.** case의 `allowed_tools`에 `Bash` · `Write` · `Edit`가 있으면 `claude plugin eval` 명령마다 같은 값을 `--allow-tools`(맨 끝)로 넘긴다. 빠지면 도구가 거부된 채 채점돼 그 실행의 돈을 버린다. 돈 쓰기 전에 `--max-cost-usd 0` 형식 확인의 「not granted」 경고로 잡는다. (outcome-eval #65 리뷰, 2026-11-26)
+- **유료 eval 전에 허가 옵션.** case의 `allowed_tools`에 `Bash` · `Write` · `Edit` · `WebFetch` · `mcp__*`가 있으면 `claude plugin eval` 명령마다 같은 값을 `--allow-tools`(맨 끝)로 넘긴다. 빠지면 도구가 거부된 채 채점돼 그 실행의 돈을 버린다. 돈 쓰기 전에 case를 하나씩(`--case`) `--max-cost-usd 0`으로 돌려 출력마다 「cost ceiling $0 hit」이 있고 「not granted」가 없는지 본다. 여러 case를 한 번에 돌리면 경고가 다 나오지 않는다. 돌리는 틀은 `docs/outcome-eval-2026-11-26/RUNS.md` 「허가 옵션」. (outcome-eval #65 리뷰, 2026-11-26)
 
 ```bash
 OUT="$(mktemp -d)"   # 결과는 레포 밖에 둔다
@@ -103,12 +103,12 @@ python3 scripts/eval-tally.py "$OUT/whole.json" "$OUT"/variant-*.json
 
 ## 형식 확인 (돈 안 씀)
 
-`--max-cost-usd 0`이면 첫 실행 전에 상한에 걸려 아무것도 돌지 않는다. case 파싱 · 도구 허가 경고만 본다.
+`--max-cost-usd 0`이면 첫 실행 전에 상한에 걸려 아무것도 돌지 않는다. case 파싱과 case 수만 본다. 도구 허가는 한 번에 돌리면 다 나오지 않으므로 「유료 eval 전에 허가 옵션」대로 case 하나씩 확인한다.
 
 ```bash
 claude plugin eval . --tag fire quiet --scaffold --trust-plugin --no-publish \
   --max-cost-usd 0 --output-dir "$(mktemp -d)" --allow-tools "Bash(git:*)"
-# → "Ablation: 2 arms × 17 cases (102 runs)" · "cost ceiling $0 hit", 허가 경고(⚠ case …) 없음
+# → "Ablation: 2 arms × 17 cases (102 runs)" · "cost ceiling $0 hit"
 ```
 
 ## 돌린 뒤 정리

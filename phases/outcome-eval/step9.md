@@ -18,7 +18,8 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- 형식 확인(돈 안 씀): `claude plugin eval . --tag outcome --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)"`(허가가 필요한 도구가 있으면 맨 끝에 `--allow-tools`(`RUNS.md` 「허가 옵션」)) → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류와 허가 경고 없음
+- 형식 확인(돈 안 씀): `claude plugin eval . --tag outcome --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)"`(허가가 필요한 도구가 있으면 맨 끝에 `--allow-tools`(`RUNS.md` 「허가 옵션」)) → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류 없음
+- 허가 확인(돈 안 씀): `RUNS.md` 「허가 옵션」의 case 하나씩 확인에서 태그 `outcome`의 모든 case가 `OK`이고 줄 수가 위 출력의 case 수와 같음
 - `ls -d evals/outcome-*` 8개 · `python3 evals/check_outcome.py` exit 0
 
 ## 검증 절차

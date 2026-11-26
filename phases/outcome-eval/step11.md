@@ -15,8 +15,8 @@
 - 실행 뒤 승인 줄의 「실제 비용」 · 「결과 한 줄」 칸만 채운다
 - 헤드리스 러너의 기본 제한 시간(1800초)을 넘길 수 있으면 세션에서 직접 돌린다(`python3 skills/sdd-run/scripts/sdd_runner.py prompt outcome-eval`로 지시문을 받는다)
 - ADR-020 ⑤-1 묶음 ㉮. `--tag outcome-core --ablation with-without`, 명령은 `RUNS.md` 「본 실행 · 파일럿 명령 틀」(`--model claude-opus-5-5` 명시), `--judge-model`은 step 6이 정한 ID, 상한은 ⑤-1이고 `--max-cost-usd`에 넘기는 값은 `RUNS.md` 「상한에 넘기는 값」
-- 허가 옵션: `RUNS.md` 「허가 옵션」대로 고른 case의 도구를 넘기고, 파일럿 전에 돈 안 쓰는 허가 확인을 돌린다
-- 잰 본문 기록: 실행 전에 `git status --porcelain -- skills agents hooks docs/principles` 출력이 비어 있어야 한다(아니면 `blocked`). `git rev-parse HEAD` · `git rev-parse HEAD:skills` 값을 summary에 적는다
+- 허가 옵션: `RUNS.md` 「허가 옵션」대로 고른 case의 도구를 넘기고, 파일럿 전에 같은 절의 case 하나씩 확인(돈 안 씀)이 모두 `OK`여야 한다(아니면 `blocked`)
+- 잰 본문 기록: 파일럿 · 본 실행마다 `RUNS.md` 「잰 본문 기록」대로 확인하고(커밋 안 한 변경이 있으면 `blocked`) 그 승인 줄에 적는다
 - 파일럿 1회 → 두 쪽 답과 채점 판정을 지휘에 보내고 `blocked`(「파일럿 확인 대기」) → 본 실행 승인 줄이 생기면 본 실행
 - 파일럿에서 실패한 실행(도구 거부 · git 실패 · 턴 상한)은 trace로 원인을 적는다. 채점 기준 · case를 고치면 이전 결과와 합치지 않는다
 - 집계: `python3 scripts/eval-tally.py <결과.json> …`
@@ -25,7 +25,7 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- summary에 명령(백틱) · case × 쪽의 통과 판정 수 · 무효 · 오류 · 에이전트 비용 · 채점비 · 결과 폴더 · 잰 커밋(`HEAD` · `HEAD:skills`)
+- summary에 명령(백틱) · case × 쪽의 통과 판정 수 · 무효 · 오류 · 에이전트 비용 · 채점비 · 결과 폴더 · 잰 본문을 적은 승인 줄의 실행 이름
 
 ## 검증 절차
 

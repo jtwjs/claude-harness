@@ -14,7 +14,8 @@
 - 실행 뒤 승인 줄의 「실제 비용」 · 「결과 한 줄」 칸만 채운다
 - 헤드리스 러너의 기본 제한 시간(1800초)을 넘길 수 있으면 세션에서 직접 돌린다(`python3 skills/sdd-run/scripts/sdd_runner.py prompt outcome-eval`로 지시문을 받는다)
 - 실행 직전 `python3 evals/check_outcome.py` exit 0
-- `--tag probe-history --ablation with-without --runs 1 --keep-temp`(`with-without`를 명시해야 두 쪽이 돈다), 모델은 ADR-020 「본 실행 전의 유료 실행」
+- `--tag probe-history --ablation with-without --runs 1 --keep-temp --scaffold --trust-plugin --no-publish`(`with-without`를 명시해야 두 쪽이 돈다), 모델은 ADR-020 「본 실행 전의 유료 실행」
+- case에 허가가 필요한 도구가 있으면 맨 끝에 `--allow-tools`(`RUNS.md` 「허가 옵션」). 돈 쓰기 전에 step 12 형식 확인(case 1개)을 같은 옵션으로 다시 돌려 「cost ceiling $0 hit」이 있고 `not granted`가 없는지 본다
 - 통과 조건은 ADR-020 ④-b 3번. 두 쪽 trace를 직접 읽어 확인한다. 불통과면 멈춤선(파일로만)을 적용하고 completed
 - tdd: false. 측정 전용(`kind: measure`)이라 테스트 단계가 없다.
 

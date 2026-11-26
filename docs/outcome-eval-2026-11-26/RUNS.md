@@ -66,7 +66,29 @@ D="$(mktemp -d)"; claude plugin eval . --tag <tag> --ablation with-without --mod
 
 ### 허가 옵션
 
-case의 `allowed_tools`에 `Bash(…)` · `Write` · `Edit`가 있으면 `--allow-tools`(값 여러 개, 맨 끝)로 고른 case들의 그 항목을 전부 넘긴다. case에 적힌 값보다 넓히지 않는다. 그런 항목이 없으면 옵션을 뺀다. 빠진 도구는 거부된 채 돈다. 돈 쓰기 전에 같은 `--tag` · `--allow-tools`로 `--scaffold --trust-plugin --no-publish --max-cost-usd 0`을 돌려 `not granted` 경고가 없는지 본다.
+case의 `allowed_tools`에 `Bash(…)` · `Write` · `Edit` · `WebFetch` · `mcp__*`가 있으면 `--allow-tools`(값 여러 개, 맨 끝)로 고른 case들의 그 항목을 전부 넘긴다. case에 적힌 값보다 넓히지 않는다. 그런 항목이 없으면 옵션을 뺀다. 빠진 도구는 거부된 채 돈다.
+
+돈 쓰기 전에 허가를 case 하나씩 확인한다(돈 안 씀). 여러 case를 한 번에 돌리면 `not granted` 경고가 다 나오지 않는다(2026-11-26 확인: 17개 중 허가가 필요한 3개 가운데 1개만 경고, 태그를 바꾼 9개에서는 1개가 필요한데 0). 통과: 모든 줄이 `OK`이고, 줄 수가 같은 대상을 한 번에 돌린 `--max-cost-usd 0` 출력의 case 수와 같다. 아니면 돌리지 않는다.
+
+```
+A=(--allow-tools <허가 도구>)   # 허가할 것이 없으면 A=()
+# case 이름: 태그로 고르면 아래처럼(<태그>는 fire|quiet 꼴), --case로 돌릴 실행은 그 이름만
+for c in $(grep -lE '^tags: .*[[ ,](<태그>)[],]' evals/*/prompt.md | xargs -n1 dirname | xargs -n1 basename); do
+  o="$(claude plugin eval . --case "$c" --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)" "${A[@]}" 2>&1)"
+  if grep -qF 'cost ceiling $0 hit' <<<"$o" && ! grep -qF 'not granted' <<<"$o"; then echo "OK $c"; else echo "FAIL $c"; fi
+done
+```
+
+### 잰 본문 기록
+
+본 실행 · 파일럿마다 실행 직전에 아래를 돌린다. 첫 명령에 출력이 있으면(플러그인이 읽는 곳에 커밋 안 한 변경) 돌리지 않는다. 실행 뒤 그 승인 줄 「결과 한 줄」 칸에 `commit=…`과 `경로=해시`를 모두 적는다. step 커밋마다 `HEAD`가 바뀌므로 본문이 같은지는 경로 해시로 비교한다.
+
+```
+P=(.claude-plugin agents docs/learning-level.md docs/principles hooks scripts skills templates)
+git status --porcelain -- "${P[@]}"
+echo "commit=$(git rev-parse --short HEAD)"
+for p in "${P[@]}"; do echo "$p=$(git rev-parse --short "HEAD:$p")"; done
+```
 
 ## 상한에 넘기는 값 (본 실행부터)
 
