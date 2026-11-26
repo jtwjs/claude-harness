@@ -25,8 +25,11 @@
     {
       "step": 3,
       "name": "design-doc-template",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-26T21:19:10+0900",
+      "summary": "design.md 「설계서」 절에 설계서 틀(ADR-022 D2 칸 그대로)·결정 묶음 꼴(「개인 기록 관련 사실」 칸)을 한 곳에 두고, PRD에 비기능·제약·가정 칸·👤 기준 출처(도메인 지식 링크), ADR에 설계서 결정 번호 칸, Readiness 9~12행(설계서 있는 기능만 채점)을 더함. PRD 정의의 「설계서 원문 + 에이전트 칸」은 같은 문장 반복 대신 「설계서와 세 장」을 가리키게 했다(계획은 한 구절 추가, 이유: 같은 문장 두 곳 금지)",
+      "completed_at": "2026-11-26T21:26:11+0900"
     },
     {
       "step": 4,
