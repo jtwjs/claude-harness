@@ -4,11 +4,45 @@
   "docs": "docs/runner-gate-2026-11-26",
   "after": [],
   "steps": [
-    { "step": 1, "name": "gate-open-decisions", "status": "pending", "tdd": true },
-    { "step": 2, "name": "start-runs-gate", "status": "pending", "tdd": true },
-    { "step": 3, "name": "rejudge-entry", "status": "pending", "tdd": true },
-    { "step": 4, "name": "impl-judge-after-rejudge", "status": "pending", "tdd": true },
-    { "step": 5, "name": "runner-docs-entry-lines", "status": "pending", "tdd": false },
-    { "step": 6, "name": "scratch-walk", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "gate-open-decisions",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-26T21:12:24+0900",
+      "base": "86f38b8db9729168b8b38efcba27a7116c214c98",
+      "red": "4b9e72a3acbbcf0780d858909cae732ee9509a83"
+    },
+    {
+      "step": 2,
+      "name": "start-runs-gate",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "rejudge-entry",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "impl-judge-after-rejudge",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "runner-docs-entry-lines",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 6,
+      "name": "scratch-walk",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
