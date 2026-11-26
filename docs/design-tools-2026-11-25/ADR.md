@@ -47,4 +47,5 @@
   - 옮긴 자리: `sdd-plan` §2(phase 나눔) · §3(phase는 세로 step은 층 · 끝까지 돈다 기준 · 넓은 리팩터 확장-수축) · §4 `after` 예시 갈래 / `design.md` 3단계(버릴 시제품 · 용어 겨루기 · 남에게 묻는 질문지) · 렌즈 2(모듈 깊이 세 가지) · 「끝」 3번 ADR 문턱 · Readiness 8(phase 나눔) · 「설계문서 3장」(키워드 표를 PRD로 · 문턱 아래 결정은 ARCHITECTURE 한 줄) / `code-reviewer` 축 3 「모듈 깊이」 / `ask-questions.md` 첫 줄(D7) · `design-brief` §2 제목 / 새 파일 `docs/principles/write-for-agents.md` + INDEX 1행
   - 새 스킬 0 · description 변경 0 · 새 파일 1
   - README 「결정은 ADR로」: README에 그 문구가 없었다(확인함). 위 「주의」 첫 줄의 전제가 틀렸고, README는 고치지 않았다
+  - D7: 이유는 선택 입력으로 맞춤(사용자 개인 규칙과 같게) — 설계 결정은 질문마다 선택을 받고, 이유가 있으면 한 번 반박, 없으면 「AI 추천 수용」으로 적는다
   - #52로 넘긴 것은 그대로: D1c 확인 장치 · 세션을 넘는 끝까지 확인 · D2b 자리 이동 · 설계 · 검증 밖 사람 게이트
