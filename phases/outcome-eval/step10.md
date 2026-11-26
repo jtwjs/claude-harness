@@ -18,7 +18,7 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- 형식 확인(돈 안 씀): `claude plugin eval . --tag outcome --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)"` → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류와 허가 경고 없음
+- 형식 확인(돈 안 씀): `claude plugin eval . --tag outcome --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)"`(허가가 필요한 도구가 있으면 맨 끝에 `--allow-tools`(`RUNS.md` 「허가 옵션」)) → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류와 허가 경고 없음
 - `python3 evals/check_outcome.py --require-graders` exit 0
 
 ## 검증 절차

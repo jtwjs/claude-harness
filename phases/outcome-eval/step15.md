@@ -15,7 +15,7 @@
 - 실행 뒤 승인 줄의 「실제 비용」 · 「결과 한 줄」 칸만 채운다
 - 헤드리스 러너의 기본 제한 시간(1800초)을 넘길 수 있으면 세션에서 직접 돌린다(`python3 skills/sdd-run/scripts/sdd_runner.py prompt outcome-eval`로 지시문을 받는다)
 - ADR-020 ⑤-1 묶음 ㉯. 단계마다 파일럿 1회(`--case`, 단계당 상한) → 답 · 호출 기록 · 판정을 지휘에 보내고 `blocked` → 파일럿 값으로 본 실행 비용을 다시 계산해 승인 줄이 생기면 본 실행
-- 작업 모델(`--model claude-opus-5-5`) · 명령 틀 · 상한에 넘기는 값은 step 11과 같다
+- 작업 모델(`--model claude-opus-5-5`) · 명령 틀 · 상한에 넘기는 값 · 허가 옵션 · 잰 본문 기록은 step 11과 같다
 - `conductor` 단계는 파일럿 trace에서 `gh` 호출이 전부 가짜의 `gh-calls.log`에 남았는지 확인한다. 하나라도 아니면 즉시 멈추고 `blocked`
 - 있음 쪽이 단계 문서를 읽었는지 trace에서 확인해 적는다
 - tdd: false. 측정 전용(`kind: measure`)이라 테스트 단계가 없다.
@@ -23,7 +23,7 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- summary에 명령(백틱) · 단계 × 쪽의 통과 판정 수 · 무효 · 오류 · 비용 · 안 잰 단계
+- summary에 명령(백틱) · 단계 × 쪽의 통과 판정 수 · 무효 · 오류 · 비용 · 안 잰 단계 · 잰 커밋(`HEAD` · `HEAD:skills`)
 
 ## 검증 절차
 

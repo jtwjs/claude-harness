@@ -19,7 +19,7 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- 형식 확인(돈 안 씀): `claude plugin eval . --tag probe-env --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)"` → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류와 허가 경고 없음
+- 형식 확인(돈 안 씀): `claude plugin eval . --tag probe-env --scaffold --trust-plugin --no-publish --max-cost-usd 0 --output-dir "$(mktemp -d)" --allow-tools Write "Bash(command -v:*)" "Bash(git:*)"` → exit 2 · 「cost ceiling $0 hit」 · case 파싱 오류와 허가 경고 없음
 - `allowed_tools`에 `gh`가 들어간 항목이 `command -v` 말고 없음
 
 ## 검증 절차

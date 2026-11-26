@@ -60,8 +60,13 @@ EOF
 
 ```
 D="$(mktemp -d)"; claude plugin eval . --tag <tag> --ablation with-without --model claude-opus-5-5 --judge-model claude-haiku-5-5 --runs <회차> -j 2 \
-  --scaffold --trust-plugin --no-publish --keep-temp --max-cost-usd <넘기는 값> --json "$D/result.json" --output-dir "$D"; echo "$D"
+  --scaffold --trust-plugin --no-publish --keep-temp --max-cost-usd <넘기는 값> --json "$D/result.json" --output-dir "$D" \
+  --allow-tools <허가 도구>; echo "$D"
 ```
+
+### 허가 옵션
+
+case의 `allowed_tools`에 `Bash(…)` · `Write` · `Edit`가 있으면 `--allow-tools`(값 여러 개, 맨 끝)로 고른 case들의 그 항목을 전부 넘긴다. case에 적힌 값보다 넓히지 않는다. 그런 항목이 없으면 옵션을 뺀다. 빠진 도구는 거부된 채 돈다. 돈 쓰기 전에 같은 `--tag` · `--allow-tools`로 `--scaffold --trust-plugin --no-publish --max-cost-usd 0`을 돌려 `not granted` 경고가 없는지 본다.
 
 ## 상한에 넘기는 값 (본 실행부터)
 

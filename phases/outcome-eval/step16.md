@@ -20,7 +20,7 @@
 ## Acceptance Criteria
 
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
-- summary에 명령(백틱) · case × 쪽의 통과 판정 수 · 비용 · 뺀 과제
+- summary에 명령(백틱) · case × 쪽의 통과 판정 수 · 비용 · 뺀 과제 · 잰 커밋(`HEAD` · `HEAD:skills`)
 
 ## 검증 절차
 

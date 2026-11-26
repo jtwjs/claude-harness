@@ -13,7 +13,8 @@
 - 모델은 전체 ID로 적는다. 결과 폴더는 레포 밖(`mktemp -d`)에 두고 경로를 summary에 남긴다
 - 실행 뒤 승인 줄의 「실제 비용」 · 「결과 한 줄」 칸만 채운다
 - 헤드리스 러너의 기본 제한 시간(1800초)을 넘길 수 있으면 세션에서 직접 돌린다(`python3 skills/sdd-run/scripts/sdd_runner.py prompt outcome-eval`로 지시문을 받는다)
-- `--ablation none --tag probe-env --runs 1 --keep-temp`, 작업 모델은 ADR-020 「본 실행 전의 유료 실행」의 것
+- `--ablation none --tag probe-env --runs 1 --keep-temp --scaffold --trust-plugin --no-publish`, 작업 모델은 ADR-020 「본 실행 전의 유료 실행」의 것
+- 명령 맨 끝에 step 5 형식 확인과 같은 `--allow-tools Write "Bash(command -v:*)" "Bash(git:*)"`. 돈 쓰기 전에 그 형식 확인을 다시 돌려 `not granted` 경고가 없는지 본다
 - 실행 기록을 직접 읽고 네 항목을 각각 됨 / 안 됨으로 적는다: git · 가짜 `gh` · 과정 채점기 · 단계 문서 읽기. 안 된 항목은 해당 step의 멈춤선을 그대로 적용한다
 - 단계 문서를 못 읽으면 `blocked`(ADR-020 ①-b: 본 실행 전에 지휘에 다시 묻는다)
 - 같은 실패가 2번이면 `blocked`
