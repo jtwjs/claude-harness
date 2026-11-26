@@ -421,7 +421,10 @@ class Runner:
                 why = s.get("error_message") or s.get("blocked_reason") or ""
                 print(f"step {s['step']} 이 {s['status']} 다 — 원인을 고치고 pending 으로 되돌린 뒤 다시 실행: {why}")
                 return 2 if s["status"] == "blocked" else 1
-        exclude = Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
+        docs = self.read().get("docs")
+        if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
+            return 2
+        exclude =Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
         exclude = exclude if exclude.is_absolute() else self.root / exclude
         if OUTPUT_GLOB not in (exclude.read_text() if exclude.exists() else ""):
             exclude.parent.mkdir(parents=True, exist_ok=True)
