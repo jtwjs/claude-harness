@@ -11,7 +11,7 @@
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" run <task>   # 헤드리스, 끝까지
 # 세션 안: start → [prompt --base <HEAD>(stderr ▶ step N, BASE 를 index.json 에 고정) → 서브에이전트 1번 → judge --step N] 반복 (sdd-run §2)
 ```
-종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(`judge`만)
+종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(`judge`만) · 3 차례 아님(나눔 모드)
 
 ## 루프
 
@@ -55,6 +55,20 @@ flowchart TD
 - **전체 미룸(`--defer-full-test`, #13)**: `judge`·`run` 실행 옵션. 켜면 phase 마지막 step(측정 step 포함) · 재개 step · 앱 밖 파일로 「전체」가 될 verify도 step 명령만 돈다(앱 밖 파일이면 모든 앱의 step 명령). `full_reason` 한 곳에서 걸어 지시문 검증 명령 · Stop 훅 환경 · 판정 6이 엇갈리지 않는다. `$step` 명령이 하나도 없으면 줄일 범위가 없어 그대로 전체. 줄인 step은 통과 때 러너가 `summary` 끝에 `전체 test 미룸 — 릴리스 전 한 번`을 붙인다 — 전체는 릴리스 전 사람이 한 번 돌린다. `harness.json` 키가 아닌 이유: 부하 판정은 그때그때 사람이 한다(`uptime` 같은 자동 판정은 두지 않는다)
 - **BASE 고정(#11, 0.26.0)**: `prompt --base`가 그 step의 `base`를 index.json에 적고 재시도에서 덮지 않는다. `judge`는 그 값을 먼저 읽는다(없을 때만 `--base`). 헤드리스 `run`도 같은 자리를 쓴다. step이 완료·blocked·실패로 멈추면 지운다 — 재개는 새 BASE(앞 시도는 `wip:` 커밋). 세션 모드에서 모델이 BASE를 기억하다 재시도·컨텍스트 압축 때 HEAD로 다시 잡으면 이전 시도의 RED 커밋이 BASE 앞으로 밀려 엉뚱한 실패가 났을 경로를 막는다
 - **RED 테스트 파일 탓 verify 실패(#9, 0.26.0)**: 판정 4가 RED 뒤 테스트 수정을 되돌리므로, RED 테스트 파일 자체가 lint·typecheck에 걸리면 재시도로는 고칠 수 없었다(고치면 되돌림 → 4회 소진). test 밖 verify 출력에 RED 테스트 파일 경로·이름이 나오면 RED 위반처럼 이번 시도를 버리고 BASE부터 테스트를 다시 쓰게 한다. `test` 출력은 늘 테스트 이름을 담으니 보지 않는다. 대가: 구현 시그니처가 테스트와 달라 typecheck가 테스트 파일에서 나는 경우도 이 시도를 버린다(구현만 고치면 됐을 경우에도 테스트부터 다시). 재시도 지시문에는 이전 시도의 테스트 커밋이 남아 있으면 "테스트는 다시 쓰거나 고치지 않는다"를 붙인다
+- **나눔 모드(ADR-019 A4 · E2 · E12)**: 검증 세션(테스트 · 리뷰)과 구현 세션(구현만)이 같은 worktree · 같은 브랜치를 번갈아 쓴다. 옵션 없이 부르면 1회 모드 그대로(헤드리스 `run` · 세션 하나 작업). 차례는 끝나지 않은 첫 step 하나로 정하고 뒤 step으로 건너뛰지 않는다. 차례가 아닌 역할로 `prompt --role` · `judge --red`를 부르면 아무것도 바꾸지 않고 종료 3 + 「지금은 <역할> 차례」 — `judge --red`의 `checkout --detach` · `reset --hard`가 구현 중인 트리를 치지 않게 하는 장치가 이것뿐이다
+
+  | 그 step 상태 | 차례 | 부르는 것 |
+  |---|---|---|
+  | `kind: measure` pending | 검증 | `prompt --role test`(지금 measure 지시문) → `judge --step N`(측정 규칙) |
+  | `tdd: true` pending · `red` 없음 | 검증 | `prompt --role test`(테스트만 · `test: step N — 이름 (red)` 커밋 · 구현 파일 금지 · status는 pending 그대로) → `judge --red --step N` |
+  | `tdd: true` pending · `red` 있음 / 그 밖의 `tdd: false` pending | 구현 | `prompt --role impl`(테스트는 이미 있다 · 테스트 파일 고치지 않음 · 막히면 blocked + 이유) → `judge --step N` |
+  | blocked | 검증 재판정(E3) | `prompt --role test`가 사유만 보이고 종료 2 |
+  | error | 사람 | 둘 다 거부 |
+
+  - `judge --red`: 판정 2(BASE 뒤 커밋이 모두 테스트 파일만) · 3(그 마지막 커밋 시점에 `verify.test` 실패)만 돈다. 통과하면 그 커밋 sha를 step `red`에 적고 index를 커밋(종료 0, status는 pending). 실패는 1회 모드 RedFail과 같다 — 이번 시도 버림 · 종료 10. 커밋 안 된 변경이 있으면 판정 전에 종료 1(트리를 옮기지 않는다)
+  - 구현 쪽 `judge --step N`(`red` 있음): 2·3을 다시 돌지 않는다. 판정 4는 `red` 뒤 테스트 파일 변경(되돌림), 5는 `red` 뒤 변경 유무, 6의 범위 · `{since}`는 BASE(테스트가 든 앱도 돈다). 재시도는 `red`를 지우지 않는다. 판정 6에서 test 밖 verify가 RED 테스트 파일을 가리키면(1회 모드는 시도를 버림) 테스트 커밋을 지우지 않고 **blocked**(검증 세션 재판정) — 지우면 `red`가 고아 커밋을 가리킨다
+  - BASE는 `prompt --role test --base`가 고정한 값을 구현 쪽이 그대로 쓴다(`pin_base`는 덮지 않음). `red`가 있으면 blocked · 실패로 멈춰도 BASE를 지우지 않는다(`red`와 짝)
+  - `red`는 index.json step의 선택 칸이다. `status` 값은 4개 그대로라 `phases_status.py --check`는 손대지 않았다
 - 재시도는 첫 시도 + 3회 = 최대 4회(`sdd-run`·`sdd`와 같은 문장). 강의 execute.py는 **총 3회**(`range(1, MAX_RETRIES+1)`) — 우리 하네스가 원래 쓰던 "재시도 3"을 유지했다. `retries`는 승격 판단 계수기라 재개 때도 0으로 돌리지 않고, 한도는 재개(`resumed_at`) 뒤 실패 수로 센다
 - 실패 사유는 `last_error`(다음 지시문용, 통과하면 지움)와 `attempts: [{at, error}]`(이력, 통과해도 남김 — REFLECT가 "어디서 헤맸나"를 본다, 강의 SDD §5 학습 루프)
 - RED 위반(2·3)은 같은 BASE 위에서 고칠 수 없다(1회차의 잘못된 커밋이 계속 판정 대상) → 이번 시도 커밋을 `sdd-discard/{task}/stepN-tryK` 브랜치로 옮겨 두고 BASE로 되돌린다. 지우지 않는다

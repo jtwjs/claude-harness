@@ -13,8 +13,11 @@
   sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안.
                                                               --base 는 그 step 의 BASE 로 index.json 에 고정, 재시도에서 안 덮음)
   sdd_runner.py judge TASK --step N [--base SHA]              step N 판정·기록 (세션 안. BASE 는 고정값이 먼저)
+  나눔 모드(검증 세션 · 구현 세션, ADR-019 A4 · E12) — 차례는 index.json 이 정한다:
+  sdd_runner.py prompt TASK --role test|impl [--base SHA]     그 역할 차례일 때만 지시문(test = 테스트만 · impl = 구현만)
+  sdd_runner.py judge TASK --red --step N                     검증 쪽: 판정 2·3 만, 통과하면 step 에 red 기록
 
-종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만)
+종료 코드: 0 완료 · 1 실패로 멈춤 · 2 blocked(사람 필요) · 10 재시도(judge 만) · 3 차례 아님(나눔 모드, 아무것도 안 바꿈)
 claude 실행 파일은 SDD_RUNNER_CLAUDE 로 바꿀 수 있다(테스트용 가짜).
 """
 import argparse
@@ -74,6 +77,20 @@ HOOK_STAMPS = ":(exclude).claude/.last-*"   # 훅 기록 파일 — .gitignore �
 # verify 실패 사유에 붙이는 출력 꼬리(#12): 끝 40줄 + 그 앞의 실패한 테스트 이름 줄(최대 10) · 4,000자 상한(index.json 이 붓지 않게)
 TAIL_LINES, TAIL_FAILS, TAIL_CAP, TAIL_CUT = 40, 10, 4000, "…(앞 생략)\n"
 FAIL_LINE = re.compile(r"^\s*(FAIL|✗|✕|🔴)")   # FAIL 은 FAILED 도 잡는다. 이 레포 hooks/test.sh 실패 줄은 「  🔴」
+ROLE = {"test": "검증", "impl": "구현"}   # 나눔 모드 세션 역할(ADR-019 E1)
+NOT_TURN = 3   # 나눔 모드: 차례가 아닌 역할의 호출 — 아무것도 바꾸지 않는다(ADR-019 E12)
+# 지시문 6번 · 맺음말(preamble.md $status_rule · $judge_note). 검증 차례는 index.json 을 고치지 않고 러너가 red 를 적는다
+STATUS_RULE = """6. `phases/{task}/index.json` 의 step {n} 을 갱신한다. **이 파일은 커밋하지 않는다**(러너가 커밋한다):
+   - 검증 통과 → `"status": "completed"` + `"summary"`: 다음 step 에 넘길 산출물 한 줄(만든 파일·핵심 결정). step 파일과 다르게 한 것(계획에 없던 선택)은 `…로 했다(계획은 X, 이유: Y)` 형태로 이유 한 구절을 적고, 계획대로 한 것은 적지 않는다
+   - 고쳐도 실패 → `"status": "error"` + `"error_message"`: 무엇이 왜 실패했는지
+   - 사람이 해야 하는 일(API 키·외부 인증·수동 설정) → `"status": "blocked"` + `"blocked_reason"` 후 즉시 멈춘다"""
+STATUS_RULE_TEST = """6. `phases/{task}/index.json` 의 step {n} status 는 `pending` 그대로 둔다 — 구현 차례로 넘기는 표시(`red`)는 러너(`judge --red`)가 적는다. 수용 조건을 테스트로 쓸 수 없거나 사람이 해야 하는 일이면 `"status": "blocked"` + `"blocked_reason"` 후 멈춘다"""
+JUDGE_NOTE = ("러너가 끝난 뒤 git 기록으로 확인한다: 테스트 커밋이 구현보다 먼저인가 · 테스트 커밋 시점에 테스트가 실제로 실패하는가 · "
+              "그 뒤 테스트 파일이 바뀌지 않았나 · 검증 명령이 전부 통과하는가. 하나라도 어긋나면 이 step 은 실패로 처리된다.")
+JUDGE_NOTE_TEST = ("러너(`judge --red`)가 git 기록으로 확인한다: BASE 뒤 커밋이 테스트 파일만 담았나 · 그 시점에 테스트가 실제로 실패하는가. "
+                   "어긋나면 이 시도의 커밋을 버리고 테스트부터 다시 한다.")
+JUDGE_NOTE_IMPL = ("러너가 끝난 뒤 git 기록으로 확인한다: 테스트 커밋(`red`) 뒤 테스트 파일이 바뀌지 않았나 · 구현 변경이 있나 · "
+                   "검증 명령이 전부 통과하는가. 하나라도 어긋나면 이 step 은 실패로 처리된다.")
 
 
 def error_tail(out: str) -> str:
@@ -143,6 +160,34 @@ class Runner:
 
     def next_pending(self):
         return next((s for s in self.read()["steps"] if s.get("status") == "pending"), None)
+
+    def current(self):
+        """나눔 모드에서 차례를 정하는 step — 끝나지 않은 첫 step. 뒤 step 으로 건너뛰지 않는다(한 step 씩 번갈아)."""
+        return next((s for s in self.read()["steps"] if s.get("status") != "completed"), None)
+
+    @staticmethod
+    def turn(step: dict):
+        """나눔 모드 차례(ADR-019 E12) — 'test'(검증) · 'impl'(구현) · None(error: 사람).
+        measure 는 tdd: false 여도 검증 몫이라 먼저 본다. blocked 는 검증 재판정(E3)."""
+        st = step.get("status")
+        if st == "blocked":
+            return "test"
+        if st != "pending":
+            return None
+        if step.get("kind") == "measure" or (step.get("tdd") and not step.get("red")):
+            return "test"
+        return "impl"
+
+    def refuse_turn(self, step: dict, role: str):
+        """차례가 아니면 한 줄 + NOT_TURN, 맞으면 None. 아무것도 바꾸지 않는다."""
+        t = self.turn(step)
+        if t == role:
+            return None
+        who = f"{ROLE[t]} 차례" if t else "사람 차례"
+        why = step.get("blocked_reason") or step.get("error_message") or ""
+        print(f"지금은 {who} — step {step['step']} {step['name']} ({step.get('status')}"
+              + (", red 있음" if step.get("red") else "") + ")" + (f": {why}" if why else ""))
+        return NOT_TURN
 
     def verify_cmds(self, only=None) -> list:
         """[(root, 이름, 명령)] — 단일 앱({"test": …})과 앱별({"apps/api": {"test": …}}) 둘 다."""
@@ -301,7 +346,8 @@ class Runner:
                 parts.append(f"## {name}\n\n{f.read_text(encoding='utf-8')}")
         return "\n\n---\n\n".join(parts)
 
-    def prompt(self, step: dict, base=None) -> str:
+    def prompt(self, step: dict, base=None, role=None) -> str:
+        """role: 나눔 모드 역할('test' · 'impl'). 없으면 1회 모드 — 테스트와 구현을 한 번에."""
         idx = self.read()
         done = [f"- Step {s['step']} ({s['name']}): {s['summary']}" for s in idx["steps"]
                 if s.get("status") == "completed" and s.get("summary")]
@@ -309,6 +355,13 @@ class Runner:
         if step.get("kind") == "measure":
             tdd = ("4. 이 step 은 **측정 전용(kind: measure)** 이다 — 코드를 바꾸지 않는다. 측정·실측·대조만 하고, 실행한 **명령(백틱)과 결과**를 "
                    "`summary` 에 적는다. 그것이 이 step 의 산출물이라 summary 에 명령이 없으면 실패로 판정된다. 커밋할 것은 없다")
+        elif step.get("tdd") and role == "test":
+            tdd = (f"4. 이 step 은 **검증 차례(테스트만)** 다: 수용 조건을 **실패하는 테스트**로만 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
+                   f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋한다. **구현 파일을 만들지 않는다** — 구현은 구현 세션이 한다")
+        elif step.get("tdd") and step.get("red"):
+            tdd = (f"4. **테스트는 이미 있다**(검증 세션의 테스트 커밋 `{step['red'][:12]}`). 테스트 파일은 고치지 않는다(고치면 러너가 되돌린다). "
+                   f"구현만 해서 테스트를 통과시키고 `feat: step {n} — {name}` 로 커밋한다. 테스트가 수용 조건과 다르거나 테스트 파일 자체가 "
+                   f"검증에 걸려 막히면 고치지 말고 `\"status\": \"blocked\"` + `\"blocked_reason\"`(이유)로 멈춘다 — 검증 세션이 다시 판정한다")
         elif step.get("tdd"):
             tdd = (f"4. 테스트 먼저(TDD): ① 수용 조건을 **실패하는 테스트**로 먼저 쓰고 테스트 명령이 실패하는지 확인한 뒤 "
                    f"테스트 파일만 `test: step {n} — {name} (red)` 로 커밋 ② 구현한다. 테스트 파일은 다시 고치지 않는다 "
@@ -322,7 +375,7 @@ class Runner:
         if step.get("last_error"):
             kept = ""
             # 이전 시도의 RED 커밋이 남아 있으면 '테스트 먼저'를 다시 하지 않게 알린다(#9)
-            if step.get("tdd") and base and any(TEST_FILE.search(f) for _, fs in self.commits_since(base) for f in fs):
+            if step.get("tdd") and not step.get("red") and role != "test" and base and any(TEST_FILE.search(f) for _, fs in self.commits_since(base) for f in fs):
                 kept = ("\n\n이전 시도의 테스트 커밋이 남아 있다 — 테스트는 다시 쓰거나 고치지 않는다(고치면 되돌린다). 구현만 고친다. "
                         "테스트 파일 자체가 검증에 걸리면 러너가 이 시도를 버리고 테스트부터 다시 하게 한다")
             retry = f"## ⚠ 이전 시도 실패 — 아래 사유를 반드시 참고해 고친다\n\n{step['last_error']}{kept}\n\n---\n\n"
@@ -332,11 +385,14 @@ class Runner:
         if base and not self.full_reason(step):
             shown = self.scoped(shown, base)
         cmds = " · ".join(f"`{c}`" + (f"({r} 에서)" if r != "." else "") for r, _, c in shown) or "(verify 없음)"
+        test_turn = role == "test" and step.get("tdd") and step.get("kind") != "measure"
         return Template((HERE / "preamble.md").read_text(encoding="utf-8")).safe_substitute(
             project=idx.get("project", self.root.name), task=self.task, step=n,
             guardrails=self.guardrails(idx),
             done_steps=("## 이전 step 산출물\n\n" + "\n".join(done) + "\n\n") if done else "",
             retry=retry, tdd_rule=tdd, verify_cmds=cmds,
+            status_rule=(STATUS_RULE_TEST if test_turn else STATUS_RULE).format(task=self.task, n=n),
+            judge_note=JUDGE_NOTE_TEST if test_turn else JUDGE_NOTE_IMPL if step.get("red") else JUDGE_NOTE,
             step_md=(self.dir / f"step{n}.md").read_text(encoding="utf-8"))
 
     # ── 판정 ───────────────────────────────────────────────────────────────
@@ -367,32 +423,24 @@ class Runner:
         commits = self.commits_since(base)
         red_tests = []
         if step.get("tdd"):
-            red = next((c for c in commits if any(TEST_FILE.search(f) for f in c[1])), None)
-            if red is None:
-                raise RedFail("RED: 테스트 커밋이 없다")
-            red_tests = [f for f in red[1] if TEST_FILE.search(f)]
-            before = commits[:commits.index(red)]
-            impl_in_red = [f for f in red[1] if not TEST_FILE.search(f)]
-            if before or impl_in_red:
-                raise RedFail("RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다"
-                           + (f" (같이 커밋된 구현: {', '.join(impl_in_red[:3])})" if impl_in_red else ""))
-            tests = self.verify_cmds("test")
-            if not tests:
-                raise Fail("RED: verify.test 가 없어 테스트를 돌릴 수 없다")
-            # 앱별 verify 면 테스트 파일이 들어간 앱의 test 만 본다 — 상관없는 앱의 실패가 RED 로 잡히지 않게
-            mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in red[1])]
-            if self.red_passes(red[0], self.scoped(mine or tests, base)):
-                raise RedFail("RED: 테스트가 아무것도 잡지 않음 — 테스트 커밋 시점에 이미 통과한다")
-            changed = [f for f in self.git("diff", "--name-only", f"{red[0]}..HEAD").stdout.split()
+            if step.get("red"):   # 나눔 모드 구현 쪽: 판정 2·3 은 judge --red 가 이미 했다 — red 를 기준으로 4·5
+                red_sha = step["red"]
+                red_tests = [f for f in self.git("diff", "--name-only", base, red_sha).stdout.split() if TEST_FILE.search(f)]
+            else:
+                red_sha, red_tests = self.red_check(commits, base)
+            changed = [f for f in self.git("diff", "--name-only", f"{red_sha}..HEAD").stdout.split()
                        if TEST_FILE.search(f) and not f.startswith("phases/")]
             if changed:
                 for f in changed:
-                    if self.git("cat-file", "-e", f"{red[0]}:{f}").returncode == 0:
-                        self.git("checkout", red[0], "--", f)
+                    if self.git("cat-file", "-e", f"{red_sha}:{f}").returncode == 0:
+                        self.git("checkout", red_sha, "--", f)
                     else:
                         self.git("rm", "-q", "-f", "--", f)
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
+        scope = commits   # 판정 6 범위는 테스트 파일까지 — 테스트가 든 앱도 돈다
+        if step.get("red"):
+            commits = self.commits_since(step["red"])   # 판정 5: 테스트 커밋 뒤 구현 변경
         if not commits:
             if step.get("kind") != "measure":
                 raise Fail("completed 보고인데 변경 없음")
@@ -407,7 +455,7 @@ class Runner:
             commits = []
         last = self.is_last(step)
         wait_for_slot(str(self.root))
-        for root, name, cmd in self.verify_scope(step, commits, base):
+        for root, name, cmd in self.verify_scope(step, scope, base):
             ok, out = self.run_out(root, cmd)
             if not ok:
                 hit = self.red_blame(out, root, red_tests) if name != "test" else None
@@ -420,6 +468,28 @@ class Runner:
                     self.blame_earlier(root, name, cmd, commits, base, tail)
                 raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
+
+    def red_check(self, commits: list, base: str, only_tests=False):
+        """판정 2·3. (테스트 커밋 sha, 그 테스트 파일). only_tests(judge --red) 면 BASE 뒤 커밋이 모두 테스트만이어야 하고
+        sha 는 그 마지막 커밋 — 뒤 테스트 커밋이 판정 4 에서 「RED 뒤 테스트 수정」으로 되돌려지지 않게."""
+        red = next((c for c in commits if any(TEST_FILE.search(f) for f in c[1])), None)
+        if red is None:
+            raise RedFail("RED: 테스트 커밋이 없다")
+        before = commits[:commits.index(red)]
+        impl_in_red = [f for f in (sum((c[1] for c in commits), []) if only_tests else red[1]) if not TEST_FILE.search(f)]
+        if before or impl_in_red:
+            raise RedFail("RED: 테스트 커밋이 구현보다 먼저가 아니다 — 테스트 파일만 먼저 커밋한다"
+                          + (f" (같이 커밋된 구현: {', '.join(impl_in_red[:3])})" if impl_in_red else ""))
+        if only_tests:
+            red = (commits[-1][0], sorted({f for c in commits for f in c[1]}))
+        tests = self.verify_cmds("test")
+        if not tests:
+            raise Fail("RED: verify.test 가 없어 테스트를 돌릴 수 없다")
+        # 앱별 verify 면 테스트 파일이 들어간 앱의 test 만 본다 — 상관없는 앱의 실패가 RED 로 잡히지 않게
+        mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in red[1])]
+        if self.red_passes(red[0], self.scoped(mine or tests, base)):
+            raise RedFail("RED: 테스트가 아무것도 잡지 않음 — 테스트 커밋 시점에 이미 통과한다")
+        return red[0], [f for f in red[1] if TEST_FILE.search(f)]
 
     def red_blame(self, out: str, root: str, red_tests: list):
         """test 밖 verify(lint·typecheck 등) 출력이 RED 테스트 파일을 가리키면 그 줄(#9). test 출력은 늘 테스트 이름을
@@ -524,13 +594,18 @@ class Runner:
         self.git("reset", "-q", "--hard", base, check=True)
         self.index_file.write_text(keep, encoding="utf-8")
 
-    def record(self, n: int, base: str, run_failure=None, usage=None) -> int:
-        """판정하고 index.json 에 기록·커밋. 0 완료 · 10 재시도 · 1 실패로 멈춤 · 2 blocked."""
+    def record(self, n: int, base: str, run_failure=None, usage=None, red_only=False) -> int:
+        """판정하고 index.json 에 기록·커밋. 0 완료 · 10 재시도 · 1 실패로 멈춤 · 2 blocked.
+        red_only(judge --red, 나눔 모드 검증 쪽): 판정 2·3 만 — 통과하면 red 를 적고 step 은 pending 그대로."""
+        red = None
         try:
             st = self.find(self.read(), n).get("status")
             if run_failure and st != "blocked":   # 에이전트가 blocked 를 적었으면 실행 실패보다 그게 먼저다
                 raise Fail(run_failure)
-            res = self.check(self.find(self.read(), n), base)
+            if red_only:
+                red, res = self.red_check(self.commits_since(base), base, only_tests=True)[0], None
+            else:
+                res = self.check(self.find(self.read(), n), base)
         except PhaseFail as e:
             idx = self.read()
             s = self.find(idx, n)
@@ -539,8 +614,15 @@ class Runner:
             res = "blocked"
         except RedFail as e:
             res, reason = "fail", str(e)
-            self.discard_attempt(n, base)
-            reason += " (이 시도의 커밋은 버렸다 — BASE 에서 테스트부터 다시)"
+            idx = self.read()
+            s = self.find(idx, n)
+            if s.get("red"):   # 나눔 모드 구현 쪽: BASE 로 되돌리면 검증 세션의 테스트 커밋이 지워져 red 가 고아가 된다
+                s.update(status="blocked", blocked_reason=f"{e} — 테스트 파일이 verify 에 걸림: 검증 세션 재판정(ADR-019 E3)")
+                self.write(idx)
+                res = "blocked"
+            else:
+                self.discard_attempt(n, base)
+                reason += " (이 시도의 커밋은 버렸다 — BASE 에서 테스트부터 다시)"
         except Fail as e:
             res, reason = "fail", str(e)
         idx = self.read()
@@ -550,9 +632,17 @@ class Runner:
             for k, v in usage.items():
                 if isinstance(v, (int, float)):
                     u[k] = u.get(k, 0) + v
+        if red is not None:
+            s["red"] = red
+            s.pop("last_error", None)
+            self.write(idx)
+            self.commit_index(n)
+            print(f"✓ step {n} RED 확인 — red: {red[:12]} · 구현 차례")
+            return 0
         if res == "blocked":
             s["blocked_at"] = stamp()
-            s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
+            if not s.get("red"):   # 나눔 모드는 red 와 짝인 BASE 를 남긴다(재판정 뒤 구현 쪽이 그대로 쓴다)
+                s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
             self.commit_index(n)
@@ -576,7 +666,8 @@ class Runner:
         if fails_now > self.max_retries:
             s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
-            s.pop("base", None)
+            if not s.get("red"):
+                s.pop("base", None)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
             self.commit_index(n)
@@ -671,16 +762,35 @@ def main(argv=None) -> int:
     ap.add_argument("--max-retries", type=int, default=3)
     ap.add_argument("--base")
     ap.add_argument("--step", type=int)
+    ap.add_argument("--role", choices=sorted(ROLE), help="prompt: 나눔 모드 세션 역할 — test(검증) · impl(구현)")
+    ap.add_argument("--red", action="store_true", help="judge: 나눔 모드 검증 쪽 — 판정 2·3 만, 통과하면 red 기록")
     ap.add_argument("--defer-full-test", action="store_true",
                     help="judge·run: 「전체」로 넓어지는 verify 도 $step 명령만(부하 중, 전체는 릴리스 전 한 번)")
     a = ap.parse_args(argv)
+    if a.role and a.mode != "prompt" or a.red and a.mode != "judge":
+        ap.error("--role 은 prompt, --red 는 judge 에만 쓴다")
     r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test)
     if a.mode == "run":
         return r.run()
     if a.mode == "start":
         return r.start()
     if a.mode == "prompt":
-        step = r.find(r.read(), a.step) if a.step else r.next_pending()
+        if a.role:   # 나눔 모드: 끝나지 않은 첫 step 의 차례가 이 역할일 때만(ADR-019 E12)
+            step = r.current()
+            if step is None:
+                print("pending step 없음")
+                return 0
+            if a.step and a.step != step["step"]:
+                print(f"지금 차례인 step 은 {step['step']} 이다 — step {a.step} 이 아니다")
+                return NOT_TURN
+            rc = r.refuse_turn(step, a.role)
+            if rc:
+                return rc
+            if step.get("status") == "blocked":   # 검증 재판정(E3) — 지시문이 아니라 사유를 본다
+                print(f"step {step['step']} blocked — 검증 재판정: {step.get('blocked_reason', '')}")
+                return 2
+        else:
+            step = r.find(r.read(), a.step) if a.step else r.next_pending()
         if step is None:
             print("pending step 없음")
             return 0
@@ -689,7 +799,7 @@ def main(argv=None) -> int:
         r.write(idx)
         base = r.pin_base(step["step"], a.base) if a.base else step.get("base")
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
-        print(r.prompt(r.find(r.read(), step["step"]), base))
+        print(r.prompt(r.find(r.read(), step["step"]), base, a.role))
         return 0
     # judge: 판정 대상은 번호로 받는다 — '첫 pending' 으로 고르면 방금 completed 로 바뀐 step 을 건너뛴다(10-13 리뷰)
     # BASE 는 prompt --base 가 index.json 에 고정한 값이 먼저다(#11). 없을 때만 --base
@@ -697,7 +807,22 @@ def main(argv=None) -> int:
     base = base or a.base
     if not a.step or not base:
         ap.error("judge 는 --step N 과 BASE(prompt --base 로 고정했거나 --base <그 step 시작 전 HEAD>)가 필요하다")
-    return r.record(a.step, base)
+    if a.red:   # 차례가 아니면 checkout --detach · reset --hard 가 구현 중인 트리를 친다 — 먼저 막는다
+        step, cur = r.find(r.read(), a.step), r.current()
+        if cur is None or cur["step"] != a.step:
+            print(f"지금 차례인 step 은 {cur['step'] if cur else '없음'} 이다 — step {a.step} 이 아니다")
+            return NOT_TURN
+        rc = r.refuse_turn(step, "test")
+        if rc:
+            return rc
+        if step.get("status") != "pending" or not step.get("tdd") or step.get("kind") == "measure":
+            print(f"step {a.step} 은 judge --red 대상이 아니다(tdd: true · pending 만) — "
+                  + ("blocked 는 검증 재판정" if step.get("status") == "blocked" else "measure 는 judge --step N"))
+            return NOT_TURN
+        if r.git("status", "--porcelain", "--", ".", f":(exclude)phases/{r.task}", HOOK_STAMPS).stdout.strip():
+            print("커밋하지 않은 변경이 있다 — 테스트 파일만 커밋한 뒤 다시 judge --red")
+            return 1
+    return r.record(a.step, base, red_only=a.red)
 
 
 if __name__ == "__main__":
