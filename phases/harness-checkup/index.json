@@ -91,20 +91,25 @@
       "name": "fork-line",
       "status": "blocked",
       "tdd": false,
-      "blocked_reason": "ADR-018 B-14 → #52 A절(검증자 독립), 지휘 판정"
+      "blocked_reason": "ADR-019 A5로 이동(호출 자리 두 곳) — 이 phase에서 하지 않는다"
     },
     {
       "step": 11,
       "name": "eval-frame",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-25T22:09:59+0900",
+      "summary": "evals/ case 17개(자동 입구 8 × 떠야 fire·안 떠야 quiet 태그 + sdd-fire-review로 code-reviewer 재기, 계획은 16개, 이유: ADR B-2가 code-reviewer부터 재라고 함) · 채점은 전부 regex 하네스 고유 결과(LLM 채점기 없음 → --judge-model 불필요), fired는 표시용 · not-fired는 arm both · scripts/eval-variant.sh <부품> → 부품 뺀 임시 사본 경로(eval에 --plugin-dir 없음, 대상 경로로 주고 --ablation none) · scripts/eval-tally.py <--json 결과> → 턴 상한 실행 무효 분리 + $·턴·초·Δ · evals/README.md에 case 표 · step 12 명령(--tag fire quiet 필수: 기본 탐색이 docs/harness-checkup-2026-11-25/evals 시험 case 3개도 잡음 · --scaffold · --allow-tools \"Bash(git:*)\" 맨 끝) · 예상 약 $14.8(통째 17×3×$0.21 + 변형 9×3×$0.15, 상한 통째 $14 + 변형 9×$0.65). 형식 확인은 --max-cost-usd 0(돈 안 씀, 17 cases·102 runs 인식, 허가 경고 없음). .claude-plugin/plugin.json 은 기본 evals/ 라 안 고침. 기계 검사 후보: harness-init/SKILL.md `paths:` frontmatter 필수(지휘 판정 — 평문으로 바꾸지 않고 검사로 막을 후보)",
+      "completed_at": "2026-11-25T22:26:28+0900"
     },
     {
       "step": 12,
       "name": "checkup-run",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "summary": "파일럿 `claude plugin eval . --ablation with-without --tag fire quiet --runs 1 -j 4 --scaffold --trust-plugin --no-publish --keep-temp --max-cost-usd 5 --allow-tools \"Bash(git:*)\"` $5.01 · 본 실행 case별 `claude plugin eval . --ablation with-without --case <c> --runs 3 --max-cost-usd 1.3 …`(떠야 8) + `claude plugin eval \"$(bash scripts/eval-variant.sh <부품>)\" --ablation none --case <c> --runs 2 --max-cost-usd 0.6 …`(변형 6) $7.79 + 한도 재실행 $3.97 = 총 $16.77. Δ(3회): pr-write +1.00 · why +1.00 · conductor +0.83 · sdd-vague +0.83 · notion +0.78 · commit +0.50 · how +0.50 · slack +0.50, 안 떠야 8개 0(오발동 0). 변형: 6개 모두 빼도 1.00(conductor decisions.md만 턴 12.5 · $0.317로 더 헤맴 — 처음 「턴 상한 무효」로 적었다가 리뷰에서 바로잡음). B-2 미측정(샌드박스 git xcrun + 리뷰 요청 sdd 미발동), B-5·B-8 과제 없음. 결과는 ADR-018 「첫 점검 결과」. 기준점 claude-opus-5-5 · 2.1.332. eval도 5시간 한도 공유(18회 재실행)",
+      "completed_at": "2026-11-26T00:25:31+0900"
     }
   ]
 }
