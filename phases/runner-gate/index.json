@@ -27,17 +27,18 @@
     {
       "step": 3,
       "name": "rejudge-entry",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-26T21:29:24+0900",
-      "base": "de38a5c63ed2353dec4d1a32b542c4ad27eed222",
       "red": "61b4a2382022efe6346d42eb8b6c705823d01499",
       "rejudged": [
         {
           "at": "2026-11-26T21:42:22+0900",
           "red_before": "f9c77f3ac676c95b3a4b7009162dd987d93870b0"
         }
-      ]
+      ],
+      "completed_at": "2026-11-26T21:45:10+0900",
+      "summary": "rejudge TASK --step N 하위 명령(구현 wip 2477dd1). 테스트 버그(브랜치 기대값 main → 그대로인지 대조)를 검증 세션이 61b4a23으로 고침. #77 첫 실제 사례 · rejudge 실사용 1(워크트리 러너, 종료 0, red f9c77f3→61b4a23, 바뀐 것 index step 3뿐 · 브랜치 · 트리 무변경 · 구현 커밋 유지) · 손 정리 1(completed는 검증 세션이 손으로, 이유: step 4 전이라 구현 judge 판정 5가 「red 뒤 변경 없음」으로 질 것이 확실) · 완료 근거 `bash hooks/test.sh` 통과 642 · 실패 0(러너 단위 119)"
     },
     {
       "step": 4,
