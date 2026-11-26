@@ -52,6 +52,11 @@
     "exclude": []
   },
 
+  "review": {
+    "$comment": "gatePaths 는 sdd-review 가 code-reviewer 를 부르는 조건 하나(변경이 여기 닿으면 부른다). 계약(API 스키마)·마이그레이션·권한 경로 glob 목록, 예: [\"server/src/main/resources/openapi/**\", \"**/db/migration/**\"]. 비어 있으면 검증 세션이 판단하고 이유를 남긴다.",
+    "gatePaths": []
+  },
+
   "release": {
     "$comment": "null 이면 changeset 스킬이 스스로 skip 한다.",
     "tool": null
