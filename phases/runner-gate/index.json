@@ -73,7 +73,10 @@
       "step": 7,
       "name": "gate-none-item",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-27T03:49:13+0900",
+      "base": "f27c4916ed175c2da283d04e60af124264bdb93c",
+      "red": "7ed3f09973de45b33ad2ab14a4f2b37c1836488d"
     }
   ],
   "reviews": [
