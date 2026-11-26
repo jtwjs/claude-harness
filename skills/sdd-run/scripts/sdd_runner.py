@@ -13,6 +13,8 @@
   sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안.
                                                               --base 는 그 step 의 BASE 로 index.json 에 고정, 재시도에서 안 덮음)
   sdd_runner.py judge TASK --step N [--base SHA]              step N 판정·기록 (세션 안. BASE 는 고정값이 먼저)
+  sdd_runner.py gate DOCS_DIR                                 구현 시작 관문: DOCS_DIR 의 ADR · PRD 에 열린 「정할 것」이
+                                                              있으면 목록 + 종료 2 (ADR-023 R1 · R2, 레포 루트 기준 경로)
   나눔 모드(검증 세션 · 구현 세션, ADR-019 A4 · E12) — 차례는 index.json 이 정한다:
   sdd_runner.py prompt TASK --role test|impl [--base SHA]     그 역할 차례일 때만 지시문(test = 테스트만 · impl = 구현만)
   sdd_runner.py judge TASK --red --step N                     검증 쪽: 판정 2·3 만, 통과하면 step 에 red 기록
@@ -136,6 +138,92 @@ def md_sections(md: str) -> dict:
         elif cur is not None:
             out[cur].append(ln)
     return {k: "\n".join(v) for k, v in out.items()}
+
+
+def _md_heading(ln: str):
+    m = re.match(r"^(#+)\s+(.*)$", ln)
+    return (len(m.group(1)), m.group(2)) if m else None
+
+
+def _cells(ln: str) -> list:
+    return [c.strip() for c in ln.strip().strip("|").split("|")]
+
+
+def open_decisions(docs_dir) -> list:
+    """구현 시작 관문(ADR-023 R1) — docs_dir 의 ADR.md · PRD.md 에서 열린 「정할 것」을 한 줄씩."""
+    d = Path(docs_dir)
+    out = []
+    adr = d / "ADR.md"
+    if adr.is_file():
+        level, header, owner = None, None, None   # 「결정할 것」 절 급 · 지금 표 머리 · 주체 칸 번호
+        for ln in adr.read_text(encoding="utf-8").splitlines():
+            h = _md_heading(ln)
+            if h:
+                if level is not None and h[0] <= level:
+                    level = None
+                if "결정할 것" in h[1]:
+                    level = h[0]
+                header = None
+                continue
+            if level is None:
+                continue
+            if not ln.lstrip().startswith("|"):
+                header = None
+                continue
+            cells = _cells(ln)
+            if header is None:
+                header = cells
+                owner = next((i for i, c in enumerate(cells) if "주체" in c), None)
+                continue
+            if all(re.fullmatch(r":?-+:?", c) for c in cells if c):
+                continue
+            if owner is None or owner >= len(cells) or not cells[owner]:
+                out.append(f"ADR {cells[0]}: {cells[1] if len(cells) > 1 else ''}".rstrip())
+    prd = d / "PRD.md"
+    if prd.is_file():
+        lines = prd.read_text(encoding="utf-8").splitlines()
+        i = 0
+        while i < len(lines):
+            ln = lines[i]
+            h = _md_heading(ln)
+            label = re.match(r"^(\s*)[-*]\s+(\*\*)?남은 ⚠️", ln)
+            if h and "남은 ⚠️" in h[1]:
+                j = i + 1
+                while j < len(lines) and not ((hh := _md_heading(lines[j])) and hh[0] <= h[0]):
+                    j += 1
+            elif label:
+                ind = len(label.group(1))
+                j = i + 1
+                while j < len(lines) and (not lines[j].strip() or len(lines[j]) - len(lines[j].lstrip()) > ind):
+                    j += 1
+            else:
+                i += 1
+                continue
+            bullets = [(len(m.group(1)), m.group(2)) for m in
+                       (re.match(r"^(\s*)[-*]\s+(.*?)\s*$", x) for x in lines[i + 1:j]) if m]
+            top = min((b[0] for b in bullets), default=0)
+            out += [f"PRD: {t}" for k, t in bullets if k == top and "→ 결정:" not in t and "막지 않음:" not in t]
+            i = j
+    return out
+
+
+def gate(docs_dir) -> int:
+    """`gate DOCS_DIR` — 열린 것이 있으면 목록 + 종료 2, 없으면 한 줄 + 0. 읽기만 한다."""
+    d = Path(docs_dir)
+    if not d.is_absolute():
+        r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+        d = (Path(r.stdout.strip()) if r.returncode == 0 else Path.cwd()) / d
+    if not (d / "ADR.md").is_file() and not (d / "PRD.md").is_file():
+        print("구현 시작 관문: ADR · PRD 없음 — 막지 않는다")
+        return 0
+    items = open_decisions(d)
+    if not items:
+        print("구현 시작 관문: 열린 「정할 것」 0")
+        return 0
+    print(f"구현 시작 관문: 열린 「정할 것」 {len(items)}개 — 지휘(또는 사람)에게 묻고 닫은 뒤 다시")
+    for it in items:
+        print(f"  - {it}")
+    return 2
 
 
 def edge_axes(ac: str):
@@ -859,8 +947,8 @@ class Runner:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="SDD 러너")
-    ap.add_argument("mode", choices=["run", "start", "prompt", "judge"])
-    ap.add_argument("task")
+    ap.add_argument("mode", choices=["run", "start", "prompt", "judge", "gate"])
+    ap.add_argument("task", help="gate 에서는 DOCS_DIR(레포 루트 기준)")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--max-retries", type=int, default=3)
     ap.add_argument("--base")
@@ -873,6 +961,8 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.role and a.mode != "prompt" or a.red and a.mode != "judge":
         ap.error("--role 은 prompt, --red 는 judge 에만 쓴다")
+    if a.mode == "gate":   # index.json 을 읽지 않는다 — 계획 전(sdd-plan §0)에도 부른다(ADR-023 R2)
+        return gate(a.task)
     r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test, a.effort)
     if a.mode == "run":
         return r.run()
