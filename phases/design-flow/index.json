@@ -1,0 +1,14 @@
+{
+  "project": "claude-harness",
+  "phase": "design-flow",
+  "docs": "docs/design-phase-2026-11-26",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "role-boundary", "status": "pending", "tdd": false },
+    { "step": 2, "name": "design-doc-flow", "status": "pending", "tdd": false },
+    { "step": 3, "name": "design-doc-template", "status": "pending", "tdd": false },
+    { "step": 4, "name": "design-doc-screen", "status": "pending", "tdd": false },
+    { "step": 5, "name": "answer-inbox", "status": "pending", "tdd": false },
+    { "step": 6, "name": "question-rounds", "status": "pending", "tdd": true }
+  ]
+}
