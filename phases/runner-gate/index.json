@@ -72,11 +72,12 @@
     {
       "step": 7,
       "name": "gate-none-item",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T03:49:13+0900",
-      "base": "f27c4916ed175c2da283d04e60af124264bdb93c",
-      "red": "7ed3f09973de45b33ad2ab14a4f2b37c1836488d"
+      "red": "7ed3f09973de45b33ad2ab14a4f2b37c1836488d",
+      "summary": "open_decisions PRD 쪽: 첫 단 불렛 본문이 「없음」+(줄 끝·공백·괄호)면 뺀다. docs/sdd-runner.md 관문 항목 · ADR-023 R1 PRD 줄에 한 구절씩. 오탐 실례 single-conductor-2026-10-31은 이제 열린 0",
+      "completed_at": "2026-11-27T04:07:21+0900"
     }
   ],
   "reviews": [
