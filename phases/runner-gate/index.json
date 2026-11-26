@@ -27,13 +27,17 @@
     {
       "step": 3,
       "name": "rejudge-entry",
-      "status": "blocked",
+      "status": "pending",
       "tdd": true,
       "started_at": "2026-11-26T21:29:24+0900",
       "base": "de38a5c63ed2353dec4d1a32b542c4ad27eed222",
-      "red": "f9c77f3ac676c95b3a4b7009162dd987d93870b0",
-      "blocked_reason": "테스트가 틀렸다 — test_rejudge_fix_passing_on_base_refused 마지막 줄이 브랜치를 main으로 기대하지만, red_turn의 start가 이미 feat-t1으로 옮긴다(branchPattern 없음 → feat-{task}). rejudge 전후 브랜치는 둘 다 feat-t1으로 그대로임을 탐침으로 확인. 나머지 rejudge 테스트 6개 · 단위 118/119 통과, 구현은 wip로 남김",
-      "blocked_at": "2026-11-26T21:36:55+0900"
+      "red": "61b4a2382022efe6346d42eb8b6c705823d01499",
+      "rejudged": [
+        {
+          "at": "2026-11-26T21:42:22+0900",
+          "red_before": "f9c77f3ac676c95b3a4b7009162dd987d93870b0"
+        }
+      ]
     },
     {
       "step": 4,
