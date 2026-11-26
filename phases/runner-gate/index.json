@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "gate-open-decisions",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-26T21:12:24+0900",
-      "base": "86f38b8db9729168b8b38efcba27a7116c214c98",
-      "red": "4b9e72a3acbbcf0780d858909cae732ee9509a83"
+      "red": "4b9e72a3acbbcf0780d858909cae732ee9509a83",
+      "summary": "sdd_runner.py에 open_decisions(docs_dir) 모듈 함수와 gate DOCS_DIR 하위 명령(종료 0/2, index.json 안 읽음)을 더했다. PRD 불렛 라벨 꼴은 본문이 「남은 ⚠️」 또는 「**남은 ⚠️」로 시작하는 불렛만 라벨로 본다(계획은 「든」, 이유: 수용 조건 항목 본문에 「남은 ⚠️」가 들어간 줄을 라벨로 잘못 잡지 않게)",
+      "completed_at": "2026-11-26T21:21:17+0900"
     },
     {
       "step": 2,
