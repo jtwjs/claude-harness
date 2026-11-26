@@ -61,8 +61,20 @@
     {
       "step": 4,
       "name": "runner-red-judge",
-      "status": "pending",
-      "tdd": true
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-26T17:47:50+0900",
+      "summary": "sdd_runner.py 나눔 모드: `prompt --role test|impl`(Runner.current() = 끝나지 않은 첫 step · Runner.turn(step) → 'test'|'impl'|None · refuse_turn) · `judge --red --step N`(record(red_only=True) → red_check(commits, base, only_tests=True) = 판정 2·3, 통과 시 step['red'] 기록 + index 커밋) · 구현 쪽 check 는 red 가 있으면 2·3 건너뛰고 red 기준 4·5, 6 범위·{since}는 BASE · red 있는 RedFail 은 discard 없이 blocked · preamble.md 6번·맺음말을 $status_rule·$judge_note 로(1회 모드 지시문은 글자 그대로) · docs/sdd-runner.md 「나눔 모드」 표 · 테스트 test_red_judge_* 13개. 차례 아님은 종료 3(NOT_TURN)으로 했다(계획은 「비0」, 이유: 1 = 실패로 멈춤과 갈라야 세션이 기다릴지 고칠지 안다) · judge --red 는 BASE 뒤 커밋이 모두 테스트 파일만이어야 하고 red = 그 마지막 커밋으로 했다(계획은 「테스트만 담긴 첫 커밋」, 이유: 테스트 커밋이 둘이면 뒤 것이 판정 4 에서 「RED 뒤 테스트 수정」으로 되돌려진다) · judge --red 는 커밋 안 된 변경이 있으면 판정 전에 종료 1 로 했다(계획에 없음, 이유: checkout --detach 가 더러운 트리에서 깨진다) · red 가 있으면 blocked·error 로 멈춰도 base 를 지우지 않게 했다(계획에 없음, 이유: 재판정 뒤 구현 쪽이 red 와 짝인 BASE 를 그대로 써야 한다) · blocked 에서 prompt --role test 는 사유만 보이고 종료 2 로 했다(계획에 없음, 이유: 재판정은 지시문이 아니라 사람/검증 판단)",
+      "usage": {
+        "input_tokens": 42,
+        "cache_creation_input_tokens": 137896,
+        "cache_read_input_tokens": 2434096,
+        "output_tokens": 35585,
+        "num_turns": 24,
+        "duration_ms": 552555,
+        "total_cost_usd": 2.3018552
+      },
+      "completed_at": "2026-11-26T18:00:42+0900"
     },
     {
       "step": 5,
