@@ -44,6 +44,8 @@ eval에는 `--plugin-dir` 같은 옵션이 없다. 대상(target)을 경로로 �
 
 > 돌리기 전에 사람이 확인한다. 아래 명령은 돈을 쓴다.
 
+- **유료 eval 전에 허가 옵션.** case의 `allowed_tools`에 `Bash` · `Write` · `Edit`가 있으면 `claude plugin eval` 명령마다 같은 값을 `--allow-tools`(맨 끝)로 넘긴다. 빠지면 도구가 거부된 채 채점돼 그 실행의 돈을 버린다. 돈 쓰기 전에 `--max-cost-usd 0` 형식 확인의 「not granted」 경고로 잡는다. (outcome-eval #65 리뷰, 2026-11-26)
+
 ```bash
 OUT="$(mktemp -d)"   # 결과는 레포 밖에 둔다
 
