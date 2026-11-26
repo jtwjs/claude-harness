@@ -128,4 +128,4 @@ E8 선택지 — FE · BE가 별도 작업 세션일 때(사용자 전제):
 | 12 `delegate-three-cells` | `docs/principles/write-for-agents.md`(#55가 만든다) |
 
 점검 phase(`harness-checkup`)와는 phase 단위로 묶지 않는다(`after: []`). 같은 훅을 고친 점검 step 3 · 5는 #56으로 이미 들어왔고, 점검 step 10(fork 줄)은 이 ADR A5로 넘어와 그 phase가 끝나기를 기다리면 이 phase가 막힌다. 남는 겹침은 점검 평문 step(같은 스킬 · 템플릿 문장)뿐이라 step 6~10을 그 머지 뒤에 돌린다(각 step 「작업」 머리에 적음).
-- 결과: (구현 PR 뒤 채운다)
+- 결과: phase `verify-flow` 13 step을 헤드리스 1회 모드(C7b, effort high)로 모두 완료했다 — 재시도 0 · 범위 밖 파일 0 · 환산 비용 합 $16.31(`total_cost_usd`, step별 `usage`) · `bash hooks/test.sh` 통과 642 · 실패 0. 새 맥락 리뷰의 지적 중 4건은 같은 PR에서 고쳤고, 재판정(E3) 뒤 「테스트 고침」의 진입점은 #77로 넘겼다. 남은 부딪힘: 지휘 「디스패치 관문」 문장 ↔ E4 · E5(#76). 나눔 모드는 아직 실제 트랙에서 두 세션으로 돌린 적이 없다(step 13 스크래치 걷기만)
