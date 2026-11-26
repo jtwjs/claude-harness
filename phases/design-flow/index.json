@@ -58,5 +58,19 @@
       "summary": "ask-questions.md 첫 줄을 「라운드가 기본이다」+ 막는 장치 셋(이유 칸 · 새 갈래 찾기 · 물러서는 조건)으로 바꿔 정본을 이 한 곳에 두고, design.md 5·33행 · design-critique 52행 · design-brief description은 「질문 규칙대로」로 가리키게 함. test.sh 541행 표식은 「물러서는 조건」. 상시 비용 always-on total 2150 → 2150. design-brief description은 「라운드로 끝낸 뒤」로 했다(계획은 「질문 규칙대로」, 이유: description 길이가 2자 늘어 「늘리지 않는다」와 부딪힘)",
       "completed_at": "2026-11-26T21:48:18+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-26T21:58:50+09:00",
+      "head": "33d8c20e96bd6fbab073aa033884d412cdf6880b",
+      "issues": [
+        "설계서를 받았을 때 갈래가 트랙이 읽을 절까지 건너뜀(고침)",
+        "design.md 「순서」 두 절 가리킴(고침)",
+        "seat.md 한 곳 범위 ↔ decisions.md 어긋남(고침)",
+        "DESIGN-DOC.md · 결정 묶음 칸 개인정보 일반화 규칙 없음(고침)",
+        "결정 묶음 시점(최종본 전/후) · 관문 2 「정할 것」 자리 — ADR-022 흐름 자체의 긴장, 지휘 판정으로 넘김",
+        "track-brief.md :17 · :36 옛 흐름 — 승인 범위 밖, 지휘 판정으로 넘김"
+      ]
+    }
   ]
 }
