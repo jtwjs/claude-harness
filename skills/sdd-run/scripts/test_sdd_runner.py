@@ -584,6 +584,31 @@ class RunnerCase(unittest.TestCase):
         (self.tmp / "scenario.json").write_text(json.dumps([{"step": n, "ops": ops}] * 99))
         subprocess.run([str(self.tmp / "claude"), "-p", "x"], cwd=self.repo, env=self.env, capture_output=True)
 
+    def test_error_tail_in_last_error_and_retry_prompt(self):
+        # #12: 사유가 "verify 실패: test" 한 줄뿐이라 다음 시도가 무엇이 깨졌는지 모른 채 같은 실패를 되풀이했다
+        (self.repo / "loud.sh").write_text(textwrap.dedent('''\
+            #!/bin/sh
+            [ -f src/ok.txt ] && exit 0
+            echo "  🔴 early_case — 기대와 다름"
+            i=1; while [ $i -le 60 ]; do printf 'row-%03d\\n' $i; i=$((i+1)); done
+            echo "끝 줄 표식" >&2
+            exit 1
+        '''))
+        (self.repo / ".claude/harness.json").write_text(json.dumps({"verify": {"test": "sh loud.sh"}}))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "loud verify")
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [["write", "src/x.txt", "x"], ["commit", "feat: x"], DONE]},
+                              {"step": 1, "ops": [["write", "src/ok.txt", "ok"], ["commit", "feat: ok"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        err = self.step()["attempts"][0]["error"]
+        self.assertIn("verify 실패: test", err)
+        self.assertIn("row-060", err, "출력 끝 줄이 붙는다")
+        self.assertIn("끝 줄 표식", err, "stderr 도 붙는다")
+        self.assertNotIn("row-001", err, "40줄 밖 일반 줄은 붙지 않는다")
+        self.assertIn("early_case", err, "40줄 밖이어도 실패한 테스트 이름 줄은 앞에 모은다")
+        self.assertIn(err, self.prompt(1), "다음 지시문 「이전 시도 실패」에 같은 글이 그대로 붙는다")
+
     def test_session_judge_targets_given_step(self):
         # 리뷰(10-13): judge 가 '첫 pending' 을 골라 방금 끝난 step 이 아니라 다음 step 을 판정했다
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True},
@@ -676,6 +701,49 @@ class TestFilePatternTest(unittest.TestCase):
         for f in ("hooks/tdd-guard.sh", "scripts/release.sh", "hooks/latest.sh"):
             with self.subTest(f=f):
                 self.assertIsNone(self.pat.search(f))
+
+
+class ErrorTailTest(unittest.TestCase):
+    """verify 실패 사유에 붙이는 출력 꼬리(#12) — 끝 40줄 · 실패 이름 줄 우선(최대 10) · 4,000자 상한."""
+
+    def setUp(self):
+        sys.path.insert(0, str(HERE))
+        import sdd_runner
+        self.tail = sdd_runner.error_tail
+
+    def test_error_tail_keeps_last_40_lines(self):
+        out = "\n".join(f"row-{i:03d}" for i in range(1, 101))
+        t = self.tail(out)
+        for i in (61, 80, 100):
+            self.assertIn(f"row-{i:03d}", t)
+        self.assertNotIn("row-060", t)
+        self.assertNotIn("row-001", t)
+
+    def test_error_tail_puts_failing_test_lines_first(self):
+        fails = ["  🔴 hook a — 깨짐", "FAIL: test_b (x.Y)", "FAILED tests/c.py::d", "  ✗ e 실패", "\t✕ f 실패"]
+        out = "\n".join(fails + [f"row-{i:03d}" for i in range(1, 51)])
+        t = self.tail(out)
+        for f in fails:
+            self.assertIn(f.strip(), t)
+        self.assertLess(t.index("hook a"), t.index("row-050"), "실패 이름 줄이 꼬리보다 앞")
+        self.assertNotIn("row-010", t)
+
+    def test_error_tail_caps_failing_lines_at_10(self):
+        out = "\n".join([f"  🔴 case-{i:02d}" for i in range(1, 16)] + [f"row-{i:03d}" for i in range(1, 51)])
+        self.assertEqual(self.tail(out).count("🔴"), 10)
+
+    def test_error_tail_cuts_front_over_4000_chars(self):
+        out = "\n".join(f"row-{i:03d} " + "x" * 200 for i in range(1, 41)) + "\n마지막 줄"
+        t = self.tail(out)
+        self.assertLessEqual(len(t), 4000)
+        self.assertIn("…(앞 생략)", t)
+        self.assertIn("마지막 줄", t, "자르는 쪽은 앞이다")
+
+    def test_error_tail_short_output_untouched(self):
+        t = self.tail("one\ntwo")
+        self.assertIn("one", t)
+        self.assertNotIn("…(앞 생략)", t)
+        self.assertEqual(self.tail(""), "")
 
 
 if __name__ == "__main__":
