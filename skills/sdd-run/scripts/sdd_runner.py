@@ -236,6 +236,8 @@ def edits_problem(step: dict):
     if step.get("tdd"):
         return "tdd: true step 에는 둘 수 없다 — 테스트 먼저 step 은 RED 뒤 테스트 수정을 그대로 되돌린다"
     for path, why in edits.items():
+        if any(c in path for c in "*?[") or path.startswith("./"):
+            return f"{path} — 경로는 글자 그대로 맞춘다(glob 글자 · ./ 없이 레포 기준 경로)"
         if not isinstance(why, str) or not why.strip():
             return f"{path} 의 이유가 빈칸이거나 문자열이 아니다 — 고치는 이유를 한 줄로 적는다"
         if not TEST_FILE.search(path) or path.startswith("phases/"):
@@ -709,11 +711,22 @@ class Runner:
                 raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
 
+    def planned_edits(self, n: int, base: str) -> dict:
+        """BASE 커밋의 계획에 적힌 그 step 의 test_edits(ADR-024 T6). 진행 중 index.json 은 구현이 고치는 파일이라 보지 않는다."""
+        r = self.git("show", f"{base}:phases/{self.task}/index.json")
+        try:
+            edits = self.find(json.loads(r.stdout), n).get("test_edits") if r.returncode == 0 else None
+        except (ValueError, KeyError, TypeError, StopIteration):
+            edits = None
+        return edits if isinstance(edits, dict) else {}
+
     def revert_test_edits(self, step: dict, base: str) -> list:
         """판정 4' 되돌림(ADR-024 T1 · T2 · T5). BASE ~ HEAD 순변화 중 BASE 에 있던 테스트 파일이고 test_edits 키
         (경로 글자 그대로, glob 없음 — T4)에 없는 것을 BASE 내용으로 되돌려 커밋한다. 되돌린 경로를 돌려준다."""
-        allowed = step.get("test_edits") or {}
-        changed = [f for f in self.git("diff", "--name-only", base, "HEAD").stdout.split()
+        allowed = self.planned_edits(step["step"], base)
+        # 이름 바꾸기도 옛 경로 지움 + 새 경로 추가로 본다 · 공백 · 비ASCII 경로를 그대로 받는다(리뷰 1회차)
+        out = self.git("-c", "core.quotePath=false", "diff", "--no-renames", "--name-only", "-z", base, "HEAD").stdout
+        changed = [f for f in out.split("\0") if f
                    if TEST_FILE.search(f) and not f.startswith("phases/") and f not in allowed
                    and self.git("cat-file", "-e", f"{base}:{f}").returncode == 0]
         if changed:
@@ -1041,10 +1054,15 @@ class Runner:
         if fails_now > self.max_retries:
             s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
+            self.write(idx)
+            self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
+            if not s.get("tdd"):   # ADR-024 T7: BASE 를 지우기 전에 — 재개 때 새 BASE 로 테스트 수정이 씻기지 않게
+                reverted = self.revert_test_edits(s, base)
+                if reverted:
+                    s["error_message"] += f" (테스트 수정 되돌림: {', '.join(reverted[:5])})"
             if not s.get("red"):
                 s.pop("base", None)
             self.write(idx)
-            self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
             self.commit_index(n)
             print(f"✗ step {n} 실패로 멈춤: {reason}")
             return 1
