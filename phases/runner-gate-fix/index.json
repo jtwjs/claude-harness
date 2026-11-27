@@ -27,11 +27,12 @@
     {
       "step": 3,
       "name": "gate-missed-forms",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T13:15:34+0900",
-      "base": "63a2bd89a3d07dd567d6ac7871076436d97df64b",
-      "red": "335259511013780be131b78abb95057d55fb9595"
+      "red": "335259511013780be131b78abb95057d55fb9595",
+      "summary": "open_decisions F4: 「남은 ⚠」(FE0F 무관) 제목·라벨 · 라벨 줄 붙여 쓴 내용(괄호 설명은 제외, 닫힘·없음 규칙 공용 _prd_open) · 번호(1. 1))·+ 목록 · _cells가 \\| 무시. F6: exclude = Path 공백 · 문서 없음 줄에 해석한 폴더. docs/* 전체 대조에서 새 오탐 0(열린 폴더 1개는 이전 러너도 같은 4개)",
+      "completed_at": "2026-11-27T13:26:37+0900"
     },
     {
       "step": 4,
