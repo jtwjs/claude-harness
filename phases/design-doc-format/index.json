@@ -45,7 +45,10 @@
       "step": 4,
       "name": "conductor-adr-lines",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T04:09:46+0900",
+      "base": "0746f2a56b382a0fd8bca194987f2d7c8a833f04",
+      "red": "3c543e17e46e754dafb2c4c57a13d8f22ed95541"
     }
   ]
 }
