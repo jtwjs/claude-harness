@@ -4,9 +4,33 @@
   "docs": "docs/secret-scan-2026-11-28",
   "after": [],
   "steps": [
-    { "step": 1, "name": "single-form-job", "status": "pending", "tdd": true },
-    { "step": 2, "name": "app-form-job", "status": "pending", "tdd": true },
-    { "step": 3, "name": "env-ignore-upgrade-notice", "status": "pending", "tdd": true },
-    { "step": 4, "name": "measure-real-scan", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "single-form-job",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T01:21:01+0900",
+      "base": "38b482a3731c7873f81c65b53fc31c690b7c0c18",
+      "red": "0b4d8e518d6e01c1a572123c5a2b81200afcf148"
+    },
+    {
+      "step": 2,
+      "name": "app-form-job",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "env-ignore-upgrade-notice",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "measure-real-scan",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
