@@ -37,8 +37,11 @@
     {
       "step": 4,
       "name": "docs-align",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-27T13:27:22+0900",
+      "summary": "F5 design.md ADR.md에 「결정할 것」 표(# · 정할 것 · 선택지 · 추천 · 주체). F6 sdd-runner.md: rejudge 확인 셋(스위트 단위 한계 명시) · D1~D3 · F4 꼴 · 경로 출력 · 남는 갈래 다섯+반대 방향 하나 · 140개(이번 15). ADR-023 D1·D2 갱신 줄 문구 맞춤. G1 harness.json review.gatePaths · G2 track-brief 한 줄 · G3 sdd-run §2 한 구절",
+      "completed_at": "2026-11-27T13:37:30+0900"
     },
     {
       "step": 5,
