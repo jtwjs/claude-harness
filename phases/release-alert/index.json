@@ -35,9 +35,12 @@
     {
       "step": 4,
       "name": "measure-before-after",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-27T17:55:27+0900",
+      "summary": "지휘 자리에서 `CLAUDE_PLUGIN_ROOT=<설치본 0.43.0> /usr/bin/time -p bash hooks/conductor-context.sh` 3회: real 2.74 · 2.55 · 2.75초(비포 a1743ed 훅 1.98 · 2.23 · 2.42초, 실제 대상 레포 3개). 애프터 현황: 하네스 설정 있는 대상 레포 하나의 줄에 「템플릿 0.34.0 → 설치본 0.43.0」, 하네스 원본 줄은 꼬리 없음(`gh api repos/<slug>/compare/a1743ed...main --jq .total_commits` = 0). 같은 훅을 설치본 0.42.0 폴더로: 「릴리스 안 된 머지 5건 #81 · #84 · #85 · #90 · #92 (설치본 0.42.0)」. 0.40.0 폴더로: 「릴리스 확인 실패(기준점)」 거짓 실패(#41이 version 그대로 plugin.json 수정 → release_base가 멈춤, 리뷰에서 고침 step). `git diff a1743ed -- hooks/cadence-reminder.sh` 0줄. `bash hooks/test.sh` 통과 670 · 실패 0. `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 145 OK",
+      "completed_at": "2026-11-27T21:34:28+0900"
     }
   ]
 }
