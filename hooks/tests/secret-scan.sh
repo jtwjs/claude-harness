@@ -154,3 +154,36 @@ grep -qxF '| `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`�
   && grep -qF 'CI는 다시 하지 않는다' "$_ss_up" \
   && ok "ss-upgrade-gitignore-row-unchanged — .gitignore 행 그대로(.env 도 빠진 줄 · diff 승인 뒤) · 「CI는 다시 하지 않는다」 그대로" \
   || bad "ss-upgrade-gitignore-row-unchanged" "$(grep -n -e '^| `.gitignore`' -e 'CI는 다시' "$_ss_up")"
+
+# ⑦ REVIEW 1회차 — 범위가 깨지면 잡 실패(gitleaks 는 커밋 0개를 exit 0 으로 끝낸다) · 권한 줄이기 · 한계 주석 · 안내 · doctor 대조 제외
+_ss_nosha="0123456789abcdef0123456789abcdef01234567"   # 이 레포에 없는 커밋
+_ss_sc2() { # $1 BASE_SHA $2 HEAD_SHA → 종료 코드 (가짜 gitleaks 는 늘 0 — 실패는 범위 확인에서만 나와야 한다)
+  (cd "$_ss_r" && env RUNNER_TEMP="$_ss_d/rt-scan" BASE_SHA="$1" HEAD_SHA="$2" SS_GL_ARGS="$_ss_d/gl2.args" SS_GL_EXIT=0 \
+    bash -e -c "$_ss_scan" >"$_ss_d/scan2.out" 2>&1)
+}
+if [ -z "$_ss_scan" ]; then
+  bad "ss-scan-missing-base-fails" "gitleaks scan 스텝이 없다"; bad "ss-scan-missing-head-fails" "gitleaks scan 스텝이 없다"; bad "ss-scan-empty-base-fails" "gitleaks scan 스텝이 없다"
+else
+  _ss_sc2 "$_ss_nosha" "$_ss_h"; _ss_code=$?
+  [ "$_ss_code" != "0" ] && ok "ss-scan-missing-base-fails — 기준 커밋이 레포에 없으면(얕은 clone 등) 잡 실패" || bad "ss-scan-missing-base-fails" "exit=$_ss_code out=[$(cat "$_ss_d/scan2.out")]"
+  _ss_sc2 "$_ss_b" "$_ss_nosha"; _ss_code=$?
+  [ "$_ss_code" != "0" ] && ok "ss-scan-missing-head-fails — 머리 커밋이 레포에 없으면 잡 실패" || bad "ss-scan-missing-head-fails" "exit=$_ss_code out=[$(cat "$_ss_d/scan2.out")]"
+  _ss_sc2 "" "$_ss_h"; _ss_code=$?
+  [ "$_ss_code" != "0" ] && ok "ss-scan-empty-base-fails — 기준 sha 가 비면 잡 실패(커밋 0개 통과 막기)" || bad "ss-scan-empty-base-fails" "exit=$_ss_code out=[$(cat "$_ss_d/scan2.out")]"
+fi
+[ "$(_ss_q 'j["permissions"] == { "contents" => "read" }' "$_ss_tpl")" = "true" ] \
+  && [ "$(_ss_q '(j["steps"].find { |s| s["uses"].to_s.start_with?("actions/checkout@") } || {}).fetch("with", {})["persist-credentials"]' "$_ss_tpl")" = "false" ] \
+  && [ "$(_ss_q '(j["steps"].find { |s| s["uses"].to_s.start_with?("actions/checkout@") } || {}).fetch("with", {})["fetch-depth"]' "$_ss_tpl")" = "0" ] \
+  && ok "ss-least-privilege — permissions contents: read · persist-credentials: false · fetch-depth 0 그대로" \
+  || bad "ss-least-privilege" "permissions=[$(_ss_q 'j["permissions"]' "$_ss_tpl")] checkout with=[$(_ss_q '(j["steps"].find { |s| s["uses"].to_s.start_with?("actions/checkout@") } || {})["with"]' "$_ss_tpl")]"
+grep -q 'merge 커밋' "$_ss_tpl" && grep -qF '.gitleaks.toml' "$_ss_tpl" && grep -qF '.gitleaksignore' "$_ss_tpl" && grep -qF 'gitleaks:allow' "$_ss_tpl" \
+  && ok "ss-limits-noted — 잡 주석에 한계 둘: merge 커밋 · PR 안 설정 파일로 끄기" || bad "ss-limits-noted" "템플릿 주석에 merge 커밋 · .gitleaks.toml · .gitleaksignore · gitleaks:allow 중 빠진 것"
+case "$_ss_ci_row" in *ci-gate*) _ss_v=1 ;; *) _ss_v=0 ;; esac
+case "$_ss_ci_row" in *needs*) ;; *) _ss_v=0 ;; esac
+case "$_ss_ci_row" in *'복사'*) ;; *) _ss_v=0 ;; esac
+[ "$_ss_v" = "1" ] && ok "ss-upgrade-ci-row-gate — 안내 문구: 복사 · 앱별이면 ci-gate needs 에도" || bad "ss-upgrade-ci-row-gate" "행=[$_ss_ci_row]"
+_ss_doc="$(grep -F '1-b. CI 워크플로' "$_ss_root/skills/harness-doctor/SKILL.md")"
+_ss_doc2="${_ss_doc#*②}"; _ss_doc2="${_ss_doc2%%③*}"; _ss_doc4="${_ss_doc#*④}"
+case "$_ss_doc2" in *secret-scan*) _ss_v=1 ;; *) _ss_v=0 ;; esac
+case "$_ss_doc4" in *secret-scan*) ;; *) _ss_v=0 ;; esac
+[ "$_ss_v" = "1" ] && ok "ss-doctor-excludes-scan — harness-doctor 1-b ② · ④가 secret-scan 잡을 대조에서 뺀다" || bad "ss-doctor-excludes-scan" "②=[${_ss_doc2:0:120}] ④=[${_ss_doc4:0:120}]"
