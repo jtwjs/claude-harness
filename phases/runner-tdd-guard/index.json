@@ -64,7 +64,10 @@
       "step": 6,
       "name": "review-fix-guard-gaps",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T03:08:26+0900",
+      "base": "3ddbe524562ef5d6b292f53ac9c07415068321bc",
+      "red": "c3f22aba18564572a2ed358e184f513f50894df8"
     }
   ]
 }
