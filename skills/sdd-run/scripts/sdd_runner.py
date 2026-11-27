@@ -148,7 +148,21 @@ def _md_heading(ln: str):
 
 
 def _cells(ln: str) -> list:
-    return [c.strip() for c in ln.strip().strip("|").split("|")]
+    """표 한 줄의 칸 — 셀 안 `\\|` 는 칸 나눔이 아니다(#86 F4)."""
+    parts = re.split(r"(?<!\\)\|", ln.strip())
+    if parts and not parts[0].strip():
+        parts = parts[1:]
+    if parts and not parts[-1].strip():
+        parts = parts[:-1]
+    return [c.strip() for c in parts]
+
+
+_LIST_ITEM = r"(?:[-*+]|\d+[.)])"   # 불렛 · 번호 목록(#86 F4)
+_OPEN_MARK = "남은 ⚠"   # 변이 선택자(U+FE0F) 있든 없든(#86 F4)
+
+
+def _prd_open(t: str) -> bool:
+    return "→ 결정:" not in t and "막지 않음:" not in t and not re.match(r"없음(?:$|[\s(])", t)
 
 
 def open_decisions(docs_dir) -> list:
@@ -188,13 +202,16 @@ def open_decisions(docs_dir) -> list:
         while i < len(lines):
             ln = lines[i]
             h = _md_heading(ln)
-            label = re.match(r"^(\s*)[-*]\s+(\*\*)?남은 ⚠️", ln)
-            if h and "남은 ⚠️" in h[1]:
+            label = re.match(rf"^(\s*){_LIST_ITEM}\s+(?:\*\*)?{_OPEN_MARK}\ufe0f?(?:\*\*)?(.*)$", ln)
+            if h and _OPEN_MARK in h[1]:
                 j = i + 1
                 while j < len(lines) and not ((hh := _md_heading(lines[j])) and hh[0] <= h[0]):
                     j += 1
             elif label:
                 ind = len(label.group(1))
+                inline = re.sub(r"^\s*[:：]?\s*", "", label.group(2)).strip()   # 라벨 줄에 붙여 쓴 내용(#86 F4)
+                if inline and not inline.startswith("(") and _prd_open(inline):
+                    out.append(f"PRD: {inline}")
                 j = i + 1
                 while j < len(lines) and (not lines[j].strip() or len(lines[j]) - len(lines[j].lstrip()) > ind):
                     j += 1
@@ -202,10 +219,9 @@ def open_decisions(docs_dir) -> list:
                 i += 1
                 continue
             bullets = [(len(m.group(1)), m.group(2)) for m in
-                       (re.match(r"^(\s*)[-*]\s+(.*?)\s*$", x) for x in lines[i + 1:j]) if m]
+                       (re.match(rf"^(\s*){_LIST_ITEM}\s+(.*?)\s*$", x) for x in lines[i + 1:j]) if m]
             top = min((b[0] for b in bullets), default=0)
-            out += [f"PRD: {t}" for k, t in bullets if k == top and "→ 결정:" not in t and "막지 않음:" not in t
-                    and not re.match(r"없음(?:$|[\s(])", t)]   # 「- 없음 (…)」은 항목 없음 표시(리뷰 1회차)
+            out += [f"PRD: {t}" for k, t in bullets if k == top and _prd_open(t)]   # 「- 없음 (…)」은 항목 없음 표시(리뷰 1회차)
             i = j
     return out
 
@@ -217,7 +233,7 @@ def gate(docs_dir) -> int:
         r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
         d = (Path(r.stdout.strip()) if r.returncode == 0 else Path.cwd()) / d
     if not (d / "ADR.md").is_file() and not (d / "PRD.md").is_file():
-        print("구현 시작 관문: ADR · PRD 없음 — 막지 않는다")
+        print(f"구현 시작 관문: ADR · PRD 없음 — 막지 않는다 ({d})")   # 경로 오타와 가를 수 있게(#86 F6)
         return 0
     items = open_decisions(d)
     if not items:
@@ -427,7 +443,7 @@ class Runner:
         docs = self.read().get("docs")
         if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
             return 2
-        exclude =Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
+        exclude = Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
         exclude = exclude if exclude.is_absolute() else self.root / exclude
         if OUTPUT_GLOB not in (exclude.read_text() if exclude.exists() else ""):
             exclude.parent.mkdir(parents=True, exist_ok=True)
