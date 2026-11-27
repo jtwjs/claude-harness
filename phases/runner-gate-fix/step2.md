@@ -16,6 +16,7 @@
 
 - 재시도 수는 `resumed_at`과 마지막 `rejudged[].at` 중 늦은 것 뒤의 attempts만 센다(결정 묶음 D2, 지휘 답 전 추천). `resumed_at`은 쓰지 않는다 — 쓰면 전체 verify가 켜진다
 - attempts 기록 자체는 지우지 않는다(이력)
+- step 1 F1 보강(검증 리뷰): ① 검증이 구현 구간에서 바뀐 테스트 파일을 옛 red 내용으로 되돌리는 테스트 커밋을 올리면 받는다(D1 「다시 받는다」 — HEAD 내용이 옛 red와 같으면 목록에서 뺀다) ② 구현 시도 커밋(blocked 판정이 만든 `wip:`)이 테스트 파일만 담았어도 「끝의 테스트만 담은 커밋 묶음」에 넣지 않는다 — 구현이 테스트만 지우고 막혀도 거부
 
 ## Acceptance Criteria
 
@@ -23,9 +24,9 @@
 - `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 통과
 - 엣지 5축:
   - 빈 값·경계: `test_rejudge_resets_retry_window`
-  - 비정상 입력: 해당 없음: 입력은 index의 시각 문자열뿐이다
+  - 비정상 입력: `test_rejudge_impl_only_deleted_test_refused`
   - 실패 경로: `test_rejudge_retry_window_still_limits`
-  - 상태 전이: `test_rejudge_does_not_set_resumed_at`
+  - 상태 전이: `test_rejudge_does_not_set_resumed_at` · `test_rejudge_after_restoring_impl_test_edit_accepted`
   - 동시성: 해당 없음
 
 ## 검증 절차
