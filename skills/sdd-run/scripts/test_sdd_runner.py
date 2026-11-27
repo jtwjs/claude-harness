@@ -513,6 +513,57 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
         self.assertEqual(self.read("tests/q.expect"), "qq", "검증의 테스트 수정은 되돌리지 않는다")
 
+    # ── blocked 보고 때 되돌림(ADR-024 T5) ─────────────────────────────────────────
+    def blocked_impl(self, steps, ops):
+        """기존 테스트 q · r → 구현 차례 prompt → ops + blocked 보고 → judge. judge 결과를 돌려준다."""
+        self.guard_turn(steps, prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act(ops + [["status", "blocked", {"blocked_reason": "q 테스트 기대값이 틀렸다"}]])
+        return self.session("judge", "t1", "--step", "1")
+
+    def test_tdd_false_blocked_test_edit_reverted(self):
+        # 테스트를 고친 채 blocked 를 보고하면 wip 커밋 뒤 새 BASE 로 수정이 씻긴다 — 기록 전에 되돌린다
+        p = self.blocked_impl([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                              [["write", "src/c.txt", "c"], ["write", "tests/q.expect", "qq"]])
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "BASE 내용으로 되돌린다")
+        reason = self.step()["blocked_reason"]
+        self.assertTrue(reason.startswith("q 테스트 기대값이 틀렸다"), "구현이 적은 사유는 그대로 앞에")
+        self.assertIn("테스트 수정 되돌림", reason)
+        self.assertIn("tests/q.expect", reason)
+        self.assertIn("테스트 수정 되돌림", self.log(), "되돌림은 커밋으로 남는다")
+        hist = git(self.repo, "log", "-p", "--format=%s", "--", "tests/q.expect").stdout
+        self.assertIn("+qq", hist, "구현이 고친 내용은 기록에 남아 검증이 재판정 때 본다")
+        self.assertEqual(self.step()["status"], "blocked")
+
+    def test_tdd_false_blocked_without_test_edit_unchanged(self):
+        p = self.blocked_impl([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                              [["write", "src/c.txt", "c"]])
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertEqual(self.step()["blocked_reason"], "q 테스트 기대값이 틀렸다", "되돌릴 것이 없으면 사유 그대로")
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+
+    def test_tdd_false_blocked_listed_edit_kept(self):
+        p = self.blocked_impl([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}],
+                              [["write", "tests/q.expect", "qq"]])
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "qq", "칸에 적힌 파일은 되돌리지 않는다")
+        self.assertEqual(self.step()["blocked_reason"], "q 테스트 기대값이 틀렸다")
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+
+    def test_tdd_true_blocked_keeps_test_edit(self):
+        # tdd: true(red 있음) blocked 는 그대로 — 씻김은 rejudge D1 · D5 가 막는다
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "tests/a.expect", "bye"], ["status", "blocked", {"blocked_reason": "a 기대값이 틀렸다"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.assertEqual(self.read("tests/a.expect"), "bye")
+        self.assertEqual(self.step()["blocked_reason"], "a 기대값이 틀렸다")
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+
     # ── 시작 전 점검 ────────────────────────────────────────────────────────
     def test_after_not_done_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}], task="be")
