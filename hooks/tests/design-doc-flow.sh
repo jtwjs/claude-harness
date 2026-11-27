@@ -17,7 +17,9 @@ printf '%s' "$_df_s" | grep -q 'skills/sdd/scripts/design_doc_check.py' && print
   && ok "df-screen-runs-check-first 화면 절에 검사 명령 · 실패면 열지 않음" || bad "df-screen-runs-check-first 화면 절" "[$(printf '%s' "$_df_s" | head -3)]"
 
 # df-open-questions-cell 질문 자리는 「열린 질문과 누가 정하나」 (설계서 순서 · 화면)
-{ _df_sec '설계서 순서'; _df_sec '화면'; } | grep -q '열린 질문과 누가 정하나' && ok "df-open-questions-cell 질문 자리 = 열린 질문과 누가 정하나" || bad "df-open-questions-cell" "설계서 순서 · 화면 절에 없음"
+# 함수 출력을 grep -q 로 바로 넘기지 않는다 — pipefail 아래 grep -q 가 먼저 끝나면 awk 가 SIGPIPE 로 죽어 실패로 잡힌다
+_df_oq="$(_df_sec '설계서 순서')$(_df_sec '화면')"
+printf '%s' "$_df_oq" | grep -q '열린 질문과 누가 정하나' && ok "df-open-questions-cell 질문 자리 = 열린 질문과 누가 정하나" || bad "df-open-questions-cell" "설계서 순서 · 화면 절에 없음"
 
 # df-big-direction-asked 설계서 순서: 큰 방향(구조 상자)은 설계서에서 묻고, 코드 근거는 결정 묶음
 _df_o=$(_df_sec '설계서 순서')
@@ -35,11 +37,13 @@ done
 [ -n "$_df_t" ] && [ -z "$_df_miss" ] && ok "df-prd-from-cells 일곱 칸 · 출처 칸 꼴" || bad "df-prd-from-cells 없음" "${_df_miss:-절 없음}"
 
 # df-picked-cell 결정 묶음 답 · 세 장 결정의 자리 = 「고른 안과 버린 안」
-printf '%s' "$_df_t" | grep -q '고른 안과 버린 안' && _df_h2 '끝' | grep -q '고른 안과 버린 안' \
+_df_end=$(_df_h2 '끝')
+printf '%s' "$_df_t" | grep -q '고른 안과 버린 안' && printf '%s' "$_df_end" | grep -q '고른 안과 버린 안' \
   && ok "df-picked-cell 설계서와 세 장 · 끝 절 = 고른 안과 버린 안" || bad "df-picked-cell" "설계서와 세 장 또는 끝 절"
 
 # df-solo-design-doc 혼자 도는 sdd 는 같은 틀을 DESIGN-DOC.md 에
-_df_sec '누가 · 어디에' | grep -q 'DESIGN-DOC.md' && ok "df-solo-design-doc 누가 · 어디에 = DESIGN-DOC.md" || bad "df-solo-design-doc" "누가 · 어디에 절"
+_df_who=$(_df_sec '누가 · 어디에')
+printf '%s' "$_df_who" | grep -q 'DESIGN-DOC.md' && ok "df-solo-design-doc 누가 · 어디에 = DESIGN-DOC.md" || bad "df-solo-design-doc" "누가 · 어디에 절"
 
 # df-arch-cells ARCHITECTURE 정의에 네 칸
 _df_a=$(grep -E '^\*\*ARCHITECTURE\.md\*\*:' "$_df_md"); _df_miss=""
@@ -60,4 +64,5 @@ printf '%s' "$_df_r9" | grep -q '목표와 비목표' && printf '%s' "$_df_r9" |
 grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$_df_md" && ok "df-keep-phrase ARCHITECTURE.md — PRD 확정 직후 구절 남음" || bad "df-keep-phrase" "구절 없음"
 
 # df-skill-row sdd ① 행 PRD 줄 = 출처 칸
-grep -E '설계서를 받았을 때' "$_df_sk" | grep -q '출처' && ok "df-skill-row sdd ① 행에 출처 칸" || bad "df-skill-row" "sdd SKILL.md ① 행"
+_df_row=$(grep -E '설계서를 받았을 때' "$_df_sk")
+printf '%s' "$_df_row" | grep -q '출처' && ok "df-skill-row sdd ① 행에 출처 칸" || bad "df-skill-row" "sdd SKILL.md ① 행"
