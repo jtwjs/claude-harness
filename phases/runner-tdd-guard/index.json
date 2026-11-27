@@ -7,11 +7,14 @@
     {
       "step": 1,
       "name": "tdd-false-guard",
-      "status": "pending",
+      "status": "blocked",
       "tdd": true,
       "started_at": "2026-11-28T01:21:06+0900",
       "base": "d9d8cb67460ecd17db1683033382e1c640116d5f",
-      "red": "103e03dccdfc6e5f969dadc0cd4b4cfefbfb3a75"
+      "red": "103e03dccdfc6e5f969dadc0cd4b4cfefbfb3a75",
+      "blocked_reason": "test_tdd_false_test_edit_reverted 마지막 단언(status --porcelain 빈칸)이 기존 재시도 경로와 부딪힌다: record 의 재시도(return 10) 갈래는 어떤 Fail 이든 index.json(pending · last_error)을 커밋하지 않아 'M phases/t1/index.json' 이 남는다. 되돌림 자체는 커밋됐다(남은 변경은 index.json 하나). 판정 4'는 구현했고 나머지 153개 통과. 단언을 phases/ 밖으로 좁힐지, 재시도 때 index 커밋을 더할지(전체 실패 경로 변경, 범위 밖) 검증 세션 판정 필요",
+      "blocked_at": "2026-11-28T01:29:49+0900",
+      "blocked_head": "26f03d9c40696545ed35995681d951b6416b4244"
     },
     {
       "step": 2,
