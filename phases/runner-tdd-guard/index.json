@@ -34,11 +34,12 @@
     {
       "step": 3,
       "name": "blocked-revert",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T01:55:36+0900",
-      "base": "4917f0e05f32630990338cf6f06e8a8341495766",
-      "red": "bd5e6b20b46fc40a8bcfe91d16f42a4c1878e72d"
+      "red": "bd5e6b20b46fc40a8bcfe91d16f42a4c1878e72d",
+      "summary": "check blocked 갈래: tdd 아닌 step 은 남은 변경을 wip 커밋한 뒤 판정 4'와 같은 되돌림 커밋, blocked_reason 끝에 「(테스트 수정 되돌림: 경로)」(ADR-024 T5). 되돌림은 revert_test_edits 메서드로 묶어 판정 4'와 같이 쓴다",
+      "completed_at": "2026-11-28T02:10:57+0900"
     },
     {
       "step": 4,
