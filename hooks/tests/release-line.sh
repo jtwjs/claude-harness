@@ -122,9 +122,36 @@ _rl_fail release_installed_version_empty_fails "설치본 version 빈 값 → �
 
 _rl_run "$_rl_d/noplugin" ok
 _rl_fail release_installed_unreadable_fails "설치본 plugin.json 없음(이름 모름) → 플러그인 레포 줄에 「릴리스 확인 실패」"
+case "$(_rl_line rl-other)" in "- rl-other — 트랙 손댈 것 없음 · 릴리스 확인 실패"*) ok "release_installed_unreadable_fails — 이름을 모르면 다른 플러그인 레포 줄에도 「릴리스 확인 실패」";; *) bad "release_installed_unreadable_fails 다른 레포" "[$(_rl_line rl-other)]";; esac
 
+# 원격 조회 한 번의 제한(5초)을 본다 — 전체 마감은 기본 25초로 둬야 마감이 먼저 끊지 않는다(REVIEW 1회차)
 _rl_s=$SECONDS
-_rl_run "$_rl_d/plugin" slow 3
+_rl_run "$_rl_d/plugin" slow 25
 _rl_e=$((SECONDS - _rl_s))
-[ "$_rl_e" -le 7 ] && ok "release_gh_slow_fails_within_limit — 원격이 10초 걸려도 마감 안에서 끝남(${_rl_e}초)" || bad "release_gh_slow_fails_within_limit 시간" "${_rl_e}초"
+[ "$_rl_e" -le 7 ] && ok "release_gh_slow_fails_within_limit — 원격이 10초 걸려도 조회 제한 5초에서 끊김(${_rl_e}초, 전체 마감 25초)" || bad "release_gh_slow_fails_within_limit 시간" "${_rl_e}초"
 _rl_fail release_gh_slow_fails_within_limit "원격 시간 초과 → 「릴리스 확인 실패」"
+
+# ── step 5: REVIEW 1회차 고침 ──
+# 버전 올림 뒤 version 은 그대로 두고 plugin.json 다른 칸만 고친 머지(#41 꼴)가 있어도 기준점은 올림 커밋이다
+_rl_git checkout -q --detach "$_rl_base"
+printf '{"name":"claude-harness","description":"edit","version":"0.43.0"}\n' > "$_rl_d/rl-harness/.claude-plugin/plugin.json"
+_rl_git add -A; _rl_git commit -q -m "docs: plugin 설명 (#5)"
+_rl_git update-ref refs/remotes/origin/main "$(_rl_git rev-parse HEAD)"
+_rl_json "docs: plugin 설명 (#5)"
+_rl_run "$_rl_d/plugin" ok
+[ "$(_rl_line rl-harness)" = "$_rl_head · 릴리스 안 된 머지 1건 #5 (설치본 0.43.0)" ] && grep -qxF "api repos/acme/harness/compare/$_rl_base...main" "$_rl_d/gh.log" \
+  && ok "release_base_skips_same_version_edit — 버전 그대로인 plugin.json 수정 커밋은 건너뛰고 올림 커밋을 기준점으로" || bad "release_base_skips_same_version_edit" "[$(_rl_line rl-harness)] log=[$(cat "$_rl_d/gh.log")]"
+
+# 하네스 원본 작업 트리 plugin.json 이 깨짐(충돌 표시) → 조용히 사라지지 않고 「릴리스 확인 실패」
+printf '<<<<<<< HEAD\n{"name":"claude-harness","version":"0.43.0"}\n=======\n' > "$_rl_d/rl-harness/.claude-plugin/plugin.json"
+_rl_run "$_rl_d/plugin" ok
+_rl_fail release_worktree_plugin_broken_fails "작업 트리 plugin.json 깨짐 → 「릴리스 확인 실패」"
+_rl_git checkout -q -- .claude-plugin/plugin.json
+_rl_git update-ref refs/remotes/origin/main "$_rl_base"
+
+# compare 응답 꼴이 이상해도(커밋 칸이 객체가 아님) 그 레포 줄만 실패, 다른 레포 줄은 그대로
+printf '{"total_commits":1,"commits":[{"commit":"x"}]}' > "$_rl_d/compare.json"
+_rl_run "$_rl_d/plugin" ok
+_rl_fail release_odd_json_fails_isolated "커밋 칸 꼴이 이상함 → 「릴리스 확인 실패」"
+[ "$(_rl_line rl-other)" = "- rl-other — 트랙 손댈 것 없음 · 템플릿 0.34.0 → 설치본 0.43.0" ] \
+  && ok "release_odd_json_fails_isolated — 다른 레포 줄은 그대로" || bad "release_odd_json_fails_isolated 다른 레포" "ctx=[$_rl_ctx]"
