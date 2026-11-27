@@ -1,0 +1,13 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-tdd-guard",
+  "docs": "docs/runner-tdd-guard-2026-11-27",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "tdd-false-guard", "status": "pending", "tdd": true },
+    { "step": 2, "name": "impl-base-pin", "status": "pending", "tdd": true },
+    { "step": 3, "name": "blocked-revert", "status": "pending", "tdd": true },
+    { "step": 4, "name": "test-edits-check", "status": "pending", "tdd": true },
+    { "step": 5, "name": "docs-align", "status": "pending", "tdd": false }
+  ]
+}
