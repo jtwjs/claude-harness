@@ -1,0 +1,90 @@
+{
+  "project": "claude-harness",
+  "phase": "design-doc-format",
+  "docs": "docs/design-doc-format-2026-11-28",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "template-cells",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T03:22:44+0900",
+      "red": "98173ab905695d521aa32b1b1c0a44fcefe1d13c",
+      "summary": "design.md 「설계서 틀」 문단 + markdown 블록을 간단히 1~5 · 우리 칸 · 자세히 6~9 · 아주 자세히 10~12로 교체, ### 칸마다 ← 안내. 블록 울타리와 「**설계서 틀**」 첫 줄 글자는 그대로(step 2 검사 계약)",
+      "completed_at": "2026-11-28T03:37:14+0900"
+    },
+    {
+      "step": 2,
+      "name": "design-doc-check",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T03:37:42+0900",
+      "red": "01e3c775926f2d3afc5c34d729e435a04f3a5818",
+      "summary": "skills/sdd/scripts/design_doc_check.py 추가: design.md 「**설계서 틀**」 줄 다음 첫 울타리가 ```markdown일 때만 틀 블록으로 읽는다(첫 울타리가 다르면 exit 2). 순서 어긋남 칸은 위치를 옮기지 않아 뒤 칸 판정이 이어진다",
+      "completed_at": "2026-11-28T03:48:42+0900"
+    },
+    {
+      "step": 3,
+      "name": "sdd-flow-rules",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T03:49:12+0900",
+      "red": "5c26d263d6060b2c51c4d394232234e25d72ecb9",
+      "rejudged": [
+        {
+          "at": "2026-11-28T04:02:14+0900",
+          "red_before": "2a37eccb9ca4bcb56d13116b04dfa34dadd3622e",
+          "attempts_before": 0
+        }
+      ],
+      "summary": "design.md 설계서 순서(초안 칸 · 3 보강 큰 방향 · 7 아주 자세히) · 화면(칸 순서 검사 먼저) · 설계서와 세 장(일곱 칸 · 출처 칸) · 끝 · Readiness 9·10 · 3장 정의, SKILL.md ① PRD 줄 교체. 구현은 blocked 시점 wip c80a367에 있고 재판정 뒤 추가 변경 없음",
+      "completed_at": "2026-11-28T04:09:24+0900"
+    },
+    {
+      "step": 4,
+      "name": "conductor-adr-lines",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T04:09:46+0900",
+      "red": "3c543e17e46e754dafb2c4c57a13d8f22ed95541",
+      "summary": "decisions.md 결정 묶음 받기 → 「고른 안과 버린 안」 · 설계서 흐름에 아주 자세히 3칸 한 구절, ADR-022 「- 겹침:」 다음에 「- 갱신: #87」 머리 불렛(결정할 것 표는 그대로)",
+      "completed_at": "2026-11-28T04:19:16+0900"
+    },
+    {
+      "step": 5,
+      "name": "review-fixes",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T04:40:51+0900",
+      "red": "1c9636704b7af25db5cff316e8e2e667130dd06e",
+      "summary": "design_doc_check.py: 칸별 첫 일치 위치의 가장 긴 증가 부분열(O(n^2)) · 이름 경계(공백·「(」) · 들여쓰기 0~3 · 울타리 문자/길이 · utf-8-sig. design.md 11행 · 화면 옛 틀 예외 · 세 장 출처 예외 3줄 · R1 주제 이름 · R2 비기능 수치 · PRD 8칸 · Readiness 9·10, non-obvious-patterns 꼬리표 한 줄",
+      "completed_at": "2026-11-28T04:50:54+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T04:38:17+0900",
+      "head": "d31e442",
+      "by": "sdd-review(검증 세션) + code-reviewer(새 맥락, skills/sdd/** 공용 경로)",
+      "issues": [
+        "🟡 design.md:11 「설계서 원문으로 쓴다」 옛 규칙 문장 남음 · AC-2 문구 테스트 없음(sdd-review)",
+        "🟡 출처 칸을 표 행 끝에 달면 ADR 「결정할 것」 마지막 열(주체)에 들어가 러너 관문이 열림 — 재현",
+        "🟡 ADR 「설계 문서 링크」 · Readiness 10이 비공개 설계서 행 링크를 요구 — R1 = 주제 이름(지휘 판정)",
+        "🟡 화면 검사에 옛 틀 설계서 예외가 없음(설계서 제약 「진행 중 #71 · #91 옛 틀」)",
+        "🟡 PRD 뽑는 7칸에 사용자 흐름 · 비기능 출처 없음 — R2 사용자 답 대기",
+        "🟡 칸 하나를 멀리 옮기면 제자리 칸들을 순서 어긋남으로 냄 — 재현",
+        "🟢 칸 이름 경계 · 울타리 꼴(```` · ~~~) · 들여쓴 제목 · BOM · #### 케이스 · template 테스트 SIGPIPE 꼴 · 혼자 도는 sdd 표현 · Readiness 9 「범위 밖」 · PRD/ARCHITECTURE 표현"
+      ]
+    },
+    {
+      "at": "2026-11-28T04:54:24+0900",
+      "head": "56c4ee5",
+      "by": "sdd-review(검증 세션, 1회차 head 뒤 diff)",
+      "issues": [
+        "🟢 UTF-8이 아닌 설계서는 traceback · exit 1(칸 문제와 같은 코드라 통과로 새지는 않음) — 후속 후보, 고치지 않음"
+      ],
+      "resolved": "1회차 🟡 6건 · 🟢 반영(step 5) · R1 지휘 판정 · R2 사용자 결정. bash hooks/test.sh 764/0. 검사 최종 코드로 지휘 설계서 원본 16칸 통과 · 칸 뺀 사본 · 순서 바꾼 사본 exit 1 · 끝 기준 2회 16칸 통과"
+    }
+  ]
+}
