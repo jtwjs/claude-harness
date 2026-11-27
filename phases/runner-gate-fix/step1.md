@@ -23,7 +23,7 @@
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
 - `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 통과
 - 엣지 5축(축마다 테스트 이름 또는 「해당 없음」):
-  - 빈 값·경계: `test_rejudge_impl_test_edit_before_red_ok`(옛 red 앞의 테스트 커밋은 안 셈)
+  - 빈 값·경계: `test_rejudge_impl_test_edit_before_red_ok`
   - 비정상 입력: `test_rejudge_detached_head`
   - 실패 경로: `test_rejudge_impl_deleted_test_refused` · `test_rejudge_impl_edited_test_refused`
   - 상태 전이: 해당 없음: 성공 전이는 runner-gate step 3 테스트가 덮는다

@@ -22,9 +22,9 @@
 - `bash hooks/test.sh` 통과(`.claude/harness.json` `verify.test`)
 - `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 통과
 - 엣지 5축:
-  - 빈 값·경계: `test_rejudge_resets_retry_window`(3번 실패 → blocked → rejudge → 첫 실패는 retry 10, error 아님)
+  - 빈 값·경계: `test_rejudge_resets_retry_window`
   - 비정상 입력: 해당 없음: 입력은 index의 시각 문자열뿐이다
-  - 실패 경로: `test_rejudge_retry_window_still_limits`(재판정 뒤에도 한도를 넘으면 error)
+  - 실패 경로: `test_rejudge_retry_window_still_limits`
   - 상태 전이: `test_rejudge_does_not_set_resumed_at`
   - 동시성: 해당 없음
 
