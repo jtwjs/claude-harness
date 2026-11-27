@@ -7,10 +7,9 @@
     {
       "step": 1,
       "name": "tdd-false-guard",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T01:21:06+0900",
-      "base": "d9d8cb67460ecd17db1683033382e1c640116d5f",
       "red": "279612449c37b036d36a9eec2c1228065aa86043",
       "rejudged": [
         {
@@ -18,7 +17,9 @@
           "red_before": "103e03dccdfc6e5f969dadc0cd4b4cfefbfb3a75",
           "attempts_before": 0
         }
-      ]
+      ],
+      "summary": "sdd_runner.py check 에 판정 4'(tdd 아닌 step·measure 포함): BASE~HEAD 순변화 중 BASE 에 있던 테스트 파일이 test_edits 키(글자 그대로)에 없으면 checkout BASE 로 되돌림 커밋 후 Fail — 판정 4 꼴 그대로",
+      "completed_at": "2026-11-28T01:42:29+0900"
     },
     {
       "step": 2,
