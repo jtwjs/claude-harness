@@ -54,11 +54,12 @@
     {
       "step": 5,
       "name": "review-fixes",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T04:40:51+0900",
-      "base": "3641ace1436eba42b16bd74282789cc3fca10064",
-      "red": "1c9636704b7af25db5cff316e8e2e667130dd06e"
+      "red": "1c9636704b7af25db5cff316e8e2e667130dd06e",
+      "summary": "design_doc_check.py: 칸별 첫 일치 위치의 가장 긴 증가 부분열(O(n^2)) · 이름 경계(공백·「(」) · 들여쓰기 0~3 · 울타리 문자/길이 · utf-8-sig. design.md 11행 · 화면 옛 틀 예외 · 세 장 출처 예외 3줄 · R1 주제 이름 · R2 비기능 수치 · PRD 8칸 · Readiness 9·10, non-obvious-patterns 꼬리표 한 줄",
+      "completed_at": "2026-11-28T04:50:54+0900"
     }
   ],
   "reviews": [
