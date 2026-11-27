@@ -1,0 +1,12 @@
+{
+  "project": "claude-harness",
+  "phase": "design-doc-format",
+  "docs": "docs/design-doc-format-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "template-cells", "status": "pending", "tdd": true },
+    { "step": 2, "name": "design-doc-check", "status": "pending", "tdd": true },
+    { "step": 3, "name": "sdd-flow-rules", "status": "pending", "tdd": true },
+    { "step": 4, "name": "conductor-adr-lines", "status": "pending", "tdd": true }
+  ]
+}
