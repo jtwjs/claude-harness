@@ -27,10 +27,9 @@
     {
       "step": 3,
       "name": "sdd-flow-rules",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T03:49:12+0900",
-      "base": "5055505587f7cf5f6091a8f2b3cfc8dc80695584",
       "red": "5c26d263d6060b2c51c4d394232234e25d72ecb9",
       "rejudged": [
         {
@@ -38,7 +37,9 @@
           "red_before": "2a37eccb9ca4bcb56d13116b04dfa34dadd3622e",
           "attempts_before": 0
         }
-      ]
+      ],
+      "summary": "design.md 설계서 순서(초안 칸 · 3 보강 큰 방향 · 7 아주 자세히) · 화면(칸 순서 검사 먼저) · 설계서와 세 장(일곱 칸 · 출처 칸) · 끝 · Readiness 9·10 · 3장 정의, SKILL.md ① PRD 줄 교체. 구현은 blocked 시점 wip c80a367에 있고 재판정 뒤 추가 변경 없음",
+      "completed_at": "2026-11-28T04:09:24+0900"
     },
     {
       "step": 4,
