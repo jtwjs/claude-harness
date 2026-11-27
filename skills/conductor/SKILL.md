@@ -34,7 +34,7 @@ allowed-tools: [Read, Write, Bash, Glob, Grep]
 | 트랙에 지시문을 보낸다 · 겹치면 · 새 규칙 → 기존 코드 정리 · 트랙 세션을 연다 | §5 트랙 지시문 · 「트랙 세션 열기」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/dispatch.md` |
 | 트랙이 소유 경로 밖을 고쳐야 한다고 보고했다 | §6 트랙 예외 승인(「새 규칙 위반 정리만」) | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/dispatch.md` |
 | 지휘 세션을 끝낸다 · worktree · 트랙 세션 정리 | §7 세션 끝 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/session-end.md` |
-| 트랙과 메시지를 주고받는다 · 트랙 보고(세 줄 요약 · 판정 재료 5줄 · 학습 카드)를 받는다 | §8 초인종 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/doorbell.md` |
+| 트랙과 메시지를 주고받는다 · 트랙 보고(세 줄 요약 · 판정 재료 7줄 · 학습 카드)를 받는다 | §8 초인종 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/doorbell.md` |
 | 사용자에게 현황 · 트랙 보고를 올린다 | 「사용자에게 올리는 현황」 | 이 파일 아래 |
 | 규칙이 왜 생겼나(실측 · 빌려 온 것) | 「왜」 | `${CLAUDE_PLUGIN_ROOT}/skills/conductor/references/why.md` |
 
