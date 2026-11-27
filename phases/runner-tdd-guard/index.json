@@ -35,7 +35,10 @@
       "step": 3,
       "name": "blocked-revert",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T01:55:36+0900",
+      "base": "4917f0e05f32630990338cf6f06e8a8341495766",
+      "red": "bd5e6b20b46fc40a8bcfe91d16f42a4c1878e72d"
     },
     {
       "step": 4,
