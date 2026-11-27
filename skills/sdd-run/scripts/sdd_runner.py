@@ -13,9 +13,13 @@
   sdd_runner.py prompt TASK [--base SHA]                      다음 pending step 의 지시문 출력, stderr 에 "▶ step N" (세션 안.
                                                               --base 는 그 step 의 BASE 로 index.json 에 고정, 재시도에서 안 덮음)
   sdd_runner.py judge TASK --step N [--base SHA]              step N 판정·기록 (세션 안. BASE 는 고정값이 먼저)
+  sdd_runner.py gate DOCS_DIR                                 구현 시작 관문: DOCS_DIR 의 ADR · PRD 에 열린 「정할 것」이
+                                                              있으면 목록 + 종료 2 (ADR-023 R1 · R2, 레포 루트 기준 경로)
   나눔 모드(검증 세션 · 구현 세션, ADR-019 A4 · E12) — 차례는 index.json 이 정한다:
   sdd_runner.py prompt TASK --role test|impl [--base SHA]     그 역할 차례일 때만 지시문(test = 테스트만 · impl = 구현만)
   sdd_runner.py judge TASK --red --step N                     검증 쪽: 판정 2·3 만, 통과하면 step 에 red 기록
+  sdd_runner.py rejudge TASK --step N                         검증 쪽: 재판정 「테스트가 틀렸다」 — 고친 테스트 커밋을 새 red 로,
+                                                              구현 커밋은 그대로 두고 구현 차례로 (ADR-023 R3)
   effort(ADR-019 C2): 역할이 정한다 — prompt 는 stderr 에 "▶ effort <값>"(Agent effort 로 넘긴다) · run 은 claude -p --effort.
   --effort 로 덮는다(prompt · run). step 파일에는 effort 칸이 없다
 
@@ -136,6 +140,93 @@ def md_sections(md: str) -> dict:
         elif cur is not None:
             out[cur].append(ln)
     return {k: "\n".join(v) for k, v in out.items()}
+
+
+def _md_heading(ln: str):
+    m = re.match(r"^(#+)\s+(.*)$", ln)
+    return (len(m.group(1)), m.group(2)) if m else None
+
+
+def _cells(ln: str) -> list:
+    return [c.strip() for c in ln.strip().strip("|").split("|")]
+
+
+def open_decisions(docs_dir) -> list:
+    """구현 시작 관문(ADR-023 R1) — docs_dir 의 ADR.md · PRD.md 에서 열린 「정할 것」을 한 줄씩."""
+    d = Path(docs_dir)
+    out = []
+    adr = d / "ADR.md"
+    if adr.is_file():
+        level, header, owner = None, None, None   # 「결정할 것」 절 급 · 지금 표 머리 · 주체 칸 번호
+        for ln in adr.read_text(encoding="utf-8").splitlines():
+            h = _md_heading(ln)
+            if h:
+                if level is not None and h[0] <= level:
+                    level = None
+                if "결정할 것" in h[1]:
+                    level = h[0]
+                header = None
+                continue
+            if level is None:
+                continue
+            if not ln.lstrip().startswith("|"):
+                header = None
+                continue
+            cells = _cells(ln)
+            if header is None:
+                header = cells
+                owner = next((i for i, c in enumerate(cells) if "주체" in c), None)
+                continue
+            if all(re.fullmatch(r":?-+:?", c) for c in cells if c):
+                continue
+            if owner is None or owner >= len(cells) or not cells[owner]:
+                out.append(f"ADR {cells[0]}: {cells[1] if len(cells) > 1 else ''}".rstrip())
+    prd = d / "PRD.md"
+    if prd.is_file():
+        lines = prd.read_text(encoding="utf-8").splitlines()
+        i = 0
+        while i < len(lines):
+            ln = lines[i]
+            h = _md_heading(ln)
+            label = re.match(r"^(\s*)[-*]\s+(\*\*)?남은 ⚠️", ln)
+            if h and "남은 ⚠️" in h[1]:
+                j = i + 1
+                while j < len(lines) and not ((hh := _md_heading(lines[j])) and hh[0] <= h[0]):
+                    j += 1
+            elif label:
+                ind = len(label.group(1))
+                j = i + 1
+                while j < len(lines) and (not lines[j].strip() or len(lines[j]) - len(lines[j].lstrip()) > ind):
+                    j += 1
+            else:
+                i += 1
+                continue
+            bullets = [(len(m.group(1)), m.group(2)) for m in
+                       (re.match(r"^(\s*)[-*]\s+(.*?)\s*$", x) for x in lines[i + 1:j]) if m]
+            top = min((b[0] for b in bullets), default=0)
+            out += [f"PRD: {t}" for k, t in bullets if k == top and "→ 결정:" not in t and "막지 않음:" not in t
+                    and not re.match(r"없음(?:$|[\s(])", t)]   # 「- 없음 (…)」은 항목 없음 표시(리뷰 1회차)
+            i = j
+    return out
+
+
+def gate(docs_dir) -> int:
+    """`gate DOCS_DIR` — 열린 것이 있으면 목록 + 종료 2, 없으면 한 줄 + 0. 읽기만 한다."""
+    d = Path(docs_dir)
+    if not d.is_absolute():
+        r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+        d = (Path(r.stdout.strip()) if r.returncode == 0 else Path.cwd()) / d
+    if not (d / "ADR.md").is_file() and not (d / "PRD.md").is_file():
+        print("구현 시작 관문: ADR · PRD 없음 — 막지 않는다")
+        return 0
+    items = open_decisions(d)
+    if not items:
+        print("구현 시작 관문: 열린 「정할 것」 0")
+        return 0
+    print(f"구현 시작 관문: 열린 「정할 것」 {len(items)}개 — 지휘(또는 사람)에게 묻고 닫은 뒤 다시")
+    for it in items:
+        print(f"  - {it}")
+    return 2
 
 
 def edge_axes(ac: str):
@@ -333,7 +424,10 @@ class Runner:
                 why = s.get("error_message") or s.get("blocked_reason") or ""
                 print(f"step {s['step']} 이 {s['status']} 다 — 원인을 고치고 pending 으로 되돌린 뒤 다시 실행: {why}")
                 return 2 if s["status"] == "blocked" else 1
-        exclude = Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
+        docs = self.read().get("docs")
+        if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
+            return 2
+        exclude =Path(self.git("rev-parse", "--git-path", "info/exclude").stdout.strip())
         exclude = exclude if exclude.is_absolute() else self.root / exclude
         if OUTPUT_GLOB not in (exclude.read_text() if exclude.exists() else ""):
             exclude.parent.mkdir(parents=True, exist_ok=True)
@@ -528,7 +622,9 @@ class Runner:
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
         scope = commits   # 판정 6 범위는 테스트 파일까지 — 테스트가 든 앱도 돈다
-        if step.get("red"):
+        if step.get("rejudged"):   # 판정 5(ADR-023 R3): red 가 고친 테스트라 구현은 그 앞에 있을 수 있다 — BASE 뒤 구현 변경
+            commits = [c for c in commits if any(not TEST_FILE.search(f) and not f.startswith("phases/") for f in c[1])]
+        elif step.get("red"):
             commits = self.commits_since(step["red"])   # 판정 5: 테스트 커밋 뒤 구현 변경
         if not commits:
             if step.get("kind") != "measure":
@@ -651,6 +747,75 @@ class Runner:
         if stepped:
             print(f"step 명령: {', '.join(stepped)}", file=sys.stderr)
         return out
+
+    # ── 재판정 진입점 (ADR-023 R3) ─────────────────────────────────────────
+    def base_with_tests(self, base: str) -> str:
+        """BASE 트리에 HEAD 의 테스트 파일(BASE 뒤 바뀐 것, 지워진 것은 지움)을 얹은 임시 커밋 sha. 브랜치·트리는 그대로."""
+        git_dir = Path(self.root, self.git("rev-parse", "--git-dir").stdout.strip())
+        env = {**os.environ, "GIT_INDEX_FILE": str(git_dir / f"sdd-rejudge-{self.task}.index")}
+        run = lambda *a: subprocess.run(["git", *a], cwd=self.root, env=env, capture_output=True, text=True, check=True)
+        try:
+            run("read-tree", base)
+            for f in self.git("diff", "--name-only", base, "HEAD").stdout.splitlines():
+                if not TEST_FILE.search(f) or f.startswith("phases/"):
+                    continue
+                ls = self.git("ls-tree", "HEAD", "--", f).stdout.split()
+                if ls:
+                    run("update-index", "--add", "--cacheinfo", f"{ls[0]},{ls[2]},{f}")
+                else:
+                    run("update-index", "--force-remove", "--", f)
+            tree = run("write-tree").stdout.strip()
+            return run("commit-tree", tree, "-p", base, "-m", "sdd rejudge: BASE + 고친 테스트").stdout.strip()
+        finally:
+            Path(env["GIT_INDEX_FILE"]).unlink(missing_ok=True)
+
+    def rejudge(self, n: int) -> int:
+        """검증 재판정(ADR-019 E3)이 「테스트가 틀렸다」일 때 — 고친 테스트 커밋을 새 red 로 넘긴다. 걸리면 아무것도 안 바꾼다."""
+        cur = self.current()
+        if cur is None or cur["step"] != n:
+            print(f"지금 차례인 step 은 {cur['step'] if cur else '없음'} 이다 — step {n} 이 아니다")
+            return NOT_TURN
+        step = cur
+        if step.get("status") != "blocked" or not step.get("red"):
+            rc = self.refuse_turn(step, "test") if step.get("status") != "blocked" else None
+            if rc is None:
+                print(f"step {n} 에 red 가 없다 — 재판정 진입점은 red 뒤 구현이 막힌 step 에만 쓴다")
+                rc = NOT_TURN
+            return rc
+        if step.get("rejudged"):
+            print(f"step {n} 은 한 번 다시 판정했다 — 그래도 갈리면 사용자에게(ADR-019 E3): {step.get('blocked_reason', '')}")
+            return 2
+        if self.git("status", "--porcelain", "--", ".", f":(exclude)phases/{self.task}", HOOK_STAMPS).stdout.strip():
+            print("커밋하지 않은 변경이 있다 — 고친 테스트만 커밋한 뒤 다시 rejudge")
+            return 1
+        base, old = step["base"], step["red"]
+        fix = []
+        for sha, files in reversed(self.commits_since(base)):
+            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files):
+                break
+            fix += [f for f in files if TEST_FILE.search(f) and not f.startswith("phases/")]
+        if not fix or self.git("diff", "--quiet", old, "HEAD", "--", *sorted(set(fix))).returncode == 0:
+            print("고친 테스트 커밋이 없다 — HEAD 쪽 끝에 테스트 파일만 담은 커밋으로 고친 테스트를 올린 뒤 다시 rejudge")
+            return 1
+        tests = self.verify_cmds("test")
+        if not tests:
+            print("verify.test 가 없어 고친 테스트를 BASE 에서 돌릴 수 없다")
+            return 1
+        mine = [t for t in tests if t[0] != "." and any(f.startswith(t[0].rstrip("/") + "/") for f in fix)]
+        if self.red_passes(self.base_with_tests(base), self.scoped(mine or tests, base)):
+            print("고친 테스트가 구현 전(BASE)에서도 통과 — 아무것도 잡지 않는다")
+            return 1
+        head = self.git("rev-parse", "HEAD").stdout.strip()
+        idx = self.read()
+        s = self.find(idx, n)
+        s["red"], s["status"] = head, "pending"
+        s.pop("blocked_reason", None)
+        s.pop("blocked_at", None)
+        s.setdefault("rejudged", []).append({"at": stamp(), "red_before": old})
+        self.write(idx)
+        self.commit_index(n)
+        print(f"✓ step {n} 재판정 — 테스트 고침 · red: {head[:12]} · 구현 차례")
+        return 0
 
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
@@ -859,8 +1024,8 @@ class Runner:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="SDD 러너")
-    ap.add_argument("mode", choices=["run", "start", "prompt", "judge"])
-    ap.add_argument("task")
+    ap.add_argument("mode", choices=["run", "start", "prompt", "judge", "gate", "rejudge"])
+    ap.add_argument("task", help="gate 에서는 DOCS_DIR(레포 루트 기준)")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--max-retries", type=int, default=3)
     ap.add_argument("--base")
@@ -873,11 +1038,17 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.role and a.mode != "prompt" or a.red and a.mode != "judge":
         ap.error("--role 은 prompt, --red 는 judge 에만 쓴다")
+    if a.mode == "gate":   # index.json 을 읽지 않는다 — 계획 전(sdd-plan §0)에도 부른다(ADR-023 R2)
+        return gate(a.task)
     r = Runner(a.task, a.max_retries, a.timeout, a.defer_full_test, a.effort)
     if a.mode == "run":
         return r.run()
     if a.mode == "start":
         return r.start()
+    if a.mode == "rejudge":
+        if not a.step:
+            ap.error("rejudge 는 --step N 이 필요하다")
+        return r.rejudge(a.step)
     if a.mode == "prompt":
         if a.role:   # 나눔 모드: 끝나지 않은 첫 step 의 차례가 이 역할일 때만(ADR-019 E12)
             step = r.current()
@@ -892,6 +1063,8 @@ def main(argv=None) -> int:
                 return rc
             if step.get("status") == "blocked":   # 검증 재판정(E3) — 지시문이 아니라 사유를 본다
                 print(f"step {step['step']} blocked — 검증 재판정: {step.get('blocked_reason', '')}")
+                print(f"  다음 수: 테스트가 틀렸으면 테스트만 고쳐 커밋한 뒤 `rejudge {r.task} --step {step['step']}`"
+                      " · 구현이 고칠 일이면 index.json 의 status 를 pending 으로 되돌린다(ADR-023 R3)")
                 return 2
         else:
             step = r.find(r.read(), a.step) if a.step else r.next_pending()

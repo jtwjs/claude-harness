@@ -1160,6 +1160,366 @@ class RunnerCase(unittest.TestCase):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
         self.assertNotEqual(self.session("judge", "t1", "--base", "HEAD").returncode, 0)
 
+    # ── 구현 시작 관문 (ADR-023 R1 · R2) ──────────────────────────────────────
+    ADR_OPEN = textwrap.dedent('''\
+        # ADR
+        ## ADR-900 첫 결정
+        ### 결정할 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | R1 | 관문 위치 | start | 사용자(AI 추천 수용) |
+        | R2 | 세는 칸 |  |  |
+        ### 버린 방법
+        | 방법 | 이유 | 주체 |
+        |---|---|---|
+        | X | 느림 |  |
+        ## ADR-901 둘째 결정
+        ### 결정할 것 / 결정한 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | S1 | 진입점 모양 | A |   |
+        | S2 | 이름 | gate | 사람 |
+    ''')
+    ADR_CLOSED = textwrap.dedent('''\
+        # ADR
+        ## ADR-900 첫 결정
+        ### 결정할 것
+        | # | 정할 것 | 추천 / 결정 | 주체 |
+        |---|---|---|---|
+        | R1 | 관문 위치 | start | 사용자(AI 추천 수용) |
+
+        열린 결정 0.
+    ''')
+    PRD_LABEL = textwrap.dedent('''\
+        # PRD
+        - **범위**: x
+        - **남은 ⚠️** (계획 때 정한다)
+          - ⚠️ 관문이 무엇을 세나 → 결정: ADR-900 R1
+          - ⚠️ 테스트 모양
+            - 하위 메모 ⚠️ 첫 단이 아니라 세지 않는다
+        - **수용 조건**
+          - AC-1 ⚠️ 남은 ⚠️ 범위 밖이라 세지 않는다
+    ''')
+    PRD_HEADING = textwrap.dedent('''\
+        # PRD
+        ## 남은 ⚠️
+        - ⚠️ A 정하기
+        - ⚠️ B 다음 phase 일 막지 않음: 이번 범위 밖
+        ## 다음 절
+        - ⚠️ D 범위 밖
+    ''')
+
+    def docs(self, path="docs/d", adr=None, prd=None, arch=None):
+        d = self.repo / path
+        d.mkdir(parents=True, exist_ok=True)
+        for name, body in (("ADR.md", adr), ("PRD.md", prd), ("ARCHITECTURE.md", arch)):
+            if body is not None:
+                (d / name).write_text(body)
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", f"docs {path}")
+        return path
+
+    def test_gate_no_docs_passes(self):
+        p = self.session("gate", "docs/none")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("ADR · PRD 없음", p.stdout, "문서가 없으면 막지 않는다(AC-2)")
+        path = self.docs("docs/arch-only", arch="# ARCHITECTURE\n기존 구조 그대로\n")
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("ADR · PRD 없음", p.stdout)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "관문은 아무것도 쓰지 않는다")
+
+    def test_gate_all_closed_passes(self):
+        path = self.docs(adr=self.ADR_CLOSED, prd="# PRD\n- **범위**: x\n")
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("열린 「정할 것」 0", p.stdout)
+
+    def test_gate_open_rows_stop_with_list(self):
+        path = self.docs(adr=self.ADR_OPEN, prd=self.PRD_LABEL)
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 3개", p.stdout)
+        self.assertIn("  - ADR R2: 세는 칸", p.stdout, "주체 칸이 빈 행")
+        self.assertIn("  - ADR S1: 진입점 모양", p.stdout, "주체 칸이 공백뿐인 행 · 둘째 ADR 블록")
+        self.assertIn("  - PRD: ⚠️ 테스트 모양", p.stdout)
+        self.assertNotIn("R1", p.stdout.replace("ADR-900 R1", ""), "주체가 찬 행은 닫힌 것")
+        self.assertNotIn("S2", p.stdout)
+        self.assertNotIn("느림", p.stdout, "「결정할 것」 절 밖의 표는 세지 않는다")
+
+    def test_gate_table_without_owner_column_counts_all(self):
+        adr = textwrap.dedent('''\
+            # ADR
+            ## 결정할 것
+            | # | 정할 것 | 추천 |
+            |---|---|---|
+            | Q1 | 하나 | A |
+            | Q2 | 둘 | B |
+        ''')
+        p = self.session("gate", self.docs(adr=adr))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("  - ADR Q1: 하나", p.stdout, "주체 칸이 없으면 모든 행이 열린 것(기본이 멈춤)")
+        self.assertIn("  - ADR Q2: 둘", p.stdout)
+
+    def test_gate_prd_marked_lines_excluded(self):
+        path = self.docs(prd=self.PRD_LABEL)
+        self.assertEqual(self.session("gate", path).returncode, 2, self.out)
+        self.docs(prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 → 결정: ADR-900 R2"))
+        p = self.session("gate", path)
+        self.assertEqual(p.returncode, 0, "닫힘 표시를 달면 통과한다\n" + self.out)
+        self.docs(prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 막지 않음: 구현과 무관"))
+        self.assertEqual(self.session("gate", path).returncode, 0, "막지 않음: 표시도 뺀다\n" + self.out)
+
+    def test_gate_prd_heading_and_label_forms(self):
+        p = self.session("gate", self.docs("docs/h", prd=self.PRD_HEADING))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 1개", p.stdout)
+        self.assertIn("  - PRD: ⚠️ A 정하기", p.stdout, "제목 꼴: 다음 같은 급 제목 전까지")
+        self.assertNotIn("B 다음", p.stdout)
+        self.assertNotIn("D 범위 밖", p.stdout)
+        p = self.session("gate", self.docs("docs/l", prd=self.PRD_LABEL))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 1개", p.stdout, "불렛 라벨 꼴: 첫 단 항목만 · 라벨 범위 밖은 안 센다")
+        self.assertNotIn("하위 메모", p.stdout)
+        self.assertNotIn("AC-1", p.stdout)
+
+    def test_start_gate_no_docs_key_passes(self):
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        d.pop("docs")
+        f.write_text(json.dumps(d, indent=2))
+        git(self.repo, "add", "-A")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "docs 칸 없음")
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 0, "docs 칸이 없으면 관문은 막지 않는다(AC-2)\n" + self.out)
+
+    def test_start_gate_open_stops_before_side_effects(self):
+        self.set_cfg({"verify": {"test": "sh check.sh"}, "git": {"branchPattern": "feature/{task}"}})
+        self.docs("docs/x", adr=self.ADR_OPEN)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        exclude = self.repo / ".git/info/exclude"
+        ex_before = exclude.read_text() if exclude.exists() else ""
+        idx_before = (self.repo / "phases/t1/index.json").read_bytes()
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout)
+        self.assertIn("  - ADR R2: 세는 칸", p.stdout)
+        self.assertIn("  - ADR S1: 진입점 모양", p.stdout)
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), "main",
+                         "멈추면 브랜치를 옮기지 않는다")
+        self.assertEqual(exclude.read_text() if exclude.exists() else "", ex_before, "exclude 를 쓰기 전에 멈춘다")
+        self.assertEqual((self.repo / "phases/t1/index.json").read_bytes(), idx_before)
+
+    def test_run_gate_open_never_calls_claude(self):
+        self.docs("docs/x", prd=self.PRD_HEADING)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        rc = self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}])
+        self.assertEqual(rc, 2, self.out)
+        self.assertIn("  - PRD: ⚠️ A 정하기", self.out)
+        self.assertEqual(self.calls_made(), 0, "관문이 열렸으면 claude 를 부르지 않는다")
+
+    def test_start_gate_closed_then_passes(self):
+        self.docs("docs/x", adr=self.ADR_OPEN, prd=self.PRD_LABEL)
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}])
+        self.assertEqual(self.session("start", "t1").returncode, 2, self.out)
+        self.docs("docs/x", adr=self.ADR_CLOSED,
+                  prd=self.PRD_LABEL.replace("⚠️ 테스트 모양", "⚠️ 테스트 모양 → 결정: ADR-900 R1"))
+        p = self.session("start", "t1")
+        self.assertEqual(p.returncode, 0, "닫으면 통과한다\n" + self.out)
+
+    # ── 재판정 「테스트가 틀렸다」 진입점 (ADR-023 R3) ────────────────────────
+    def blocked_after_red(self):
+        """나눔 모드: 검증 red(기대 hello) → 구현이 bye 를 쓰고 「테스트가 수용 조건과 다르다」로 blocked. (BASE, 옛 red)"""
+        base, _ = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        old = self.step()["red"]
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/a.txt", "bye"],
+                  ["status", "blocked", {"blocked_reason": "테스트가 수용 조건과 다르다 — 기대값은 bye"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        return base, old
+
+    def fix_tests(self, ops, msg="test: step 1 — a 테스트 고침"):
+        """검증 세션이 테스트만 고쳐 커밋한다. ops: [("write", 경로, 내용) | ("rm", 경로)]"""
+        for op in ops:
+            if op[0] == "write":
+                (self.repo / op[1]).parent.mkdir(parents=True, exist_ok=True)   # git rm 이 빈 폴더를 지운다
+                (self.repo / op[1]).write_text(op[2])
+                git(self.repo, "add", "--", op[1])
+            else:
+                git(self.repo, "rm", "-q", "--", op[1])
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", msg)
+        return self.head()
+
+    def wip_sha(self):
+        return next(ln.split(" ", 1)[0] for ln in git(self.repo, "log", "--format=%H %s").stdout.splitlines()
+                    if " wip: step 1" in ln)
+
+    def assert_unchanged(self, before):
+        self.assertEqual((self.head(), self.index_bytes()), before, "거부하면 아무것도 바꾸지 않는다")
+
+    def test_rejudge_moves_red_keeps_impl(self):
+        base, old = self.blocked_after_red()
+        wip = self.wip_sha()
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye")])
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("재판정", p.stdout)
+        s = self.step()
+        self.assertEqual(s["red"], fixed, "red 는 고친 테스트 커밋으로 옮긴다")
+        self.assertEqual(s["status"], "pending")
+        self.assertNotIn("blocked_reason", s)
+        self.assertNotIn("blocked_at", s)
+        self.assertEqual(s["base"], base, "BASE 는 그대로")
+        self.assertEqual(len(s["rejudged"]), 1)
+        self.assertEqual(s["rejudged"][0]["red_before"], old)
+        self.assertIn("at", s["rejudged"][0])
+        self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", wip, "HEAD").returncode, 0,
+                         "구현 커밋을 지우지 않는다")
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "bye")
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye")
+        self.assertEqual(git(self.repo, "branch", "--list", "sdd-discard/*").stdout.strip(), "", "시도를 버리지 않는다")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "index 를 커밋한다")
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, "다음은 구현 차례\n" + self.out)
+
+    def test_rejudge_second_block_goes_to_user(self):
+        self.blocked_after_red()
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["status", "blocked", {"blocked_reason": "여전히 수용 조건과 다르다"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.fix_tests([("write", "tests/a.expect", "bye!")], msg="test: step 1 — a 다시 고침")
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 2, "한 번 다시 판정했으면 사용자에게(ADR-019 E3)\n" + self.out)
+        self.assertIn("사용자", self.out)
+        self.assert_unchanged(before)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_without_test_fix_refused(self):
+        self.blocked_after_red()
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, self.out)
+        self.assertIn("고친 테스트", self.out)
+        self.assert_unchanged(before)
+
+    def test_rejudge_fix_with_impl_file_refused(self):
+        self.blocked_after_red()
+        self.fix_tests([("write", "tests/a.expect", "bye"), ("write", "src/c.txt", "구현도 섞음")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "고친 테스트 커밋에 구현 파일이 섞이면 거부\n" + self.out)
+        self.assert_unchanged(before)
+        self.assertEqual(self.step()["status"], "blocked")
+
+    def test_rejudge_dirty_tree_refused(self):
+        self.blocked_after_red()
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        (self.repo / "src/b.txt").write_text("커밋 안 함")
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, self.out)
+        self.assert_unchanged(before)
+        self.assertEqual((self.repo / "src/b.txt").read_text(), "커밋 안 함", "작업 트리를 건드리지 않는다")
+
+    def test_rejudge_fix_passing_on_base_refused(self):
+        _, old = self.blocked_after_red()
+        # 테스트를 약하게 고침: a 기대를 지우고 BASE 에서도 맞는 b 기대(src/b.txt 가 이미 x)로 바꾼다
+        self.fix_tests([("rm", "tests/a.expect"), ("write", "tests/b.expect", "x")])
+        before = (self.head(), self.index_bytes())
+        branch = git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "고친 테스트가 BASE 에서도 통과하면 아무것도 안 잡는다\n" + self.out)
+        self.assertIn("아무것도 잡지", self.out)
+        self.assert_unchanged(before)
+        self.assertEqual(self.step()["red"], old)
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "bye", "BASE 확인 뒤 트리를 HEAD 로 돌려 둔다")
+        self.assertTrue((self.repo / "tests/b.expect").exists())
+        self.assertEqual(git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), branch,
+                         "BASE 확인이 브랜치를 옮기지 않는다")
+
+    def test_rejudge_out_of_turn_changes_nothing(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 3, "red 없는 pending(검증이 테스트 쓸 차례)은 재판정 차례가 아니다\n" + self.out)
+        self.assert_unchanged(before)
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 3, "구현 차례에 재판정이 트리를 치지 않는다\n" + self.out)
+        self.assertIn("구현 차례", self.out)
+        self.assert_unchanged(before)
+        p = self.session("rejudge", "t1", "--step", "2")
+        self.assertEqual(p.returncode, 3, "지금 차례인 step 이 아니면 거부\n" + self.out)
+        self.assert_unchanged(before)
+
+    def rejudged(self, ops=(("write", "tests/a.expect", "bye"),)):
+        """blocked → 검증이 테스트 고침 → rejudge 통과. (BASE, 구현 wip sha, 고친 테스트 sha)"""
+        base, _ = self.blocked_after_red()
+        wip = self.wip_sha()
+        fixed = self.fix_tests(list(ops))
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        return base, wip, fixed
+
+    def test_rejudged_impl_already_right_completes(self):
+        self.rejudged()
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([DONE])   # 구현이 이미 맞다 — 더 고칠 것이 없다
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "rejudge 뒤 판정 5 는 BASE 뒤 구현 변경을 본다\n" + self.out)
+        self.assertEqual(self.step()["status"], "completed")
+
+    def test_rejudged_impl_edit_test_reverted(self):
+        _, _, fixed = self.rejudged()
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "zzz"], ["write", "tests/a.expect", "zzz"], ["commit", "feat: a (테스트도 고침)"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 10, self.out)
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye", "새 red(고친 테스트) 기준으로 되돌린다(판정 4)")
+        self.assertIn("테스트 파일", self.step()["last_error"])
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_round_trip_keeps_impl_and_fixed_test(self):
+        # 고친 테스트가 c 기대도 더한다 — 구현 세션이 rejudge 뒤에 더 구현해야 끝난다
+        _, wip, fixed = self.rejudged((("write", "tests/a.expect", "bye"), ("write", "tests/c.expect", "c")))
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: step 1 — c"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed")
+        for sha in (wip, fixed):
+            self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", sha, "HEAD").returncode, 0,
+                             "구현 커밋과 고친 테스트가 둘 다 브랜치에 남는다(AC-3)")
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "bye")
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye")
+        self.assertEqual((self.repo / "src/c.txt").read_text(), "c")
+        self.assertEqual(git(self.repo, "branch", "--list", "sdd-discard/*").stdout.strip(), "")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "사람 손 정리 없이 끝난다")
+
+    def test_blocked_test_prompt_mentions_rejudge(self):
+        self.blocked_after_red()
+        p = self.session("prompt", "t1", "--role", "test")
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("rejudge t1 --step 1", self.out, "테스트가 틀렸을 때의 다음 수")
+        self.assertIn("pending", self.out, "구현이 고칠 일일 때의 다음 수")
+
+    def test_gate_prd_none_item_passes(self):
+        for prd in ("# PRD\n## 남은 ⚠️\n\n- 없음 (판정 방식은 ADR)\n",
+                    "# PRD\n- **남은 ⚠️**\n  - 없음\n"):
+            p = self.session("gate", self.docs(prd=prd))
+            self.assertEqual(p.returncode, 0, "「없음」 항목은 항목 없음 표시라 세지 않는다(리뷰 1회차)\n" + self.out)
+
+    def test_gate_prd_none_inside_text_still_counts(self):
+        p = self.session("gate", self.docs(prd="# PRD\n## 남은 ⚠️\n- ⚠️ 기본값 없음 처리\n- 없음표 정리\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout, "「없음」이 본문 가운데 있거나 낱말 일부면 그대로 센다")
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
