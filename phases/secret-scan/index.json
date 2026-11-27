@@ -37,9 +37,12 @@
     {
       "step": 4,
       "name": "measure-real-scan",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-28T01:55:38+0900",
+      "summary": "템플릿 secret-scan 두 스텝 run:을 그대로 돌림(세션 스크래치 임시 레포, `bash measure.sh <레포> <작업 폴더>`). `install gitleaks`(bash -e, linux_x64): sha256sum -c OK · exit 0 · 2.60초. `gitleaks scan`(base..head, --redact): 가짜 키 갈래 `leaks found: 1` exit 1 · 0.84초 / 깨끗한 갈래 `no leaks found` exit 0 · 0.35초, 둘 다 1 commits scanned. 검사는 같은 버전 darwin_arm64(상류 checksums.txt 대조 OK)로 돌림 — linux_x64는 이 머신에서 못 돌고 Docker 데몬이 꺼져 있었다. 실제 GitHub Actions 잡 시간은 미측정: 템플릿으로 만든 레포의 첫 PR / 다음 업그레이드 트랙",
+      "completed_at": "2026-11-28T01:59:03+0900"
     }
   ]
 }
