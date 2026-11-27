@@ -361,7 +361,9 @@ class RunnerCase(unittest.TestCase):
         self.assertIn("되돌림", self.step()["last_error"])
         self.assertIn("tests/q.expect", self.step()["last_error"])
         self.assertIn("test: step 1 — 테스트 수정 되돌림", self.log(), "판정 4와 같은 꼴로 되돌림 커밋")
-        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "되돌림은 커밋으로 남는다")
+        # 재시도 갈래는 원래 index.json 을 커밋하지 않는다 — phases/ 밖만 본다
+        self.assertEqual(git(self.repo, "status", "--porcelain", "--", ".", ":(exclude)phases").stdout.strip(), "",
+                         "되돌림은 커밋으로 남는다")
 
     def test_tdd_false_test_delete_restored(self):
         # AC-2: 기존 테스트를 지우면 복원한다
