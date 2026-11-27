@@ -611,6 +611,14 @@ class Runner:
         """판정 1~6. 통과면 None, 아니면 Fail. blocked 는 그대로 돌려준다."""
         st = step.get("status")
         if st == "blocked":
+            if not step.get("tdd"):   # ADR-024 T5: 테스트를 고친 채 blocked 보고 — 새 BASE 로 씻기기 전에 되돌린다
+                self.commit(f"wip: step {step['step']} — {step['name']} (blocked 시점 코드)")
+                reverted = self.revert_test_edits(step, base)
+                if reverted:
+                    idx = self.read()
+                    s = self.find(idx, step["step"])
+                    s["blocked_reason"] = f"{s.get('blocked_reason', '')} (테스트 수정 되돌림: {', '.join(reverted[:5])})"
+                    self.write(idx)
             return "blocked"
         if st == "error":
             raise Fail(step.get("error_message") or "에이전트가 error 로 보고")
@@ -642,13 +650,8 @@ class Runner:
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
         else:   # 판정 4'(ADR-024 T1 · T2): tdd 가 아닌 step(측정 포함)도 BASE 에 있던 테스트 파일 수정 · 삭제는 되돌린다
-            allowed = step.get("test_edits") or {}   # 키 = 경로 글자 그대로(glob 없음, T4)
-            changed = [f for f in self.git("diff", "--name-only", base, "HEAD").stdout.split()
-                       if TEST_FILE.search(f) and not f.startswith("phases/") and f not in allowed
-                       and self.git("cat-file", "-e", f"{base}:{f}").returncode == 0]
+            changed = self.revert_test_edits(step, base)
             if changed:
-                self.git("checkout", base, "--", *changed)
-                self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 기존 테스트 파일은 계획 칸(test_edits)에 "
                            "적힌 것만 고친다. 고쳐야 하면 blocked + 이유")
         scope = commits   # 판정 6 범위는 테스트 파일까지 — 테스트가 든 앱도 돈다
@@ -683,6 +686,18 @@ class Runner:
                     self.blame_earlier(root, name, cmd, commits, base, tail)
                 raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
+
+    def revert_test_edits(self, step: dict, base: str) -> list:
+        """판정 4' 되돌림(ADR-024 T1 · T2 · T5). BASE ~ HEAD 순변화 중 BASE 에 있던 테스트 파일이고 test_edits 키
+        (경로 글자 그대로, glob 없음 — T4)에 없는 것을 BASE 내용으로 되돌려 커밋한다. 되돌린 경로를 돌려준다."""
+        allowed = step.get("test_edits") or {}
+        changed = [f for f in self.git("diff", "--name-only", base, "HEAD").stdout.split()
+                   if TEST_FILE.search(f) and not f.startswith("phases/") and f not in allowed
+                   and self.git("cat-file", "-e", f"{base}:{f}").returncode == 0]
+        if changed:
+            self.git("checkout", base, "--", *changed)
+            self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
+        return changed
 
     def red_check(self, commits: list, base: str, only_tests=False, step=None):
         """판정 2·3. (테스트 커밋 sha, 그 테스트 파일). only_tests(judge --red) 면 BASE 뒤 커밋이 모두 테스트만이어야 하고
