@@ -209,7 +209,7 @@ def open_decisions(docs_dir) -> list:
                     j += 1
             elif label:
                 ind = len(label.group(1))
-                inline = re.sub(r"^\s*[:：]?\s*", "", label.group(2)).strip()   # 라벨 줄에 붙여 쓴 내용(#86 F4)
+                inline = re.sub(r"^[\s*:：—–-]+", "", label.group(2)).strip()   # 라벨 줄에 붙여 쓴 내용(#86 F4) — 앞 ** · : · 줄표는 벗긴다
                 if inline and not inline.startswith("(") and _prd_open(inline):
                     out.append(f"PRD: {inline}")
                 j = i + 1
@@ -805,20 +805,10 @@ class Runner:
             print("커밋하지 않은 변경이 있다 — 고친 테스트만 커밋한 뒤 다시 rejudge")
             return 1
         base, old = step["base"], step["red"]
-        fix, bundle = [], set()
-        for sha, files in reversed(self.commits_since(base)):
-            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files) \
-                    or self.git("log", "-1", "--format=%s", sha).stdout.startswith("wip: "):   # 구현 시도 커밋은 묶음 밖
-                break
-            bundle.add(sha)
-            fix += [f for f in files if TEST_FILE.search(f) and not f.startswith("phases/")]
-        # 확인 ③(#86 D1): 옛 red 뒤 ~ 고친 테스트 묶음 앞(구현 구간)에서 바뀐 테스트 파일 — 새 red 로 씻어 주지 않는다
-        touched = sorted({f for sha in self.git("rev-list", f"{old}..HEAD").stdout.split() if sha not in bundle
-                          for f in self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
-                          if TEST_FILE.search(f) and not f.startswith("phases/")})
-        # 검증이 옛 red 내용으로 되돌렸으면 받는다(D1) — 두 쪽 blob 이 같거나 둘 다 없다
-        blob = lambda rev, f: self.git("rev-parse", "-q", "--verify", f"{rev}:{f}").stdout.strip()
-        touched = [f for f in touched if blob(old, f) != blob("HEAD", f)]
+        fix, touched = self.rejudge_split(step)
+        if fix is None:
+            print(touched)
+            return 1
         if touched:
             print("구현 구간(옛 red 뒤 ~ 고친 테스트 커밋 앞)에서 테스트 파일이 바뀌었다 — 검증이 되돌리는 테스트 커밋을 올린 뒤 "
                   "다시 rejudge:\n" + "\n".join(f"  - {f}" for f in touched))
@@ -840,11 +830,44 @@ class Runner:
         s["red"], s["status"] = head, "pending"
         s.pop("blocked_reason", None)
         s.pop("blocked_at", None)
+        s.pop("blocked_head", None)
         s.setdefault("rejudged", []).append({"at": stamp(), "red_before": old, "attempts_before": len(s.get("attempts") or [])})
         self.write(idx)
         self.commit_index(n)
         print(f"✓ step {n} 재판정 — 테스트 고침 · red: {head[:12]} · 구현 차례")
         return 0
+
+    def rejudge_split(self, step: dict):
+        """고친 테스트 묶음 · 구현 구간 가르기. (묶음의 테스트 파일, 구현 구간에서 바뀐 테스트 파일). 묶음이 어긋나면 (None, 이유).
+        blocked_head 가 있으면(#86 D4) 묶음 = blocked_head..HEAD · 구현 구간 = 옛 red..blocked_head, 순변화만 센다(D5).
+        없는 옛 기록은 끝에서 거꾸로 테스트만 담은(wip: 아닌) 커밋을 묶음으로 본다(D1)."""
+        old = step["red"]
+        is_test = lambda f: TEST_FILE.search(f) and not f.startswith("phases/")
+        blob = lambda rev, f: self.git("rev-parse", "-q", "--verify", f"{rev}:{f}").stdout.strip()
+        files_of = lambda sha: self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
+        bh = step.get("blocked_head")
+        if bh:
+            fix = []
+            for sha in self.git("rev-list", "--reverse", f"{bh}..HEAD").stdout.split():
+                files = files_of(sha)
+                if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files):
+                    return None, (f"blocked 뒤 커밋 {sha[:12]} 이 테스트 · phases/ 밖 파일을 담았다 — "
+                                  "재판정 뒤에는 테스트 파일만 고쳐 커밋한 뒤 다시 rejudge")
+                fix += [f for f in files if is_test(f)]
+            changed = {f for sha in self.git("rev-list", f"{old}..{bh}").stdout.split() for f in files_of(sha) if is_test(f)}
+            # D5: 판정 4가 되돌려 구현 구간 순변화가 0 이면 받는다 · 검증이 옛 red 내용으로 되돌렸어도 받는다
+            touched = sorted(f for f in changed if blob(old, f) != blob(bh, f) and blob(old, f) != blob("HEAD", f))
+            return fix, touched
+        fix, bundle = [], set()
+        for sha, files in reversed(self.commits_since(step["base"])):
+            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files) \
+                    or self.git("log", "-1", "--format=%s", sha).stdout.startswith("wip: "):   # 구현 시도 커밋은 묶음 밖
+                break
+            bundle.add(sha)
+            fix += [f for f in files if is_test(f)]
+        touched = sorted({f for sha in self.git("rev-list", f"{old}..HEAD").stdout.split() if sha not in bundle
+                          for f in files_of(sha) if is_test(f)})
+        return fix, [f for f in touched if blob(old, f) != blob("HEAD", f)]
 
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
@@ -938,6 +961,9 @@ class Runner:
                 s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
+            if s.get("red"):   # 재판정 묶음 경계(#86 D4) — 이 뒤 커밋은 검증 세션 몫. index 커밋은 phases/ 만 담아 묶음에 섞여도 된다
+                s["blocked_head"] = self.git("rev-parse", "HEAD").stdout.strip()
+                self.write(idx)
             self.commit_index(n)
             print(f"⏸ step {n} blocked: {s.get('blocked_reason', '')}")
             return 2
@@ -975,7 +1001,8 @@ class Runner:
         s.update(status="pending", last_error=reason)
         s.pop("error_message", None)
         self.write(idx)
-        print(f"↻ step {n} 재시도 {s['retries']}/{self.max_retries}: {reason}")
+        shown = fails_now if s.get("rejudged") else s["retries"]   # 재판정 뒤는 재판정 뒤 수(리뷰 1회차)
+        print(f"↻ step {n} 재시도 {shown}/{self.max_retries}: {reason}")
         return 10
 
     # ── 헤드리스 ───────────────────────────────────────────────────────────
