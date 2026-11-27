@@ -71,6 +71,13 @@
         "🟢 .env.local 등은 안 막음(설계서 범위 밖, 다음 후보)",
         "🟢 ss-no-repo-specific 패턴 3개뿐(지금 흔적 없음)"
       ]
+    },
+    {
+      "at": "2026-11-28T02:55:00+0900",
+      "head": "e910405",
+      "by": "sdd-review(검증 세션, 1회차 head 뒤 diff)",
+      "issues": [],
+      "resolved": "1회차 🟡 4건 · 🟢 R3 · R4 · 문구 반영(step 5). 진짜 gitleaks로 다시 확인: 기준 커밋 없음 · 빈 기준이면 잡 exit 1(범위 확인 전에는 no leaks found로 통과), 가짜 키 갈래 exit 1 · 깨끗한 갈래 exit 0. bash hooks/test.sh 706/0"
     }
   ]
 }
