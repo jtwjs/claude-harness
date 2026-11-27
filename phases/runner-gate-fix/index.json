@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "rejudge-guards",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T12:47:05+0900",
-      "base": "d9d7095710906e9e7baff9903bc75e23d307c677",
-      "red": "404ba9bdb34d0a5c2e76c4771a2becac81d791b6"
+      "red": "404ba9bdb34d0a5c2e76c4771a2becac81d791b6",
+      "summary": "rejudge 확인 ③(D1): 옛 red..HEAD 중 끝 테스트 묶음 밖 커밋이 테스트 파일(지움 포함)을 건드렸으면 목록 + 종료 1. red_passes(D3): detached면 시작 sha로 복귀(judge --red · rejudge · 1회 모드 judge 공용)",
+      "completed_at": "2026-11-27T13:00:03+0900"
     },
     {
       "step": 2,
