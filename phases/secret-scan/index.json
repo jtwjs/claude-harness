@@ -1,0 +1,12 @@
+{
+  "project": "claude-harness",
+  "phase": "secret-scan",
+  "docs": "docs/secret-scan-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "single-form-job", "status": "pending", "tdd": true },
+    { "step": 2, "name": "app-form-job", "status": "pending", "tdd": true },
+    { "step": 3, "name": "env-ignore-upgrade-notice", "status": "pending", "tdd": true },
+    { "step": 4, "name": "measure-real-scan", "status": "pending", "tdd": false, "kind": "measure" }
+  ]
+}
