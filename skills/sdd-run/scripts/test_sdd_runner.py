@@ -331,6 +331,125 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(rc, 1, self.out)
         self.assertIn("verify", self.step()["error_message"])
 
+    # ── 판정 4'(ADR-024 T1 · T2) — tdd 가 아닌 step 의 기존 테스트 파일 수정 · 삭제 되돌림 ──────
+    def guard_turn(self, steps):
+        """기존 테스트 tests/q.expect · tests/r.expect(src 와 짝, verify 통과)를 둔 뒤 start → prompt --base. BASE 를 돌려준다."""
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        for n in ("q", "r"):
+            (r / f"tests/{n}.expect").write_text(n)
+            (r / f"src/{n}.txt").write_text(n)
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트 q · r")
+        self.phase(steps)
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+        base = self.head()
+        self.assertEqual(self.session("prompt", "t1", "--base", base).returncode, 0, self.out)
+        return base
+
+    def read(self, rel):
+        return (self.repo / rel).read_text()
+
+    def test_tdd_false_test_edit_reverted(self):
+        # AC-1: 기존 테스트 한 줄을 고치면 BASE 내용으로 돌아가고 파일 이름이 판정 결과에 보인다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "시작 커밋 내용으로 되돌린다")
+        self.assertIn("tests/q.expect", self.out, "되돌린 파일 이름이 판정 출력에 보인다")
+        self.assertIn("되돌림", self.step()["last_error"])
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+        self.assertIn("test: step 1 — 테스트 수정 되돌림", self.log(), "판정 4와 같은 꼴로 되돌림 커밋")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "되돌림은 커밋으로 남는다")
+
+    def test_tdd_false_test_delete_restored(self):
+        # AC-2: 기존 테스트를 지우면 복원한다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        (self.repo / "tests/q.expect").unlink()
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c · q 테스트 지움"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertTrue((self.repo / "tests/q.expect").exists(), "지운 테스트를 복원한다")
+        self.assertEqual(self.read("tests/q.expect"), "q")
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_tdd_false_new_test_file_kept(self):
+        # AC-3: 새 테스트 파일만 더하면 통과하고 새 파일이 남는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.act([["write", "src/n.txt", "n"], ["write", "tests/n.expect", "n"], ["commit", "feat: n"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.read("tests/n.expect"), "n", "새 테스트 파일은 남는다")
+        self.assertIn("completed_at", self.step())
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+
+    def test_tdd_false_no_test_change_passes(self):
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+        self.assertEqual((self.read("tests/q.expect"), self.read("tests/r.expect")), ("q", "r"))
+
+    def test_tdd_false_listed_test_edit_passes(self):
+        # T1: 계획 칸(test_edits)에 이유와 함께 적힌 기존 테스트 파일은 고쳐도 받는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}])
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "qq")
+        self.assertNotIn("테스트 수정 되돌림", self.log())
+
+    def test_tdd_false_listed_and_unlisted_edit(self):
+        # 칸에 적힌 파일만 받는다 — 같이 고친 다른 기존 테스트는 되돌리고 이름에도 그것만 나온다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}])
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"],
+                  ["write", "src/r.txt", "rr"], ["write", "tests/r.expect", "rr"], ["commit", "feat: q · r 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "qq", "칸에 적힌 파일은 그대로")
+        self.assertEqual(self.read("tests/r.expect"), "r", "칸에 없는 파일은 되돌린다")
+        err = self.step()["last_error"]
+        self.assertIn("tests/r.expect", err)
+        self.assertNotIn("tests/q.expect", err)
+
+    def test_tdd_false_glob_key_matches_literally(self):
+        # T4: 칸 키는 글자 그대로 — glob 으로 넓혀 테스트 전부를 열지 않는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/*.expect": "모두"}}])
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q")
+
+    def test_measure_step_test_edit_reverted(self):
+        # 측정 step 도 tdd: false 다 — 기존 테스트를 고치면 되돌린다(verify 실패가 아니라 되돌림 사유로)
+        self.guard_turn([{"step": 1, "name": "m", "status": "pending", "tdd": False, "kind": "measure"}])
+        self.act([["write", "tests/q.expect", "zz"], ["commit", "chore: q 측정용"],
+                  ["status", "completed", {"summary": "`wc -l x` → 1"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q")
+        self.assertIn("되돌림", self.step()["last_error"])
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_tdd_false_revert_then_retry_passes(self):
+        # T2: 되돌림 → 재시도 지시문에 파일 이름 → 구현만 고치면 통과(되돌림 커밋은 BASE 뒤에 있어도 순변화 0)
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        (r / "tests/q.expect").write_text("q")
+        (r / "src/q.txt").write_text("q")
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트 q")
+        rc = self.run_runner([
+            {"step": 1, "ops": [["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q"], DONE]},
+            {"step": 1, "ops": [["write", "src/q.txt", "q"], ["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE]}])
+        self.assertEqual(rc, 0, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "completed")
+        self.assertIn("attempts", s, "첫 시도는 되돌림으로 실패한다")
+        self.assertIn("tests/q.expect", s["attempts"][0]["error"])
+        self.assertIn("tests/q.expect", self.prompt(1), "다음 시도 지시문에 되돌린 파일 이름이 붙는다")
+        self.assertEqual(self.read("tests/q.expect"), "q")
+        self.assertEqual(self.log().count("테스트 수정 되돌림"), 1, "재시도에서 다시 걸리지 않는다")
+
     # ── 시작 전 점검 ────────────────────────────────────────────────────────
     def test_after_not_done_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}], task="be")
