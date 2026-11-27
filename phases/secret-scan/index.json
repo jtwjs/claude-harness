@@ -17,11 +17,12 @@
     {
       "step": 2,
       "name": "app-form-job",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T01:35:23+0900",
-      "base": "9c75e66ab100adf1deb5fb1059cccfa41c73eca0",
-      "red": "ea219daeee9c5bcfc39d50e523d5f94a99661933"
+      "red": "ea219daeee9c5bcfc39d50e523d5f94a99661933",
+      "summary": "앱별 주석 블록에 단일 형태와 같은 secret-scan 잡(paths 필터 밖)을 더하고 ci-gate needs 에 secret-scan 을 넣었다. jq 판정 줄은 그대로.",
+      "completed_at": "2026-11-28T01:45:15+0900"
     },
     {
       "step": 3,
