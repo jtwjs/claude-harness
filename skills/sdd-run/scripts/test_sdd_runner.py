@@ -564,6 +564,58 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.step()["blocked_reason"], "a 기대값이 틀렸다")
         self.assertNotIn("테스트 수정 되돌림", self.log())
 
+    # ── test_edits 칸 꼴 검사(ADR-024 T4) — start 가 첫 step 전에 거른다 ─────────────────
+    def start_with(self, steps):
+        """phase 를 두고 start. (종료 코드, 앞뒤 (브랜치, index 바이트) 같은가)."""
+        self.phase(steps)
+        before = (git(self.repo, "branch", "--show-current").stdout.strip(), self.index_bytes())
+        rc = self.session("start", "t1").returncode
+        after = (git(self.repo, "branch", "--show-current").stdout.strip(), self.index_bytes())
+        return rc, before == after
+
+    def test_start_test_edits_empty_reason_refuses(self):
+        rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                     "test_edits": {"tests/q.expect": "  "}}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("test_edits", self.out)
+        self.assertIn("step 1", self.out, "어느 step 인지 보인다")
+        self.assertTrue(same, "거절하면 브랜치 · index 를 바꾸지 않는다")
+
+    def test_start_test_edits_valid_passes(self):
+        rc, _ = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                  "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}])
+        self.assertEqual(rc, 0, self.out)
+
+    def test_start_test_edits_not_object_refuses(self):
+        rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                     "test_edits": ["tests/q.expect"]}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("test_edits", self.out)
+        self.assertTrue(same)
+        rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                     "test_edits": {"tests/q.expect": 3}}])
+        self.assertEqual(rc, 1, "이유는 문자열이어야 한다 — " + self.out)
+        self.assertTrue(same)
+
+    def test_start_test_edits_non_test_path_refuses(self):
+        rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                     "test_edits": {"src/q.txt": "구현 파일"}}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("src/q.txt", self.out)
+        self.assertTrue(same)
+        rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                     "test_edits": {"phases/t1/tests/x.expect": "phase 기록"}}])
+        self.assertEqual(rc, 1, "phases/ 아래는 테스트 파일로 보지 않는다 — " + self.out)
+        self.assertTrue(same)
+
+    def test_start_test_edits_on_tdd_step_refuses(self):
+        # 테스트 먼저 step 의 판정 4 는 그대로다(설계서 결정) — 그 step 에 칸을 두면 열 수 없는 문이라 계획 실수다
+        rc, same = self.start_with([{"step": 1, "name": "a", "status": "pending", "tdd": True,
+                                     "test_edits": {"tests/a.expect": "a 기대값"}}])
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("test_edits", self.out)
+        self.assertTrue(same)
+
     # ── 시작 전 점검 ────────────────────────────────────────────────────────
     def test_after_not_done_refuses(self):
         self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": False}], task="be")
