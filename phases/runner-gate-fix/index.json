@@ -28,7 +28,10 @@
       "step": 3,
       "name": "gate-missed-forms",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-27T13:15:34+0900",
+      "base": "63a2bd89a3d07dd567d6ac7871076436d97df64b",
+      "red": "335259511013780be131b78abb95057d55fb9595"
     },
     {
       "step": 4,
