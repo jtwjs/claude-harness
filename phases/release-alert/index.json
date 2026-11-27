@@ -41,6 +41,26 @@
       "started_at": "2026-11-27T17:55:27+0900",
       "summary": "지휘 자리에서 `CLAUDE_PLUGIN_ROOT=<설치본 0.43.0> /usr/bin/time -p bash hooks/conductor-context.sh` 3회: real 2.74 · 2.55 · 2.75초(비포 a1743ed 훅 1.98 · 2.23 · 2.42초, 실제 대상 레포 3개). 애프터 현황: 하네스 설정 있는 대상 레포 하나의 줄에 「템플릿 0.34.0 → 설치본 0.43.0」, 하네스 원본 줄은 꼬리 없음(`gh api repos/<slug>/compare/a1743ed...main --jq .total_commits` = 0). 같은 훅을 설치본 0.42.0 폴더로: 「릴리스 안 된 머지 5건 #81 · #84 · #85 · #90 · #92 (설치본 0.42.0)」. 0.40.0 폴더로: 「릴리스 확인 실패(기준점)」 거짓 실패(#41이 version 그대로 plugin.json 수정 → release_base가 멈춤, 리뷰에서 고침 step). `git diff a1743ed -- hooks/cadence-reminder.sh` 0줄. `bash hooks/test.sh` 통과 670 · 실패 0. `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 145 OK",
       "completed_at": "2026-11-27T21:34:28+0900"
+    },
+    {
+      "step": 5,
+      "name": "release-check-fixes",
+      "status": "pending",
+      "tdd": true
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-27T22:08:10+0900",
+      "head": "6830374c6cb2c5f2574926114114e0b8c04895d9",
+      "issues": [
+        "🟡 release_base가 버전 같은 plugin.json 수정 커밋(부모도 같은 버전)에서 멈춰 거짓 「릴리스 확인 실패(기준점)」 — 실기록 #41 · 설치본 0.40.0 재현(hooks/conductor-context.sh:77-84) → step 5",
+        "🟡 하네스 원본 작업 트리 plugin.json이 깨지면 릴리스 꼬리가 조용히 사라짐(:94-101, code-reviewer) → step 5",
+        "🟡 원격 조회 5초 제한을 지키는 테스트 없음 — 느림 케이스가 전체 마감 3초로 먼저 끊김(release-line.sh:127, code-reviewer) → step 5",
+        "🟢 예외 삼킴 블록(:148-151) · 설치본 못 읽음 때 다른 플러그인 레포 줄을 테스트가 안 봄 → step 5 테스트",
+        "🟢 하네스 원본 줄 템플릿 꼬리가 올림 PR 뒤 거꾸로(템플릿 0.44.0 → 설치본 0.43.0) 보일 수 있음 — AC-8 「≠」 그대로라 위반 아님, 지휘 보고",
+        "🟢 ARCHITECTURE 테스트 파일 이름이 release-alert.sh로 낡음 → 문서 고침"
+      ]
     }
   ]
 }
