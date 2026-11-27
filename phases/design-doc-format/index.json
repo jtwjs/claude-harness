@@ -27,14 +27,18 @@
     {
       "step": 3,
       "name": "sdd-flow-rules",
-      "status": "blocked",
+      "status": "pending",
       "tdd": true,
       "started_at": "2026-11-28T03:49:12+0900",
       "base": "5055505587f7cf5f6091a8f2b3cfc8dc80695584",
-      "red": "2a37eccb9ca4bcb56d13116b04dfa34dadd3622e",
-      "blocked_reason": "테스트 결함: hooks/tests/design-doc-flow.sh df-open-questions-cell 이 `{ _df_sec 설계서 순서; _df_sec 화면; } | grep -q` 꼴이라 test.sh 의 set -o pipefail 아래서 grep -q 가 첫 일치에 먼저 끝나면 뒤 awk 가 SIGPIPE(141)를 받아 문구가 있어도 실패한다. 재현: 같은 파이프에 pipefail rc=141, grep -c 는 3건. 고침 제안: 두 절을 변수에 모은 뒤 printf | grep -q (다른 케이스 꼴). 구현 문구는 step 계획대로 다 넣었고 나머지 12케이스 통과",
-      "blocked_at": "2026-11-28T03:58:03+0900",
-      "blocked_head": "c80a367dd5fd5d67277ad7b3d3acc44f7bae78cf"
+      "red": "5c26d263d6060b2c51c4d394232234e25d72ecb9",
+      "rejudged": [
+        {
+          "at": "2026-11-28T04:02:14+0900",
+          "red_before": "2a37eccb9ca4bcb56d13116b04dfa34dadd3622e",
+          "attempts_before": 0
+        }
+      ]
     },
     {
       "step": 4,
