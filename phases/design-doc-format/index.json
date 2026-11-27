@@ -17,11 +17,12 @@
     {
       "step": 2,
       "name": "design-doc-check",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T03:37:42+0900",
-      "base": "74c184a745949a44863bceb8b67ae1d60e9f0129",
-      "red": "01e3c775926f2d3afc5c34d729e435a04f3a5818"
+      "red": "01e3c775926f2d3afc5c34d729e435a04f3a5818",
+      "summary": "skills/sdd/scripts/design_doc_check.py 추가: design.md 「**설계서 틀**」 줄 다음 첫 울타리가 ```markdown일 때만 틀 블록으로 읽는다(첫 울타리가 다르면 exit 2). 순서 어긋남 칸은 위치를 옮기지 않아 뒤 칸 판정이 이어진다",
+      "completed_at": "2026-11-28T03:48:42+0900"
     },
     {
       "step": 3,
