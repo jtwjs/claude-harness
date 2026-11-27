@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "template-drift-line",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T17:15:05+0900",
-      "base": "fba83f9be73bdf15f1a10b58ccf085985b5c2f08",
-      "red": "ab749b9d5a781db1ad7d92882c6c06f37f48aaf1"
+      "red": "ab749b9d5a781db1ad7d92882c6c06f37f48aaf1",
+      "summary": "hooks/conductor-context.sh: 레포 루프 전에 설치본 plugin.json을 한 번 읽어 installed(dict)·inst_ver를 둔다(step 2는 installed[\"name\"]을 쓰면 된다). read_json·nonempty_str·template_suffix(top) 도우미를 더하고 레포 줄 끝에 템플릿 꼬리를 붙인다.",
+      "completed_at": "2026-11-27T17:31:07+0900"
     },
     {
       "step": 2,
