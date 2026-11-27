@@ -27,8 +27,10 @@
     {
       "step": 3,
       "name": "seat-doc-line",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "summary": "skills/conductor/references/seat.md 11번 줄에 두 꼬리(릴리스 안 된 머지 · 릴리스 확인 실패 / 템플릿 X → 설치본 Y)와 각각의 신호(릴리스 질문 / 업그레이드 트랙 판단) 한 구절을 더했다.",
+      "completed_at": "2026-11-27T17:55:01+0900"
     },
     {
       "step": 4,
