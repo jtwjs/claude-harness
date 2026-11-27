@@ -18,7 +18,10 @@
       "step": 2,
       "name": "design-doc-check",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T03:37:42+0900",
+      "base": "74c184a745949a44863bceb8b67ae1d60e9f0129",
+      "red": "01e3c775926f2d3afc5c34d729e435a04f3a5818"
     },
     {
       "step": 3,
