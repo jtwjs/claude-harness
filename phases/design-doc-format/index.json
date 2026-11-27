@@ -4,9 +4,32 @@
   "docs": "docs/design-doc-format-2026-11-28",
   "after": [],
   "steps": [
-    { "step": 1, "name": "template-cells", "status": "pending", "tdd": true },
-    { "step": 2, "name": "design-doc-check", "status": "pending", "tdd": true },
-    { "step": 3, "name": "sdd-flow-rules", "status": "pending", "tdd": true },
-    { "step": 4, "name": "conductor-adr-lines", "status": "pending", "tdd": true }
+    {
+      "step": 1,
+      "name": "template-cells",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T03:22:44+0900",
+      "base": "dd03cc48918ef2f4374500b0e666c7c01535e6f0",
+      "red": "98173ab905695d521aa32b1b1c0a44fcefe1d13c"
+    },
+    {
+      "step": 2,
+      "name": "design-doc-check",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "sdd-flow-rules",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "conductor-adr-lines",
+      "status": "pending",
+      "tdd": true
+    }
   ]
 }
