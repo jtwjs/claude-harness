@@ -109,3 +109,29 @@ printf '%s' '{"git":{"baseBranch":"main"},"verify":{"test":"make test"}}' > "$_s
 python3 "$_ss_root/skills/harness-init/scripts/fill_ci.py" "$_ss_f/.claude/harness.json" "$_ss_f/.github/workflows/ci.yml" >/dev/null 2>&1; _ss_code=$?
 [ "$_ss_code" = "0" ] && [ "$(_ss_q 'j["env"]["GITLEAKS_SHA256"]' "$_ss_f/.github/workflows/ci.yml")" = "$_ss_sha" ] && [ -n "$_ss_sha" ] \
   && ok "ss-after-fill — fill_ci.py exit 0 뒤에도 secret-scan 잡 그대로" || bad "ss-after-fill" "exit=$_ss_code sha=[$(_ss_q 'j["env"]["GITLEAKS_SHA256"]' "$_ss_f/.github/workflows/ci.yml")]"
+
+# ⑤ 앱별 형태(맨 아래 주석 블록): 주석을 벗기면 YAML · 같은 secret-scan 잡 · ci-gate 가 그 결과를 모은다
+_ss_app="$_ss_d/app.yml"
+awk 'f { if ($0 == "#") print ""; else if (substr($0, 1, 2) == "# ") print substr($0, 3); else print; next } $0 == "# jobs:" { f = 1; print "jobs:" }' "$_ss_tpl" > "$_ss_app"
+_ss_ajobs="$(ruby -ryaml -e 'print (YAML.load_file(ARGV[0])["jobs"] || {}).keys.join(" ")' "$_ss_app" 2>/dev/null)"
+case " $_ss_ajobs " in *" ci-gate "*) _ss_v=1 ;; *) _ss_v=0 ;; esac
+case " $_ss_ajobs " in *" secret-scan "*) [ "$_ss_v" = "1" ] ;; *) false ;; esac \
+  && ok "ss-app-job — 앱별 블록을 펼치면 YAML 로 읽히고 secret-scan · ci-gate 가 있다" || bad "ss-app-job" "jobs=[$_ss_ajobs]"
+[ "$(ruby -ryaml -e 'a = YAML.load_file(ARGV[0])["jobs"]["secret-scan"]; b = YAML.load_file(ARGV[1])["jobs"]["secret-scan"]; print(!a.nil? && a == b)' "$_ss_app" "$_ss_tpl" 2>/dev/null)" = "true" ] \
+  && ok "ss-app-same-as-single — 앱별 secret-scan 잡 = 단일 형태 잡(if · env · 스텝 같음, paths 필터 밖)" || bad "ss-app-same-as-single" "앱별 블록 잡이 없거나 단일 형태와 다르다"
+_ss_needs="$(_ss_q 'Array(y["jobs"]["ci-gate"]["needs"]).join(" ")' "$_ss_app")"
+_ss_v=1; for _ss_n in changes api web secret-scan; do case " $_ss_needs " in *" $_ss_n "*) ;; *) _ss_v=0 ;; esac; done
+[ "$_ss_v" = "1" ] \
+  && ok "ss-app-gate-needs — ci-gate needs 에 secret-scan(changes · api · web 그대로)" || bad "ss-app-gate-needs" "needs=[$_ss_needs]"
+# ci-gate 판정 줄을 그대로 돌린다: needs 마다 결과를 넣은 JSON 으로 ${{ toJSON(needs) }} 를 바꾼다
+_ss_gate_run="$(_ss_q '(y["jobs"]["ci-gate"]["steps"].find { |s| s["run"].to_s.include?("jq") } || {})["run"]' "$_ss_app")"
+_ss_gate() { # $1 secret-scan 결과 → 종료 코드 (다른 needs 는 success)
+  local js; js="$(python3 -c 'import json,sys; print(json.dumps({n: {"result": sys.argv[1] if n == "secret-scan" else "success"} for n in sys.argv[2:]}))' "$1" $_ss_needs)"
+  bash -e -c "${_ss_gate_run//'${{ toJSON(needs) }}'/$js}" >/dev/null 2>&1
+}
+if [ -z "$_ss_gate_run" ]; then
+  bad "ss-app-gate-skipped-ok" "ci-gate jq 판정 줄이 없다"; bad "ss-app-gate-fails-on-scan-failure" "ci-gate jq 판정 줄이 없다"
+else
+  _ss_gate skipped && ok "ss-app-gate-skipped-ok — push 에서 secret-scan 이 skipped 면 ci-gate 통과" || bad "ss-app-gate-skipped-ok" "skipped 인데 ci-gate 가 막음"
+  ! _ss_gate failure && ok "ss-app-gate-fails-on-scan-failure — secret-scan 이 실패하면 ci-gate 가 막는다" || bad "ss-app-gate-fails-on-scan-failure" "secret-scan failure 인데 ci-gate 통과(needs=[$_ss_needs])"
+fi
