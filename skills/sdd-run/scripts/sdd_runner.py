@@ -226,6 +226,23 @@ def open_decisions(docs_dir) -> list:
     return out
 
 
+def edits_problem(step: dict):
+    """step 의 test_edits 칸(ADR-024 T4)이 틀렸으면 이유 한 줄, 없거나 맞으면 None."""
+    edits = step.get("test_edits")
+    if edits is None:
+        return None
+    if not isinstance(edits, dict):
+        return "객체 {\"<경로>\": \"<이유 한 줄>\"} 여야 한다"
+    if step.get("tdd"):
+        return "tdd: true step 에는 둘 수 없다 — 테스트 먼저 step 은 RED 뒤 테스트 수정을 그대로 되돌린다"
+    for path, why in edits.items():
+        if not isinstance(why, str) or not why.strip():
+            return f"{path} 의 이유가 빈칸이거나 문자열이 아니다 — 고치는 이유를 한 줄로 적는다"
+        if not TEST_FILE.search(path) or path.startswith("phases/"):
+            return f"{path} 는 테스트 파일이 아니다(러너의 테스트 파일 기준 · phases/ 밖) — 기존 테스트 파일만 적는다"
+    return None
+
+
 def gate(docs_dir) -> int:
     """`gate DOCS_DIR` — 열린 것이 있으면 목록 + 종료 2, 없으면 한 줄 + 0. 읽기만 한다."""
     d = Path(docs_dir)
@@ -440,6 +457,11 @@ class Runner:
                 why = s.get("error_message") or s.get("blocked_reason") or ""
                 print(f"step {s['step']} 이 {s['status']} 다 — 원인을 고치고 pending 으로 되돌린 뒤 다시 실행: {why}")
                 return 2 if s["status"] == "blocked" else 1
+        for s in self.read()["steps"]:   # test_edits 칸 꼴(ADR-024 T4) — 계획 실수를 부작용 전에 거른다
+            why = edits_problem(s)
+            if why:
+                print(f"step {s['step']} test_edits: {why}")
+                return 1
         docs = self.read().get("docs")
         if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
             return 2
