@@ -17,11 +17,12 @@
     {
       "step": 2,
       "name": "rejudge-retry-window",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T13:00:46+0900",
-      "base": "e4babfb2a637f0f62811c118b65b515244d190e0",
-      "red": "2a543d76b2c5c9b4012e4330540e728e13c92256"
+      "red": "2a543d76b2c5c9b4012e4330540e728e13c92256",
+      "summary": "재시도 창(D2): 마지막 rejudged 뒤 실패만 센다 — 경계는 rejudged[].attempts_before(재판정 때 attempts 개수)로 셌다(계획은 rejudged.at 시각, 이유: stamp가 초 단위라 같은 초의 재판정 전 실패가 섞여 한도가 하나 일찍 걸림). F1 보강: 옛 red와 HEAD blob이 같으면 목록에서 뺌 · wip: 커밋은 끝 테스트 묶음에 넣지 않음",
+      "completed_at": "2026-11-27T13:15:04+0900"
     },
     {
       "step": 3,
