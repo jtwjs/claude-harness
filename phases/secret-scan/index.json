@@ -18,7 +18,10 @@
       "step": 2,
       "name": "app-form-job",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T01:35:23+0900",
+      "base": "9c75e66ab100adf1deb5fb1059cccfa41c73eca0",
+      "red": "ea219daeee9c5bcfc39d50e523d5f94a99661933"
     },
     {
       "step": 3,
