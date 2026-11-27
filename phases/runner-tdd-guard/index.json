@@ -44,11 +44,12 @@
     {
       "step": 4,
       "name": "test-edits-check",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T02:11:20+0900",
-      "base": "e898891d17462903af6581c0e704479f4c7678e9",
-      "red": "678ab6189d76d51e8902dfd016d1e6f147e6f4da"
+      "red": "678ab6189d76d51e8902dfd016d1e6f147e6f4da",
+      "summary": "모듈 함수 edits_problem(step) + start 가 blocked 검사 뒤 · 관문/부작용 전에 step 마다 test_edits 꼴 검사(객체 아님 · 이유 빈칸/비문자열 · tdd step · 테스트 파일 아님/phases/ → 「step N test_edits: 이유」 종료 1, ADR-024 T4)",
+      "completed_at": "2026-11-28T02:35:05+0900"
     },
     {
       "step": 5,
