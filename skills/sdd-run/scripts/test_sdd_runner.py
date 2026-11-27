@@ -332,8 +332,9 @@ class RunnerCase(unittest.TestCase):
         self.assertIn("verify", self.step()["error_message"])
 
     # ── 판정 4'(ADR-024 T1 · T2) — tdd 가 아닌 step 의 기존 테스트 파일 수정 · 삭제 되돌림 ──────
-    def guard_turn(self, steps):
-        """기존 테스트 tests/q.expect · tests/r.expect(src 와 짝, verify 통과)를 둔 뒤 start → prompt --base. BASE 를 돌려준다."""
+    def guard_turn(self, steps, prompt=True):
+        """기존 테스트 tests/q.expect · tests/r.expect(src 와 짝, verify 통과)를 둔 뒤 start → prompt --base. BASE 를 돌려준다.
+        prompt=False 면 start 까지만(나눔 모드 prompt 는 호출하는 테스트가 부른다)."""
         r = self.repo
         (r / "tests").mkdir(exist_ok=True)
         for n in ("q", "r"):
@@ -344,7 +345,8 @@ class RunnerCase(unittest.TestCase):
         self.phase(steps)
         self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
         base = self.head()
-        self.assertEqual(self.session("prompt", "t1", "--base", base).returncode, 0, self.out)
+        if prompt:
+            self.assertEqual(self.session("prompt", "t1", "--base", base).returncode, 0, self.out)
         return base
 
     def read(self, rel):
@@ -451,6 +453,65 @@ class RunnerCase(unittest.TestCase):
         self.assertIn("tests/q.expect", self.prompt(1), "다음 시도 지시문에 되돌린 파일 이름이 붙는다")
         self.assertEqual(self.read("tests/q.expect"), "q")
         self.assertEqual(self.log().count("테스트 수정 되돌림"), 1, "재시도에서 다시 걸리지 않는다")
+
+    # ── 나눔 모드 tdd:false 시작 커밋(ADR-024 T3) · 지시문 ─────────────────────────────
+    def test_impl_prompt_pins_base_when_missing(self):
+        base = self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step().get("base"), base, "BASE 가 없으면 구현 차례 prompt 가 그 순간 HEAD 를 고정한다")
+
+    def test_tdd_false_prompt_states_test_rule(self):
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                         {"step": 2, "name": "d", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}], prompt=False)
+        p = self.session("prompt", "t1", "--role", "impl")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("기존 테스트 파일은 고치지 않는다", p.stdout)
+        self.assertIn("새 테스트 파일은 더해도 된다", p.stdout)
+        p = self.session("prompt", "t1", "--step", "2")
+        self.assertIn("tests/q.expect", p.stdout, "칸에 적힌 파일을 지시문에 보인다")
+        self.assertIn("q 문구가 qq 로 바뀐다", p.stdout, "이유도 같이 보인다")
+
+    def test_impl_prompt_keeps_given_base(self):
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        given = git(self.repo, "rev-parse", "HEAD~1").stdout.strip()
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl", "--base", given).returncode, 0, self.out)
+        self.assertEqual(self.step().get("base"), given, "--base 를 주면 그 값")
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.assertEqual(self.step().get("base"), given, "이미 고정된 BASE 는 덮지 않는다")
+
+    def test_impl_tdd_false_judge_reverts_without_base_flag(self):
+        # #80 관찰: 구현 세션이 --base 없이 돌면 judge 가 「BASE 필요」로 거절했다 — 러너가 고정하면 판정 4'까지 간다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q")
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_impl_base_repinned_after_blocked_fix(self):
+        # blocked(red 없음)는 BASE 를 지운다 → 검증이 테스트를 고쳐 커밋하고 pending 으로 되돌리면
+        # 다음 구현 차례가 그 커밋 뒤를 BASE 로 잡아 검증의 수정이 되돌려지지 않는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["status", "blocked", {"blocked_reason": "q 테스트 기대값이 틀렸다"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.assertNotIn("base", self.step())
+        (self.repo / "tests/q.expect").write_text("qq")                       # 검증 세션이 테스트를 고친다
+        git(self.repo, "add", "tests/q.expect")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "test: q 기대값 고침")
+        fixed = self.head()
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        d["steps"][0]["status"] = "pending"
+        f.write_text(json.dumps(d, indent=2))
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.assertEqual(self.step().get("base"), fixed, "새 BASE 는 검증의 테스트 커밋 뒤")
+        self.act([["write", "src/q.txt", "qq"], ["commit", "feat: q 맞춤"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "qq", "검증의 테스트 수정은 되돌리지 않는다")
 
     # ── 시작 전 점검 ────────────────────────────────────────────────────────
     def test_after_not_done_refuses(self):
