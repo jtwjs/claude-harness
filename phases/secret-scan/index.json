@@ -1,0 +1,83 @@
+{
+  "project": "claude-harness",
+  "phase": "secret-scan",
+  "docs": "docs/secret-scan-2026-11-28",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "single-form-job",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:21:01+0900",
+      "red": "0b4d8e518d6e01c1a572123c5a2b81200afcf148",
+      "summary": "templates/.github/workflows/ci.yml 단일 형태에 secret-scan 잡(PR만 · gitleaks 8.30.1 sha256 고정 · $RUNNER_TEMP 설치 · base..head --redact)을 verify 옆에 더했다. 앱별 주석 블록은 그대로(step 2).",
+      "completed_at": "2026-11-28T01:34:56+0900"
+    },
+    {
+      "step": 2,
+      "name": "app-form-job",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:35:23+0900",
+      "red": "ea219daeee9c5bcfc39d50e523d5f94a99661933",
+      "summary": "앱별 주석 블록에 단일 형태와 같은 secret-scan 잡(paths 필터 밖)을 더하고 ci-gate needs 에 secret-scan 을 넣었다. jq 판정 줄은 그대로.",
+      "completed_at": "2026-11-28T01:45:15+0900"
+    },
+    {
+      "step": 3,
+      "name": "env-ignore-upgrade-notice",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:45:36+0900",
+      "red": "ab27df605ff7181b96d02fd52ff7f8e2f14f69a9",
+      "summary": "templates/.gitignore.append 에 .env 줄(이유 주석 한 줄, ignore 하지 않는다 블록 위)을, harness-init SKILL.md §0 표에 CI 행을 더했다(.gitignore 행 그대로). 안내 문구 원문: 「템플릿 CI에 비밀값 검사 잡 `secret-scan`이 새로 생겼어요. 넣으려면 `${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`의 그 잡을 이 레포 `ci.yml`로 옮기세요.」",
+      "completed_at": "2026-11-28T01:55:17+0900"
+    },
+    {
+      "step": 4,
+      "name": "measure-real-scan",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "started_at": "2026-11-28T01:55:38+0900",
+      "summary": "템플릿 secret-scan 두 스텝 run:을 그대로 돌림(세션 스크래치 임시 레포, `bash measure.sh <레포> <작업 폴더>`). `install gitleaks`(bash -e, linux_x64): sha256sum -c OK · exit 0 · 2.60초. `gitleaks scan`(base..head, --redact): 가짜 키 갈래 `leaks found: 1` exit 1 · 0.84초 / 깨끗한 갈래 `no leaks found` exit 0 · 0.35초, 둘 다 1 commits scanned. 검사는 같은 버전 darwin_arm64(상류 checksums.txt 대조 OK)로 돌림 — linux_x64는 이 머신에서 못 돌고 Docker 데몬이 꺼져 있었다. 실제 GitHub Actions 잡 시간은 미측정: 템플릿으로 만든 레포의 첫 PR / 다음 업그레이드 트랙",
+      "completed_at": "2026-11-28T01:59:03+0900"
+    },
+    {
+      "step": 5,
+      "name": "review-fixes",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T02:36:56+0900",
+      "red": "e84f4c59bac7230ad8ed919963d46895c1b3507b",
+      "summary": "secret-scan 잡(단일 · 앱별 같은 값)에 범위 확인(빈 값 · 없는 커밋이면 exit 1) · permissions contents: read · persist-credentials: false · 한계 주석 두 줄(R1 · R3)을 더했고, harness-doctor 1-b ② · ④에 secret-scan 제외 구절을 넣었다. 바뀐 안내 문구 원문: 「템플릿 CI에 비밀값 검사 잡 `secret-scan`이 새로 생겼어요. 넣으려면 `${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`의 그 잡을 이 레포 `ci.yml`로 복사하세요. 앱별 형태면 `ci-gate`의 `needs`에도 `secret-scan`을 넣으세요.」",
+      "completed_at": "2026-11-28T02:51:52+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T02:20:00+0900",
+      "head": "c5eeb59",
+      "by": "sdd-review(검증 세션) + code-reviewer(새 맥락, 템플릿 공용 경로)",
+      "issues": [
+        "🟡 범위가 깨지면(기준 커밋 없음 · 얕은 clone) gitleaks가 커밋 0개를 통과(exit 0)로 끝냄 — 진짜 gitleaks로 재현",
+        "🟡 merge 커밋에서 충돌을 풀며 넣은 키를 못 잡음 — 재현, R1 = 주석으로 한계",
+        "🟡 harness-doctor 1-b ② · ④가 새 잡을 drift로 잘못 잡음 — R2 = 같은 PR에서 한 구절씩",
+        "🟡 앱별 레포 업그레이드 안내에 ci-gate needs가 없음",
+        "🟢 PR 안 .gitleaks.toml · .gitleaksignore · gitleaks:allow로 끌 수 있음 — R3 = 주석 한 줄 + PR 사람이 볼 것",
+        "🟢 잡 권한 contents: read · persist-credentials: false — R4",
+        "🟢 안내 문구 「옮기세요」→「복사하세요」",
+        "🟢 .env.local 등은 안 막음(설계서 범위 밖, 다음 후보)",
+        "🟢 ss-no-repo-specific 패턴 3개뿐(지금 흔적 없음)"
+      ]
+    },
+    {
+      "at": "2026-11-28T02:55:00+0900",
+      "head": "e910405",
+      "by": "sdd-review(검증 세션, 1회차 head 뒤 diff)",
+      "issues": [],
+      "resolved": "1회차 🟡 4건 · 🟢 R3 · R4 · 문구 반영(step 5). 진짜 gitleaks로 다시 확인: 기준 커밋 없음 · 빈 기준이면 잡 exit 1(범위 확인 전에는 no leaks found로 통과), 가짜 키 갈래 exit 1 · 깨끗한 갈래 exit 0. bash hooks/test.sh 706/0"
+    }
+  ]
+}

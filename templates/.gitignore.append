@@ -10,6 +10,9 @@
 .claude/design/references/*
 !.claude/design/references/README.md
 
+# 비밀값 파일(키 · 토큰). 커밋하면 값이 원격에 남는다.
+.env
+
 # ⚠️ 아래는 ignore 하지 않는다 — 이것들이 자산이다:
 #   .claude/harness.json  .claude/README.md  .claude/rules/  .claude/references/
 #   .gitignore 에 넣고 혼자 쓰면 자산이 아니라 dotfiles 다.
