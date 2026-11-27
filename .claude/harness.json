@@ -8,5 +8,11 @@
   },
   "verify": {
     "test": "bash hooks/test.sh"
+  },
+  "review": {
+    "gatePaths": [
+      "skills/sdd-run/scripts/**",
+      "hooks/**"
+    ]
   }
 }
