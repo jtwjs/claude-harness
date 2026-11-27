@@ -19,7 +19,7 @@ disable-model-invocation: true
 
 `verify`가 **앱별**(`{"<root>": {…}}`)이면 root마다 대조하고, 키가 `stacks.packs[].root`와 1:1인지도 본다(root 폴더가 실재하는지 포함). 단일 앱 키와 앱별 키가 섞여 있으면 ⚠️ — 훅은 앱별만 읽는다.
 
-**1-b. CI 워크플로** — `.github/workflows/ci.yml`이 있으면 네 가지를 본다. ① 플레이스홀더(`grep -E '\{\{[A-Z_]+\}\}'`)가 남아 있는가(남아 있으면 🔴 — 워크플로가 통째로 무효다. `${{ github.… }}`는 세지 않는다) ② 각 `run:` 값이 `verify.*` 중 하나와 같은가(`verify`가 바뀌었는데 CI가 옛 명령을 돌리는 drift). 앱별이면 잡의 `working-directory`로 root를 찾아 `verify["<root>"]`와 대조 ③ `verify.test`가 비었는데 test 스텝이 없거나 `ci.test`가 `"deferred"`가 아닌가 ④ 앱별인데 단일 잡 하나이거나, 앱 잡이 있는데 `ci-gate`가 없는가. 이 검사가 **harness-init §4(`fill_ci.py`로 채우기 · 앱별 `jobs`)가 안 지켜진 것을 잡는 유일한 자리**다.
+**1-b. CI 워크플로** — `.github/workflows/ci.yml`이 있으면 네 가지를 본다. ① 플레이스홀더(`grep -E '\{\{[A-Z_]+\}\}'`)가 남아 있는가(남아 있으면 🔴 — 워크플로가 통째로 무효다. `${{ github.… }}`는 세지 않는다) ② 각 `run:` 값이 `verify.*` 중 하나와 같은가(`verify`가 바뀌었는데 CI가 옛 명령을 돌리는 drift). 앱별이면 잡의 `working-directory`로 root를 찾아 `verify["<root>"]`와 대조. `secret-scan` 잡 스텝은 대조에서 뺀다 ③ `verify.test`가 비었는데 test 스텝이 없거나 `ci.test`가 `"deferred"`가 아닌가 ④ 앱별인데 단일 잡 하나이거나, 앱 잡이 있는데 `ci-gate`가 없는가(`secret-scan` 잡은 앱 잡으로 세지 않는다). 이 검사가 **harness-init §4(`fill_ci.py`로 채우기 · 앱별 `jobs`)가 안 지켜진 것을 잡는 유일한 자리**다.
 
 ## 2. 참조 무결성 (양방향)
 
