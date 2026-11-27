@@ -59,6 +59,12 @@
       "started_at": "2026-11-28T02:35:55+0900",
       "summary": "docs/sdd-runner.md 판정 4' 행 · test.sh 판별 · 나눔 모드 impl BASE 고정 · test_edits 항목 · 검증 상태 168개, sdd-run §2-b 55행 · sdd-plan 이동 step 줄과 test_edits 칸 설명",
       "completed_at": "2026-11-28T02:46:04+0900"
+    },
+    {
+      "step": 6,
+      "name": "review-fix-guard-gaps",
+      "status": "pending",
+      "tdd": true
     }
   ]
 }

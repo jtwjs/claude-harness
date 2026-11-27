@@ -41,7 +41,9 @@ flowchart TD
 ## 지키는 것
 
 - 순변화(`git diff BASE HEAD`)를 본다. 한 step 안에서 고쳤다가 되돌린 파일은 변경이 아니다. 재시도에서 되돌림 커밋이 BASE 뒤에 있어도 순변화가 0이라 다시 걸리지 않는다
-- 이름 바꾸기는 git이 「옛 경로 지움 + 새 경로 추가」로 본다(`--name-only`, `-M` 없음). 칸에 옛 경로가 없으면 옛 파일은 복원되고 새 파일은 남는다
+- 이름 바꾸기: git `diff --name-only`는 기본값(`diff.renames`)으로 이름 바꾸기를 감지해 **옛 경로를 목록에 안 보인다**. 비ASCII 경로에는 따옴표를 붙인다(`core.quotePath`). 그래서 판정은 `git -c core.quotePath=false diff --no-renames --name-only -z`로 본다 — 이름 바꾸기는 「옛 경로 지움 + 새 경로 추가」가 되어, 칸에 옛 경로가 없으면 옛 파일은 복원되고 새 파일은 남는다(첫 초안은 이 줄을 반대로 적었다. 새 맥락 리뷰 1회차가 재현)
+- 허용 칸은 BASE 커밋의 index.json에서 읽는다(T6). 검증이 step 도중 칸을 더하면 다음 시도(새 BASE)부터 적용된다
+- error로 멈추는 갈래도 BASE를 지우기 전에 같은 되돌림을 돌린다(T7)
 - 나눔 모드 blocked(red 없음)는 BASE를 지운다(`:960-961`). 검증이 그사이 테스트를 고쳐 커밋하고 pending으로 되돌리면, 다음 구현 차례는 `prompt --role impl`이 새 BASE(그 커밋 뒤)를 잡아 검증의 수정이 되돌려지지 않는다(T3)
 - 판정 4'는 테스트 명령을 돌리지 않는다(git diff · checkout만). 판정 시간이 느는 곳은 되돌림이 있을 때의 커밋 하나다
 
