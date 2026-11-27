@@ -20,6 +20,7 @@
 - G2: `track-brief.md` 「진행 방식」 한 줄(「위임」 조건이면 새 맥락 `code-reviewer`)
 - G3: `sdd-run/SKILL.md` §2에 「나눔 모드는 두 세션이 직접 쓴다(ADR-019 E1)」
 - ADR-023에 바뀐 결정이 있으면 「갱신」 줄
+- ADR-023 R3 「갱신: #86 D1~D3」 줄 D2 문구를 구현에 맞춘다: 경계는 「마지막 재판정 때 attempts 개수」(`rejudged[].attempts_before`) 뒤 실패 — 시각은 초 단위라 같은 초 실패가 섞인다(step 2 탐침). D1에 「구현 시도(`wip:`) 커밋은 끝 묶음 밖 · HEAD 내용이 옛 red와 같으면 받음」
 - kind: docs — 테스트 없음(tdd: false)
 
 ## Acceptance Criteria
