@@ -1,0 +1,91 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-gate-fix",
+  "docs": "docs/runner-gate-2026-11-26",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "rejudge-guards",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-27T12:47:05+0900",
+      "red": "404ba9bdb34d0a5c2e76c4771a2becac81d791b6",
+      "summary": "rejudge 확인 ③(D1): 옛 red..HEAD 중 끝 테스트 묶음 밖 커밋이 테스트 파일(지움 포함)을 건드렸으면 목록 + 종료 1. red_passes(D3): detached면 시작 sha로 복귀(judge --red · rejudge · 1회 모드 judge 공용)",
+      "completed_at": "2026-11-27T13:00:03+0900"
+    },
+    {
+      "step": 2,
+      "name": "rejudge-retry-window",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-27T13:00:46+0900",
+      "red": "2a543d76b2c5c9b4012e4330540e728e13c92256",
+      "summary": "재시도 창(D2): 마지막 rejudged 뒤 실패만 센다 — 경계는 rejudged[].attempts_before(재판정 때 attempts 개수)로 셌다(계획은 rejudged.at 시각, 이유: stamp가 초 단위라 같은 초의 재판정 전 실패가 섞여 한도가 하나 일찍 걸림). F1 보강: 옛 red와 HEAD blob이 같으면 목록에서 뺌 · wip: 커밋은 끝 테스트 묶음에 넣지 않음",
+      "completed_at": "2026-11-27T13:15:04+0900"
+    },
+    {
+      "step": 3,
+      "name": "gate-missed-forms",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-27T13:15:34+0900",
+      "red": "335259511013780be131b78abb95057d55fb9595",
+      "summary": "open_decisions F4: 「남은 ⚠」(FE0F 무관) 제목·라벨 · 라벨 줄 붙여 쓴 내용(괄호 설명은 제외, 닫힘·없음 규칙 공용 _prd_open) · 번호(1. 1))·+ 목록 · _cells가 \\| 무시. F6: exclude = Path 공백 · 문서 없음 줄에 해석한 폴더. docs/* 전체 대조에서 새 오탐 0(열린 폴더 1개는 이전 러너도 같은 4개)",
+      "completed_at": "2026-11-27T13:26:37+0900"
+    },
+    {
+      "step": 4,
+      "name": "docs-align",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-27T13:27:22+0900",
+      "summary": "F5 design.md ADR.md에 「결정할 것」 표(# · 정할 것 · 선택지 · 추천 · 주체). F6 sdd-runner.md: rejudge 확인 셋(스위트 단위 한계 명시) · D1~D3 · F4 꼴 · 경로 출력 · 남는 갈래 다섯+반대 방향 하나 · 140개(이번 15). ADR-023 D1·D2 갱신 줄 문구 맞춤. G1 harness.json review.gatePaths · G2 track-brief 한 줄 · G3 sdd-run §2 한 구절",
+      "completed_at": "2026-11-27T13:37:30+0900"
+    },
+    {
+      "step": 5,
+      "name": "probe-rerun",
+      "status": "completed",
+      "tdd": false,
+      "kind": "measure",
+      "summary": "레포 밖 재현 스크립트 다시 돌림: F1 `rejudge` 종료 1(구현이 지운 테스트 목록, 전 0) · F2 재판정 뒤 첫 실패 종료 10 재시도(전 error) · F3 detached `rejudge` red=고친 테스트 커밋 · 구현 파일 남음(전 임시 커밋) · 관문 꼴 14개 중 F4 넷 열림(전 0) · `gate` docs 15개 멈춤 1(desk-hypothesis-gate, 이전과 같음) · `python3 -m unittest …test_sdd_runner.py` 140 OK · `bash hooks/test.sh` 642/0",
+      "completed_at": "2026-11-27T13:49:57+0900"
+    },
+    {
+      "step": 6,
+      "name": "review-fixes",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-27T14:51:53+0900",
+      "red": "71dc3bc0e0591317af0d1b94943750fd054f3f72",
+      "summary": "D4 blocked 판정이 wip 커밋 뒤 HEAD를 blocked_head로 적고 rejudge_split이 묶음(blocked_head..HEAD)·구현 구간(옛 red..blocked_head)을 가름, 재판정 성공 시 지움 · D5 순변화+HEAD≠옛 red일 때만 거부 · 라벨 붙여 쓴 내용 앞 **·:·줄표 벗김 · 재판정 뒤 재시도 표시는 재판정 뒤 수 · 문서·ADR 갱신 줄. blocked_head는 index 커밋 앞 HEAD로 했다(계획은 index 커밋 뒤, 이유: 뒤에 적으면 index를 한 번 더 커밋해야 하고 index 커밋은 phases/만 담아 묶음에 섞여도 같다)",
+      "completed_at": "2026-11-27T15:04:08+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-27T13:55:58+0900",
+      "head": "2e28cdc44dbe252e4becc8bacd5601d64cbefc42",
+      "by": "code-reviewer(새 맥락, gatePaths)",
+      "issues": [
+        "🔴 rejudge 묶음 경계가 `wip:` 제목에 기댐 — 구현 세션이 직접 올린 테스트만 담은 커밋이 묶음에 섞여 씻김(재현함)",
+        "🟡 판정 4가 이미 되돌린 테스트 파일은 rejudge가 늘 거부(막다른 길, 재현함) — D1 문구 그대로라 결정 필요",
+        "🟡 라벨 붙여 쓴 내용 정리가 `**남은 ⚠️:** 없음` · `— 없음`을 열린 항목으로 셈(main 대비 회귀, 막는 방향)",
+        "🟡 위 두 rejudge 경로 테스트 없음",
+        "🟢 `- **남은 ⚠️ (범위)**: X` 통과 — 못 막는 갈래 후보",
+        "🟢 rejudge 60줄 — 묶음/구현 구간 가르기 함수로",
+        "🟢 재판정 뒤 「재시도 4/3」 표시"
+      ]
+    },
+    {
+      "at": "2026-11-27T15:11:22+0900",
+      "head": "a9597c2384a055818a5e96e1fbe7c9b7c87c4d47",
+      "by": "sdd-review(검증 세션, 리뷰 1회차 뒤 diff)",
+      "issues": [
+        "🟢 라벨 붙여 쓴 내용 정리가 앞의 `-`도 벗긴다 — `**남은 ⚠️**: -1 처리 미정` 같은 줄은 `1 처리 미정`으로 보임(셈은 맞음)"
+      ],
+      "resolved": "1회차 🔴 · 🟡3 · 🟢 재시도 표시 · 🟢 못 막는 갈래 한 줄 반영(step 6), 리뷰어 재현 스크립트 다시 돌려 확인. 🟢 rejudge 함수 빼기도 반영(rejudge_split)"
+    }
+  ]
+}

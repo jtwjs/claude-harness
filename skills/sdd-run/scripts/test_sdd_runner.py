@@ -1459,6 +1459,199 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(p.returncode, 3, "지금 차례인 step 이 아니면 거부\n" + self.out)
         self.assert_unchanged(before)
 
+    # ── #86 F1 · F3: 구현이 바꾼 테스트를 씻지 않는다 · detached HEAD ─────────
+    def blocked_with_impl_ops(self, impl_ops):
+        """red(a=hello, c=c) → 구현이 impl_ops 를 하고 blocked. (BASE, 옛 red)"""
+        base, _ = self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["write", "tests/c.expect", "c"], ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        old = self.step()["red"]
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        for op in impl_ops:
+            if op[0] == "rm":
+                (self.repo / op[1]).unlink()
+        self.act([op for op in impl_ops if op[0] != "rm"]
+                 + [["status", "blocked", {"blocked_reason": "a 기대값이 틀렸다 — bye"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "",
+                         "구현 시도는 wip 커밋에 담긴다(거부 이유가 더러운 트리가 아니게)")
+        return base, old
+
+    def test_rejudge_impl_deleted_test_refused(self):
+        _, old = self.blocked_with_impl_ops([["write", "src/a.txt", "bye"], ["write", "src/c.txt", "c"],
+                                             ["rm", "tests/c.expect"]])
+        self.assertFalse((self.repo / "tests/c.expect").exists(), "구현이 지운 테스트가 HEAD 에 없다")
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "구현 세션이 지운 테스트를 새 red 로 씻지 않는다\n" + self.out)
+        self.assertIn("tests/c.expect", self.out, "바뀐 테스트 파일 목록을 보인다")
+        self.assert_unchanged(before)
+        self.assertEqual(self.step()["red"], old)
+        self.assertEqual(self.step()["status"], "blocked")
+
+    def test_rejudge_impl_edited_test_refused(self):
+        _, old = self.blocked_with_impl_ops([["write", "src/a.txt", "bye"], ["write", "src/c.txt", "zzz"],
+                                             ["write", "tests/c.expect", "zzz"]])
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "구현 세션이 고친 테스트를 새 red 로 씻지 않는다\n" + self.out)
+        self.assertIn("tests/c.expect", self.out)
+        self.assert_unchanged(before)
+        self.assertEqual(self.step()["red"], old)
+
+    def test_rejudge_impl_test_edit_before_red_ok(self):
+        # 경계: 옛 red 커밋의 테스트 변경 · 끝의 테스트만 담은 커밋 묶음(둘)은 구현 구간이 아니다
+        self.blocked_with_impl_ops([["write", "src/a.txt", "bye"], ["write", "src/c.txt", "c"]])
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        fixed = self.fix_tests([("write", "tests/e.expect", "e")], msg="test: step 1 — e 기대 추가")
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "구현이 테스트를 안 건드렸으면 받는다\n" + self.out)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_detached_head(self):
+        _, old = self.blocked_after_red()
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye")])
+        git(self.repo, "checkout", "-q", "--detach", "HEAD")
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], fixed, "red 는 임시 커밋이 아니라 고친 테스트 커밋")
+        self.assertEqual(git(self.repo, "rev-parse", "HEAD~1").stdout.strip(), fixed,
+                         "BASE 확인 뒤 시작 sha 로 돌아와 그 위에 index 를 커밋한다")
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "bye", "구현 파일이 작업 트리에 남는다")
+        self.assertEqual((self.repo / "tests/a.expect").read_text(), "bye")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "")
+
+    def test_judge_detached_head_returns_to_start(self):
+        # D3: RED 확인(red_passes)은 rejudge · judge 공용이다. 세션 하나 모드는 red 커밋 뒤에 구현 커밋이 있어
+        # detached 에서 「HEAD」로 돌아가면 red 커밋에 남는다 — 시작 sha 로 돌아가야 한다
+        self.phase([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+        self.session("prompt", "t1", "--base", self.head())
+        self.act([RED, ["commit", "test: a (red)"], IMPL, ["commit", "feat: a"], DONE])
+        impl = self.head()
+        git(self.repo, "checkout", "-q", "--detach", "HEAD")
+        p = self.session("judge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", impl, "HEAD").returncode, 0,
+                         "RED 확인 뒤 구현 커밋 위로 돌아온다")
+        self.assertEqual((self.repo / "src/a.txt").read_text(), "hello", "구현 파일이 작업 트리에 남는다")
+        self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "")
+
+    # ── #86 F2: 재판정 뒤 재시도 창 ─────────────────────────────────────────
+    def fail_impl(self, n, start=0):
+        rcs = []
+        for i in range(start, start + n):
+            self.session("prompt", "t1", "--role", "impl")
+            self.act([["write", "src/a.txt", f"bye{i}"], DONE])
+            rcs.append(self.session("judge", "t1", "--step", "1").returncode)
+        return rcs
+
+    def rejudged_after_three_fails(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.fail_impl(3), [10, 10, 10], self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["status", "blocked", {"blocked_reason": "기대값이 틀렸다 — bye"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+
+    def test_rejudge_resets_retry_window(self):
+        self.rejudged_after_three_fails()
+        self.assertEqual(self.fail_impl(1, start=10), [10], "재판정 뒤 첫 실패는 재시도다(한도 초과 error 아님)\n" + self.out)
+        self.assertEqual(self.step()["status"], "pending")
+        self.assertGreaterEqual(len(self.step()["attempts"]), 4, "attempts 는 이력으로 남는다")
+
+    def test_rejudge_retry_window_still_limits(self):
+        self.rejudged_after_three_fails()
+        rcs = self.fail_impl(4, start=10)
+        self.assertEqual(rcs[:3], [10, 10, 10], self.out)
+        self.assertNotEqual(rcs[3], 10, "재판정 뒤에도 한도를 넘으면 멈춘다\n" + self.out)
+        self.assertEqual(self.step()["status"], "error")
+
+    def test_rejudge_does_not_set_resumed_at(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        before = self.step().get("resumed_at")
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "bye"], ["status", "blocked", {"blocked_reason": "기대값이 틀렸다 — bye"}]])
+        self.session("judge", "t1", "--step", "1")
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step().get("resumed_at"), before, "재개 표시를 쓰면 전체 verify 가 켜진다 — 쓰지 않는다")
+
+    def test_rejudge_after_restoring_impl_test_edit_accepted(self):
+        # D1 「검증이 되돌리는 테스트 커밋을 올리면 다시 받는다」
+        _, old = self.blocked_with_impl_ops([["write", "src/a.txt", "bye"], ["write", "src/c.txt", "c"],
+                                             ["rm", "tests/c.expect"]])
+        self.fix_tests([("write", "tests/a.expect", "bye"), ("write", "tests/c.expect", "c")])
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "옛 red 내용으로 되돌렸으면 받는다\n" + self.out)
+        self.assertEqual((self.repo / "tests/c.expect").read_text(), "c")
+
+    def test_rejudge_impl_only_deleted_test_refused(self):
+        # 구현 시도가 테스트만 지우고 막히면 wip 커밋도 「테스트만 담은 커밋」이다 — 끝 묶음에 넣으면 씻긴다
+        _, old = self.blocked_with_impl_ops([["rm", "tests/c.expect"]])
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "구현 시도 커밋은 고친 테스트 묶음이 아니다\n" + self.out)
+        self.assertIn("tests/c.expect", self.out)
+        self.assert_unchanged(before)
+
+    # ── #86 리뷰 1회차: 묶음 경계 · 되돌린 파일 · 라벨 정리 · 재시도 표시 ─────────
+    def test_rejudge_impl_committed_test_only_refused(self):
+        # D4: 구현 세션이 테스트만 담은 커밋을 직접 올리고 blocked — wip 커밋이 없어도 묶음에 섞이지 않는다
+        _, old = self.blocked_with_impl_ops([["rm", "tests/c.expect"], ["commit", "test: c 기대 고침"]])
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "구현 세션 커밋은 고친 테스트 묶음이 아니다\n" + self.out)
+        self.assertIn("tests/c.expect", self.out)
+        self.assert_unchanged(before)
+
+    def test_blocked_records_blocked_head(self):
+        self.blocked_after_red()
+        s = self.step()
+        self.assertIn("blocked_head", s, "blocked 판정이 묶음 경계 sha 를 남긴다(D4)")
+        self.assertEqual(git(self.repo, "merge-base", "--is-ancestor", s["blocked_head"], "HEAD").returncode, 0)
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertNotIn("blocked_head", self.step(), "재판정이 blocked 칸과 같이 지운다")
+
+    def test_rejudge_fix_of_runner_reverted_test_accepted(self):
+        # D5: 판정 4가 되돌려 구현 구간 순변화가 0 인 테스트는 검증이 고쳐도 받는다(막다른 길 해소)
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "bye"], ["write", "tests/a.expect", "bye"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, "판정 4가 되돌리고 재시도\n" + self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["status", "blocked", {"blocked_reason": "a 기대값이 틀렸다 — bye"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye")])
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "러너가 되돌린 파일은 구현이 바꿔 놓은 채 남은 게 아니다\n" + self.out)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_retry_shows_count_since_rejudge(self):
+        self.rejudged_after_three_fails()
+        self.fail_impl(1, start=10)
+        self.assertIn("재시도 1/", self.out, "재판정 뒤 수를 보인다(전체 4/3 아님)")
+
+    def test_gate_label_inline_strips_marks(self):
+        for i, prd in enumerate(("# PRD\n- **남은 ⚠️** — 없음\n", "# PRD\n- **남은 ⚠️:** 없음\n")):
+            p = self.session("gate", self.docs(path=f"docs/n{i}", prd=prd))
+            self.assertEqual(p.returncode, 0, "굵게 안 콜론 · 줄표 뒤 「없음」은 항목 없음\n" + self.out)
+        p = self.session("gate", self.docs(path="docs/o", prd="# PRD\n- **남은 ⚠️:** 결제 재시도 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("PRD: 결제 재시도 미정\n", p.stdout, "앞에 ** 가 붙지 않는다")
+
     def rejudged(self, ops=(("write", "tests/a.expect", "bye"),)):
         """blocked → 검증이 테스트 고침 → rejudge 통과. (BASE, 구현 wip sha, 고친 테스트 sha)"""
         base, _ = self.blocked_after_red()
@@ -1519,6 +1712,48 @@ class RunnerCase(unittest.TestCase):
         p = self.session("gate", self.docs(prd="# PRD\n## 남은 ⚠️\n- ⚠️ 기본값 없음 처리\n- 없음표 정리\n"))
         self.assertEqual(p.returncode, 2, self.out)
         self.assertIn("열린 「정할 것」 2개", p.stdout, "「없음」이 본문 가운데 있거나 낱말 일부면 그대로 센다")
+
+    # ── #86 F4: 관문이 못 보던 꼴 · F6 경로 출력 ─────────────────────────────
+    def test_gate_heading_without_fe0f_counts(self):
+        for prd in ("# PRD\n## 남은 ⚠\n- 결제 재시도 정책 미정\n",
+                    "# PRD\n- **남은 ⚠**\n  - 결제 재시도 정책 미정\n"):
+            p = self.session("gate", self.docs(prd=prd))
+            self.assertEqual(p.returncode, 2, "변이 선택자 없는 ⚠ 도 같은 표시다\n" + self.out)
+            self.assertIn("PRD: 결제 재시도 정책 미정", p.stdout)
+
+    def test_gate_escaped_pipe_cell_counts(self):
+        head = "# ADR\n### 결정할 것\n\n| # | 정할 것 | 추천 | 주체 |\n|---|---|---|---|\n"
+        p = self.session("gate", self.docs(adr=head + "| R1 | `a \\| b` 중 무엇 | A |  |\n"))
+        self.assertEqual(p.returncode, 2, "셀 안 \\| 는 칸 나눔이 아니다 — 주체 칸이 비었다\n" + self.out)
+        self.assertIn("ADR R1:", p.stdout)
+        p = self.session("gate", self.docs(path="docs/e", adr=head + "| R1 | `a \\| b` 중 무엇 | A | 사용자 |\n"))
+        self.assertEqual(p.returncode, 0, "주체가 찬 행은 칸이 밀려도 닫힘\n" + self.out)
+
+    def test_gate_label_inline_content_counts(self):
+        p = self.session("gate", self.docs(prd="# PRD\n- **남은 ⚠️**: 결제 재시도 정책 미정\n"))
+        self.assertEqual(p.returncode, 2, "라벨 줄에 붙여 쓴 내용도 열린 항목\n" + self.out)
+        self.assertIn("PRD: 결제 재시도 정책 미정", p.stdout)
+        p = self.session("gate", self.docs(path="docs/e", prd="# PRD\n- **남은 ⚠️**: A 미정\n  - B 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout, "붙여 쓴 내용 + 아래 항목")
+        for i, prd in enumerate(("# PRD\n- **남은 ⚠️**: 없음\n",
+                                 "# PRD\n- **남은 ⚠️**: 재시도 정책 → 결정: ADR-1\n",
+                                 "# PRD\n- **남은 ⚠️** (닫힘 표시 규칙은 ADR)\n")):
+            p = self.session("gate", self.docs(path=f"docs/c{i}", prd=prd))
+            self.assertEqual(p.returncode, 0, "「없음」 · 닫힘 표시 규칙은 같다 · 괄호 설명은 내용이 아니다\n" + self.out)
+
+    def test_gate_numbered_and_plus_bullets_count(self):
+        p = self.session("gate", self.docs(prd="# PRD\n## 남은 ⚠️\n1. A 미정\n2) B 미정\n+ C 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 3개", p.stdout, "번호 목록 · + 불렛도 첫 단 항목")
+        p = self.session("gate", self.docs(path="docs/e", prd="# PRD\n- **남은 ⚠️**\n  1. D 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("PRD: D 미정", p.stdout)
+
+    def test_gate_no_docs_prints_resolved_path(self):
+        p = self.session("gate", "docs/typo-2026")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("docs/typo-2026", p.stdout, "문서 없음 · 경로 오타를 가를 수 있게 해석한 폴더를 같이 낸다")
 
 
 class VerifySlotTest(unittest.TestCase):
