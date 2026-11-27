@@ -36,7 +36,7 @@ disable-model-invocation: true
 - **TDD 판정**: step마다 `"tdd": true|false`를 정한다. `true`면 러너가 그 step을 **한 호출 안에서 테스트 먼저 → 구현**으로 돌리고(나눔 모드면 테스트는 검증 세션이 쓰고 `judge --red`로 판정, 구현은 구현 세션 — `sdd` 「세션 모드」) git 기록으로 확인한다(테스트만 담긴 커밋이 먼저 · 그 시점에 테스트가 실패 · 그 뒤 테스트 파일 무변경 — `sdd-run` §2), `false`면 **왜 아닌지 한 줄을 step 파일에 적는다**(조용히 건너뛰지 않는다). 판정 기준은 `.claude/rules/testing.md` §0 = `tdd-guard`의 면제 목록과 **같은 표**다.
 - **금지사항 명시**: 아래 템플릿 「금지사항」 두 줄은 늘 넣는다. 이름 · 경로를 바꾸는 step이면 「옛 이름 grep 0」 AC에 쌓기만 하는 기록을 뺀 범위를 적는다 — 빼지 않으면 에이전트가 지난 로그 항목까지 새 이름으로 고친다. CRITICAL 규칙을 step 안에 재고정. 단 **ADR이 정한 값(모델명·시간·한도·enum)은 `ADR-NNN` 참조만 적고 값을 복사하지 않는다** — 복사본은 ADR이 바뀐 뒤에도 옛 값으로 남는다.
 - **측정 전용 step은 `kind: "measure"`**: dev 실측·전후 대조·보고만 하고 바꿀 파일이 없는 step. 작업 절에 "무엇을 어떤 명령으로 재서 summary에 남기나"를 적는다. 구현 step에 측정을 섞지 않는다 — 섞으면 변경 유무로 판정할 수 없다.
-- **이동 리팩터(패키지 · 폴더 옮기기)는 세 step으로**: ① 측정 step(`kind: "measure"`) — 새 구조 규칙(ArchUnit · lint)을 임시로 돌려 RED를 확인하고 위반 목록을 summary에 남긴다 ② 이동 step(`tdd: false`, 사유 「테스트 파일도 rename · package 줄이 바뀌어 RED 뒤 테스트 무변경 판정과 못 같이 둔다」) ③ 규칙 step — 규칙을 커밋해 GREEN을 확인한다. 한 step에 묶으면 judge가 테스트 파일 변경으로 막는다
+- **이동 리팩터(패키지 · 폴더 옮기기)는 세 step으로**: ① 측정 step(`kind: "measure"`) — 새 구조 규칙(ArchUnit · lint)을 임시로 돌려 RED를 확인하고 위반 목록을 summary에 남긴다 ② 이동 step(`tdd: false`, 사유 「테스트 파일도 rename · package 줄이 바뀌어 RED 뒤 테스트 무변경 판정과 못 같이 둔다」. 바뀌는 기존 테스트 파일을 `test_edits`에 이유와 함께 적는다 — 없으면 러너가 되돌린다) ③ 규칙 step — 규칙을 커밋해 GREEN을 확인한다. 한 step에 묶으면 judge가 테스트 파일 변경으로 막는다
 - **넓은 리팩터(이름 · 타입을 레포 전체에서 바꾸기)는 확장 → 옮기기 → 수축**: ① 새 형태를 옛 형태 옆에 더한다 ② 호출처를 묶음(패키지 · 폴더)마다 새 형태로 옮기는 step을 묶음 수만큼, 묶음마다 verify 초록 ③ 옮기기가 다 끝난 뒤 옛 형태를 지운다. 한 step에 몰면 중간에 빨강이 길게 이어져 judge가 진짜 실패를 가리지 못한다
 - step 이름은 **kebab-case**.
 
@@ -71,6 +71,7 @@ UI 작업이고 `design-critique`가 승인한 시안이 있으면 step을 쪼�
 - `status` ∈ `pending | completed | error | blocked` **4개만**. 최초 전부 `pending`. 🔴 `done`·`complete` 같은 다른 값은 쓰지 않는다 — 러너는 `completed`만 끝난 것으로 판정한다. `phases_status.py`가 다른 값을 오류로 잡는다
 - `summary`·`error_message`·`blocked_reason`·`retries`·`last_error`(직전 실패 사유)·`attempts`(실패 이력, REFLECT 재료)·`red`(나눔 모드에서 검증 세션이 `judge --red`로 적는 테스트 커밋)·`resumed_at`·timestamp·`usage`는 **구현 단계(sdd-run)**가 채운다. 여기선 비워둔다.
 - **`kind`(선택)** — `"measure"`면 **코드 변경이 없는 측정·실측·대조 전용 step**이다. 러너가 변경 0을 정상으로 보고, 대신 `summary`에 실행한 명령(백틱)과 결과를 요구한다(없으면 실패). `tdd`는 `false`. 표시하지 않으면 러너가 "completed 보고인데 변경 없음"으로 재시도한다(#8)
+- **`test_edits`(선택, `tdd: false` step만)** — 이 step에서 고치거나 지워도 되는 기존 테스트 파일 `{"<경로>": "<이유 한 줄>"}`. 경로는 글자 그대로(glob 없음). 여기 없는 기존 테스트 파일의 수정 · 삭제는 러너가 되돌리고 재시도한다(ADR-024). 새 테스트 파일 추가는 적지 않아도 된다. `start`가 꼴(객체 · 이유 빈칸 · tdd step · 테스트 파일 아닌 경로)을 먼저 거른다
 - **`model`(선택)** — 그 step 만 다른 모델로 돌린다(예: `"opus"`). **안 적는 것이 기본**이고, 없으면 기본 모델로 돈다(세션 안은 Agent 도구 기본값, 헤드리스는 `claude -p` 기본값). effort 칸은 없다 — effort는 세션 역할이 정한다(ADR-019 C2).
   - 🔴 **어렵겠다는 느낌으로 적지 않는다.** step 이 자기완결적이면 정해진 것을 만드는 일이라 기본 모델로 충분하다. 올리는 근거는 느낌이 아니라 `index.json` 에 쌓인 그 step 의 `retries` 기록이다(승격 조건은 `BACKLOG.md`)
   - 올리기 전에 **step 파일이 자기완결적인지 먼저 의심한다.** 모델을 올려야 풀리는 step 은 대개 **분해가 덜 된 step** 이다
