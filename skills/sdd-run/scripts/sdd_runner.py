@@ -567,7 +567,11 @@ class Runner:
                 tdd += (". 테스트 구조는 `.claude/harness.json` 의 `test.runner`·`test.bddAlias` 를 따른다"
                         "(bddAlias 가 false 면 별칭 파일을 만들지 않고 중첩 describe 로 3계층)")
         else:
-            tdd = f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋"
+            tdd = (f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋. "
+                   "기존 테스트 파일은 고치지 않는다 — 고치면 러너가 되돌린다. 새 테스트 파일은 더해도 된다")
+            if step.get("test_edits"):   # 계획 칸(ADR-024 T1 · T4)
+                tdd += ". 이 step 에서 고쳐도 되는 기존 테스트 파일: " + " · ".join(
+                    f"`{f}` — {why}" for f, why in step["test_edits"].items())
             if role == "impl":
                 tdd += f". {IMPL_RULE}"
         retry = ""
@@ -1151,7 +1155,12 @@ def main(argv=None) -> int:
         idx = r.read()
         r.find(idx, step["step"]).setdefault("started_at", stamp())
         r.write(idx)
-        base = r.pin_base(step["step"], a.base) if a.base else step.get("base")
+        if a.base:
+            base = r.pin_base(step["step"], a.base)
+        elif a.role == "impl" and not step.get("base"):   # 나눔 모드 tdd:false 는 검증의 --base 를 안 거친다(ADR-024 T3)
+            base = r.pin_base(step["step"], r.git("rev-parse", "HEAD").stdout.strip())
+        else:
+            base = step.get("base")
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
         print(f"▶ effort {r.effort(a.role)}", file=sys.stderr)   # Agent effort 로 넘긴다(ADR-019 C2)
         print(r.prompt(r.find(r.read(), step["step"]), base, a.role))
