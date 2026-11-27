@@ -65,22 +65,48 @@ installed = read_json(plugin_root / ".claude-plugin" / "plugin.json") or {}
 inst_ver = nonempty_str(installed.get("version"))
 
 
+READ_FAIL = object()   # git 읽기 실패(시간 초과 · 오류) — 「파일 없음」과 가른다
+
+
 def version_at(top, rev):
+    # rev 의 plugin.json version. 파일 없음 → None, git 읽기 실패 → READ_FAIL
+    listed = run(["git", "ls-tree", "--name-only", rev, "--", ".claude-plugin/plugin.json"], top)
+    if listed is None:
+        return READ_FAIL
+    if not listed:
+        return None
     raw = run(["git", "show", f"{rev}:.claude-plugin/plugin.json"], top)
+    if raw is None:
+        return READ_FAIL
     try:
-        d = json.loads(raw) if raw is not None else None
+        d = json.loads(raw)
     except ValueError:
         return None
     return d.get("version") if isinstance(d, dict) else None
 
 
 def release_base(top):
-    # origin/main first-parent 에서 version 이 설치본 버전이 된 가장 최근 커밋(태그가 없어서, #80 D2). 로컬 ref 는 읽기만
+    # origin/main first-parent 에서 version 이 설치본 버전이 된 가장 최근 커밋(태그가 없어서, #80 D2). 로컬 ref 는 읽기만.
+    # 버전 그대로 plugin.json 다른 칸만 고친 커밋은 건너뛴다. 읽기 실패는 기준점 실패(너무 최근 커밋을 잡아 적게 세지 않게)
     log = run(["git", "log", "--first-parent", "--format=%H", "refs/remotes/origin/main",
                "--", ".claude-plugin/plugin.json"], top)
-    for sha in (log or "").split():
-        if version_at(top, sha) == inst_ver:
-            return sha if version_at(top, f"{sha}^") != inst_ver else None
+    if log is None:
+        return None
+    for sha in log.split():
+        v = version_at(top, sha)
+        if v is READ_FAIL:
+            return None
+        if v != inst_ver:
+            continue
+        parents = run(["git", "rev-list", "--parents", "-n", "1", sha], top)
+        if parents is None:
+            return None
+        ps = parents.split()[1:]
+        pv = version_at(top, ps[0]) if ps else None
+        if pv is READ_FAIL:
+            return None
+        if pv != inst_ver:
+            return sha
     return None
 
 
@@ -91,13 +117,16 @@ def pr_number(message):
 
 def release_suffix(top):
     # 하네스 원본(레포 plugin.json name = 설치본 name, #80 D1)만 원격 main 을 센다. 실패는 0건과 다른 글로
-    mine = read_json(Path(top) / ".claude-plugin" / "plugin.json")
-    if mine is None and not (Path(top) / ".claude-plugin" / "plugin.json").is_file():
+    path = Path(top) / ".claude-plugin" / "plugin.json"
+    if not path.is_file():
         return ""
     name = nonempty_str(installed.get("name"))
     if name is None:
         return " · 릴리스 확인 실패(설치본)"
-    if (mine or {}).get("name") != name:
+    mine = read_json(path)
+    if mine is None:   # 있는데 못 읽음(JSON 깨짐 · 충돌 표시) — 조용히 사라지지 않는다
+        return " · 릴리스 확인 실패(레포 plugin.json)"
+    if mine.get("name") != name:
         return ""
     if inst_ver is None:
         return " · 릴리스 확인 실패(설치본)"
