@@ -4,10 +4,38 @@
   "docs": "docs/runner-tdd-guard-2026-11-27",
   "after": [],
   "steps": [
-    { "step": 1, "name": "tdd-false-guard", "status": "pending", "tdd": true },
-    { "step": 2, "name": "impl-base-pin", "status": "pending", "tdd": true },
-    { "step": 3, "name": "blocked-revert", "status": "pending", "tdd": true },
-    { "step": 4, "name": "test-edits-check", "status": "pending", "tdd": true },
-    { "step": 5, "name": "docs-align", "status": "pending", "tdd": false }
+    {
+      "step": 1,
+      "name": "tdd-false-guard",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T01:21:06+0900",
+      "base": "d9d8cb67460ecd17db1683033382e1c640116d5f",
+      "red": "103e03dccdfc6e5f969dadc0cd4b4cfefbfb3a75"
+    },
+    {
+      "step": 2,
+      "name": "impl-base-pin",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "blocked-revert",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 4,
+      "name": "test-edits-check",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 5,
+      "name": "docs-align",
+      "status": "pending",
+      "tdd": false
+    }
   ]
 }
