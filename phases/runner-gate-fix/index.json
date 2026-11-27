@@ -55,11 +55,12 @@
     {
       "step": 6,
       "name": "review-fixes",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-27T14:51:53+0900",
-      "base": "7a8f306b08a6f2b3d2c1c8edb5ae03c0aa171005",
-      "red": "71dc3bc0e0591317af0d1b94943750fd054f3f72"
+      "red": "71dc3bc0e0591317af0d1b94943750fd054f3f72",
+      "summary": "D4 blocked 판정이 wip 커밋 뒤 HEAD를 blocked_head로 적고 rejudge_split이 묶음(blocked_head..HEAD)·구현 구간(옛 red..blocked_head)을 가름, 재판정 성공 시 지움 · D5 순변화+HEAD≠옛 red일 때만 거부 · 라벨 붙여 쓴 내용 앞 **·:·줄표 벗김 · 재판정 뒤 재시도 표시는 재판정 뒤 수 · 문서·ADR 갱신 줄. blocked_head는 index 커밋 앞 HEAD로 했다(계획은 index 커밋 뒤, 이유: 뒤에 적으면 index를 한 번 더 커밋해야 하고 index 커밋은 phases/만 담아 묶음에 섞여도 같다)",
+      "completed_at": "2026-11-27T15:04:08+0900"
     }
   ],
   "reviews": [
