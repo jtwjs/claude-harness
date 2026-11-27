@@ -27,11 +27,12 @@
     {
       "step": 3,
       "name": "env-ignore-upgrade-notice",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T01:45:36+0900",
-      "base": "b467a736d1db07866f481e83959d021b6a28977e",
-      "red": "ab27df605ff7181b96d02fd52ff7f8e2f14f69a9"
+      "red": "ab27df605ff7181b96d02fd52ff7f8e2f14f69a9",
+      "summary": "templates/.gitignore.append 에 .env 줄(이유 주석 한 줄, ignore 하지 않는다 블록 위)을, harness-init SKILL.md §0 표에 CI 행을 더했다(.gitignore 행 그대로). 안내 문구 원문: 「템플릿 CI에 비밀값 검사 잡 `secret-scan`이 새로 생겼어요. 넣으려면 `${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`의 그 잡을 이 레포 `ci.yml`로 옮기세요.」",
+      "completed_at": "2026-11-28T01:55:17+0900"
     },
     {
       "step": 4,
