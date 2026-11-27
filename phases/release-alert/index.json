@@ -46,7 +46,10 @@
       "step": 5,
       "name": "release-check-fixes",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-27T22:08:10+0900",
+      "base": "03738620fa058cccb0008b04a686e67fa652e7ea",
+      "red": "9b5bbfb944e2e7af35ce933c4d0f1bd11a5b2f18"
     }
   ],
   "reviews": [
