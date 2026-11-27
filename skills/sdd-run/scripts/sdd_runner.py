@@ -789,11 +789,20 @@ class Runner:
             print("커밋하지 않은 변경이 있다 — 고친 테스트만 커밋한 뒤 다시 rejudge")
             return 1
         base, old = step["base"], step["red"]
-        fix = []
+        fix, bundle = [], set()
         for sha, files in reversed(self.commits_since(base)):
             if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files):
                 break
+            bundle.add(sha)
             fix += [f for f in files if TEST_FILE.search(f) and not f.startswith("phases/")]
+        # 확인 ③(#86 D1): 옛 red 뒤 ~ 고친 테스트 묶음 앞(구현 구간)에서 바뀐 테스트 파일 — 새 red 로 씻어 주지 않는다
+        touched = sorted({f for sha in self.git("rev-list", f"{old}..HEAD").stdout.split() if sha not in bundle
+                          for f in self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
+                          if TEST_FILE.search(f) and not f.startswith("phases/")})
+        if touched:
+            print("구현 구간(옛 red 뒤 ~ 고친 테스트 커밋 앞)에서 테스트 파일이 바뀌었다 — 검증이 되돌리는 테스트 커밋을 올린 뒤 "
+                  "다시 rejudge:\n" + "\n".join(f"  - {f}" for f in touched))
+            return 1
         if not fix or self.git("diff", "--quiet", old, "HEAD", "--", *sorted(set(fix))).returncode == 0:
             print("고친 테스트 커밋이 없다 — HEAD 쪽 끝에 테스트 파일만 담은 커밋으로 고친 테스트를 올린 뒤 다시 rejudge")
             return 1
@@ -820,6 +829,8 @@ class Runner:
     def red_passes(self, sha: str, tests: list) -> bool:
         """테스트 커밋 시점으로 잠깐 옮겨 verify.test 를 돌린다. 의존성(node_modules 등)이 있는 이 작업 트리 그대로."""
         head = self.git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        if head == "HEAD":   # detached — 이름 「HEAD」로 돌아가면 옮겨 간 커밋에 남는다. 시작 sha 로(#86 D3)
+            head = self.git("rev-parse", "HEAD").stdout.strip()
         idx_rel = str(self.index_file.relative_to(self.root))
         # 진행 중인 index.json(아직 커밋 전)이 체크아웃을 막지 않게 HEAD 내용으로 잠깐 돌린다.
         # stash 는 쓰지 않는다 — stash 목록은 모든 worktree 가 공유해 병렬 세션의 것을 꺼낼 수 있다
