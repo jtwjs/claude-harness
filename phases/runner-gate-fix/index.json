@@ -18,7 +18,10 @@
       "step": 2,
       "name": "rejudge-retry-window",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-27T13:00:46+0900",
+      "base": "e4babfb2a637f0f62811c118b65b515244d190e0",
+      "red": "2a543d76b2c5c9b4012e4330540e728e13c92256"
     },
     {
       "step": 3,
