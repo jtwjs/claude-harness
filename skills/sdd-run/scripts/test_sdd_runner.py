@@ -1539,6 +1539,70 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual((self.repo / "src/a.txt").read_text(), "hello", "구현 파일이 작업 트리에 남는다")
         self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "")
 
+    # ── #86 F2: 재판정 뒤 재시도 창 ─────────────────────────────────────────
+    def fail_impl(self, n, start=0):
+        rcs = []
+        for i in range(start, start + n):
+            self.session("prompt", "t1", "--role", "impl")
+            self.act([["write", "src/a.txt", f"bye{i}"], DONE])
+            rcs.append(self.session("judge", "t1", "--step", "1").returncode)
+        return rcs
+
+    def rejudged_after_three_fails(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.fail_impl(3), [10, 10, 10], self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["status", "blocked", {"blocked_reason": "기대값이 틀렸다 — bye"}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+
+    def test_rejudge_resets_retry_window(self):
+        self.rejudged_after_three_fails()
+        self.assertEqual(self.fail_impl(1, start=10), [10], "재판정 뒤 첫 실패는 재시도다(한도 초과 error 아님)\n" + self.out)
+        self.assertEqual(self.step()["status"], "pending")
+        self.assertGreaterEqual(len(self.step()["attempts"]), 4, "attempts 는 이력으로 남는다")
+
+    def test_rejudge_retry_window_still_limits(self):
+        self.rejudged_after_three_fails()
+        rcs = self.fail_impl(4, start=10)
+        self.assertEqual(rcs[:3], [10, 10, 10], self.out)
+        self.assertNotEqual(rcs[3], 10, "재판정 뒤에도 한도를 넘으면 멈춘다\n" + self.out)
+        self.assertEqual(self.step()["status"], "error")
+
+    def test_rejudge_does_not_set_resumed_at(self):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        before = self.step().get("resumed_at")
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([["write", "src/a.txt", "bye"], ["status", "blocked", {"blocked_reason": "기대값이 틀렸다 — bye"}]])
+        self.session("judge", "t1", "--step", "1")
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step().get("resumed_at"), before, "재개 표시를 쓰면 전체 verify 가 켜진다 — 쓰지 않는다")
+
+    def test_rejudge_after_restoring_impl_test_edit_accepted(self):
+        # D1 「검증이 되돌리는 테스트 커밋을 올리면 다시 받는다」
+        _, old = self.blocked_with_impl_ops([["write", "src/a.txt", "bye"], ["write", "src/c.txt", "c"],
+                                             ["rm", "tests/c.expect"]])
+        self.fix_tests([("write", "tests/a.expect", "bye"), ("write", "tests/c.expect", "c")])
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 0, "옛 red 내용으로 되돌렸으면 받는다\n" + self.out)
+        self.assertEqual((self.repo / "tests/c.expect").read_text(), "c")
+
+    def test_rejudge_impl_only_deleted_test_refused(self):
+        # 구현 시도가 테스트만 지우고 막히면 wip 커밋도 「테스트만 담은 커밋」이다 — 끝 묶음에 넣으면 씻긴다
+        _, old = self.blocked_with_impl_ops([["rm", "tests/c.expect"]])
+        self.fix_tests([("write", "tests/a.expect", "bye")])
+        before = (self.head(), self.index_bytes())
+        p = self.session("rejudge", "t1", "--step", "1")
+        self.assertEqual(p.returncode, 1, "구현 시도 커밋은 고친 테스트 묶음이 아니다\n" + self.out)
+        self.assertIn("tests/c.expect", self.out)
+        self.assert_unchanged(before)
+
     def rejudged(self, ops=(("write", "tests/a.expect", "bye"),)):
         """blocked → 검증이 테스트 고침 → rejudge 통과. (BASE, 구현 wip sha, 고친 테스트 sha)"""
         base, _ = self.blocked_after_red()
