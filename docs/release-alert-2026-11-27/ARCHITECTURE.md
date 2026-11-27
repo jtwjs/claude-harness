@@ -62,6 +62,8 @@ flowchart TD
 - 「릴리스 확인 실패」 뒤에 짧은 사유 괄호를 붙여도 된다(예: `릴리스 확인 실패(원격)`). 그 줄에 「릴리스 안 된 머지」는 함께 나오지 않는다
 - 템플릿 버전은 대상 레포 작업 트리의 `.claude/harness.json`을 읽는다(`cadence-reminder.sh:92-93`과 같은 읽기). 설치본 버전을 못 읽으면 템플릿 줄은 조용히 건너뛴다(레포 세션 알림과 같은 규칙). 하네스 원본 줄의 실패 표시는 위 릴리스 판정이 맡는다
 - 설치본 `plugin.json`을 통째로 못 읽으면(이름을 모름) D1로 가려낼 수 없다. 그때는 `.claude-plugin/plugin.json`이 있는 대상 레포 줄마다 「릴리스 확인 실패」를 붙인다(조용히 0건처럼 보이지 않게, PRD AC-7). 이름은 읽히고 `version`만 비었으면 이름이 같은 레포 줄에 붙인다
+- 기준점을 찾다가 git 읽기가 실패하면(시간 초과 · 오류) 「파일 없음」으로 보지 않고 「릴리스 확인 실패」로 둔다. 부모를 못 읽었다고 그 커밋을 기준점으로 쓰면 너무 최근 커밋을 잡아 적게 센다(REVIEW 1회차)
+- 레포 작업 트리에 `.claude-plugin/plugin.json`이 있는데 못 읽으면(JSON 깨짐 · 충돌 표시) 「릴리스 확인 실패」(REVIEW 1회차)
 - 두 꼬리가 한 줄에 다 붙으면 릴리스 꼬리가 먼저, 템플릿 꼬리가 뒤다
 - gh 호출은 `--jq` 없이 JSON 전체를 받아 python에서 읽는다(테스트의 가짜 gh가 jq를 흉내 내지 않게)
 
@@ -75,7 +77,7 @@ flowchart TD
 
 ## 테스트 전략
 
-- 새 케이스 묶음 `hooks/tests/release-alert.sh`(러너가 테스트 파일로 알아보는 자리). `hooks/test.sh` 7-f 케이스는 고치지 않는다
+- 새 케이스 묶음 `hooks/tests/template-drift.sh`(step 1) · `hooks/tests/release-line.sh`(step 2 · 5)(러너가 테스트 파일로 알아보는 자리). `hooks/test.sh` 7-f 케이스는 고치지 않는다
 - 바꿔 끼우기: 지휘 설정 `CLAUDE_CONDUCTOR_CONFIG`(기존) · gh `CLAUDE_CONDUCTOR_GH`(기존) · tracks_status `CLAUDE_CONDUCTOR_TS`(기존) · 설치본 `CLAUDE_PLUGIN_ROOT`(가짜 플러그인 폴더). 하네스 원본은 임시 git 레포(버전 올림 커밋 기록을 실제로 만든다)
 - 가짜 gh는 `api …/compare/<기준점>...main` 호출을 기록하고 정해 둔 JSON을 낸다. 테스트는 넘긴 기준점이 맞는지 본다
 - 실제 대상 레포 before/after는 사람이 볼 것(PRD AC-12)으로 PR에 싣는다
