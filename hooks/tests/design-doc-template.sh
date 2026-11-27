@@ -21,16 +21,23 @@ _dt_noguide=$(printf '%s\n' "$_dt_block" | grep -E '^### ' | grep -vE '←[[:spa
 [ "$_dt_cells" -gt 0 ] && [ -z "$_dt_noguide" ] && ok "dt-every-cell-has-guide 칸 ${_dt_cells}개 모두 ← 안내" || bad "dt-every-cell-has-guide 안내 없는 칸" "[${_dt_noguide:-칸 0개}]"
 
 # 옛 틀에만 있던 안내가 따라왔다(빠지면 그 규칙이 사라진다)
+# 출력을 grep -q 로 바로 넘기지 않는다 — pipefail 아래 grep -q 가 먼저 끝나면 앞 명령이 SIGPIPE 로 죽어 실패로 잡힌다
 _dt_line() { printf '%s\n' "$_dt_block" | grep -E "^### ([0-9]+\. )?$1"; }
-_dt_line '상황별 동작' | grep -q 'Given' && ok "dt-guide-moved 상황별 동작 ← 위험 큰 기능 Given · When · Then" || bad "dt-guide-moved 상황별 동작" "[$(_dt_line '상황별 동작')]"
-_dt_line '공통 관심사' | grep -q '숫자' && ok "dt-guide-moved 공통 관심사 ← 비기능은 숫자로" || bad "dt-guide-moved 공통 관심사" "[$(_dt_line '공통 관심사')]"
+_dt_l=$(_dt_line '상황별 동작'); printf '%s' "$_dt_l" | grep -q 'Given' && ok "dt-guide-moved 상황별 동작 ← 위험 큰 기능 Given · When · Then" || bad "dt-guide-moved 상황별 동작" "[$_dt_l]"
+_dt_l=$(_dt_line '공통 관심사'); printf '%s' "$_dt_l" | grep -q '숫자' && ok "dt-guide-moved 공통 관심사 ← 비기능은 숫자로" || bad "dt-guide-moved 공통 관심사" "[$_dt_l]"
 _dt_us=$(_dt_line '우리 칸')
 printf '%s' "$_dt_us" | grep -q '제약' && printf '%s' "$_dt_us" | grep -q '가정' && printf '%s' "$_dt_us" | grep -q '사람이 볼 것' \
   && ok "dt-guide-moved 우리 칸 ← 제약 · 가정 · 사람이 볼 것" || bad "dt-guide-moved 우리 칸" "[$_dt_us]"
+# dt-nonfunctional-in-our-cell (R2) 우리 칸 ← 비기능 수치(디스패치 전에 사람이 정한다)
+printf '%s' "$_dt_us" | grep -q '비기능 수치' && ok "dt-nonfunctional-in-our-cell 우리 칸 ← 비기능 수치" || bad "dt-nonfunctional-in-our-cell" "[$_dt_us]"
+
+# dt-picked-topic-name 고른 안과 버린 안 ← 안마다 주제 이름(ADR 이 이름으로 가리킨다, REVIEW R1)
+_dt_l=$(_dt_line '고른 안과 버린 안'); printf '%s' "$_dt_l" | grep -q '주제 이름' && ok "dt-picked-topic-name 고른 안과 버린 안 ← 주제 이름" || bad "dt-picked-topic-name" "[$_dt_l]"
 
 # dt-old-headings-gone — 옛 틀 칸이 블록에 없다
 _dt_old=$(printf '%s\n' "$_dt_block" | grep -E '^## (핵심 요구사항 한 줄 요약|결정할 것 / 결정한 것|사용자 흐름|기능 요구사항|비기능 요구사항|제약|가정|수용 기준)' || true)
 [ -n "$_dt_block" ] && [ -z "$_dt_old" ] && ok "dt-old-headings-gone 옛 틀 8칸 없음" || bad "dt-old-headings-gone 옛 틀 칸 남음" "[${_dt_old:-블록 없음}]"
 
 # 공개 레포 — 틀에 개인 경로가 없다
-printf '%s\n' "$_dt_block" | grep -qE '/Users/|~/' && bad "dt-no-private-path 틀에 개인 경로" "$(printf '%s\n' "$_dt_block" | grep -E '/Users/|~/')" || ok "dt-no-private-path 틀에 개인 경로 없음"
+_dt_priv=$(printf '%s\n' "$_dt_block" | grep -E '/Users/|~/' || true)
+[ -n "$_dt_priv" ] && bad "dt-no-private-path 틀에 개인 경로" "$_dt_priv" || ok "dt-no-private-path 틀에 개인 경로 없음"

@@ -8,7 +8,7 @@ _df_sec() { awk -v h="**$1**" 'index($0,h)==1{f=1; print; next} f && (/^\*\*[^*]
 _df_h2() { awk -v h="## $1" 'index($0,h)==1{f=1; print; next} f && /^## /{exit} f{print}' "$_df_md"; }
 
 # df-old-cell-names-zero 옛 칸 이름 · 옛 규칙 문장이 design.md · SKILL.md 에 없다
-_df_old=$(grep -nE '결정한 것|「결정」 칸|설계서 결정 칸|설계서 결정 번호|원문 \+ 에이전트|원문에 에이전트|구조 · 기술 결정은 여기서 묻지 않는다' "$_df_md" "$_df_sk" || true)
+_df_old=$(grep -nE '결정한 것|「결정」 칸|설계서 결정 칸|설계서 결정 번호|원문 \+ 에이전트|원문에 에이전트|구조 · 기술 결정은 여기서 묻지 않는다|설계서 원문으로 쓴|행 링크|설계 문서 링크' "$_df_md" "$_df_sk" || true)
 [ -z "$_df_old" ] && ok "df-old-cell-names-zero 옛 칸 이름 · 옛 규칙 문장 0줄" || bad "df-old-cell-names-zero 남은 줄" "$(printf '%s' "$_df_old" | cut -c1-160 | head -5)"
 
 # df-screen-runs-check-first 화면: 열기 전에 칸 순서 검사 · 실패면 열지 않음 · 명령
@@ -66,3 +66,36 @@ grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$_df_md" && ok "df-keep-phr
 # df-skill-row sdd ① 행 PRD 줄 = 출처 칸
 _df_row=$(grep -E '설계서를 받았을 때' "$_df_sk")
 printf '%s' "$_df_row" | grep -q '출처' && ok "df-skill-row sdd ① 행에 출처 칸" || bad "df-skill-row" "sdd SKILL.md ① 행"
+
+# ── REVIEW 1회차(step 5) ──
+# df-draft-cells (AC-2) 초안은 간단히 5칸 + 우리 칸 + 자세히 4칸
+printf '%s' "$_df_o" | grep -q '우리 칸' && printf '%s' "$_df_o" | grep -q '자세히 4칸' && ok "df-draft-cells 초안 = 5칸 + 우리 칸 + 자세히 4칸" || bad "df-draft-cells" "설계서 순서 절"
+
+# df-source-not-in-tables 출처 칸을 달지 않는 자리: 표는 「출처」 열 · 「결정할 것」 표 · mermaid · 코드 블록 · 주체 칸은 비운다
+_df_t=$(_df_sec '설계서와 세 장'); _df_miss=""
+for _df_c in '「출처」 열' '결정할 것' 'mermaid' '코드 블록' '주체 칸' '혼자 도는 sdd면 그 세션'; do printf '%s' "$_df_t" | grep -qF "$_df_c" || _df_miss="$_df_miss [$_df_c]"; done
+[ -z "$_df_miss" ] && ok "df-source-not-in-tables 표 · 결정할 것 · mermaid · 코드 블록 예외 + 혼자 도는 sdd 표현" || bad "df-source-not-in-tables 없음" "$_df_miss"
+
+# df-adr-topic-name (R1) ADR 정의 · Readiness 10 = 주제 이름
+_df_d=$(grep -E '^\*\*ADR\.md\*\*:' "$_df_md"); _df_r10=$(grep -E '^\| 10 \|' "$_df_md")
+printf '%s' "$_df_d" | grep -q '주제 이름' && printf '%s' "$_df_r10" | grep -q '주제 이름' && ok "df-adr-topic-name ADR 정의 · Readiness 10 = 주제 이름" || bad "df-adr-topic-name" "ADR 정의 또는 Readiness 10"
+
+# df-readiness9-example Readiness 9 예시는 「비목표」(옛 「범위 밖」 아님)
+_df_r9=$(grep -E '^\| 9 \|' "$_df_md")
+printf '%s' "$_df_r9" | grep -q '비목표가' && ! printf '%s' "$_df_r9" | grep -q '범위 밖' && ok "df-readiness9-example 9 예시 = 비목표" || bad "df-readiness9-example" "[$(printf '%s' "$_df_r9" | cut -c1-120)]"
+
+# df-screen-old-template 화면 검사: 옛 틀 설계서는 검사하지 않는다
+_df_s=$(_df_sec '화면')
+printf '%s' "$_df_s" | grep -q '옛 틀' && ok "df-screen-old-template 화면 검사 옛 틀 예외" || bad "df-screen-old-template" "화면 절"
+
+# df-rule-table-tail 레포 규칙에 「표 행 끝 꼬리표 → 마지막 열(주체)」 한 줄
+_df_np="$_df_root/.claude/rules/non-obvious-patterns.md"
+_df_npl=$(grep -E '꼬리표' "$_df_np" || true)
+printf '%s' "$_df_npl" | grep -q '주체' && ok "df-rule-table-tail non-obvious-patterns 꼬리표 · 주체 한 줄" || bad "df-rule-table-tail" "non-obvious-patterns.md"
+
+# df-prd-eight-cells (R2) PRD 뽑는 칸에 전체 구조 · 사용자 흐름은 전체 구조 · 상황별 동작에서 · 비기능은 우리 칸 비기능 수치에서
+_df_miss=""
+for _df_c in '전체 구조' '사용자 흐름' '비기능 수치'; do printf '%s' "$_df_t" | grep -qF "$_df_c" || _df_miss="$_df_miss [$_df_c]"; done
+_df_r9=$(grep -E '^\| 9 \|' "$_df_md")
+printf '%s' "$_df_r9" | grep -q '전체 구조' || _df_miss="$_df_miss [Readiness 9 전체 구조]"
+[ -z "$_df_miss" ] && ok "df-prd-eight-cells PRD 출처 8칸 · 사용자 흐름 · 비기능 수치" || bad "df-prd-eight-cells 없음" "$_df_miss"

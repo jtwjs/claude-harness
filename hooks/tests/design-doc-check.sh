@@ -146,3 +146,53 @@ python3 "$_dc_fake/scripts/design_doc_check.py" "$_dc_dir/good.md" >"$_dc_dir/ou
 : > "$_dc_fake/references/design.md"   # 빈 design.md
 python3 "$_dc_fake/scripts/design_doc_check.py" "$_dc_dir/good.md" >"$_dc_dir/out" 2>"$_dc_dir/err"; _dc_code=$?
 [ "$_dc_code" = "2" ] && ok "dc-template-block-missing-exit2 빈 design.md → exit 2" || bad "dc-template-block-missing-exit2 빈 design.md" "exit=$_dc_code [$(_dc_all)]"
+
+# ── REVIEW 1회차(step 5) — 옮긴 칸만 짚기 · 칸 이름 경계 · 들여쓰기 · 울타리 꼴 · BOM · #### ──
+_dc_n() { grep -c . "$_dc_dir/out"; }
+
+# dc-far-move-one-cell 「한 줄 요약」 제목 하나를 맨 끝으로 → 출력은 그 칸 한 줄
+_dc_good | grep -v '^### 1\. 한 줄 요약' > "$_dc_dir/far.md"; printf '\n### 1. 한 줄 요약\n' >> "$_dc_dir/far.md"
+_dc_run "$_dc_dir/far.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && [ "$(_dc_n)" = "1" ] && grep -qx '순서 어긋남: 한 줄 요약' "$_dc_dir/out" && ok "dc-far-move-one-cell 멀리 옮긴 칸 하나만 짚음" || bad "dc-far-move-one-cell" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-swap-far 「문제」 ↔ 「대안 비교」 맞바꿈 → 그 두 칸만
+_dc_good | sed -e 's/^### 2\. 문제$/### @@P/' -e 's/^### 7\. 대안 비교$/### 2. 문제/' -e 's/^### @@P$/### 7. 대안 비교/' > "$_dc_dir/swapfar.md"
+_dc_run "$_dc_dir/swapfar.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && [ "$(_dc_n)" = "2" ] && grep -qx '순서 어긋남: 문제' "$_dc_dir/out" && grep -qx '순서 어긋남: 대안 비교' "$_dc_dir/out" \
+  && ok "dc-swap-far 멀리 맞바꾼 두 칸만 짚음" || bad "dc-swap-far" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-name-boundary 「문제점 메모」는 「문제」가 아니다 · 「우리 칸 (…)」은 「우리 칸」이다(good.md)
+_dc_good | sed 's/^### 2\. 문제$/### 2. 문제점 메모/' > "$_dc_dir/bound.md"
+_dc_run "$_dc_dir/bound.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && grep -qx '빠진 칸: 문제' "$_dc_dir/out" && ok "dc-name-boundary 칸 이름 뒤가 글자면 다른 제목" || bad "dc-name-boundary" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-indented-heading 앞 공백 3칸 제목은 칸 · 4칸은 칸이 아니다
+_dc_good | sed 's/^### 6\. 목표와 비목표$/   ### 6. 목표와 비목표/' > "$_dc_dir/ind3.md"
+_dc_run "$_dc_dir/ind3.md"; _dc_code=$?
+[ "$_dc_code" = "0" ] && ok "dc-indented-heading 공백 3칸 제목 → 칸" || bad "dc-indented-heading 3칸" "exit=$_dc_code [$(_dc_all)]"
+_dc_good | sed 's/^### 6\. 목표와 비목표$/    ### 6. 목표와 비목표/' > "$_dc_dir/ind4.md"
+_dc_run "$_dc_dir/ind4.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && grep -qx '빠진 칸: 목표와 비목표' "$_dc_dir/out" && ok "dc-indented-heading 공백 4칸 → 칸 아님" || bad "dc-indented-heading 4칸" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-bom BOM 으로 시작하고 첫 줄이 칸인 설계서 → 통과
+{ printf '\357\273\277'; _dc_good | sed -n '/^## 간단히$/,$p'; } > "$_dc_dir/bom.md"
+_dc_run "$_dc_dir/bom.md"; _dc_code=$?
+[ "$_dc_code" = "0" ] && ok "dc-bom BOM 무시" || bad "dc-bom" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-fence-4backtick ```` 울타리 안 ``` 줄은 닫지 않는다 — 뒤 진짜 제목은 칸
+_dc_good | awk '/^## 아주 자세히$/{print "````markdown"; print "```"; print "````"} {print}' > "$_dc_dir/f4.md"
+_dc_run "$_dc_dir/f4.md"; _dc_code=$?
+[ "$_dc_code" = "0" ] && ok "dc-fence-4backtick 긴 울타리 안 짧은 울타리 무시" || bad "dc-fence-4backtick 닫힘" "exit=$_dc_code [$(_dc_all)]"
+_dc_good | grep -v '^### 12\. 배포와 롤백' > "$_dc_dir/f4b.md"; printf '\n````\n```\n### 12. 배포와 롤백\n```\n````\n' >> "$_dc_dir/f4b.md"
+_dc_run "$_dc_dir/f4b.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && grep -qx '빠진 칸: 배포와 롤백' "$_dc_dir/out" && ok "dc-fence-4backtick 긴 울타리 안 제목은 칸 아님" || bad "dc-fence-4backtick 안 제목" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-tilde-in-backtick ``` 울타리 안 ~~~ 줄은 닫지 않는다
+_dc_good | awk '/^## 아주 자세히$/{print "```"; print "~~~"; print "```"} {print}' > "$_dc_dir/tl.md"
+_dc_run "$_dc_dir/tl.md"; _dc_code=$?
+[ "$_dc_code" = "0" ] && ok "dc-tilde-in-backtick 다른 문자 울타리 무시" || bad "dc-tilde-in-backtick" "exit=$_dc_code [$(_dc_all)]"
+
+# dc-h4-not-cell #### 대안 비교 는 칸이 아니다
+_dc_good | sed 's/^### 7\. 대안 비교$/#### 대안 비교/' > "$_dc_dir/h4.md"
+_dc_run "$_dc_dir/h4.md"; _dc_code=$?
+[ "$_dc_code" = "1" ] && grep -qx '빠진 칸: 대안 비교' "$_dc_dir/out" && ok "dc-h4-not-cell #### 는 칸 아님" || bad "dc-h4-not-cell" "exit=$_dc_code [$(_dc_all)]"
