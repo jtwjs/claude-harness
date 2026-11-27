@@ -28,7 +28,10 @@
       "step": 3,
       "name": "sdd-flow-rules",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T03:49:12+0900",
+      "base": "5055505587f7cf5f6091a8f2b3cfc8dc80695584",
+      "red": "2a37eccb9ca4bcb56d13116b04dfa34dadd3622e"
     },
     {
       "step": 4,
