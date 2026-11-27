@@ -4,9 +4,33 @@
   "docs": "docs/release-alert-2026-11-27",
   "after": [],
   "steps": [
-    { "step": 1, "name": "template-drift-line", "status": "pending", "tdd": true },
-    { "step": 2, "name": "release-line", "status": "pending", "tdd": true },
-    { "step": 3, "name": "seat-doc-line", "status": "pending", "tdd": false },
-    { "step": 4, "name": "measure-before-after", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "template-drift-line",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-27T17:15:05+0900",
+      "base": "fba83f9be73bdf15f1a10b58ccf085985b5c2f08",
+      "red": "ab749b9d5a781db1ad7d92882c6c06f37f48aaf1"
+    },
+    {
+      "step": 2,
+      "name": "release-line",
+      "status": "pending",
+      "tdd": true
+    },
+    {
+      "step": 3,
+      "name": "seat-doc-line",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 4,
+      "name": "measure-before-after",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
