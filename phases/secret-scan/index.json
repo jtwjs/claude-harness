@@ -48,7 +48,10 @@
       "step": 5,
       "name": "review-fixes",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T02:36:56+0900",
+      "base": "929cadcccd1c118a08efca2ce3f4b8a559c94cdc",
+      "red": "e84f4c59bac7230ad8ed919963d46895c1b3507b"
     }
   ],
   "reviews": [
