@@ -1664,6 +1664,48 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(p.returncode, 2, self.out)
         self.assertIn("열린 「정할 것」 2개", p.stdout, "「없음」이 본문 가운데 있거나 낱말 일부면 그대로 센다")
 
+    # ── #86 F4: 관문이 못 보던 꼴 · F6 경로 출력 ─────────────────────────────
+    def test_gate_heading_without_fe0f_counts(self):
+        for prd in ("# PRD\n## 남은 ⚠\n- 결제 재시도 정책 미정\n",
+                    "# PRD\n- **남은 ⚠**\n  - 결제 재시도 정책 미정\n"):
+            p = self.session("gate", self.docs(prd=prd))
+            self.assertEqual(p.returncode, 2, "변이 선택자 없는 ⚠ 도 같은 표시다\n" + self.out)
+            self.assertIn("PRD: 결제 재시도 정책 미정", p.stdout)
+
+    def test_gate_escaped_pipe_cell_counts(self):
+        head = "# ADR\n### 결정할 것\n\n| # | 정할 것 | 추천 | 주체 |\n|---|---|---|---|\n"
+        p = self.session("gate", self.docs(adr=head + "| R1 | `a \\| b` 중 무엇 | A |  |\n"))
+        self.assertEqual(p.returncode, 2, "셀 안 \\| 는 칸 나눔이 아니다 — 주체 칸이 비었다\n" + self.out)
+        self.assertIn("ADR R1:", p.stdout)
+        p = self.session("gate", self.docs(path="docs/e", adr=head + "| R1 | `a \\| b` 중 무엇 | A | 사용자 |\n"))
+        self.assertEqual(p.returncode, 0, "주체가 찬 행은 칸이 밀려도 닫힘\n" + self.out)
+
+    def test_gate_label_inline_content_counts(self):
+        p = self.session("gate", self.docs(prd="# PRD\n- **남은 ⚠️**: 결제 재시도 정책 미정\n"))
+        self.assertEqual(p.returncode, 2, "라벨 줄에 붙여 쓴 내용도 열린 항목\n" + self.out)
+        self.assertIn("PRD: 결제 재시도 정책 미정", p.stdout)
+        p = self.session("gate", self.docs(path="docs/e", prd="# PRD\n- **남은 ⚠️**: A 미정\n  - B 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 2개", p.stdout, "붙여 쓴 내용 + 아래 항목")
+        for i, prd in enumerate(("# PRD\n- **남은 ⚠️**: 없음\n",
+                                 "# PRD\n- **남은 ⚠️**: 재시도 정책 → 결정: ADR-1\n",
+                                 "# PRD\n- **남은 ⚠️** (닫힘 표시 규칙은 ADR)\n")):
+            p = self.session("gate", self.docs(path=f"docs/c{i}", prd=prd))
+            self.assertEqual(p.returncode, 0, "「없음」 · 닫힘 표시 규칙은 같다 · 괄호 설명은 내용이 아니다\n" + self.out)
+
+    def test_gate_numbered_and_plus_bullets_count(self):
+        p = self.session("gate", self.docs(prd="# PRD\n## 남은 ⚠️\n1. A 미정\n2) B 미정\n+ C 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("열린 「정할 것」 3개", p.stdout, "번호 목록 · + 불렛도 첫 단 항목")
+        p = self.session("gate", self.docs(path="docs/e", prd="# PRD\n- **남은 ⚠️**\n  1. D 미정\n"))
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn("PRD: D 미정", p.stdout)
+
+    def test_gate_no_docs_prints_resolved_path(self):
+        p = self.session("gate", "docs/typo-2026")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("docs/typo-2026", p.stdout, "문서 없음 · 경로 오타를 가를 수 있게 해석한 폴더를 같이 낸다")
+
 
 class VerifySlotTest(unittest.TestCase):
     """검사 상한 대기 (ADR-007) — 다른 세션 검사가 상한 이상이면 판정 전에 기다린다."""
