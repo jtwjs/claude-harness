@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # conductor-context — SessionStart(시작·재개·압축 뒤). 지휘 자리에서만 대상 레포마다
 #   트랙 한 줄(tracks_status.py --compact) + 열린 지휘 이슈(label conductor, 최대 10)를 additionalContext 로 넣는다.
+#   레포 템플릿(.claude/harness.json harness.version) ≠ 설치본(CLAUDE_PLUGIN_ROOT plugin.json version)이면 그 레포 줄 끝에 「템플릿 X → 설치본 Y」(#80).
 # 지휘 설정(~/.claude/conductor.json)이 없거나 지휘 자리가 아니면 무출력 exit 0 (ADR-005, 2026-10-31).
 # gh 는 레포당 5초 제한, 실패하면 (조회 실패). CLAUDE_CONDUCTOR_GH·CLAUDE_CONDUCTOR_TS 로 gh·tracks_status 를 바꿔 끼운다(테스트).
 # 전체 마감 CLAUDE_CONDUCTOR_DEADLINE(기본 25초, hooks.json timeout 30 안) — 넘으면 남은 레포는 건너뛰고 모은 현황은 낸다(REVIEW 1회차).
@@ -45,6 +46,32 @@ def slug(repo):
     return m.group(1) if m else None
 
 
+def read_json(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return d if isinstance(d, dict) else None
+
+
+def nonempty_str(v):
+    return v if isinstance(v, str) and v else None
+
+
+plugin_root = Path(os.environ.get("CLAUDE_PLUGIN_ROOT") or here.parent)
+installed = read_json(plugin_root / ".claude-plugin" / "plugin.json") or {}
+inst_ver = nonempty_str(installed.get("version"))
+
+
+def template_suffix(top):
+    h = (read_json(Path(top) / ".claude" / "harness.json") or {}).get("harness")
+    repo_ver = nonempty_str(h.get("version")) if isinstance(h, dict) else None
+    if repo_ver and inst_ver and repo_ver != inst_ver:
+        return f" · 템플릿 {repo_ver} → 설치본 {inst_ver}"
+    return ""
+
+
 repos = conductor.repos()
 lines = [f"[지휘 현황] 대상 레포 {len(repos)} — conductor.json. 판정 전에 그 레포 CLAUDE.md·tracks.md 를 읽는다"]
 for r in repos:
@@ -57,7 +84,7 @@ for r in repos:
         continue
     track = run(ts_cmd + ["--compact"], top)
     track = "(조회 실패)" if track is None else track or "트랙 손댈 것 없음"   # 실패를 「할 일 없음」으로 보이지 않는다
-    lines.append(f"- {r.name} — {track}")
+    lines.append(f"- {r.name} — {track}{template_suffix(top)}")
     s = slug(top)
     out = run([gh, "issue", "list", "-R", s, "--label", "conductor", "--state", "open",
                "--limit", "10", "--json", "number,title"], top, timeout=5) if s else None
