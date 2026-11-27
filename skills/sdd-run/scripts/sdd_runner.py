@@ -226,6 +226,25 @@ def open_decisions(docs_dir) -> list:
     return out
 
 
+def edits_problem(step: dict):
+    """step 의 test_edits 칸(ADR-024 T4)이 틀렸으면 이유 한 줄, 없거나 맞으면 None."""
+    edits = step.get("test_edits")
+    if edits is None:
+        return None
+    if not isinstance(edits, dict):
+        return "객체 {\"<경로>\": \"<이유 한 줄>\"} 여야 한다"
+    if step.get("tdd"):
+        return "tdd: true step 에는 둘 수 없다 — 테스트 먼저 step 은 RED 뒤 테스트 수정을 그대로 되돌린다"
+    for path, why in edits.items():
+        if any(c in path for c in "*?[") or path.startswith("./"):
+            return f"{path} — 경로는 글자 그대로 맞춘다(glob 글자 · ./ 없이 레포 기준 경로)"
+        if not isinstance(why, str) or not why.strip():
+            return f"{path} 의 이유가 빈칸이거나 문자열이 아니다 — 고치는 이유를 한 줄로 적는다"
+        if not TEST_FILE.search(path) or path.startswith("phases/"):
+            return f"{path} 는 테스트 파일이 아니다(러너의 테스트 파일 기준 · phases/ 밖) — 기존 테스트 파일만 적는다"
+    return None
+
+
 def gate(docs_dir) -> int:
     """`gate DOCS_DIR` — 열린 것이 있으면 목록 + 종료 2, 없으면 한 줄 + 0. 읽기만 한다."""
     d = Path(docs_dir)
@@ -440,6 +459,11 @@ class Runner:
                 why = s.get("error_message") or s.get("blocked_reason") or ""
                 print(f"step {s['step']} 이 {s['status']} 다 — 원인을 고치고 pending 으로 되돌린 뒤 다시 실행: {why}")
                 return 2 if s["status"] == "blocked" else 1
+        for s in self.read()["steps"]:   # test_edits 칸 꼴(ADR-024 T4) — 계획 실수를 부작용 전에 거른다
+            why = edits_problem(s)
+            if why:
+                print(f"step {s['step']} test_edits: {why}")
+                return 1
         docs = self.read().get("docs")
         if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
             return 2
@@ -567,7 +591,11 @@ class Runner:
                 tdd += (". 테스트 구조는 `.claude/harness.json` 의 `test.runner`·`test.bddAlias` 를 따른다"
                         "(bddAlias 가 false 면 별칭 파일을 만들지 않고 중첩 describe 로 3계층)")
         else:
-            tdd = f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋"
+            tdd = (f"4. 이 step 은 테스트 단계가 없다(이유는 step 파일). 구현을 `feat: step {n} — {name}` 로 커밋. "
+                   "기존 테스트 파일은 고치지 않는다 — 고치면 러너가 되돌린다. 새 테스트 파일은 더해도 된다")
+            if step.get("test_edits"):   # 계획 칸(ADR-024 T1 · T4)
+                tdd += ". 이 step 에서 고쳐도 되는 기존 테스트 파일: " + " · ".join(
+                    f"`{f}` — {why}" for f, why in step["test_edits"].items())
             if role == "impl":
                 tdd += f". {IMPL_RULE}"
         retry = ""
@@ -607,6 +635,14 @@ class Runner:
         """판정 1~6. 통과면 None, 아니면 Fail. blocked 는 그대로 돌려준다."""
         st = step.get("status")
         if st == "blocked":
+            if not step.get("tdd"):   # ADR-024 T5: 테스트를 고친 채 blocked 보고 — 새 BASE 로 씻기기 전에 되돌린다
+                self.commit(f"wip: step {step['step']} — {step['name']} (blocked 시점 코드)")
+                reverted = self.revert_test_edits(step, base)
+                if reverted:
+                    idx = self.read()
+                    s = self.find(idx, step["step"])
+                    s["blocked_reason"] = f"{s.get('blocked_reason', '')} (테스트 수정 되돌림: {', '.join(reverted[:5])})"
+                    self.write(idx)
             return "blocked"
         if st == "error":
             raise Fail(step.get("error_message") or "에이전트가 error 로 보고")
@@ -637,6 +673,11 @@ class Runner:
                         self.git("rm", "-q", "-f", "--", f)
                 self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
                 raise Fail(f"GREEN: 테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 테스트는 그대로 두고 구현을 고친다")
+        else:   # 판정 4'(ADR-024 T1 · T2): tdd 가 아닌 step(측정 포함)도 BASE 에 있던 테스트 파일 수정 · 삭제는 되돌린다
+            changed = self.revert_test_edits(step, base)
+            if changed:
+                raise Fail(f"테스트 파일을 고쳤다(되돌림): {', '.join(changed[:5])} — 기존 테스트 파일은 계획 칸(test_edits)에 "
+                           "적힌 것만 고친다. 고쳐야 하면 blocked + 이유")
         scope = commits   # 판정 6 범위는 테스트 파일까지 — 테스트가 든 앱도 돈다
         if step.get("rejudged"):   # 판정 5(ADR-023 R3): red 가 고친 테스트라 구현은 그 앞에 있을 수 있다 — BASE 뒤 구현 변경
             commits = [c for c in commits if any(not TEST_FILE.search(f) and not f.startswith("phases/") for f in c[1])]
@@ -669,6 +710,29 @@ class Runner:
                     self.blame_earlier(root, name, cmd, commits, base, tail)
                 raise Fail(f"verify 실패: {name} (`{cmd}`){tail}")
         return None
+
+    def planned_edits(self, n: int, base: str) -> dict:
+        """BASE 커밋의 계획에 적힌 그 step 의 test_edits(ADR-024 T6). 진행 중 index.json 은 구현이 고치는 파일이라 보지 않는다."""
+        r = self.git("show", f"{base}:phases/{self.task}/index.json")
+        try:
+            edits = self.find(json.loads(r.stdout), n).get("test_edits") if r.returncode == 0 else None
+        except (ValueError, KeyError, TypeError, StopIteration):
+            edits = None
+        return edits if isinstance(edits, dict) else {}
+
+    def revert_test_edits(self, step: dict, base: str) -> list:
+        """판정 4' 되돌림(ADR-024 T1 · T2 · T5). BASE ~ HEAD 순변화 중 BASE 에 있던 테스트 파일이고 test_edits 키
+        (경로 글자 그대로, glob 없음 — T4)에 없는 것을 BASE 내용으로 되돌려 커밋한다. 되돌린 경로를 돌려준다."""
+        allowed = self.planned_edits(step["step"], base)
+        # 이름 바꾸기도 옛 경로 지움 + 새 경로 추가로 본다 · 공백 · 비ASCII 경로를 그대로 받는다(리뷰 1회차)
+        out = self.git("-c", "core.quotePath=false", "diff", "--no-renames", "--name-only", "-z", base, "HEAD").stdout
+        changed = [f for f in out.split("\0") if f
+                   if TEST_FILE.search(f) and not f.startswith("phases/") and f not in allowed
+                   and self.git("cat-file", "-e", f"{base}:{f}").returncode == 0]
+        if changed:
+            self.git("checkout", base, "--", *changed)
+            self.commit(f"test: step {step['step']} — 테스트 수정 되돌림")
+        return changed
 
     def red_check(self, commits: list, base: str, only_tests=False, step=None):
         """판정 2·3. (테스트 커밋 sha, 그 테스트 파일). only_tests(judge --red) 면 BASE 뒤 커밋이 모두 테스트만이어야 하고
@@ -990,10 +1054,15 @@ class Runner:
         if fails_now > self.max_retries:
             s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
+            self.write(idx)
+            self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
+            if not s.get("tdd"):   # ADR-024 T7: BASE 를 지우기 전에 — 재개 때 새 BASE 로 테스트 수정이 씻기지 않게
+                reverted = self.revert_test_edits(s, base)
+                if reverted:
+                    s["error_message"] += f" (테스트 수정 되돌림: {', '.join(reverted[:5])})"
             if not s.get("red"):
                 s.pop("base", None)
             self.write(idx)
-            self.commit(f"wip: step {n} — {s['name']} (멈춘 시점 코드)")   # 강의 execute.py 처럼 실패해도 코드는 남긴다
             self.commit_index(n)
             print(f"✗ step {n} 실패로 멈춤: {reason}")
             return 1
@@ -1141,7 +1210,12 @@ def main(argv=None) -> int:
         idx = r.read()
         r.find(idx, step["step"]).setdefault("started_at", stamp())
         r.write(idx)
-        base = r.pin_base(step["step"], a.base) if a.base else step.get("base")
+        if a.base:
+            base = r.pin_base(step["step"], a.base)
+        elif a.role == "impl" and not step.get("base"):   # 나눔 모드 tdd:false 는 검증의 --base 를 안 거친다(ADR-024 T3)
+            base = r.pin_base(step["step"], r.git("rev-parse", "HEAD").stdout.strip())
+        else:
+            base = step.get("base")
         print(f"▶ step {step['step']}", file=sys.stderr)   # judge --step 에 넘길 번호
         print(f"▶ effort {r.effort(a.role)}", file=sys.stderr)   # Agent effort 로 넘긴다(ADR-019 C2)
         print(r.prompt(r.find(r.read(), step["step"]), base, a.role))

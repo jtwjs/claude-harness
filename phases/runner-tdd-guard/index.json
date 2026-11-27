@@ -1,0 +1,92 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-tdd-guard",
+  "docs": "docs/runner-tdd-guard-2026-11-27",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "tdd-false-guard",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:21:06+0900",
+      "red": "279612449c37b036d36a9eec2c1228065aa86043",
+      "rejudged": [
+        {
+          "at": "2026-11-28T01:34:20+0900",
+          "red_before": "103e03dccdfc6e5f969dadc0cd4b4cfefbfb3a75",
+          "attempts_before": 0
+        }
+      ],
+      "summary": "sdd_runner.py check 에 판정 4'(tdd 아닌 step·measure 포함): BASE~HEAD 순변화 중 BASE 에 있던 테스트 파일이 test_edits 키(글자 그대로)에 없으면 checkout BASE 로 되돌림 커밋 후 Fail — 판정 4 꼴 그대로",
+      "completed_at": "2026-11-28T01:42:29+0900"
+    },
+    {
+      "step": 2,
+      "name": "impl-base-pin",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:42:59+0900",
+      "red": "fa1ea02bccefa31643ea58f52c8383d1fa527475",
+      "summary": "main prompt: --role impl 이고 BASE 없음·--base 없음이면 HEAD 를 pin_base 로 고정(ADR-024 T3). tdd:false(측정 아님) 지시문 4번에 기존 테스트 금지·새 테스트 허용 문구와 test_edits(경로 — 이유) 목록",
+      "completed_at": "2026-11-28T01:55:20+0900"
+    },
+    {
+      "step": 3,
+      "name": "blocked-revert",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T01:55:36+0900",
+      "red": "bd5e6b20b46fc40a8bcfe91d16f42a4c1878e72d",
+      "summary": "check blocked 갈래: tdd 아닌 step 은 남은 변경을 wip 커밋한 뒤 판정 4'와 같은 되돌림 커밋, blocked_reason 끝에 「(테스트 수정 되돌림: 경로)」(ADR-024 T5). 되돌림은 revert_test_edits 메서드로 묶어 판정 4'와 같이 쓴다",
+      "completed_at": "2026-11-28T02:10:57+0900"
+    },
+    {
+      "step": 4,
+      "name": "test-edits-check",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T02:11:20+0900",
+      "red": "678ab6189d76d51e8902dfd016d1e6f147e6f4da",
+      "summary": "모듈 함수 edits_problem(step) + start 가 blocked 검사 뒤 · 관문/부작용 전에 step 마다 test_edits 꼴 검사(객체 아님 · 이유 빈칸/비문자열 · tdd step · 테스트 파일 아님/phases/ → 「step N test_edits: 이유」 종료 1, ADR-024 T4)",
+      "completed_at": "2026-11-28T02:35:05+0900"
+    },
+    {
+      "step": 5,
+      "name": "docs-align",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-28T02:35:55+0900",
+      "summary": "docs/sdd-runner.md 판정 4' 행 · test.sh 판별 · 나눔 모드 impl BASE 고정 · test_edits 항목 · 검증 상태 168개, sdd-run §2-b 55행 · sdd-plan 이동 step 줄과 test_edits 칸 설명",
+      "completed_at": "2026-11-28T02:46:04+0900"
+    },
+    {
+      "step": 6,
+      "name": "review-fix-guard-gaps",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T03:08:26+0900",
+      "red": "c3f22aba18564572a2ed358e184f513f50894df8",
+      "summary": "revert_test_edits: diff --no-renames -z · quotePath=false, 칸은 planned_edits(BASE 커밋 계획, T6). record error 멈춤이 wip 뒤 BASE 지우기 전 되돌림 + error_message 꼬리(T7). edits_problem 이 glob 글자 · ./ 키 거름(T8). docs/sdd-runner.md 판정 4' · test_edits · 175개",
+      "completed_at": "2026-11-28T03:24:13+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T02:55:00+0900",
+      "head": "1ecf0e7",
+      "issues": [
+        "이름 바꾸기 · 옮기기가 판정 4'를 빠져나감(--name-only 기본 rename 감지)",
+        "공백 · 비ASCII 경로 되돌림 누락(split · quotePath)",
+        "구현이 진행 중 index.json에 자기 test_edits를 써 넣으면 허용",
+        "error 멈춤 경로에서 테스트 수정이 새 BASE로 씻김",
+        "start가 glob · ./ 키를 받음"
+      ]
+    },
+    {
+      "at": "2026-11-28T03:35:00+0900",
+      "head": "89d12130450d13860ad107dc6ed2504c90f36494",
+      "issues": []
+    }
+  ]
+}

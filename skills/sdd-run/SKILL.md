@@ -52,7 +52,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 - **검증 세션**: `prompt {task} --role test --base $(git rev-parse HEAD)` → 지시문대로 테스트만 커밋(`test: step N — {name} (red)`) → `judge {task} --red --step N`. 통과하면 러너가 테스트 커밋 sha를 step `red`에 적는다. `kind: measure` step은 `--role test` 뒤 `judge {task} --step N`
 - 구현이 blocked면 검증 세션이 다시 판정한다(E3) — 「테스트가 틀렸다」면 테스트만 고쳐 커밋한 뒤 `rejudge {task} --step N`(정본은 `docs/sdd-runner.md` 나눔 모드)
-- **구현 세션**: `prompt {task} --role impl` → 지시문대로 구현 → `judge {task} --step N`(BASE는 검증 쪽이 고정한 값)
+- **구현 세션**: `prompt {task} --role impl` → 지시문대로 구현 → `judge {task} --step N`(BASE는 검증 쪽이 고정한 값. 검증 차례가 없는 `tdd: false` step은 `prompt --role impl`이 BASE가 없으면 HEAD를 고정 — ADR-024 T3)
 - 지시문을 서브에이전트에 맡기면 §2 2번 그대로다(effort · fork 금지)
 - **통로**: 상태는 index.json(`red` 칸 · status)이 정본이고, 차례가 넘어가면 상대 세션에 세션 간 메시지로 알린다(`conductor` §8 초인종과 같은 꼴). 차례는 메시지가 아니라 index.json으로 다시 읽는다
 - 종료 3(차례 아님)이면 아무것도 바뀌지 않았다 — 상대 세션의 알림을 기다리고, 남의 차례에는 git을 만지지 않는다
