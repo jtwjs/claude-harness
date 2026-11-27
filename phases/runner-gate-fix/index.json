@@ -46,9 +46,11 @@
     {
       "step": 5,
       "name": "probe-rerun",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "summary": "레포 밖 재현 스크립트 다시 돌림: F1 `rejudge` 종료 1(구현이 지운 테스트 목록, 전 0) · F2 재판정 뒤 첫 실패 종료 10 재시도(전 error) · F3 detached `rejudge` red=고친 테스트 커밋 · 구현 파일 남음(전 임시 커밋) · 관문 꼴 14개 중 F4 넷 열림(전 0) · `gate` docs 15개 멈춤 1(desk-hypothesis-gate, 이전과 같음) · `python3 -m unittest …test_sdd_runner.py` 140 OK · `bash hooks/test.sh` 642/0",
+      "completed_at": "2026-11-27T13:49:57+0900"
     }
   ]
 }
