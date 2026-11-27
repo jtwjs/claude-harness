@@ -135,3 +135,22 @@ else
   _ss_gate skipped && ok "ss-app-gate-skipped-ok — push 에서 secret-scan 이 skipped 면 ci-gate 통과" || bad "ss-app-gate-skipped-ok" "skipped 인데 ci-gate 가 막음"
   ! _ss_gate failure && ok "ss-app-gate-fails-on-scan-failure — secret-scan 이 실패하면 ci-gate 가 막는다" || bad "ss-app-gate-fails-on-scan-failure" "secret-scan failure 인데 ci-gate 통과(needs=[$_ss_needs])"
 fi
+
+# ⑥ 템플릿 .gitignore 에 .env · 이미 깔린 레포(업그레이드 모드): CI 는 안내 한 줄만, .env 줄은 기존 .gitignore 행(빠진 줄 · diff 승인 뒤)
+_ss_gi="$_ss_root/templates/.gitignore.append"
+_ss_keep="$(grep -n '아래는 ignore 하지 않는다' "$_ss_gi" | head -1 | cut -d: -f1)"
+_ss_env="$(grep -nx '\.env' "$_ss_gi" | head -1 | cut -d: -f1)"
+[ -n "$_ss_env" ] && { [ -z "$_ss_keep" ] || [ "$_ss_env" -lt "$_ss_keep" ]; } \
+  && ok "ss-gitignore-env-line — .gitignore.append 에 .env 줄(ignore 하지 않는다 블록 밖)" || bad "ss-gitignore-env-line" ".env 줄=[$_ss_env] 「ignore 하지 않는다」 줄=[$_ss_keep]"
+_ss_up="$_ss_d/upgrade.md"
+awk '/^## 0\./ { f = 1; next } /^## 1\./ { f = 0 } f' "$_ss_root/skills/harness-init/SKILL.md" > "$_ss_up"
+_ss_ci_row="$(grep -E '^\| [^|]*\.github/workflows/ci\.yml' "$_ss_up" | head -1)"
+case "$_ss_ci_row" in *gitleaks*) _ss_v=1 ;; *) _ss_v=0 ;; esac
+case "$_ss_ci_row" in *secret-scan*) ;; *) _ss_v=0 ;; esac
+case "$_ss_ci_row" in *'고치지 않'*) ;; *) _ss_v=0 ;; esac
+case "$_ss_ci_row" in *'안내'*) ;; *) _ss_v=0 ;; esac
+[ "$_ss_v" = "1" ] && ok "ss-upgrade-ci-row — 업그레이드 표 CI 행: 고치지 않음 · gitleaks 없으면 secret-scan 안내 한 줄" || bad "ss-upgrade-ci-row" "행=[$_ss_ci_row]"
+grep -qxF '| `.gitignore` | `${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append`의 줄 중 빠진 것만 |' "$_ss_up" \
+  && grep -qF 'CI는 다시 하지 않는다' "$_ss_up" \
+  && ok "ss-upgrade-gitignore-row-unchanged — .gitignore 행 그대로(.env 도 빠진 줄 · diff 승인 뒤) · 「CI는 다시 하지 않는다」 그대로" \
+  || bad "ss-upgrade-gitignore-row-unchanged" "$(grep -n -e '^| `.gitignore`' -e 'CI는 다시' "$_ss_up")"
