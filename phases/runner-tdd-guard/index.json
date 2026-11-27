@@ -63,11 +63,12 @@
     {
       "step": 6,
       "name": "review-fix-guard-gaps",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T03:08:26+0900",
-      "base": "3ddbe524562ef5d6b292f53ac9c07415068321bc",
-      "red": "c3f22aba18564572a2ed358e184f513f50894df8"
+      "red": "c3f22aba18564572a2ed358e184f513f50894df8",
+      "summary": "revert_test_edits: diff --no-renames -z · quotePath=false, 칸은 planned_edits(BASE 커밋 계획, T6). record error 멈춤이 wip 뒤 BASE 지우기 전 되돌림 + error_message 꼬리(T7). edits_problem 이 glob 글자 · ./ 키 거름(T8). docs/sdd-runner.md 판정 4' · test_edits · 175개",
+      "completed_at": "2026-11-28T03:24:13+0900"
     }
   ]
 }
