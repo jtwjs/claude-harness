@@ -791,7 +791,8 @@ class Runner:
         base, old = step["base"], step["red"]
         fix, bundle = [], set()
         for sha, files in reversed(self.commits_since(base)):
-            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files):
+            if not all(TEST_FILE.search(f) or f.startswith("phases/") for f in files) \
+                    or self.git("log", "-1", "--format=%s", sha).stdout.startswith("wip: "):   # 구현 시도 커밋은 묶음 밖
                 break
             bundle.add(sha)
             fix += [f for f in files if TEST_FILE.search(f) and not f.startswith("phases/")]
@@ -799,6 +800,9 @@ class Runner:
         touched = sorted({f for sha in self.git("rev-list", f"{old}..HEAD").stdout.split() if sha not in bundle
                           for f in self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
                           if TEST_FILE.search(f) and not f.startswith("phases/")})
+        # 검증이 옛 red 내용으로 되돌렸으면 받는다(D1) — 두 쪽 blob 이 같거나 둘 다 없다
+        blob = lambda rev, f: self.git("rev-parse", "-q", "--verify", f"{rev}:{f}").stdout.strip()
+        touched = [f for f in touched if blob(old, f) != blob("HEAD", f)]
         if touched:
             print("구현 구간(옛 red 뒤 ~ 고친 테스트 커밋 앞)에서 테스트 파일이 바뀌었다 — 검증이 되돌리는 테스트 커밋을 올린 뒤 "
                   "다시 rejudge:\n" + "\n".join(f"  - {f}" for f in touched))
@@ -820,7 +824,7 @@ class Runner:
         s["red"], s["status"] = head, "pending"
         s.pop("blocked_reason", None)
         s.pop("blocked_at", None)
-        s.setdefault("rejudged", []).append({"at": stamp(), "red_before": old})
+        s.setdefault("rejudged", []).append({"at": stamp(), "red_before": old, "attempts_before": len(s.get("attempts") or [])})
         self.write(idx)
         self.commit_index(n)
         print(f"✓ step {n} 재판정 — 테스트 고침 · red: {head[:12]} · 구현 차례")
@@ -935,7 +939,12 @@ class Runner:
         # retries = 누적 재시도 수(승격 계수기, 0으로 안 돌림). 한도는 이번 실행(재개 이후)의 실패 수로 센다:
         # 첫 시도 + 재시도 3 = 최대 4회 — sdd-run·sdd 와 같은 문장
         s.setdefault("attempts", []).append({"at": stamp(), "error": reason})
-        fails_now = sum(1 for a in s["attempts"] if a["at"] >= s.get("resumed_at", ""))
+        # 재판정 뒤 구현 차례는 한도를 새로 받는다 — resumed_at 은 쓰지 않는다(쓰면 전체 verify 가 켜진다, #86 D2).
+        # 경계는 재판정 때의 attempts 개수로 센다 — 시각은 초 단위라 같은 초의 앞 실패가 섞인다
+        last = (s.get("rejudged") or [{}])[-1]
+        skip = last.get("attempts_before", 0)
+        since = max(s.get("resumed_at", ""), last.get("at", "") if "attempts_before" not in last else "")
+        fails_now = sum(1 for a in s["attempts"][skip:] if a["at"] >= since)
         if fails_now > self.max_retries:
             s.update(status="error", error_message=f"[{fails_now}회 시도 후 실패] {reason}", failed_at=stamp())
             s.pop("last_error", None)
