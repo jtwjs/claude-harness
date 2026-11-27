@@ -18,7 +18,10 @@
       "step": 2,
       "name": "release-line",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-27T17:32:05+0900",
+      "base": "caf7e1ebec7b21003b46438be2fde96892211674",
+      "red": "c8c0c07d7d4577d478c96f2486b7639c212ed1d8"
     },
     {
       "step": 3,
