@@ -24,11 +24,12 @@
     {
       "step": 2,
       "name": "impl-base-pin",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T01:42:59+0900",
-      "base": "7c7078d205728740ebd612506d80f123ce23c581",
-      "red": "fa1ea02bccefa31643ea58f52c8383d1fa527475"
+      "red": "fa1ea02bccefa31643ea58f52c8383d1fa527475",
+      "summary": "main prompt: --role impl 이고 BASE 없음·--base 없음이면 HEAD 를 pin_base 로 고정(ADR-024 T3). tdd:false(측정 아님) 지시문 4번에 기존 테스트 금지·새 테스트 허용 문구와 test_edits(경로 — 이유) 목록",
+      "completed_at": "2026-11-28T01:55:20+0900"
     },
     {
       "step": 3,
