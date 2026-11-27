@@ -45,7 +45,10 @@
       "step": 4,
       "name": "test-edits-check",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T02:11:20+0900",
+      "base": "e898891d17462903af6581c0e704479f4c7678e9",
+      "red": "678ab6189d76d51e8902dfd016d1e6f147e6f4da"
     },
     {
       "step": 5,
