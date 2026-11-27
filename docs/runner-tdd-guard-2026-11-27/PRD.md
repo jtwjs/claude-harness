@@ -46,7 +46,7 @@ flowchart TD
 
 ### 비기능
 
-- 판정 시간이 눈에 띄게 늘지 않는다. 비포(2026-11-28, 검증 세션 측정): `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` — 145개, unittest 보고 95.0초, CPU user 41.9초 + sys 34.7초. 벽시계 367초는 검사 자리 대기(다른 세션 3개)가 섞여 비교에 쓰지 않는다. 애프터는 같은 명령으로 REVIEW 때 잰다
+- 판정 시간이 눈에 띄게 늘지 않는다. 비포(2026-11-28, 검증 세션 측정): `python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` — 145개, unittest 보고 95.0초, CPU user 41.9초 + sys 34.7초. 벽시계 367초는 검사 자리 대기(다른 세션 3개)가 섞여 비교에 쓰지 않는다. 애프터(2026-11-28 REVIEW): 테스트가 늘어 같은 명령은 비교가 안 되므로, 기존 145개 테스트를 옛(main) · 새 러너로 돌려 CPU 시간을 쟀다 — 86.2초 → 87.5초(+1.5%, step 5 뒤) · 91.0초 → 93.9초(+3.2%, step 6 뒤). 각 1회라 흔들림 안쪽일 수 있다. 판정 4'는 git diff · cat-file만 돈다
 
 ### 제약
 

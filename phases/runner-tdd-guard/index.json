@@ -70,5 +70,23 @@
       "summary": "revert_test_edits: diff --no-renames -z · quotePath=false, 칸은 planned_edits(BASE 커밋 계획, T6). record error 멈춤이 wip 뒤 BASE 지우기 전 되돌림 + error_message 꼬리(T7). edits_problem 이 glob 글자 · ./ 키 거름(T8). docs/sdd-runner.md 판정 4' · test_edits · 175개",
       "completed_at": "2026-11-28T03:24:13+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T02:55:00+0900",
+      "head": "1ecf0e7",
+      "issues": [
+        "이름 바꾸기 · 옮기기가 판정 4'를 빠져나감(--name-only 기본 rename 감지)",
+        "공백 · 비ASCII 경로 되돌림 누락(split · quotePath)",
+        "구현이 진행 중 index.json에 자기 test_edits를 써 넣으면 허용",
+        "error 멈춤 경로에서 테스트 수정이 새 BASE로 씻김",
+        "start가 glob · ./ 키를 받음"
+      ]
+    },
+    {
+      "at": "2026-11-28T03:35:00+0900",
+      "head": "89d12130450d13860ad107dc6ed2504c90f36494",
+      "issues": []
+    }
   ]
 }
