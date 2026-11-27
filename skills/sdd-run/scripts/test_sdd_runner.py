@@ -416,9 +416,16 @@ class RunnerCase(unittest.TestCase):
         self.assertNotIn("tests/q.expect", err)
 
     def test_tdd_false_glob_key_matches_literally(self):
-        # T4: 칸 키는 글자 그대로 — glob 으로 넓혀 테스트 전부를 열지 않는다
-        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
-                          "test_edits": {"tests/*.expect": "모두"}}])
+        # T4: 칸 키는 글자 그대로 — glob 으로 넓혀 테스트 전부를 열지 않는다.
+        # start 는 glob 키를 거르므로(T8) start 뒤 계획을 고쳐 커밋한 경우로 판정 쪽만 본다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        d["steps"][0]["test_edits"] = {"tests/*.expect": "모두"}
+        f.write_text(json.dumps(d, indent=2))
+        git(self.repo, "add", "-f", str(f))
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "계획: glob 키")
+        self.assertEqual(self.session("prompt", "t1", "--base", self.head()).returncode, 0, self.out)
         self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
         self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
         self.assertEqual(self.read("tests/q.expect"), "q")
@@ -432,6 +439,86 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.read("tests/q.expect"), "q")
         self.assertIn("되돌림", self.step()["last_error"])
         self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_tdd_false_renamed_test_restored(self):
+        # 리뷰 🔴: git diff --name-only 는 기본으로 이름 바꾸기를 감지해 옛 경로를 안 보인다 — 옮긴 테스트가 사라진 채 통과했다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        os.rename(self.repo / "tests/q.expect", self.repo / "tests/q2.expect")
+        (self.repo / "src/q2.txt").write_text("q")
+        self.act([["commit", "feat: q 이름 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "옛 경로를 복원한다")
+        self.assertTrue((self.repo / "tests/q2.expect").exists(), "새 경로는 추가라 남는다")
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_tdd_false_moved_out_test_restored(self):
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        (self.repo / "docs").mkdir(exist_ok=True)
+        os.rename(self.repo / "tests/q.expect", self.repo / "docs/q.old")
+        self.act([["commit", "feat: q 테스트를 문서로 옮김"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "테스트 밖으로 옮겨도 복원한다")
+
+    def test_tdd_false_listed_rename_passes(self):
+        # T1: 이름 바꾸기는 옛 경로를 칸에 적으면 받는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "q 테스트를 q2 로 옮긴다"}}])
+        os.rename(self.repo / "tests/q.expect", self.repo / "tests/q2.expect")
+        (self.repo / "src/q2.txt").write_text("q")
+        self.act([["commit", "feat: q 이름 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertFalse((self.repo / "tests/q.expect").exists())
+        self.assertEqual(self.read("tests/q2.expect"), "q")
+
+    def test_tdd_false_space_and_nonascii_paths_reverted(self):
+        # 리뷰 🟡: 공백은 split 으로 쪼개지고 비ASCII 는 core.quotePath 로 따옴표가 붙어 되돌리지 못했다
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        for n in ("my q", "한글"):
+            (r / f"tests/{n}.expect").write_text("v")
+            (r / f"src/{n}.txt").write_text("v")
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "공백 · 한글 테스트")
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.act([["write", "tests/my q.expect", "w"], ["write", "src/my q.txt", "w"],
+                  ["write", "tests/한글.expect", "w"], ["write", "src/한글.txt", "w"], ["commit", "feat: 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/my q.expect"), "v")
+        self.assertEqual(self.read("tests/한글.expect"), "v")
+        self.assertIn("tests/my q.expect", self.step()["last_error"])
+        self.assertIn("tests/한글.expect", self.step()["last_error"])
+
+    def test_tdd_false_self_granted_test_edits_ignored(self):
+        # 리뷰 🟡 · T6: 구현이 진행 중 index.json 에 자기 허가를 써 넣어도 BASE 계획에 없으면 되돌린다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"],
+                  ["status", "completed", {"summary": "q", "test_edits": {"tests/q.expect": "내가 허가"}}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "BASE 계획에 없는 칸은 허가가 아니다")
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_tdd_false_error_stop_reverts(self):
+        # 리뷰 🟡 · T7: 재시도를 다 써 error 로 멈추면 wip 커밋 + BASE 지움 → 재개 때 새 BASE 로 수정이 씻겼다
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        (r / "tests/q.expect").write_text("q")
+        (r / "src/q.txt").write_text("q")
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트 q")
+        rc = self.run_runner([{"step": 1, "ops": [["write", "tests/q.expect", "qq"],
+                                                  ["status", "error", {"error_message": "못 고침"}]]}],
+                             "--max-retries", "0")
+        self.assertEqual(rc, 1, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "error")
+        self.assertNotIn("base", s, "멈추면 BASE 를 지운다(지금 동작 그대로)")
+        self.assertEqual(self.read("tests/q.expect"), "q", "BASE 를 지우기 전에 되돌린다")
+        self.assertIn("테스트 수정 되돌림", s["error_message"])
+        self.assertIn("tests/q.expect", s["error_message"])
+        hist = git(r, "log", "-p", "--format=%s", "--", "tests/q.expect").stdout
+        self.assertIn("+qq", hist, "고친 내용은 기록에 남는다")
 
     def test_tdd_false_revert_then_retry_passes(self):
         # T2: 되돌림 → 재시도 지시문에 파일 이름 → 구현만 고치면 통과(되돌림 커밋은 BASE 뒤에 있어도 순변화 0)
@@ -607,6 +694,15 @@ class RunnerCase(unittest.TestCase):
                                      "test_edits": {"phases/t1/tests/x.expect": "phase 기록"}}])
         self.assertEqual(rc, 1, "phases/ 아래는 테스트 파일로 보지 않는다 — " + self.out)
         self.assertTrue(same)
+
+    def test_start_test_edits_glob_key_refuses(self):
+        # T8: 글자 그대로 비교라 glob · ./ 키는 아무것도 열지 못한다 — 계획 실수를 첫 step 전에 알린다
+        for key in ("tests/*.expect", "tests/q?.expect", "tests/[q].expect", "./tests/q.expect"):
+            rc, same = self.start_with([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                                         "test_edits": {key: "이유"}}])
+            self.assertEqual(rc, 1, f"{key} — {self.out}")
+            self.assertIn(key, self.out)
+            self.assertTrue(same)
 
     def test_start_test_edits_on_tdd_step_refuses(self):
         # 테스트 먼저 step 의 판정 4 는 그대로다(설계서 결정) — 그 step 에 칸을 두면 열 수 없는 문이라 계획 실수다
