@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "template-cells",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T03:22:44+0900",
-      "base": "dd03cc48918ef2f4374500b0e666c7c01535e6f0",
-      "red": "98173ab905695d521aa32b1b1c0a44fcefe1d13c"
+      "red": "98173ab905695d521aa32b1b1c0a44fcefe1d13c",
+      "summary": "design.md 「설계서 틀」 문단 + markdown 블록을 간단히 1~5 · 우리 칸 · 자세히 6~9 · 아주 자세히 10~12로 교체, ### 칸마다 ← 안내. 블록 울타리와 「**설계서 틀**」 첫 줄 글자는 그대로(step 2 검사 계약)",
+      "completed_at": "2026-11-28T03:37:14+0900"
     },
     {
       "step": 2,
