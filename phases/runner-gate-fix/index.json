@@ -52,5 +52,21 @@
       "summary": "레포 밖 재현 스크립트 다시 돌림: F1 `rejudge` 종료 1(구현이 지운 테스트 목록, 전 0) · F2 재판정 뒤 첫 실패 종료 10 재시도(전 error) · F3 detached `rejudge` red=고친 테스트 커밋 · 구현 파일 남음(전 임시 커밋) · 관문 꼴 14개 중 F4 넷 열림(전 0) · `gate` docs 15개 멈춤 1(desk-hypothesis-gate, 이전과 같음) · `python3 -m unittest …test_sdd_runner.py` 140 OK · `bash hooks/test.sh` 642/0",
       "completed_at": "2026-11-27T13:49:57+0900"
     }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-27T13:55:58+0900",
+      "head": "2e28cdc44dbe252e4becc8bacd5601d64cbefc42",
+      "by": "code-reviewer(새 맥락, gatePaths)",
+      "issues": [
+        "🔴 rejudge 묶음 경계가 `wip:` 제목에 기댐 — 구현 세션이 직접 올린 테스트만 담은 커밋이 묶음에 섞여 씻김(재현함)",
+        "🟡 판정 4가 이미 되돌린 테스트 파일은 rejudge가 늘 거부(막다른 길, 재현함) — D1 문구 그대로라 결정 필요",
+        "🟡 라벨 붙여 쓴 내용 정리가 `**남은 ⚠️:** 없음` · `— 없음`을 열린 항목으로 셈(main 대비 회귀, 막는 방향)",
+        "🟡 위 두 rejudge 경로 테스트 없음",
+        "🟢 `- **남은 ⚠️ (범위)**: X` 통과 — 못 막는 갈래 후보",
+        "🟢 rejudge 60줄 — 묶음/구현 구간 가르기 함수로",
+        "🟢 재판정 뒤 「재시도 4/3」 표시"
+      ]
+    }
   ]
 }
