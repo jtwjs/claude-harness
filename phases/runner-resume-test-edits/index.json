@@ -22,6 +22,25 @@
       "started_at": "2026-11-28T20:55:57+0900",
       "summary": "docs/sdd-runner.md test_edits 항목에 멈춤 · 완료 기록 때 칸 맞추기 · 되돌림 줄 · 재개 전 커밋 · 한계를 적고 테스트 개수 줄을 191로, SKILL.md §4에 한 구절. 개수 줄의 이번 phase 몫은 6개로 했다(계획은 5개, 이유: 실제 test_align_* 가 6개 — 다른 세션이 고친 뒤 step 칸 포함)",
       "completed_at": "2026-11-28T21:09:09+0900"
+    },
+    {
+      "step": 3,
+      "name": "align-commit-guard",
+      "status": "pending",
+      "tdd": true
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T21:47:20+0900",
+      "head": "778f9208d674d1e042041885bd06453156962829",
+      "issues": [
+        "🟡 계획 index.json 미커밋 첫 실행 → 뒤 step 정당한 칸이 지워짐(AC-5 전제 오류) → step 3(start 검사, 결정 3 A)",
+        "🟡 미커밋 번호 바꾼 재개 → 칸이 다른 step으로 옮겨 붙음 → step 3(name 맞춤, 결정 4 A)",
+        "🟢 null 칸이 「없음 → 없음」 줄 → step 3",
+        "🟢 없음 → 값에도 「되돌림」 표현 · SKILL 구절 보강 → step 3 문서",
+        "원래 있던 문제: 구현 지시문 칸 목록이 작업 트리에서 읽힘 · sdd SKILL 재개 구절 없음 → PR 한계(지휘)"
+      ]
     }
   ]
 }

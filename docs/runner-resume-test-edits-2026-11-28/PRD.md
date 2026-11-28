@@ -41,7 +41,9 @@ flowchart TD
 |---|---|---|---|---|
 | runner-resume-test-edits-direction | (a) 러너가 멈춤을 기록할 때 `test_edits`를 BASE 계획 값으로 되돌린 뒤 커밋한다 | 지휘(AI 추천 수용, 사용자 반려 가능) | 지금 있는 BASE 계획 읽기를 한 자리 더 쓸 뿐이라 새 칸 · 새 절차가 없다. 버린 안 (b) 재개 때 알리고 멈춤: 옛 BASE sha를 구현이 쓰는 index.json에 따로 둬야 해 막는 힘이 더 크지 않고, 정당한 추가도 매번 멈춘다 | #116 방향 · #116 결정 댓글 |
 | runner-resume-test-edits-scope | 멈춤(blocked · error)과 완료 기록 모두에서, 모든 step의 `test_edits`를 그 판정 BASE의 계획 값으로 맞춘다(재현 B 포함) | 지휘(AI 추천 수용, 사용자 반려 가능) | 재현 B는 같은 틈의 다른 입구라 한쪽만 막으면 신호가 여전히 구현 손을 탄다. 버린 안: 멈추는 그 step만 + 후속 이슈 | #116 결정 댓글 |
-| runner-resume-test-edits-no-plan | BASE 커밋에 계획(`index.json`)이 없으면 계획 없음으로 보고 모든 칸을 빼고 한 줄씩 낸다 | 지휘(AI 추천 수용, 사용자 반려 가능) | 판정 4'가 이미 이 경우를 「계획 없음」으로 봐서 두 자리가 같은 답을 낸다. 버린 안: 맞추기를 건너뜀(이 경우만 틈이 조용히 열림) | #116 결정 댓글 2회차 |
+| runner-resume-test-edits-no-plan | BASE 커밋에 계획(`index.json`)이 없으면 계획 없음으로 보고 모든 칸을 빼고 한 줄씩 낸다 | 지휘(AI 추천 수용, 사용자 반려 가능) | 판정 4'가 이미 이 경우를 「계획 없음」으로 봐서 두 자리가 같은 답을 낸다(정정: 현재 step에만 맞는다 — 뒤 step은 자기 BASE를 읽는다. REVIEW 1회차 🟡로 아래 commit-guard가 받는다). 버린 안: 맞추기를 건너뜀(이 경우만 틈이 조용히 열림) | #116 결정 댓글 2회차 |
+| runner-resume-test-edits-commit-guard | `start`가 부작용 전에 작업 트리 index.json의 step별 `test_edits`를 HEAD에 커밋된 값과 대조해, 다르면(HEAD에 index.json이 없는데 칸이 있는 것 포함) 「index.json을 커밋한 뒤 실행」으로 종료 1 | 지휘(AI 추천 수용, 사용자 반려 가능) | 맞추기가 커밋 안 된 정당한 계획 칸을 지우기 전에, 사람이 있는 자리에서 멈춘다. 버린 안: 문서만(조용히 지워지는 길이 남음) · BASE에 계획 없으면 맞추기 건너뜀(틈이 다시 열림) | #116 결정 댓글 3회차 |
+| runner-resume-test-edits-name-match | 맞추기는 계획 step의 번호와 `name`이 둘 다 같을 때만 계획 값을 넣고, 어긋나면 칸을 뺀다 | 지휘(AI 추천 수용, 사용자 반려 가능) | `start`를 거치지 않는 재개에서도 칸이 다른 step으로 옮겨 붙지 않게(막는 쪽 실패). 버린 안: 문서만 | #116 결정 댓글 3회차 |
 | runner-resume-test-edits-notice | 맞추는 함수가 값을 실제로 바꿨으면 「step N test_edits 되돌림: <전> → <계획 값>」 한 줄을 출력한다 | 지휘 | 다른 세션이 뒤 step 칸을 고쳐 커밋한 경우가 조용히 사라지지 않게. 되돌림은 막는 쪽 실패라 허가가 새지 않는다 | #116 결정 댓글 |
 
 ### 범위
@@ -91,6 +93,9 @@ flowchart TD
 
 - [ ] AC-7 (결정 2에서 감수한 경우) 구현 BASE 뒤에 다른 커밋이 뒤 step의 `test_edits`를 고쳐 넣고 지금 step이 completed로 통과하면, 완료 커밋의 그 칸은 BASE 계획 값으로 돌아가고 출력에 「step N test_edits 되돌림」 줄이 보인다(막는 쪽 실패) (← #116 계획 확인 댓글)
 - [ ] AC-8 `skills/sdd-run/SKILL.md` §4 재개 절차에 「`test_edits` 칸을 더하려면 index.json을 커밋한 뒤 재개한다」 한 구절이 있다 (← #116 계획 확인 댓글, 바꿀 파일 목록 밖 예외 승인)
+- [ ] AC-9 작업 트리 index.json의 어떤 step `test_edits`가 HEAD에 커밋된 값과 다르면(HEAD에 index.json이 없는데 칸이 있는 첫 실행 · 멈춘 뒤 커밋 없이 칸을 더한 재개 포함) `start`가 「step N test_edits 가 커밋된 계획과 다르다 — index.json 을 커밋한 뒤 실행」 꼴로 종료 1을 내고, 브랜치 · index.json을 바꾸지 않는다 (← #116 결정 댓글 3회차)
+- [ ] AC-10 진행 중 index.json에서 step 번호가 BASE 계획과 같아도 `name`이 다르면 그 step은 계획 칸을 받지 않는다 — 번호를 바꾼 step에 옛 step의 칸이 옮겨 붙어 커밋되지 않는다 (← #116 결정 댓글 3회차)
+- [ ] AC-11 `test_edits`가 `null`로 적힌 step은 계획에도 칸이 없으면 되돌림 줄을 내지 않는다 (← REVIEW 1회차 🟢)
 
 ### 남은 ⚠️
 

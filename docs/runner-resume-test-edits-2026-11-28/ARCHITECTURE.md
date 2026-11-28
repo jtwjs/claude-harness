@@ -7,6 +7,7 @@
 | 파일 | 이번에 하는 일 | 출처 |
 |---|---|---|
 | `skills/sdd-run/scripts/sdd_runner.py` 새 메서드(맞추기) | BASE 커밋의 `phases/<task>/index.json`을 한 번 읽어, 진행 중 index의 모든 step `test_edits`를 그 값으로 맞춘다(계획에 없으면 칸을 뺀다). 바꾼 step마다 「step N test_edits 되돌림: <전> → <계획 값>」을 출력한다 | PRD AC-1~5 |
+| `sdd_runner.py` `start` (REVIEW 1회차) | 부작용 전에 작업 트리 index.json의 step별 `test_edits`가 HEAD 커밋 값과 다르면 「index.json 을 커밋한 뒤 실행」 종료 1. 맞추기는 번호 + name이 같을 때만 계획 값 | PRD AC-9~11 |
 | `sdd_runner.py` `record` 세 자리 | blocked 기록 · error 멈춤 · completed 기록에서 `index.json`을 쓰고 커밋하기 전에 맞추기를 부른다 | PRD AC-1~3 |
 | `skills/sdd-run/scripts/test_sdd_runner.py` | 재현 A(blocked · error) · 재현 B · 계획 칸 유지 · BASE에 계획 없음 · 다른 세션이 뒤 step 칸을 고친 경우 | PRD AC-1~5 · AC-7 |
 | `docs/sdd-runner.md` `test_edits` 항목 · 테스트 개수 줄 | 새 동작 · 한계 문장 | PRD AC-6 |
