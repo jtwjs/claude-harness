@@ -25,7 +25,7 @@ flowchart TD
   T[검증 세션이 한글 · 공백 경로 테스트를 커밋] --> R[judge --red: commits_since가 커밋 파일 목록을 읽음]
   R -->|지금: 따옴표 · 쪼개짐| X1[RED 거절 · 재시도]
   R -->|고친 뒤: -z + quotePath=false| OK1[red 기록 · 구현 차례]
-  OK1 --> I[구현 → judge: red 테스트 목록 :663 · verify]
+  OK1 --> I[구현 → judge: check의 red 테스트 목록 · verify]
   I -->|lint가 red 테스트 파일을 가리킴| B{red_blame}
   B -->|지금: 한글 경로 못 찾음| X2[재시도로 태움]
   B -->|고친 뒤| BL[blocked · 검증 재판정]
@@ -39,7 +39,7 @@ flowchart TD
 | 주제 | 결정 | 주체 | 이유 · 버린 안 | 출처 |
 |---|---|---|---|---|
 | runner-path-quote-same-fix | 네 자리 파일 목록을 #91 · #102와 같은 방식(`-z` NUL 구분 + `core.quotePath=false`)으로 읽는다 | 사용자(AI 추천 수용, #102 결정 묶음 3번) | #91 · #102가 같은 틈을 이 고침으로 막았다 | #113 할 것 |
-| runner-path-quote-red-list | red 테스트 목록(:663)은 이름 바꾸기 감지 끄기 없이 `-z` + `core.quotePath=false`만 | 지휘(#102에서 넘어온 범위 더함) | 이 목록은 red_blame이 쓰는 이름 목록이라 이름 바꾸기 옛 경로가 필요 없다 | #113 범위 더함 |
+| runner-path-quote-red-list | `check`의 red 테스트 목록은 이름 바꾸기 감지 끄기 없이 `-z` + `core.quotePath=false`만 | 지휘(#102에서 넘어온 범위 더함) | 이 목록은 red_blame이 쓰는 이름 목록이라 이름 바꾸기 옛 경로가 필요 없다 | #113 범위 더함 |
 | runner-path-quote-rejudge-renames | `base_with_tests`에는 `-z` + `core.quotePath=false`만 넣고 이름 바꾸기 감지 끄기는 넣지 않는다 | 지휘(AI 추천 수용, 사용자 반려 가능) | 재판정 이름 바꾸기는 결과가 안 바뀐다(#102 재현 E) — 테스트로 증명할 수 없는 줄을 늘리지 않는다. 버린 안: `--no-renames`까지 | #113 결정 댓글 |
 | runner-path-quote-inline | 네 자리마다 판정 4 · 4'와 같은 꼴을 그대로 적는다(헬퍼로 묶지 않음) | 지휘(AI 추천 수용, 사용자 반려 가능) | 이슈는 네 자리 읽기만 말한다 — 이미 머지된 판정 4 · 4'를 다시 열지 않는다. 버린 안: 헬퍼 하나로 묶고 판정 4 · 4'도 옮김 | #113 결정 댓글 |
 
@@ -48,7 +48,7 @@ flowchart TD
 포함
 - 두 자리(`commits_since` · `rejudge_split`) 파일 목록을 `-z` + `core.quotePath=false`로 읽는다 (← #113 할 것)
 - 재판정용 `base_with_tests`의 한글 경로 갈래도 같이 본다 (← #113 할 것)
-- red 테스트 목록(:663)도 같은 꼴로 (← #113 범위 더함)
+- `check`의 red 테스트 목록도 같은 꼴로 (← #113 범위 더함)
 - 테스트: 한글 · 공백 테스트 경로로 red 기록 · 재판정이 통과 (← #113 할 것)
 
 하지 않을 것
@@ -71,7 +71,7 @@ flowchart TD
 | C | 재판정 묶음에 `tests/한글.expect` | `rejudge` 종료 1 「blocked 뒤 커밋 … 테스트 · phases/ 밖 파일을 담았다」 |
 | D | 재판정 묶음에 `tests/my q.expect` | C와 같음 |
 | E | (A~D만 고친 복사본) 재판정 묶음이 옛 테스트를 지우고 한글 새 테스트만 둠 | 종료 1 「고친 테스트가 구현 전(BASE)에서도 통과」 — `base_with_tests`가 따옴표 경로를 못 찾아 BASE에 안 얹음. 공백은 `splitlines`라 통과 |
-| F | (A~D만 고친 복사본) red 테스트 파일 `tests/한글_note.txt`가 lint에 걸림 | 종료 10(재시도) — red 테스트 목록(:663)이 따옴표 경로라 red_blame이 못 찾음. 공백은 파일 이름 조각이 맞아 우연히 blocked |
+| F | (A~D만 고친 복사본) red 테스트 파일 `tests/한글_note.txt`가 lint에 걸림 | 종료 10(재시도) — `check`의 red 테스트 목록이 따옴표 경로라 red_blame이 못 찾음. 공백은 파일 이름 조각이 맞아 우연히 blocked |
 
 ### 키워드
 
