@@ -59,7 +59,10 @@
       "step": 6,
       "name": "auto-memory-off",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T15:09:01+0900",
+      "base": "ddea13400ead17c8a320fc31ba0d9f19973b59de",
+      "red": "35695b5d407d2067f12b34d6a312dc01be76de6e"
     }
   ],
   "reviews": [
