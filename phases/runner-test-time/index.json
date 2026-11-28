@@ -1,0 +1,9 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-test-time",
+  "docs": "docs/runner-test-time-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "parallel-suite", "status": "pending", "tdd": true }
+  ]
+}
