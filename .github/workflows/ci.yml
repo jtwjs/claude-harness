@@ -4,16 +4,14 @@ on:
   pull_request:
   push:
     branches: [main]
-  # 전체 테스트는 사람이 손으로 돌릴 때만 — Actions 화면의 Run workflow, 또는 scripts/release.sh 가 main 머리에서 발동한다(ADR-028)
-  workflow_dispatch:
 
 permissions:
   contents: read
 
-# PR · main push 는 바뀐 부분만 돈다(hooks/test.sh --since, 표 hooks/test-map.tsv). 전체는 full 잡(수동 발동)에서만 돈다.
+# PR · main push 는 바뀐 부분만 돈다(hooks/test.sh --since, 표 hooks/test-map.tsv). 전체는 full.yml(수동 발동)에서만 돈다(ADR-028 결정 8).
+# 잡 단위 if 를 두지 않는다 — PR 체크에 skipped 잡이 남으면 머지 가드가 통과로 치지 않는다.
 jobs:
   hooks:
-    if: github.event_name != 'workflow_dispatch'
     # hooks/test.sh 는 macOS 에서만 돌려 왔다
     runs-on: macos-latest
     steps:
@@ -37,23 +35,6 @@ jobs:
         run: bash hooks/test.sh --since "$BASE"
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-
-  full:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: git identity
-        run: |
-          git config --global user.name ci
-          git config --global user.email ci@example.invalid
-
-      # 전부. 러너 단위는 runner-unit 잡이 같은 실행 안에서 돈다 — runner-unit 잡을 지우면 아래 HOOK_TEST_PART 도 같이 뺀다(안 빼면 전체에서 러너 단위가 말없이 빠진다)
-      - name: test
-        run: bash hooks/test.sh
-        env:
-          HOOK_TEST_PART: hooks
 
   runner-unit:
     runs-on: macos-latest

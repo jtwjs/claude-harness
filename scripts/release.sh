@@ -48,13 +48,13 @@ ver="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"
 mver="$(python3 -c 'import json;d=json.load(open(".claude-plugin/marketplace.json"));print(next(p["version"] for p in d["plugins"] if p["name"]=="'"$PLUGIN"'"))')"
 [ "$ver" = "$mver" ] || die "버전 불일치: plugin.json $ver · marketplace.json $mver"
 skills=$(ls -d skills/*/ | wc -l | tr -d ' ')
-# 전체 테스트는 로컬에서 다시 돌리지 않고, main 머리 커밋에서 CI full 잡(수동 발동)을 돌려 그 결과를 기다린다(ADR-028 결정 8).
+# 전체 테스트는 로컬에서 다시 돌리지 않고, main 머리 커밋에서 전체 테스트 workflow(full.yml, 수동 발동)를 돌려 그 결과를 기다린다(ADR-028 결정 8).
 # PR · main push CI 는 바뀐 부분만 돌아 릴리스 근거가 되지 못한다. 옛 gh(2.21)에는 run list --commit 이 없어 REST 로 묻는다
 head_sha="$(git rev-parse HEAD)"
 gh_ci() { gh api "$@" 2>/dev/null || die "CI 를 못 읽었다 — gh 계정이 이 레포를 못 보면 $RELEASE_GH_USER 로 로그인한 뒤 다시"; }
 remote_sha="$(gh_ci "repos/{owner}/{repo}/commits/main" -q .sha)"
 [ "$remote_sha" = "$head_sha" ] || die "main 머리 커밋 ${head_sha:0:7} 이 원격 main(${remote_sha:0:7})과 다르다 — push 안 된 커밋이면 PR 로 넣는다"
-full_runs() { gh_ci "repos/{owner}/{repo}/actions/runs?event=workflow_dispatch&head_sha=$head_sha" -q '.workflow_runs[] | select(.name == "CI") | "\(.id) \(.status) \(.conclusion // "none") \(.html_url)"'; }
+full_runs() { gh_ci "repos/{owner}/{repo}/actions/workflows/full.yml/runs?event=workflow_dispatch&head_sha=$head_sha" -q '.workflow_runs[] | "\(.id) \(.status) \(.conclusion // "none") \(.html_url)"'; }
 ci_st="" ci_co="" ci_url=""
 if [ "$DRY" = 1 ]; then
   printf '  (dry-run) CI full 잡을 main(%s)에서 발동하고 결과를 기다린다\n' "${head_sha:0:7}"
@@ -62,7 +62,7 @@ if [ "$DRY" = 1 ]; then
 else
   # 발동 전 실행 id 를 적어 두고, 그 목록에 없는 새 실행을 기다린다 — 같은 커밋의 지난 실행을 잘못 집지 않게
   old_ids=" $(full_runs | awk '{print $1}' | tr '\n' ' ')"
-  gh api -X POST "repos/{owner}/{repo}/actions/workflows/ci.yml/dispatches" -f ref=main >/dev/null \
+  gh api -X POST "repos/{owner}/{repo}/actions/workflows/full.yml/dispatches" -f ref=main >/dev/null \
     || die "CI full 잡 발동 실패 — 이 레포에 쓰기 권한이 있는 $RELEASE_GH_USER 로 로그인한 뒤 다시"
   run_id=""
   for _ in $(seq 1 60); do

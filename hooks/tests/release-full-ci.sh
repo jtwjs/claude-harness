@@ -16,7 +16,7 @@ printf '%s\n' "\$*" >> "$_rf_d/gh.log"
 case "\$*" in
   *"-X POST"*) : > "$_rf_d/posted"; exit 0 ;;
   *commits/main*) echo "$_rf_head" ;;
-  *actions/runs*)   # 발동 뒤 첫 조회에는 아직 안 뜬다 — 그때 지난 실행(성공)을 집으면 거름이 빠진 것
+  *full.yml/runs*)   # 발동 뒤 첫 조회에는 아직 안 뜬다 — 그때 지난 실행(성공)을 집으면 거름이 빠진 것
     if [ -f "$_rf_d/posted" ]; then
       if [ -f "$_rf_d/seen" ]; then echo "2 completed \$RF_NEW https://x/runs/2"; else : > "$_rf_d/seen"; fi
     fi

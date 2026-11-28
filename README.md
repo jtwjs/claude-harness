@@ -158,11 +158,11 @@ claude plugin disable claude-harness@jtwjs-plugins                              
 ```bash
 bash hooks/test.sh             # 훅 회귀 + SDD 러너 단위 테스트 전부
 bash hooks/test.sh --since "$(git merge-base HEAD origin/main)"   # 바꾼 부분만(표 hooks/test-map.tsv, ADR-025)
-gh workflow run ci.yml --ref <브랜치>   # CI 전체(full 잡). PR · main push CI는 바뀐 부분만 돈다
+gh workflow run full.yml --ref <브랜치>   # 전체 테스트(수동 전용 workflow). PR · main push CI는 바뀐 부분만 돈다
 scripts/release.sh --dry-run   # 할 일만 보여 준다
 scripts/release.sh             # push → 마켓플레이스 · 플러그인 갱신 → 설치본 확인
 ```
 
-사전 확인(main, 깨끗한 트리, plugin.json · marketplace.json 버전 일치, 로컬 main = 원격 main, 그 커밋에서 발동한 CI full 잡 통과)이 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다.
+사전 확인(main, 깨끗한 트리, plugin.json · marketplace.json 버전 일치, 로컬 main = 원격 main, 그 커밋에서 발동한 전체 테스트 workflow(full.yml) 통과)이 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다.
 
 </details>
