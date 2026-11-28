@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "parallel-suite",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T23:22:59+0900",
-      "base": "5fb262b568b17cecc9de3cb70cb6c344931ed6e3",
-      "red": "37b0a81721a37f25611831f1bcfa950e6eb4624f"
+      "red": "37b0a81721a37f25611831f1bcfa950e6eb4624f",
+      "summary": "새 파일 parallel_suite.py: jobs(env) · ParallelSuite(테스트마다 add* 호출을 기록해 원래 순서대로 원래 result에 다시 부름 — subTest · addDuration 포함). 로컬 206개 70.8s OK(1회 · 체감치). setUpClass · setUpModule은 돌리지 않는다(지금 쓰는 테스트 0)",
+      "completed_at": "2026-11-28T23:34:43+0900"
     }
   ]
 }
