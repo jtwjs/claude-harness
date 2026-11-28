@@ -1393,12 +1393,11 @@ class RunnerCase(unittest.TestCase):
         self.assertIn("--disallowedTools", a, a)
         start = a.index("--disallowedTools") + 1
         end = next((k for k in range(start, len(a)) if a[k].startswith("--")), len(a))
+        # 헤드리스 시험(step 3)에서 거부를 확인한 글자 그대로 — 상수를 import 하면 같은 값끼리 비교가 돼
+        # 앞 와일드카드 · /** 가 빠지는 회귀를 못 잡는다(REVIEW 1회차)
         rules = a[start:end]
-        self.assertTrue(any(r.startswith("Bash(") and ".claude/projects" in r for r in rules),
-                        f".claude/projects 가 든 셸 명령 차단: {rules}")
-        for tool in ("Read", "Grep", "Glob"):
-            self.assertTrue(any(r.startswith(f"{tool}(") and "~/.claude/projects" in r for r in rules),
-                            f"{tool} 의 ~/.claude/projects 경로 차단: {rules}")
+        self.assertEqual(rules, ["Bash(*.claude/projects*)", "Read(~/.claude/projects/**)",
+                                 "Grep(~/.claude/projects/**)", "Glob(~/.claude/projects/**)"])
         self.assertEqual(a[-1], "--", "지시문 바로 앞은 -- — 여러 값 옵션이 지시문을 규칙으로 먹지 않게")
         self.assertLess(start, a.index("--"))
         self.assertTrue(self.prompt(i).startswith("당신은"), "지시문은 마지막 인자 하나 그대로")
