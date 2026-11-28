@@ -54,8 +54,8 @@ hout="$(bash hooks/test.sh 2>&1)" && hrc=0 || hrc=$?
 runner_line="$(printf '%s\n' "$hout" | grep -E '러너 단위 테스트 (통과|실패)' | tail -1 || true)"
 case "$runner_line" in *"러너 단위 테스트 실패"*) die "SDD 러너 테스트 실패 — 먼저 고친다";; esac
 [ "$hrc" = 0 ] || die "hooks/test.sh 실패 — 먼저 고친다"
-hook_n="$(printf '%s\n' "$hout" | sed -n 's/^통과 \([0-9][0-9]*\) · 실패 0$/\1/p' | tail -1)"
-runner_n="$(printf '%s\n' "$runner_line" | sed -n 's/.*Ran \([0-9][0-9]*\) tests*.*/\1/p')"
+hook_n="$(printf '%s\n' "$hout" | LC_ALL=C sed -n 's/^통과 \([0-9][0-9]*\) · 실패 0$/\1/p' | tail -1)"
+runner_n="$(printf '%s\n' "$runner_line" | LC_ALL=C sed -n 's/.*Ran \([0-9][0-9]*\) tests*.*/\1/p')"
 [ -n "$runner_n" ] || die "hooks/test.sh 출력에 러너 테스트 결과 줄이 없다 — hooks/tests/sdd-runner-unit.sh 를 확인한다"
 [ -n "$hook_n" ] || die "hooks/test.sh 출력에서 통과 개수를 못 읽었다"
 ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')
