@@ -8,6 +8,8 @@ disable-model-invocation: true
 레포를 진단해 **사실로 채우고**, 기계가 모르는 것만 묻는다. **추측으로 빈칸을 채우지 않는다.**
 
 > 🔴 **이 스킬의 유일한 실패 모드는 "돌지 않는 명령을 적는 것"이다.** 명령은 전부 **실제로 실행해 보고 통과한 것만** 기록한다.
+>
+> 확인받기(`permissions.ask`) 줄만 예외다. 배포 · 마이그레이션 명령은 돌리지 않고 실재만 확인한 뒤 승인받은 줄을 넣는다(§2-c).
 
 ## 0. 이미 깔린 레포: 업그레이드 모드
 
@@ -66,6 +68,13 @@ disable-model-invocation: true
 **2-b. 테스트 러너·BDD 별칭 탐지** → `test.runner` · `test.bddAlias`.
 별칭(`context` 등)이 없으면 **파일을 심지 않고** `bddAlias: false`로 기록한다. 러너 step(`sdd-run` 지시문)과 `test-writer`가 중첩 `describe`로 대체한다.
 
+**2-c. 확인받기 후보** → `.claude/settings.json`의 `permissions.ask`. 레포 고유 배포 · 마이그레이션 명령을 찾되 실행하지 않는다.
+
+- 찾는 곳: `package.json` scripts와 Makefile 타깃 중 이름에 `deploy` · `release` · `migrate` · `publish`가 든 것, `.github/workflows/*.yml`에서 이름이나 `environment:`로 배포가 보이는 잡의 `run:` 줄, 빌드 파일에 있는 마이그레이션 도구의 적용 명령(예: `prisma migrate deploy` · Flyway · Liquibase Gradle 태스크)
+- 실재 확인은 그 이름이 위 파일에 있는지로만 한다. 후보를 `명령 · 찾은 곳` 표로 보여 주고 🙋 승인한 줄만 `Bash(<명령>*)` 꼴로 템플릿 공통 ask 줄 뒤에 더한다
+- 이름만으로 배포인지 빌드인지 모르면 후보에 넣고 판정은 사람에게 둔다. 후보가 없으면 더하지 않고 §7 빈 칸에 적는다
+- 사람이 없는 실행에서는 ask 줄이 거부된다. 러너 권한 모드(`claude -p --dangerously-skip-permissions`)와 `--permission-mode auto` 둘 다 ask 줄 명령을 실행하지 않았다(Claude Code 2.1.332, 2026-11-28 실측). 러너 step이 돌려야 하는 명령은 ask에 넣지 않는다
+
 ## 3. 인터뷰 (기계가 모르는 것만, 10개)
 
 ① **절대 금기가 있나?** → CLAUDE.md 🔴 CRITICAL
@@ -88,7 +97,7 @@ disable-model-invocation: true
 - `.claude/rules/non-obvious-patterns.md` — 플러그인 시드 2줄(셸 함정) + ②의 답 한 줄. 레포 항목은 `---` 아래부터
 - `.claude/rules/testing.md` — `tdd-guard`의 판정 근거. **훅 면제 목록과 같은 표를 보게** 맞춘다
 - `.claude/references/implementation-patterns.md` — 구현 패턴 6개
-- `.claude/settings.json` — `${CLAUDE_PLUGIN_ROOT}/templates/.claude/settings.json`의 `permissions.deny`(훅이 꺼진 환경에서도 막히게) · `permissions.ask`(배포 · 공개 명령은 사람 확인). 이미 있으면 덮지 않고 빠진 deny · ask 줄만 보여 주고 🙋 승인 뒤 합친다
+- `.claude/settings.json` — `${CLAUDE_PLUGIN_ROOT}/templates/.claude/settings.json`의 `permissions.deny`(훅이 꺼진 환경에서도 막히게) · `permissions.ask`(배포 · 공개 명령은 사람 확인) + §2-c에서 승인한 레포 고유 ask 줄. 이미 있으면 덮지 않고 빠진 deny · ask 줄만 보여 주고 🙋 승인 뒤 합친다
 
 **조건부**: TS면 `rules/{typescript,functional-programming}.md`(React면 `rules/react-components.md`도) · Kotlin이면 `rules/functional-programming.md` · ⑨면 `rules/llm-pipeline.md` · Dependabot(`${CLAUDE_PLUGIN_ROOT}/templates/.github/dependabot.yml` — 판정된 팩의 블록만 남기고 `directory`를 root로. 기준 브랜치가 기본 브랜치와 다르면 `target-branch`를 푼다. 레포에 이미 있으면 덮지 않는다) · ⑦이면 Changesets · ⑧이면 `.claude/references/{tracks,track-brief}.md`(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/references/` — 트랙 표는 인터뷰 답으로 채우고, CLAUDE.md에 「트랙」 절 한 줄 + ⏬ 링크. 라벨은 `conductor` 첫 실행이 만든다) · CI 워크플로(`${CLAUDE_PLUGIN_ROOT}/templates/.github/workflows/ci.yml`) + PR 템플릿(`${CLAUDE_PLUGIN_ROOT}/templates/.github/PULL_REQUEST_TEMPLATE.md` — `pr-write`는 이 템플릿이 있으면 그 절 구조를 채운다. 레포에 이미 있으면 덮지 않는다)
 
@@ -129,6 +138,6 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/harness-init/scripts/fill_ci.py" .claude/h
 
 `verify` 전체를 돌려 **red/green을 그대로 보고**한다.
 
-마지막에 **비어 있는 칸을 명시**한다 — `verify.test` 없음 / `ci.test: deferred` / `tdd.enabled: false` / `release.tool: null` / `stacks.packs: []`(팩 없음).
+마지막에 **비어 있는 칸을 명시**한다 — `verify.test` 없음 / `ci.test: deferred` / `tdd.enabled: false` / `release.tool: null` / `stacks.packs: []`(팩 없음) / 레포 고유 ask 줄 없음(§2-c 후보 0).
 
 > 🔴 **비었다는 사실을 말하지 않으면 조용히 죽는다.** 채우라고 강요하지는 않되, **매번 보이게** 남긴다.
