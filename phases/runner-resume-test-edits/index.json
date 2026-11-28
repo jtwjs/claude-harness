@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "align-test-edits-on-record",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T20:36:16+0900",
-      "base": "be15adcddc30c3216fd657712b4da5a76702d0d6",
-      "red": "cc4825a40ea29905a26e3527f236f407ef0220a1"
+      "red": "cc4825a40ea29905a26e3527f236f407ef0220a1",
+      "summary": "sdd_runner.py에 align_test_edits(idx, base)를 더하고 record의 blocked · completed · error 멈춤 세 갈래가 index를 쓰기 전에 부른다",
+      "completed_at": "2026-11-28T20:55:17+0900"
     },
     {
       "step": 2,
