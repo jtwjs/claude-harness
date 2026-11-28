@@ -17,8 +17,11 @@
     {
       "step": 2,
       "name": "history-ban-text",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-28T14:24:40+0900",
+      "summary": "금지 문구(`~/.claude` 아래 읽지 않음 + 예외 둘)를 preamble.md 7번 끝 · sdd-plan 템플릿 금지사항 셋째 줄에, 「가린 샘플」 규칙을 sdd-plan §3 · 템플릿 작업에, 헤드리스 차단 · 한계 항목을 docs/sdd-runner.md effort 항목 뒤에 넣었다",
+      "completed_at": "2026-11-28T14:32:28+0900"
     },
     {
       "step": 3,
