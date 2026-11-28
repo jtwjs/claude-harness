@@ -486,8 +486,8 @@ check_deny 2 'rm -fr ~'
 check_deny 2 'rm -r -f /'
 check_deny 2 'rm -rf "$HOME"'
 check_deny 2 'rm -rf ~/'
-check_deny 0 'rm -rf ./build'
-check_deny 0 'rm -rf /tmp/x'
+check_deny 2 'rm -rf ./build'   # 하위 경로도 막는다(#120 rm-recursive-force). 나머지 꼴은 tests/rm-recursive-force.sh
+check_deny 0 'rm -r ./build'    # -f 없는 rm -r 은 통과(#120 결정 1 B)
 
 # ── 케이스 11: 앱별 verify — Stop 훅이 root 마다 cd 해서 돌리고 root 이름을 낸다 (0.10.0) ─
 printf '\n[11] Stop 훅 — 앱별 verify\n'
