@@ -154,7 +154,7 @@ for i, c in enumerate(checks):
     else:
         roll.append({"__typename": "CheckRun", "name": f"c{i}", "status": "IN_PROGRESS" if c == "PENDING" else "COMPLETED",
                      "conclusion": "" if c == "PENDING" else c})
-open(out, "w").write(json.dumps({"body": f"## Summary\n- x\n\n{risk}\n\n본문", "changedFiles": int(cf) if cf else len(files), "statusCheckRollup": roll}))
+open(out, "w").write(json.dumps({"headRefOid": "abc1234def5678", "body": f"## Summary\n- x\n\n{risk}\n\n본문", "changedFiles": int(cf) if cf else len(files), "statusCheckRollup": roll}))
 open(ftsv, "w").write("".join(f.replace(">", "\t") + ("" if ">" in f else "\t") + "\n" for f in files))
 PMPY
 }
@@ -169,36 +169,42 @@ _pm_ask() { # $1 이름 · $2 명령
 _pm_pass() { # $1 이름 · $2 명령
   out=$(_pm_run "$2"); [ -z "$out" ] && ok "통과: $1" || bad "조건 통과인데 확인" "$1 → [$out]"
 }
-_pm_R='## ⚠️ Risk Score: 21/100 (낮음)'
+_pm_R='## ⚠️ Risk Score: 21/100 (낮음)'; _pm_M='--match-head-commit abc1234'
 _pm_json "$_pm_R" 'hooks/a.sh,docs/b.md' 'SUCCESS,ctx:SUCCESS'
 : > "$_pm_d/gh.log"
-_pm_pass "세 조건 통과(체크 둘 · 상태 하나)" 'gh pr merge 12 -R o/r --squash --match-head-commit abc'
-grep -qx 'pr view 12 -R o/r --json body,changedFiles,statusCheckRollup' "$_pm_d/gh.log" \
+_pm_pass "세 조건 통과(체크 둘 · 상태 하나)" 'gh pr merge 12 -R o/r --squash --match-head-commit abc1234'
+grep -qx 'pr view 12 -R o/r --json headRefOid,body,changedFiles,statusCheckRollup' "$_pm_d/gh.log" \
   && grep -q '^api repos/o/r/pulls/12/files --paginate' "$_pm_d/gh.log" && ok "그 PR 번호 · 레포로 본문 · 파일 목록을 읽는다" || bad "읽기 인자" "[$(cat "$_pm_d/gh.log")]"
-_pm_json '## ⚠️ Risk Score: 30/100 (낮음)' 'a.sh' 'SUCCESS'; _pm_pass "Risk 30(경계)" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 30/100 (낮음)' 'a.sh' 'SUCCESS'; _pm_pass "Risk 30(경계)" "gh pr merge 12 --squash $_pm_M"
 # 조건 하나씩 못 채움
-_pm_json "$_pm_R" 'hooks/a.sh,.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일이 바뀐 PR" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'apps/web/.claude/rules/a.md' 'SUCCESS'; _pm_ask "하위 폴더 rules 파일" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'web/CLAUDE.md' 'SUCCESS'; _pm_ask "CLAUDE.md 가 바뀐 PR" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'docs/x.md>.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일을 이름 바꿔 옮긴 PR(옛 경로)" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'a.sh' 'SUCCESS' 150; _pm_ask "바뀐 파일 목록을 다 못 받음" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 31/100 (보통)' 'a.sh' 'SUCCESS'; _pm_ask "Risk 31" 'gh pr merge 12 --squash'
-_pm_json '' 'a.sh' 'SUCCESS'; _pm_ask "Risk 값 없음" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'hooks/a.sh,.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일이 바뀐 PR" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'apps/web/.claude/rules/a.md' 'SUCCESS'; _pm_ask "하위 폴더 rules 파일" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'web/CLAUDE.md' 'SUCCESS'; _pm_ask "CLAUDE.md 가 바뀐 PR" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'docs/x.md>.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일을 이름 바꿔 옮긴 PR(옛 경로)" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS' 150; _pm_ask "바뀐 파일 목록을 다 못 받음" "gh pr merge 12 --squash $_pm_M"
+_pm_json '## ⚠️ Risk Score: 31/100 (보통)' 'a.sh' 'SUCCESS'; _pm_ask "Risk 31" "gh pr merge 12 --squash $_pm_M"
+_pm_json '' 'a.sh' 'SUCCESS'; _pm_ask "Risk 값 없음" "gh pr merge 12 --squash $_pm_M"
 _pm_json '> 예: `Risk Score: 10/100`
-## ⚠️ Risk Score: 75/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "인용 속 가짜 Risk 뒤 진짜 75" 'gh pr merge 12 --squash'
+## ⚠️ Risk Score: 75/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "인용 속 가짜 Risk 뒤 진짜 75" "gh pr merge 12 --squash $_pm_M"
 _pm_json '```
 ## ⚠️ Risk Score: 5/100
 ```
-## ⚠️ Risk Score: 80/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "코드 블록 속 가짜 Risk 뒤 진짜 80" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'a.sh' 'SUCCESS,FAILURE'; _pm_ask "CI 하나 실패" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'a.sh' 'SUCCESS,ctx:FAILURE'; _pm_ask "상태(StatusContext) 하나 실패" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'a.sh' 'SUCCESS,PENDING'; _pm_ask "CI 아직 도는 중" 'gh pr merge 12 --squash'
-_pm_json "$_pm_R" 'a.sh' ''; _pm_ask "CI 체크 없음" 'gh pr merge 12 --squash'
+## ⚠️ Risk Score: 80/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "코드 블록 속 가짜 Risk 뒤 진짜 80" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,FAILURE'; _pm_ask "CI 하나 실패" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,ctx:FAILURE'; _pm_ask "상태(StatusContext) 하나 실패" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,PENDING'; _pm_ask "CI 아직 도는 중" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' ''; _pm_ask "CI 체크 없음" "gh pr merge 12 --squash $_pm_M"
+# 머리 커밋 대조 · --auto (트랙이 정함, ADR-026 D1 — PR #140 댓글): 확인한 커밋과 머지될 커밋이 같다고 명령이 말할 때만 통과
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS'
+_pm_ask "--match-head-commit 없음" 'gh pr merge 12 --squash'
+_pm_ask "머리 커밋이 다름" 'gh pr merge 12 --squash --match-head-commit 9999999'
+_pm_ask "머리 커밋 값이 7자보다 짧음" 'gh pr merge 12 --squash --match-head-commit abc'
+_pm_ask "--auto(나중에 머지)" "gh pr merge 12 --squash --auto $_pm_M"
 # 읽기 실패 · 시간 초과
 _pm_json "$_pm_R" 'a.sh' 'SUCCESS'
-out=$(PM_FAIL=1 _pm_run 'gh pr merge 12 --squash'); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: PR 을 못 읽음" || bad "읽기 실패 무확인" "[$out]"
+out=$(PM_FAIL=1 _pm_run "gh pr merge 12 --squash $_pm_M"); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: PR 을 못 읽음" || bad "읽기 실패 무확인" "[$out]"
 s=$(python3 -c 'import time;print(time.time())')
-out=$(PM_SLEEP=5 CLAUDE_PR_MERGE_TIMEOUT=1 _pm_run 'gh pr merge 12 --squash'); e=$(python3 -c "import time;print(time.time()-$s)")
+out=$(PM_SLEEP=5 CLAUDE_PR_MERGE_TIMEOUT=1 _pm_run "gh pr merge 12 --squash $_pm_M"); e=$(python3 -c "import time;print(time.time()-$s)")
 echo "$out" | grep -q '"permissionDecision":"ask"' && python3 -c "import sys; sys.exit(0 if $e < 4 else 1)" && ok "ask: 읽기 시간 초과(1초 뒤 묻는다)" || bad "시간 초과" "${e}s [$out]"
 # 조건은 채웠지만 어떤 PR 이 머지될지 명령만으로 확실하지 않음 — 묻는다(뒤에 붙은 위험 명령도 사람이 본다)
 for c in 'gh pr merge --squash' 'gh pr merge feature/x --squash' 'gh pr merge 12 --squash && gh pr merge 13 --squash' \
@@ -206,7 +212,7 @@ for c in 'gh pr merge --squash' 'gh pr merge feature/x --squash' 'gh pr merge 12
          'gh pr merge 12 --squash && mysql -h prod-db -e "DELETE FROM users"' 'cd /other/repo && gh pr merge 12 --squash' \
          'GH_REPO=other/repo gh pr merge 12 --squash' '/opt/homebrew/bin/gh pr merge 12' 'gh pr merge 12 -Rother/repo --squash' \
          'gh pr merge 12 -R=other/repo' 'gh pr merge 12 -sR other/repo'; do
-  _pm_ask "단순한 머지 하나가 아님: $c" "$c"
+  _pm_ask "단순한 머지 하나가 아님: $c" "$c $_pm_M"
 done
 out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' 'git commit -m "gh pr merge 문서"' | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
 [ -z "$out" ] && ok "따옴표 안 gh pr merge 는 그냥 통과" || bad "오탐" "커밋 메시지에서 ask"
