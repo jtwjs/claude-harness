@@ -143,10 +143,10 @@ case "$1 $2" in
 esac
 FAKEGH
 chmod +x "$_pm_d/bin/gh"
-_pm_json() { # $1 본문 Risk 부분 · $2 바뀐 파일(쉼표, 「새>옛」이면 이름 바꾸기) · $3 체크 결론(쉼표, ctx: 접두는 StatusContext, 빈 값이면 체크 없음) · $4 changedFiles(빈 값이면 파일 수)
-  python3 - "$1" "$2" "$3" "${4:-}" "$_pm_d/pr.json" "$_pm_d/files.tsv" <<'PMPY'
+_pm_json() { # $1 본문 Risk 부분 · $2 바뀐 파일(쉼표, 「새>옛」이면 이름 바꾸기) · $3 체크 결론(쉼표, ctx: 접두는 StatusContext, 빈 값이면 체크 없음) · $4 changedFiles(빈 값이면 파일 수) · $5 headRefOid(안 주면 abc1234def5678, 「-」면 키를 뺀다)
+  python3 - "$1" "$2" "$3" "${4:-}" "$_pm_d/pr.json" "$_pm_d/files.tsv" "${5-abc1234def5678}" <<'PMPY'
 import json, sys
-risk, files, checks, cf, out, ftsv = sys.argv[1], [f for f in sys.argv[2].split(",") if f], [c for c in sys.argv[3].split(",") if c], sys.argv[4], sys.argv[5], sys.argv[6]
+risk, files, checks, cf, out, ftsv, head = sys.argv[1], [f for f in sys.argv[2].split(",") if f], [c for c in sys.argv[3].split(",") if c], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7]
 roll = []
 for i, c in enumerate(checks):
     if c.startswith("ctx:"):
@@ -154,7 +154,10 @@ for i, c in enumerate(checks):
     else:
         roll.append({"__typename": "CheckRun", "name": f"c{i}", "status": "IN_PROGRESS" if c == "PENDING" else "COMPLETED",
                      "conclusion": "" if c == "PENDING" else c})
-open(out, "w").write(json.dumps({"headRefOid": "abc1234def5678", "body": f"## Summary\n- x\n\n{risk}\n\n본문", "changedFiles": int(cf) if cf else len(files), "statusCheckRollup": roll}))
+pr = {"headRefOid": head, "body": f"## Summary\n- x\n\n{risk}\n\n본문", "changedFiles": int(cf) if cf else len(files), "statusCheckRollup": roll}
+if head == "-":
+    del pr["headRefOid"]
+open(out, "w").write(json.dumps(pr))
 open(ftsv, "w").write("".join(f.replace(">", "\t") + ("" if ">" in f else "\t") + "\n" for f in files))
 PMPY
 }
@@ -200,6 +203,9 @@ _pm_ask "--match-head-commit 없음" 'gh pr merge 12 --squash'
 _pm_ask "머리 커밋이 다름" 'gh pr merge 12 --squash --match-head-commit 9999999'
 _pm_ask "머리 커밋 값이 7자보다 짧음" 'gh pr merge 12 --squash --match-head-commit abc'
 _pm_ask "--auto(나중에 머지)" "gh pr merge 12 --squash --auto $_pm_M"
+# PR 응답에 머리 커밋이 없거나 비면 대조할 수 없다 — 묻는다(값이 있을 때만 대조하는 변이를 잡는다)
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS' '' -; _pm_ask "PR 응답에 headRefOid 없음" "gh pr merge 12 --squash $_pm_M"
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS' '' ''; _pm_ask "PR 응답 headRefOid 빈 값" "gh pr merge 12 --squash $_pm_M"
 # 읽기 실패 · 시간 초과
 _pm_json "$_pm_R" 'a.sh' 'SUCCESS'
 out=$(PM_FAIL=1 _pm_run "gh pr merge 12 --squash $_pm_M"); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: PR 을 못 읽음" || bad "읽기 실패 무확인" "[$out]"

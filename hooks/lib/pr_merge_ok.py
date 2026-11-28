@@ -6,6 +6,7 @@
   2. PR 본문 Risk Score 30 이하 — 템플릿 머리 줄(`## ⚠️ Risk Score: N/100`)이 코드 블록 밖에 정확히 하나
   3. CI 체크 전부 통과
 모르면 묻는 쪽(exit 1)이다: 어떤 PR 이 머지될지 명령만으로 확실하지 않음(단순한 `gh pr merge <번호> …` 하나가 아님) ·
+`--match-head-commit <7~40자 소문자 16진수>` 가 없거나 PR 머리 커밋(headRefOid)의 앞부분과 다름 · `--auto` ·
 PR 을 못 읽음 · Risk 줄을 못 찾음 · 바뀐 파일을 다 못 받음 · 시간 초과.
 조건은 사용자가 고른 이 셋뿐이다. 넓히거나 줄이지 않는다.
 
@@ -35,7 +36,7 @@ def no(reason):
 
 
 def target(cmd):
-    """`gh pr merge <번호> [아는 옵션]` 하나일 때만 (번호, 레포 또는 None). 아니면 None."""
+    """`gh pr merge <번호> [아는 옵션]` 하나일 때만 (번호, 레포 또는 None, 머리 커밋 또는 None). 아니면 None."""
     if NOT_SIMPLE.search(cmd):
         return None
     try:
