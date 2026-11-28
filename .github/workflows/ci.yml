@@ -8,9 +8,27 @@ on:
 permissions:
   contents: read
 
+# hooks/test.sh 를 두 잡으로 나눠 동시에 돌린다(HOOK_TEST_PART). 로컬 `bash hooks/test.sh` 는 지금처럼 전부 돈다.
 jobs:
-  test:
+  hooks:
     # hooks/test.sh 는 macOS 에서만 돌려 왔다
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 훅 테스트 안의 임시 레포도 git commit 한다. 신원은 두 잡이 같게 둔다
+      - name: git identity
+        run: |
+          git config --global user.name ci
+          git config --global user.email ci@example.invalid
+
+      # 훅 회귀(러너 단위 테스트를 뺀 hooks/test.sh 전부)
+      - name: test
+        run: bash hooks/test.sh
+        env:
+          HOOK_TEST_PART: hooks
+
+  runner-unit:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +39,8 @@ jobs:
           git config --global user.name ci
           git config --global user.email ci@example.invalid
 
-      # 훅 회귀 + SDD 러너 단위 테스트(hooks/tests/sdd-runner-unit.sh 가 그 안에서 돈다)
+      # SDD 러너 단위 테스트(hooks/tests/sdd-runner-unit.sh 만)
       - name: test
         run: bash hooks/test.sh
+        env:
+          HOOK_TEST_PART: runner

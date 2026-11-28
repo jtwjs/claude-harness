@@ -32,6 +32,21 @@ spread_commits() {
   done
 }
 
+# 나눠 돌리기 — HOOK_TEST_PART 가 없으면 전부 돈다(로컬 기본, 러너 verify 도 이 기본을 쓴다). CI 가 두 잡으로 나눠 동시에 돌릴 때만 켠다.
+#   runner = 러너 단위 테스트(tests/sdd-runner-unit.sh)만 · hooks = 그것을 뺀 나머지 전부. 두 값의 통과 수 합 = 기본 실행의 통과 수
+HOOK_TEST_PART="${HOOK_TEST_PART:-}"
+case "$HOOK_TEST_PART" in
+  ''|hooks|runner) ;;
+  *) printf 'HOOK_TEST_PART 는 hooks · runner 중 하나다 (받은 값: %s)\n' "$HOOK_TEST_PART" >&2; exit 2 ;;
+esac
+if [ "$HOOK_TEST_PART" = runner ]; then
+  ROOT="$(cd "$HOOKS/.." && pwd)"
+  . "$HOOKS/tests/sdd-runner-unit.sh"
+  printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
+  [ "$fail" -eq 0 ] || exit 1
+  exit 0
+fi
+
 # ── 케이스 1: 하네스가 없는 레포에서는 전부 조용해야 한다 ────────────────────
 # 오탐 1건 = 신뢰 10건 손실. 남의 레포에서 떠드는 훅은 즉시 꺼진다.
 printf '\n[1] 하네스 없는 레포 — 전부 exit 0 · 무출력\n'
@@ -688,7 +703,10 @@ rm -f "$CLAUDE_CONDUCTOR_CONFIG"; unset CLAUDE_CONDUCTOR_GH
 
 # ── hooks/tests/*.sh — 이 파일의 ok·bad·TMP·HOOKS 를 그대로 쓰는 케이스 묶음(source) ──
 # 왜 따로: 러너(sdd_runner.py)의 테스트 파일 판정이 hooks/test.sh 를 못 알아봐서, 새 케이스는 tests/ 아래에 둔다(2026-11-13).
-for _f in "$HOOKS"/tests/*.sh; do [ -f "$_f" ] && . "$_f"; done
+for _f in "$HOOKS"/tests/*.sh; do
+  [ "$HOOK_TEST_PART" = hooks ] && [ "${_f##*/}" = sdd-runner-unit.sh ] && continue
+  [ -f "$_f" ] && . "$_f"
+done
 
 printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
 [ "$fail" -eq 0 ] || exit 1
