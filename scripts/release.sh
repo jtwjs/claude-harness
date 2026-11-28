@@ -57,13 +57,13 @@ remote_sha="$(gh_ci "repos/{owner}/{repo}/commits/main" -q .sha)"
 full_runs() { gh_ci "repos/{owner}/{repo}/actions/workflows/full.yml/runs?event=workflow_dispatch&head_sha=$head_sha" -q '.workflow_runs[] | "\(.id) \(.status) \(.conclusion // "none") \(.html_url)"'; }
 ci_st="" ci_co="" ci_url=""
 if [ "$DRY" = 1 ]; then
-  printf '  (dry-run) CI full 잡을 main(%s)에서 발동하고 결과를 기다린다\n' "${head_sha:0:7}"
+  printf '  (dry-run) CI full(full.yml)을 main(%s)에서 발동하고 결과를 기다린다\n' "${head_sha:0:7}"
   ci_url="(dry-run 발동 안 함)"
 else
   # 발동 전 실행 id 를 적어 두고, 그 목록에 없는 새 실행을 기다린다 — 같은 커밋의 지난 실행을 잘못 집지 않게
   old_ids=" $(full_runs | awk '{print $1}' | tr '\n' ' ')"
   gh api -X POST "repos/{owner}/{repo}/actions/workflows/full.yml/dispatches" -f ref=main >/dev/null \
-    || die "CI full 잡 발동 실패 — 이 레포에 쓰기 권한이 있는 $RELEASE_GH_USER 로 로그인한 뒤 다시"
+    || die "CI full(full.yml) 발동 실패 — 이 레포에 쓰기 권한이 있는 $RELEASE_GH_USER 로 로그인한 뒤 다시"
   run_id=""
   for _ in $(seq 1 60); do
     # 거름은 awk 로 — macOS /bin/bash 3.2 는 $(...) 안 case 패턴의 ) 를 치환 끝으로 읽고 죽는다(bash -n 은 통과한다)
