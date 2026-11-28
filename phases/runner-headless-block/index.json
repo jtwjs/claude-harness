@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "headless-disallow",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T14:12:01+0900",
-      "base": "57b59cfb5fbff2cc522c6cad4d7c44ca29e35012",
-      "red": "01983779176f8cbe4ed100cc5f6953e184ff8a24"
+      "red": "01983779176f8cbe4ed100cc5f6953e184ff8a24",
+      "summary": "sdd_runner.py 모듈 상수 HEADLESS_DENY(Bash(*.claude/projects*) · Read/Grep/Glob(~/.claude/projects/**))를 invoke 의 --disallowedTools 로 넘기고 지시문 앞에 -- 를 둔다. 세션 안 모드는 그대로",
+      "completed_at": "2026-11-28T14:24:07+0900"
     },
     {
       "step": 2,
