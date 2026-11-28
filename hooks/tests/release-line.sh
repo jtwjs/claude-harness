@@ -68,6 +68,16 @@ _rl_json
 _rl_run "$_rl_d/plugin" ok
 [ "$(_rl_line rl-harness)" = "$_rl_head" ] && ok "release_zero_no_suffix — 0건 → 꼬리 없음" || bad "release_zero_no_suffix" "[$(_rl_line rl-harness)]"
 
+# 하네스 원본은 템플릿 꼬리를 안 붙인다 — 높을 때(버전 올림 뒤 릴리스 전) · 낮을 때(로컬 클론 뒤처짐) 둘 다(#95). 다른 레포 줄은 그대로
+for _rl_tv in 0.44.0 0.42.0; do
+  printf '{"harness":{"version":"%s"}}' "$_rl_tv" > "$_rl_d/rl-harness/.claude/harness.json"
+  _rl_run "$_rl_d/plugin" ok
+  [ "$(_rl_line rl-harness)" = "$_rl_head" ] && [ "$(_rl_line rl-other)" = "- rl-other — 트랙 손댈 것 없음 · 템플릿 0.34.0 → 설치본 0.43.0" ] \
+    && ok "template_tail_skipped_for_source — 원본 템플릿 $_rl_tv · 설치본 0.43.0 → 원본 줄 꼬리 없음, 다른 레포 꼬리는 그대로" \
+    || bad "template_tail_skipped_for_source $_rl_tv" "[$(_rl_line rl-harness)] [$(_rl_line rl-other)]"
+done
+printf '{"harness":{"version":"0.43.0"}}' > "$_rl_d/rl-harness/.claude/harness.json"
+
 _rl_json "a (#10)" "b (#11)" "c (#12)" "d (#13)" "e (#14)"
 _rl_run "$_rl_d/plugin" ok
 [ "$(_rl_line rl-harness)" = "$_rl_head · 릴리스 안 된 머지 5건 #10 · #11 · #12 · #13 · #14 (설치본 0.43.0)" ] \
