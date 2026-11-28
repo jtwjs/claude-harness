@@ -58,11 +58,12 @@
     {
       "step": 6,
       "name": "auto-memory-off",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T15:09:01+0900",
-      "base": "ddea13400ead17c8a320fc31ba0d9f19973b59de",
-      "red": "35695b5d407d2067f12b34d6a312dc01be76de6e"
+      "red": "35695b5d407d2067f12b34d6a312dc01be76de6e",
+      "summary": "invoke 의 env 에 CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 을 늘 넣는다(부모 값 덮음, 이름은 상수 HEADLESS_NO_MEMORY). docs/sdd-runner.md 차단 항목에 한 줄. 세션 안 모드는 그대로",
+      "completed_at": "2026-11-28T15:21:51+0900"
     }
   ],
   "reviews": [
