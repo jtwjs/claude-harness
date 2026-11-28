@@ -34,6 +34,7 @@ FAKE = textwrap.dedent('''\
     state.write_text(str(n + 1))
     Path(os.environ["FAKE_PROMPTS"], f"{n}.txt").write_text(sys.argv[-1])
     Path(os.environ["FAKE_PROMPTS"], f"{n}.argv").write_text(json.dumps(sys.argv[1:-1]))
+    Path(os.environ["FAKE_PROMPTS"], f"{n}.env").write_text(os.environ.get("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "<unset>"))
     calls = json.loads(Path(os.environ["FAKE_SCENARIO"]).read_text())
     call = calls[n] if n < len(calls) else {"ops": []}
     task = os.environ["FAKE_TASK"]
@@ -1402,6 +1403,28 @@ class RunnerCase(unittest.TestCase):
         self.assertLess(start, a.index("--"))
         self.assertTrue(self.prompt(i).startswith("당신은"), "지시문은 마지막 인자 하나 그대로")
         self.assertFalse(any(r.startswith("당신은") for r in rules), "지시문이 차단 목록에 섞이지 않는다")
+
+    # ── 헤드리스 auto memory 끄기(#118) — 메모리 안내가 금지 문구와 부딪치고 메모리 내용이 맥락에 실리는 길 ─────
+    def memory_env(self, i):
+        return (self.tmp / "prompts" / f"{i}.env").read_text()
+
+    def test_headless_auto_memory_off(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        self.assertEqual(self.memory_env(0), "1", "헤드리스 호출 환경에서 auto memory 를 끈다")
+
+    def test_headless_auto_memory_off_over_parent(self):
+        self.env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] = "0"
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        self.assertEqual(self.memory_env(0), "1", "부모 환경에 다른 값이 있어도 1 로 덮는다")
+
+    def test_headless_auto_memory_off_on_retry(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        err = {"step": 1, "ops": [["status", "error", {"error_message": "못 함"}]]}
+        ok = {"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}
+        self.assertEqual(self.run_runner([err, ok]), 0, self.out)
+        self.assertEqual([self.memory_env(0), self.memory_env(1)], ["1", "1"], "재시도 호출도 끈다")
 
     def test_headless_disallow_rules_in_argv(self):
         self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
