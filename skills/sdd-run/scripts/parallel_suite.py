@@ -2,10 +2,12 @@
 
 테스트마다 따로 받은 결과 호출을 기록해 두었다가, 원래 테스트 순서대로 원래 결과 객체에 다시 부른다 —
 실패 · 에러 · 건너뜀 · 예상한 실패 · 예상 밖 성공 · subTest 결과와 실행 수를 잃지 않는다.
-클래스 · 모듈 단위 준비(setUpClass · setUpModule)는 돌리지 않는다 — 쓰는 테스트가 생기면 jobs 1 로도 빠진다.
+클래스 · 모듈 단위 준비(setUpClass · tearDownClass · setUpModule · tearDownModule)를 쓰는 테스트는 동시 실행에서 빼고
+일반 unittest.TestSuite 로 먼저 돌린다 — 준비 · 정리 · 그 에러 보고를 unittest 에 맡긴다. 판단은 테스트 클래스 기준이다.
 러너(sdd_runner.py)를 import 하지 않는다.
 """
 import os
+import sys
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 
@@ -43,6 +45,16 @@ def _flat(tests):
             yield t
 
 
+def _uses_fixture(test) -> bool:
+    """클래스가 setUpClass · tearDownClass 를 바꿨거나, 그 모듈에 setUpModule · tearDownModule 이 있다."""
+    cls = type(test)
+    if any(getattr(cls, n).__func__ is not getattr(unittest.TestCase, n).__func__
+           for n in ("setUpClass", "tearDownClass")):
+        return True
+    mod = sys.modules.get(cls.__module__)
+    return any(hasattr(mod, n) for n in ("setUpModule", "tearDownModule"))
+
+
 class ParallelSuite(unittest.TestSuite):
     def __init__(self, tests, jobs):
         super().__init__(list(_flat(tests)))
@@ -54,8 +66,11 @@ class ParallelSuite(unittest.TestSuite):
             test(rec)
             return rec.calls
 
+        fixture = [t for t in self if _uses_fixture(t)]
+        if fixture:
+            unittest.TestSuite(fixture).run(result)
         with ThreadPoolExecutor(max_workers=self.jobs) as pool:
-            futures = [(t, pool.submit(one, t)) for t in self]
+            futures = [(t, pool.submit(one, t)) for t in self if not _uses_fixture(t)]
             for test, fut in futures:   # 원래 순서대로 다시 부른다(끝난 순서가 아니라)
                 calls = fut.result()
                 result.startTest(test)
