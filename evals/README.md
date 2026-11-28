@@ -113,5 +113,5 @@ claude plugin eval . --tag fire quiet --scaffold --trust-plugin --no-publish \
 
 ## 돌린 뒤 정리
 
-- `scripts/eval-variant.sh` 사본은 eval 뒤 남는다: `rm -rf "${TMPDIR:-/tmp}"/harness-variant.*`
+- `scripts/eval-variant.sh` 사본(`${TMPDIR:-/tmp}/harness-variant.*`)은 eval 뒤 남는다. 그대로 남겨 둔다 — 다음 실행은 새 이름으로 만든다. 꼭 지우려면 사람이 자기 터미널에서 지운다(에이전트의 재귀 강제 삭제는 위험 명령 훅이 막는다).
 - eval은 구독 5시간 사용량 한도를 같이 쓴다. 한도 오류(`You've hit your 5-hour limit`) 실행은 `scripts/eval-tally.py`가 「errors」로 따로 세고 점수에서 뺀다 — 그 case만 다시 돈다
