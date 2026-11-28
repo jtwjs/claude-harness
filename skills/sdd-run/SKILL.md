@@ -65,7 +65,7 @@ start → [prompt → 서브에이전트 1번 → judge] 반복      python3 …
 
 - 모든 step이 `completed`면: 요약 표(step·상태·summary)를 출력하고 **검증으로 넘어가도록** 안내 — 이어서 하면 `${CLAUDE_PLUGIN_ROOT}/skills/sdd-review/SKILL.md`를 읽고 그대로 따른다(사람은 `/sdd-review`).
 - error/blocked로 멈췄으면: 멈춘 step·사유·재개 방법을 보고.
-- **재개 절차** (`sdd` 「재개」와 같은 문장): 원인이 확정되고 사람이 승인하면 **메인이** 그 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 §1 `start`부터 다시 돈다(`start`가 error·blocked step이 남아 있으면 멈추기 때문). 그 한 줄은 다음 지시문 머리에 들어가고, `start`가 `resumed_at`을 찍어 재시도 한도를 새로 센다. **`retries`는 0으로 되돌리지 않는다** — 승격 판단의 계수기라서다. 고친 index.json은 커밋하지 않은 채로 와도 된다. blocked는 `blocked_reason`이 해소됐을 때만 `pending`으로.
+- **재개 절차** (`sdd` 「재개」와 같은 문장): 원인이 확정되고 사람이 승인하면 **메인이** 그 step을 `error → pending`으로 되돌리고 `error_message`에 근본 원인 한 줄을 남긴 뒤 §1 `start`부터 다시 돈다(`start`가 error·blocked step이 남아 있으면 멈추기 때문). 그 한 줄은 다음 지시문 머리에 들어가고, `start`가 `resumed_at`을 찍어 재시도 한도를 새로 센다. **`retries`는 0으로 되돌리지 않는다** — 승격 판단의 계수기라서다. 고친 index.json은 커밋하지 않은 채로 와도 된다. `test_edits` 칸을 더하려면 index.json을 커밋한 뒤 재개한다. blocked는 `blocked_reason`이 해소됐을 때만 `pending`으로.
 
 ## 비용 메모
 
