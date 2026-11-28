@@ -34,6 +34,7 @@ FAKE = textwrap.dedent('''\
     state.write_text(str(n + 1))
     Path(os.environ["FAKE_PROMPTS"], f"{n}.txt").write_text(sys.argv[-1])
     Path(os.environ["FAKE_PROMPTS"], f"{n}.argv").write_text(json.dumps(sys.argv[1:-1]))
+    Path(os.environ["FAKE_PROMPTS"], f"{n}.env").write_text(os.environ.get("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "<unset>"))
     calls = json.loads(Path(os.environ["FAKE_SCENARIO"]).read_text())
     call = calls[n] if n < len(calls) else {"ops": []}
     task = os.environ["FAKE_TASK"]
@@ -101,6 +102,8 @@ class RunnerCase(unittest.TestCase):
         self.env = dict(os.environ, SDD_RUNNER_CLAUDE=str(fake), FAKE_STATE=str(self.tmp / "n"),
                         FAKE_PROMPTS=str(self.tmp / "prompts"), FAKE_SCENARIO=str(self.tmp / "scenario.json"),
                         FAKE_TASK="t1")
+        # 헤드리스 step 안에서 돌면 부모에 러너가 넣은 끄는 변수가 있다 — 물려받으면 auto memory 단언이 빈 검증이 된다(#118 리뷰)
+        self.env.pop("CLAUDE_CODE_DISABLE_AUTO_MEMORY", None)
 
     def phase(self, steps, task="t1", after=None, md=None):
         """md: {step 번호: step 파일 본문} — 없으면 옛 꼴(의도 절 없음) 기본 본문."""
@@ -1385,6 +1388,67 @@ class RunnerCase(unittest.TestCase):
         a = self.argv(0)
         self.assertIn("--effort", a)
         self.assertEqual(a[a.index("--effort") + 1], "high", "헤드리스 run 은 검증 역할 값(C7b)")
+
+    # ── 헤드리스 대화 기록 차단(#75) — claude -p 인자에 --disallowedTools · 지시문 앞 -- ──────────────
+    def assert_history_blocked(self, i):
+        """가짜 claude i 번째 호출 인자: 차단 규칙 넷이 있고, 지시문은 -- 바로 뒤 마지막 인자 하나로 남는다."""
+        a = self.argv(i)   # 지시문(마지막 인자)은 빠진 목록
+        self.assertIn("--disallowedTools", a, a)
+        start = a.index("--disallowedTools") + 1
+        end = next((k for k in range(start, len(a)) if a[k].startswith("--")), len(a))
+        # 헤드리스 시험(step 3)에서 거부를 확인한 글자 그대로 — 상수를 import 하면 같은 값끼리 비교가 돼
+        # 앞 와일드카드 · /** 가 빠지는 회귀를 못 잡는다(REVIEW 1회차)
+        rules = a[start:end]
+        self.assertEqual(rules, ["Bash(*.claude/projects*)", "Read(~/.claude/projects/**)",
+                                 "Grep(~/.claude/projects/**)", "Glob(~/.claude/projects/**)"])
+        self.assertEqual(a[-1], "--", "지시문 바로 앞은 -- — 여러 값 옵션이 지시문을 규칙으로 먹지 않게")
+        self.assertLess(start, a.index("--"))
+        self.assertTrue(self.prompt(i).startswith("당신은"), "지시문은 마지막 인자 하나 그대로")
+        self.assertFalse(any(r.startswith("당신은") for r in rules), "지시문이 차단 목록에 섞이지 않는다")
+
+    # ── 헤드리스 auto memory 끄기(#118) — 메모리 안내가 금지 문구와 부딪치고 메모리 내용이 맥락에 실리는 길 ─────
+    def memory_env(self, i):
+        return (self.tmp / "prompts" / f"{i}.env").read_text()
+
+    def test_headless_auto_memory_off(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        self.assertEqual(self.memory_env(0), "1", "헤드리스 호출 환경에서 auto memory 를 끈다")
+
+    def test_headless_auto_memory_off_over_parent(self):
+        self.env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] = "0"
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        self.assertEqual(self.memory_env(0), "1", "부모 환경에 다른 값이 있어도 1 로 덮는다")
+
+    def test_headless_auto_memory_off_on_retry(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        err = {"step": 1, "ops": [["status", "error", {"error_message": "못 함"}]]}
+        ok = {"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}
+        self.assertEqual(self.run_runner([err, ok]), 0, self.out)
+        self.assertEqual([self.memory_env(0), self.memory_env(1)], ["1", "1"], "재시도 호출도 끈다")
+
+    def test_headless_disallow_rules_in_argv(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        self.assert_history_blocked(0)
+        self.assertIn("--dangerously-skip-permissions", self.argv(0), "권한 건너뛰기는 그대로 — 막는 것은 차단 규칙")
+
+    def test_headless_disallow_with_model(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False, "model": "opus"}])
+        self.assertEqual(self.run_runner([{"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}]), 0, self.out)
+        a = self.argv(0)
+        self.assertEqual(a[a.index("--model") + 1], "opus")
+        self.assert_history_blocked(0)
+
+    def test_headless_disallow_on_retry(self):
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        err = {"step": 1, "ops": [["status", "error", {"error_message": "못 함"}]]}
+        ok = {"step": 1, "ops": [IMPL, ["commit", "feat: a"], DONE]}
+        self.assertEqual(self.run_runner([err, ok]), 0, self.out)
+        self.assertEqual(self.calls_made(), 2)
+        self.assert_history_blocked(0)
+        self.assert_history_blocked(1)
 
     def test_intent_effort_override(self):
         self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])

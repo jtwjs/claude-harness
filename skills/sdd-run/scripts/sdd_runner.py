@@ -84,6 +84,12 @@ HOOK_STAMPS = ":(exclude).claude/.last-*"   # 훅 기록 파일 — .gitignore �
 TAIL_LINES, TAIL_FAILS, TAIL_CAP, TAIL_CUT = 40, 10, 4000, "…(앞 생략)\n"
 FAIL_LINE = re.compile(r"^\s*(FAIL|✗|✕|🔴)")   # FAIL 은 FAILED 도 잡는다. 이 레포 hooks/test.sh 실패 줄은 「  🔴」
 ROLE = {"test": "검증", "impl": "구현"}   # 나눔 모드 세션 역할(ADR-019 E1)
+# 헤드리스 step 이 이 컴퓨터의 대화 기록(~/.claude/projects)을 읽지 못하게 claude -p 에 넘기는 거부 규칙(#75).
+# 경로를 나누거나 변수로 숨기는 셸 우회까지는 못 막는다(docs/sdd-runner.md 한계)
+HEADLESS_DENY = ("Bash(*.claude/projects*)", "Read(~/.claude/projects/**)",
+                 "Grep(~/.claude/projects/**)", "Glob(~/.claude/projects/**)")
+# 헤드리스 호출 환경에서 auto memory 를 끈다 — 메모리 안내가 금지 문구와 부딪치고 메모리 내용이 도구 없이 맥락에 실리는 길(#118)
+HEADLESS_NO_MEMORY = "CLAUDE_CODE_DISABLE_AUTO_MEMORY"
 NOT_TURN = 3   # 나눔 모드: 차례가 아닌 역할의 호출 — 아무것도 바꾸지 않는다(ADR-019 E12)
 # effort 는 세션 역할이 정한다(ADR-019 C2 · E1). 역할 없는 1회 모드: 세션 안 prompt = 구현(C7a, 머지 전 code-reviewer 가 받침)
 # · 헤드리스 run = 검증(C7b, 사람도 검증 세션도 없이 테스트까지 쓴다)
@@ -1084,9 +1090,11 @@ class Runner:
         if step.get("model"):
             cmd += ["--model", step["model"]]
         cmd += ["--effort", self.effort(headless=True)]
-        cmd.append(self.prompt(step, base))
+        cmd += ["--disallowedTools", *HEADLESS_DENY]
+        cmd += ["--", self.prompt(step, base)]   # -- : 여러 값 옵션(--disallowedTools)이 지시문을 규칙으로 먹지 않게
         env = dict(os.environ)
         env.pop("SDD_RUNNER_SINCE", None)
+        env[HEADLESS_NO_MEMORY] = "1"   # 부모 값이 있어도 덮는다(#118)
         if not self.full_reason(step):   # Stop 훅도 step 명령을 쓴다(validate-session-end.sh)
             env["SDD_RUNNER_SINCE"] = base
         out = {"step": step["step"], "attempt": step.get("retries", 0) + 1, "started_at": stamp()}
