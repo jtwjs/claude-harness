@@ -135,12 +135,14 @@ fi
 # 2026-10-13 「자동 머지 판정 dry-run 동안 늘 사람 확인」을 대체한다. 막지(exit 2) 않고 묻는 것은 그대로다.
 unq=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
 if printf '%s' "$unq" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+merge\b'; then
+  # 통과해도 여기서 끝내지 않는다 — 아래 검사(운영 DB · 검사 상한)를 끝까지 돌린다. 판정기는 단순한 머지 명령 하나만 통과시킨다
   if why=$(python3 "$SCRIPT_DIR/lib/pr_merge_ok.py" "$cmd" 2>/dev/null); then
-    HOOK_RESULT=pass HOOK_DETAIL=pr-merge-ok; exit 0
+    HOOK_DETAIL=pr-merge-ok
+  else
+    why=$(printf '%s' "${why:-판정 실패}" | tr -d '\000-\037"\\' | head -c 200)
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 조건 미충족: %s (ADR-026 D5)"}}\n' "$why"
+    HOOK_RESULT=ask HOOK_DETAIL=pr-merge; exit 0
   fi
-  why=$(printf '%s' "${why:-판정 실패}" | tr -d '\000-\037"\\' | head -c 200)
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 조건 미충족: %s (ADR-026 D5)"}}\n' "$why"
-  HOOK_RESULT=ask HOOK_DETAIL=pr-merge; exit 0
 fi
 
 # 운영 DB — 레포의 .claude/harness.json guard.prodDb 가 있을 때만 (2026-10-13). 판별은 lib/prod_db.py:

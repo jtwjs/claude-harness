@@ -121,8 +121,18 @@ if ! grep -rq 'secret-body-marker' "$_li_d"/task.tsv "$_li_d"/plugin.tsv "$_li_d
 _li_c=$(_li_run orcamix 'You have 1 orchestration message. Run `orca orchestration check --terminal term_abc-123`.
 그리고 PR도 열어줘')
 if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/orcamix.out"; then ok "Orca 알림 + 사람 글 → 판정 지시 그대로"; else bad "Orca 섞인 턴" "exit=$_li_c [$(cat "$_li_d/orcamix.out")]"; fi
-_li_c=$(_li_run tasktalk '<task-notification> 표식이 붙은 턴을 훅이 어떻게 거르는지 알려줘')
-if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/tasktalk.out"; then ok "표식을 말로 꺼낸 사람 프롬프트 → 판정 지시 그대로"; else bad "표식 언급" "exit=$_li_c [$(cat "$_li_d/tasktalk.out")]"; fi
+for _li_k in \
+  'tasktalk|<task-notification> 표식이 붙은 턴을 훅이 어떻게 거르는지 알려줘' \
+  'plugtalk|The plannotator plugin sent a message 라는 문구가 원장에 남는지 확인해줘' \
+  'resumetalk|This session is being continued from a previous conversation 이라는 요약이 왜 붙는지 알려줘' \
+  'taskplus|<task-notification>
+<task-id>a1</task-id>
+<status>completed</status>
+</task-notification>
+이 결과 보고 다음 단계 진행해줘'; do
+  _li_n="${_li_k%%|*}"; _li_c=$(_li_run "$_li_n" "${_li_k#*|}")
+  if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/$_li_n.out"; then ok "표식을 말로 꺼냈거나 사람 글이 붙은 턴($_li_n) → 판정 지시 그대로"; else bad "거짓 거름 $_li_n" "exit=$_li_c [$(cat "$_li_d/$_li_n.out")]"; fi
+done
 
 # 입력이 JSON 이 아니거나 비어도 막지 않는다 — 사람 프롬프트로 보고 판정 지시
 _li_c=$( (cd "$_li_d/repo" && printf 'not json' | env HOME="$_li_d/home" GIT_CEILING_DIRECTORIES="$_li_d" CLAUDE_HARNESS_HOOK_LOG="$_li_d/bad.tsv" \

@@ -19,7 +19,8 @@ fi
 #   + 「This came from another Claude session …」 안내 문단으로 감싼다. 같은 세션의 서브에이전트 · 팀원 보고는 같은 머리에
 #   <agent-message …>…</agent-message> + 「That "other Claude session" is an agent …」 문단. 셋을 걷어 내고 남는 글이 없을 때만 거른다.
 #   ADR-026 D4: Orca 알림(「You have N orchestration message」) · 백그라운드 완료(<task-notification> 블록만) ·
-#   플러그인 메시지(「The … plugin sent a message」로 시작) · 압축 뒤 이어 가기 요약도 거른다. 프롬프트 전체가 그 꼴일 때만이다.
+#   플러그인 메시지(「The … plugin sent a message:」 머리 줄 + 본문) · 압축 뒤 이어 가기 요약(머리 문장 + 본문)도 거른다.
+#   머리 문구를 말로 꺼낸 한 줄 프롬프트는 거르지 않는다(머리 줄 뒤 줄바꿈까지 요구한다).
 #   입력이 깨졌거나 판별이 안 되면 사람 프롬프트로 본다(판정 지시를 그대로 낸다).
 if printf '%s' "$_in" | python3 -c '
 import json, re, sys
@@ -33,9 +34,9 @@ t = p.strip()
 # ADR-026 D4 — 사람이 치지 않은 턴 다섯 종류. 통째로 그 꼴일 때만 거른다(사람 글이 붙으면 사람 입력)
 if re.fullmatch(r"(?:You have \d+ orchestration messages?\. Run `orca orchestration check[^`\n]*`\.?\s*)+", t):
     sys.exit(0)   # Orca 알림
-if re.match(r"The [\w.@:/-]+ plugin sent a message\b", t):
+if re.match(r"The [\w.@/-]+ plugin sent a message:[ \t]*\n", t):
     sys.exit(0)   # 플러그인 메시지(Inbox 답 포함). 본문은 플러그인이 쓴 것
-if t.startswith("This session is being continued from a previous conversation"):
+if re.match(r"This session is being continued from a previous conversation that ran out of context\.[^\n]*\n", t):
     sys.exit(0)   # 압축 뒤 이어 가기 요약
 task = re.compile(r"<task-notification>.*?</task-notification>", re.S)
 if task.search(t) and not task.sub("", t).strip():

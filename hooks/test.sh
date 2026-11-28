@@ -130,54 +130,84 @@ for c in 'orca orchestration ask --question "cat .env 가 막힌다"' 'gh pr cre
          'git log --format=%H | head -3'; do check_deny 0 "$c"; done
 # PR 머지 — 훅이 PR 을 한 번 읽어 세 조건(규칙 파일 변경 0 · Risk Score 30 이하 · CI 체크 전부 통과)을 모두 채우면 확인 없이 통과,
 # 하나라도 못 채우거나 PR 을 못 읽으면(읽기 실패 · Risk 없음 · 시간 초과) 사람 확인(ask) (ADR-026 D5 — 2026-10-13 dry-run 확인을 대체)
+# 어떤 PR 이 머지될지 명령만으로 확실하지 않으면(단순한 `gh pr merge <번호> …` 하나가 아님) 묻는다. 통과해도 뒤 검사는 끝까지 돈다
 _pm_d="$TMP/_pm_"; mkdir -p "$_pm_d/bin"
 cat > "$_pm_d/bin/gh" <<'FAKEGH'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$PM_LOG"
-[ "$1 $2" = "pr view" ] || exit 0
 [ -n "${PM_SLEEP:-}" ] && sleep "$PM_SLEEP"
 [ -n "${PM_FAIL:-}" ] && { echo "no pr" >&2; exit 1; }
-cat "$PM_JSON"
+case "$1 $2" in
+  "pr view") cat "$PM_JSON" ;;
+  api*) cat "$PM_FILES" ;;
+esac
 FAKEGH
 chmod +x "$_pm_d/bin/gh"
-_pm_json() { # $1 Risk 줄(빈 값이면 없음) · $2 바뀐 파일(쉼표) · $3 체크 결론(쉼표, 빈 값이면 체크 없음)
-  python3 - "$1" "$2" "$3" > "$_pm_d/pr.json" <<'PMPY'
+_pm_json() { # $1 본문 Risk 부분 · $2 바뀐 파일(쉼표, 「새>옛」이면 이름 바꾸기) · $3 체크 결론(쉼표, ctx: 접두는 StatusContext, 빈 값이면 체크 없음) · $4 changedFiles(빈 값이면 파일 수)
+  python3 - "$1" "$2" "$3" "${4:-}" "$_pm_d/pr.json" "$_pm_d/files.tsv" <<'PMPY'
 import json, sys
-risk, files, checks = sys.argv[1], [f for f in sys.argv[2].split(",") if f], [c for c in sys.argv[3].split(",") if c]
-roll = [{"__typename": "CheckRun", "name": f"c{i}", "status": "COMPLETED" if c != "PENDING" else "IN_PROGRESS",
-         "conclusion": "" if c == "PENDING" else c} for i, c in enumerate(checks)]
-print(json.dumps({"body": f"## Summary\n- x\n\n{risk}\n\n본문", "files": [{"path": f} for f in files],
-                  "changedFiles": len(files), "statusCheckRollup": roll}))
+risk, files, checks, cf, out, ftsv = sys.argv[1], [f for f in sys.argv[2].split(",") if f], [c for c in sys.argv[3].split(",") if c], sys.argv[4], sys.argv[5], sys.argv[6]
+roll = []
+for i, c in enumerate(checks):
+    if c.startswith("ctx:"):
+        roll.append({"__typename": "StatusContext", "context": f"s{i}", "state": c[4:]})
+    else:
+        roll.append({"__typename": "CheckRun", "name": f"c{i}", "status": "IN_PROGRESS" if c == "PENDING" else "COMPLETED",
+                     "conclusion": "" if c == "PENDING" else c})
+open(out, "w").write(json.dumps({"body": f"## Summary\n- x\n\n{risk}\n\n본문", "changedFiles": int(cf) if cf else len(files), "statusCheckRollup": roll}))
+open(ftsv, "w").write("".join(f.replace(">", "\t") + ("" if ">" in f else "\t") + "\n" for f in files))
 PMPY
 }
 _pm_run() { # $1 명령 → 훅 출력
   (cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$1" \
-    | env PATH="$_pm_d/bin:$PATH" PM_LOG="$_pm_d/gh.log" PM_JSON="$_pm_d/pr.json" CLAUDE_GH_ACCOUNTS="$_pm_d/none.txt" \
+    | env PATH="$_pm_d/bin:$PATH" PM_LOG="$_pm_d/gh.log" PM_JSON="$_pm_d/pr.json" PM_FILES="$_pm_d/files.tsv" CLAUDE_GH_ACCOUNTS="$_pm_d/none.txt" \
       bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
 }
 _pm_ask() { # $1 이름 · $2 명령
   out=$(_pm_run "$2"); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: $1" || bad "머지 무확인" "$1 → [$out]"
 }
-_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'hooks/a.sh,docs/b.md' 'SUCCESS,SUCCESS'
+_pm_pass() { # $1 이름 · $2 명령
+  out=$(_pm_run "$2"); [ -z "$out" ] && ok "통과: $1" || bad "조건 통과인데 확인" "$1 → [$out]"
+}
+_pm_R='## ⚠️ Risk Score: 21/100 (낮음)'
+_pm_json "$_pm_R" 'hooks/a.sh,docs/b.md' 'SUCCESS,ctx:SUCCESS'
 : > "$_pm_d/gh.log"
-out=$(_pm_run 'gh pr merge 12 -R o/r --squash --match-head-commit abc')
-[ -z "$out" ] && ok "세 조건 통과 → 확인 없이 통과" || bad "조건 통과인데 확인" "[$out]"
-grep -qx 'pr view 12 -R o/r --json body,files,changedFiles,statusCheckRollup' "$_pm_d/gh.log" && ok "그 PR 번호 · 레포로 한 번 읽는다" || bad "읽기 인자" "[$(cat "$_pm_d/gh.log")]"
-out=$(_pm_run 'gh pr merge --squash')
-[ -z "$out" ] && grep -qx 'pr view --json body,files,changedFiles,statusCheckRollup' "$_pm_d/gh.log" && ok "번호 없는 머지 → 지금 브랜치 PR 을 읽고 통과" || bad "번호 없음" "[$out] [$(tail -1 "$_pm_d/gh.log")]"
-_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'hooks/a.sh,.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일이 바뀐 PR" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'web/CLAUDE.md' 'SUCCESS'; _pm_ask "CLAUDE.md 가 바뀐 PR" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 31/100 (중간)' 'a.sh' 'SUCCESS'; _pm_ask "Risk 31" 'gh pr merge 12 --squash'
+_pm_pass "세 조건 통과(체크 둘 · 상태 하나)" 'gh pr merge 12 -R o/r --squash --match-head-commit abc'
+grep -qx 'pr view 12 -R o/r --json body,changedFiles,statusCheckRollup' "$_pm_d/gh.log" \
+  && grep -q '^api repos/o/r/pulls/12/files --paginate' "$_pm_d/gh.log" && ok "그 PR 번호 · 레포로 본문 · 파일 목록을 읽는다" || bad "읽기 인자" "[$(cat "$_pm_d/gh.log")]"
+_pm_json '## ⚠️ Risk Score: 30/100 (낮음)' 'a.sh' 'SUCCESS'; _pm_pass "Risk 30(경계)" 'gh pr merge 12 --squash'
+# 조건 하나씩 못 채움
+_pm_json "$_pm_R" 'hooks/a.sh,.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일이 바뀐 PR" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'apps/web/.claude/rules/a.md' 'SUCCESS'; _pm_ask "하위 폴더 rules 파일" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'web/CLAUDE.md' 'SUCCESS'; _pm_ask "CLAUDE.md 가 바뀐 PR" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'docs/x.md>.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일을 이름 바꿔 옮긴 PR(옛 경로)" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS' 150; _pm_ask "바뀐 파일 목록을 다 못 받음" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 31/100 (보통)' 'a.sh' 'SUCCESS'; _pm_ask "Risk 31" 'gh pr merge 12 --squash'
 _pm_json '' 'a.sh' 'SUCCESS'; _pm_ask "Risk 값 없음" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS,FAILURE'; _pm_ask "CI 하나 실패" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS,PENDING'; _pm_ask "CI 아직 도는 중" 'gh pr merge --auto --squash'
-_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' ''; _pm_ask "CI 체크 없음" 'gh pr merge 12 --squash'
-_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS'
+_pm_json '> 예: `Risk Score: 10/100`
+## ⚠️ Risk Score: 75/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "인용 속 가짜 Risk 뒤 진짜 75" 'gh pr merge 12 --squash'
+_pm_json '```
+## ⚠️ Risk Score: 5/100
+```
+## ⚠️ Risk Score: 80/100 (높음)' 'a.sh' 'SUCCESS'; _pm_ask "코드 블록 속 가짜 Risk 뒤 진짜 80" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,FAILURE'; _pm_ask "CI 하나 실패" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,ctx:FAILURE'; _pm_ask "상태(StatusContext) 하나 실패" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS,PENDING'; _pm_ask "CI 아직 도는 중" 'gh pr merge 12 --squash'
+_pm_json "$_pm_R" 'a.sh' ''; _pm_ask "CI 체크 없음" 'gh pr merge 12 --squash'
+# 읽기 실패 · 시간 초과
+_pm_json "$_pm_R" 'a.sh' 'SUCCESS'
 out=$(PM_FAIL=1 _pm_run 'gh pr merge 12 --squash'); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: PR 을 못 읽음" || bad "읽기 실패 무확인" "[$out]"
 s=$(python3 -c 'import time;print(time.time())')
 out=$(PM_SLEEP=5 CLAUDE_PR_MERGE_TIMEOUT=1 _pm_run 'gh pr merge 12 --squash'); e=$(python3 -c "import time;print(time.time()-$s)")
 echo "$out" | grep -q '"permissionDecision":"ask"' && python3 -c "import sys; sys.exit(0 if $e < 4 else 1)" && ok "ask: 읽기 시간 초과(1초 뒤 묻는다)" || bad "시간 초과" "${e}s [$out]"
-_pm_ask "머지 명령 둘 — 하나씩 따로 묻는다" 'gh pr merge 12 --squash && gh pr merge 13 --squash'
+# 조건은 채웠지만 어떤 PR 이 머지될지 명령만으로 확실하지 않음 — 묻는다(뒤에 붙은 위험 명령도 사람이 본다)
+for c in 'gh pr merge --squash' 'gh pr merge feature/x --squash' 'gh pr merge 12 --squash && gh pr merge 13 --squash' \
+         'gh pr merge 12 --squash;gh pr merge 13 --squash' 'gh pr merge 12 --squash $(gh pr merge 13)' \
+         'gh pr merge 12 --squash && mysql -h prod-db -e "DELETE FROM users"' 'cd /other/repo && gh pr merge 12 --squash' \
+         'GH_REPO=other/repo gh pr merge 12 --squash' '/opt/homebrew/bin/gh pr merge 12' 'gh pr merge 12 -Rother/repo --squash' \
+         'gh pr merge 12 -R=other/repo' 'gh pr merge 12 -sR other/repo'; do
+  _pm_ask "단순한 머지 하나가 아님: $c" "$c"
+done
 out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' 'git commit -m "gh pr merge 문서"' | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
 [ -z "$out" ] && ok "따옴표 안 gh pr merge 는 그냥 통과" || bad "오탐" "커밋 메시지에서 ask"
 
