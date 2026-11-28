@@ -1243,6 +1243,67 @@ class RunnerCase(unittest.TestCase):
         self.act([IMPL, ["commit", "feat: a 다시"], DONE])
         self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
 
+    # ── 판정 4 경로 읽기(#102) — red 뒤 이름 바꾸기 · 공백 · 비ASCII 경로도 되돌린다 ──────────────
+    def impl_after_red(self, pre=()):
+        """pre: BASE 에 미리 둘 기존 테스트 이름(tests/<이름>.expect · src/<이름>.txt 짝, 내용 v). 나눔 모드 red(tests/a.expect)
+        기록 → 구현 차례까지. red sha 를 돌려준다. 비ASCII 경로를 red 커밋에 넣으면 red 확인이 먼저 거절해서(#113) BASE 에 둔다."""
+        r = self.repo
+        if pre:
+            (r / "tests").mkdir(exist_ok=True)
+            for n in pre:
+                (r / f"tests/{n}.expect").write_text("v")
+                (r / f"src/{n}.txt").write_text("v")
+            git(r, "add", "-A")
+            git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트")
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([RED, ["commit", "test: step 1 — a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        return self.step()["red"]
+
+    def test_red_impl_renamed_test_restored(self):
+        # #102: git diff --name-only 기본값은 이름 바꾸기를 감지해 옛 경로를 안 보인다 — 새 경로만 지워져 둘 다 사라졌다
+        red = self.impl_after_red()
+        os.rename(self.repo / "tests/a.expect", self.repo / "tests/a2.expect")
+        self.act([IMPL, ["write", "src/a2.txt", "hello"], ["commit", "feat: a (테스트 이름 바꿈)"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertTrue((self.repo / "tests/a.expect").exists(), "옛 경로를 복원한다")
+        self.assertEqual(self.read("tests/a.expect"), "hello", "옛 경로를 red 내용으로 복원한다")
+        self.assertFalse((self.repo / "tests/a2.expect").exists(), "red 에 없던 새 경로는 지운다")
+        self.assertIn("tests/a.expect", self.step()["last_error"])
+        self.assertEqual(self.step()["red"], red, "재시도는 red 를 지우지 않는다")
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, "재시도도 구현 차례\n" + self.out)
+        self.act([IMPL, ["commit", "feat: a 다시"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step()["status"], "completed")
+
+    def test_red_impl_moved_out_test_restored(self):
+        # 테스트 밖으로 옮기면 새 경로가 테스트 파일이 아니라 목록이 비어 판정 4를 조용히 지나갔다
+        self.impl_after_red()
+        (self.repo / "docs").mkdir(exist_ok=True)
+        os.rename(self.repo / "tests/a.expect", self.repo / "docs/a.old")
+        self.act([IMPL, ["commit", "feat: a (테스트를 문서로 옮김)"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/a.expect"), "hello", "테스트 밖으로 옮겨도 복원한다")
+        self.assertIn("tests/a.expect", self.step()["last_error"])
+
+    def test_red_impl_space_path_test_reverted(self):
+        # 공백 경로는 split 으로 쪼개져 되돌리지 못하고 이유에 조각(tests/my)만 보였다
+        self.impl_after_red(pre=("my q",))
+        self.act([IMPL, ["write", "tests/my q.expect", "w"], ["write", "src/my q.txt", "w"], ["commit", "feat: 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/my q.expect"), "v", "red 내용으로 되돌린다")
+        self.assertIn("tests/my q.expect", self.step()["last_error"])
+
+    def test_red_impl_nonascii_path_test_reverted(self):
+        # 비ASCII 경로는 core.quotePath 로 따옴표 · 8진 escape 가 붙어 테스트 파일 판별에서 빠졌다
+        self.impl_after_red(pre=("한글",))
+        self.act([IMPL, ["write", "tests/한글.expect", "w"], ["write", "src/한글.txt", "w"], ["commit", "feat: 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/한글.expect"), "v", "red 내용으로 되돌린다")
+        self.assertIn("tests/한글.expect", self.step()["last_error"])
+        self.assertNotIn("\\3", self.step()["last_error"], "8진 escape 없이 경로 그대로")
+
     def test_red_judge_impl_red_blame_blocks_without_discard(self):
         (self.repo / "lint.sh").write_text('rc=0; for f in tests/*; do grep -q BAD "$f" && echo "$f: BAD 금지" && rc=1; done; exit $rc\n')
         self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
