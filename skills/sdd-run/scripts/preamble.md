@@ -13,7 +13,7 @@ $done_steps$retry
 $tdd_rule
 5. 끝나기 전에 검증 명령을 직접 실행한다: $verify_cmds
 $status_rule
-7. 금지: `git push` · `--no-verify` 등 훅 우회 · 요청 범위 밖 수정 · 테스트를 통과시키려고 테스트를 고치는 것.
+7. 금지: `git push` · `--no-verify` 등 훅 우회 · 요청 범위 밖 수정 · 테스트를 통과시키려고 테스트를 고치는 것. `~/.claude` 아래(대화 기록 · 원장 · 설정)를 읽지 않는다. 레포 안 `.claude/`와 스킬이 시키는 플러그인 스킬 문서(`~/.claude/plugins/`)는 예외다.
 
 $judge_note
 
