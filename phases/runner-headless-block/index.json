@@ -36,11 +36,14 @@
     {
       "step": 4,
       "name": "deny-rule-exact",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
       "test_edits": {
         "skills/sdd-run/scripts/test_sdd_runner.py": "REVIEW 1회차 🟡 — 차단 규칙을 글자 그대로 단언해 앞 와일드카드 · /** 가 빠지는 회귀를 잡는다"
-      }
+      },
+      "started_at": "2026-11-28T14:46:57+0900",
+      "summary": "assert_history_blocked 가 차단 목록을 step 3 시험에서 확인한 네 글자와 그대로 비교. 스크래치 변이(Bash 앞 * 빼기 · Read /** 빼기 · Bash(grep *…) 접두) 모두 FAILED (failures=3), 원본 OK. sdd-runner.md 에 반대쪽 한계(레포 상대 경로 · 문서 검사 명령도 막힘) 한 줄",
+      "completed_at": "2026-11-28T14:52:55+0900"
     }
   ]
 }
