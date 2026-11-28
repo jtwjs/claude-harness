@@ -9,7 +9,7 @@ disable-model-invocation: true
 ## 0. 대상 기능 확인 (필수)
 
 - 사용자에게 **어느 기능/날짜 폴더**인지 묻는다 → `docs/{feature-YYYY-MM-DD}/`.
-- 폴더를 정하면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd-run/scripts/sdd_runner.py" gate docs/{feature-YYYY-MM-DD}` — 종료 2면 열린 항목을 닫기 전에는 step 파일을 쓰지 않는다(나눔 모드는 지휘에, 혼자면 사람에게 묻는다).
+- 폴더를 정하면 `python3 "${CLAUDE_PLUGIN_ROOT}/skills/sdd/scripts/gate.py" docs/{feature-YYYY-MM-DD}` — 종료 2면 열린 항목을 닫기 전에는 step 파일을 쓰지 않는다(나눔 모드는 지휘에, 혼자면 사람에게 묻는다).
 - `task` slug를 합의한다(kebab, 예: `article-draft-autosave`). 이것이 `phases/{task}/` 이름이 되고, 러너 브랜치 이름에 들어간다(`git.branchPattern`, 기본 `feat-{task}`).
 
 ## 1. 가드레일 로드 (토큰 효율 — 이 파일들만)

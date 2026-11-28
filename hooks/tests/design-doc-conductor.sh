@@ -1,5 +1,5 @@
 # 지휘 문서 · ADR-022 갱신(#87) — 옛 설계서 칸 이름 0 · 아주 자세히 3칸 · ADR-022 갱신 줄(표 밖). test.sh 가 source 한다.
-printf '\n[design-doc-conductor] 지휘 문서 새 칸 이름 · ADR-022 갱신 줄 · 러너 관문 0\n'
+printf '\n[design-doc-conductor] 지휘 문서 새 칸 이름 · ADR-022 갱신 줄 · 구현 시작 관문 0\n'
 _dcn_root="$(cd "$HOOKS/.." && pwd)"
 _dcn_dec="$_dcn_root/skills/conductor/references/decisions.md"
 _dcn_adr="$_dcn_root/docs/design-phase-2026-11-26/ADR.md"
@@ -22,6 +22,6 @@ _dcn_head=$(awk '/^## ADR-022/{f=1; next} f && /^### /{exit} f{print}' "$_dcn_ad
 _dcn_up=$(printf '%s\n' "$_dcn_head" | grep -E '^- 갱신: #87')
 printf '%s' "$_dcn_up" | grep -q 'docs/design-doc-format-2026-11-28' && ok "dcn-adr022-update ADR-022 갱신 줄(#87 · 근거 폴더)" || bad "dcn-adr022-update" "ADR-022 머리에 「- 갱신: #87 … docs/design-doc-format-2026-11-28」 없음"
 
-# dcn-adr022-gate 갱신 줄이 「결정할 것」 표에 빈 주체 행을 만들지 않았다 — 러너 관문 0
-python3 "$_dcn_root/skills/sdd-run/scripts/sdd_runner.py" gate "$_dcn_root/docs/design-phase-2026-11-26" >"$TMP/dcn.out" 2>&1 \
-  && ok "dcn-adr022-gate ADR-022 폴더 러너 관문 열린 「정할 것」 0" || bad "dcn-adr022-gate" "$(cat "$TMP/dcn.out" | head -3)"
+# dcn-adr022-gate 갱신 줄이 「결정할 것」 표에 빈 주체 행을 만들지 않았다 — 구현 시작 관문 0
+python3 "$_dcn_root/skills/sdd/scripts/gate.py" "$_dcn_root/docs/design-phase-2026-11-26" >"$TMP/dcn.out" 2>&1 \
+  && ok "dcn-adr022-gate ADR-022 폴더 구현 시작 관문 열린 「정할 것」 0" || bad "dcn-adr022-gate" "$(cat "$TMP/dcn.out" | head -3)"

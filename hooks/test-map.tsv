@@ -41,6 +41,9 @@ hooks/lib/*	main @hooks
 
 # 스크립트 — 본문이 부르는 것은 main, 나머지는 이름이 든 tests/ 파일
 skills/sdd-run/**	runner main @docs
+skills/sdd/scripts/gate.py	tests/sdd-checks.sh tests/design-doc-conductor.sh
+skills/sdd/scripts/tests_*.py	tests/sdd-checks.sh
+skills/sdd/scripts/test_sdd_checks.py	tests/sdd-checks.sh
 skills/conductor/scripts/*	main {mentions}
 scripts/daily-hub/**	main
 scripts/*	{mentions}
