@@ -72,7 +72,7 @@ UI면 상황은 글로 쓰고 이미지는 「스크린샷」 절에 둔다.
 
 <!-- 실제로 돌린 명령과 결과만. 돌리지 않은 것은 적지 않는다 -->
 
-- `.claude/harness.json`의 `verify` 전체 (build · typecheck · lint · test): <통과|실패 — 무엇>
+- `.claude/harness.json`의 `verify` (build · typecheck · lint · test): <통과|실패 — 무엇>. 테스트는 로컬 부분 · 전체 중 무엇을 돌렸는지 적는다. 전체는 PR CI가 돈다(CI가 없으면 PR 직전 로컬 전체 1번)
   <!-- 문서만 바뀐 PR: verify 대신 포맷 검사(예: format:check) 결과를 적고, verify 를 생략했다고 명시 -->
 - <돌린 명령>: <결과>
 
