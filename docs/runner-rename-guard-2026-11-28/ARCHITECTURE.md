@@ -7,7 +7,7 @@
 | 파일 | 이번에 하는 일 | 출처 |
 |---|---|---|
 | `skills/sdd-run/scripts/sdd_runner.py` `check` 판정 4 | red 뒤 바뀐 테스트 파일 목록을 `git -c core.quotePath=false diff --no-renames --name-only -z <red>..HEAD`로 받아 `\0`으로 나눈다. 판정 4'(`revert_test_edits`)와 같은 꼴 | PRD AC-1~3 |
-| `skills/sdd-run/scripts/test_sdd_runner.py` | 나눔 모드 판정 4 테스트 3개(이름 바꾸기 · 공백 · 한글) | PRD AC-1~3 |
+| `skills/sdd-run/scripts/test_sdd_runner.py` | 나눔 모드 판정 4 테스트 4개(이름 바꾸기 · 테스트 밖으로 옮김 · 공백 · 한글) | PRD AC-1~3 |
 | `docs/sdd-runner.md` `test_edits` 항목 | 「다음 시도(새 BASE)부터」 → 0.45.0 변경 이력 업그레이드 영향 줄과 같은 뜻 | PRD AC-4 |
 
 ## 불변 규칙
