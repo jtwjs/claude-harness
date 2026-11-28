@@ -1,0 +1,9 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-path-quote",
+  "docs": "docs/runner-path-quote-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "path-list-nul-quote", "status": "pending", "tdd": true }
+  ]
+}
