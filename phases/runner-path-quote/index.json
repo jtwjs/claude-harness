@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "path-list-nul-quote",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T22:24:37+0900",
-      "base": "2cba9bf28a6e65a8bef8d4228839dae0272a087c",
-      "red": "9a54d763ba5924f91ea21ed1be1b47dafb32c2d0"
+      "red": "9a54d763ba5924f91ea21ed1be1b47dafb32c2d0",
+      "summary": "sdd_runner.py 네 자리(commits_since · red_tests · base_with_tests · rejudge_split files_of)를 core.quotePath=false + -z NUL 분리로 읽는다(red_tests · base_with_tests는 --no-renames 없이, 판정 4 · 4' 줄 그대로). 문서 개수 줄 201 · 이번 phase 6개",
+      "completed_at": "2026-11-28T22:44:02+0900"
     }
   ]
 }
