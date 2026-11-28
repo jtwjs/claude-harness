@@ -11,7 +11,6 @@ A Korean-language Claude Code plugin that sets up a spec-first workflow (plan �
 ```bash
 /plugin marketplace add jtwjs/claude-harness
 /plugin install claude-harness@jtwjs-plugins
-/plugin install claude-md-management@claude-plugins-official   # 선택. REFLECT의 세션 학습 회수
 ```
 
 대상 레포에서 `/harness-init`을 한 번 돌리고(새 프로젝트는 `/project-new`), 그다음부터는 "~기능 추가해줘"처럼 말하거나 `/sdd`로 시작한다.
@@ -35,7 +34,7 @@ flowchart TD
 
 `sdd`가 이 흐름을 이어 돌리고, 단계마다 정해 둔 🙋에서만 멈춘다. 🙋 자리의 정본은 [`skills/sdd/SKILL.md`](skills/sdd/SKILL.md) 「단계 → 스킬 · 체크포인트」 표다.
 
-필요한 것: git · python3(없으면 훅 10개가 꺼진다 — 경고를 내는 건 `block-dangerous-bash` 하나뿐) · (선택) gh · (선택) claude-md-management.
+필요한 것: git · python3(없으면 훅 10개가 꺼진다 — 경고를 내는 건 `block-dangerous-bash` 하나뿐) · (선택) gh.
 
 ## 왜 만들었나
 

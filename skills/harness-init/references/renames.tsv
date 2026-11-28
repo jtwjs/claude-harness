@@ -17,3 +17,5 @@ harness-run	`sdd-run`	2026-11-24
 ai-readiness-cartography	`harness-score`	2026-11-24
 plannotator-visual-explainer	행 삭제(PR 설명은 `explain`)	2026-11-24
 explain-diff	`explain`	2026-11-25
+revise-claude-md	`sdd` ④ REFLECT 「하네스 되돌림」의 「흘린 것」(외부 명령 없이 reflect.md 순서로 적는다)	2026-11-28 (ADR-021 I2)
+claude-md-improver	`harness-doctor` §5 크기 · §9 문서 품질	2026-11-28 (ADR-021 I2)

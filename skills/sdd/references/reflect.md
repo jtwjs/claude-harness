@@ -38,12 +38,15 @@
 
 남은 것의 종류별 종착지:
 
-- **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → `/revise-claude-md`(공식 플러그인 `claude-md-management`. Skill 도구로는 `claude-md-management:revise-claude-md`). 🔴 **종착지는 하네스 3층으로 재지정** — 기본값 CLAUDE.md는 부푼다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. **diff 승인보다 이 판정이 먼저다.** 플러그인이 없으면 건너뛰고 한 줄 보고.
+- **흘린 것**(세션에서 말로 설명하고 지나간 규칙·패턴) → 아래 순서로 직접 적는다. 외부 명령을 부르지 않는다.
+  1. 종착지를 하네스 3층에서 먼저 고른다. 판정 한 줄(*"안 읽고 코드를 쓰면 규칙을 어기게 되나?"*): 함정·규칙은 `.claude/rules/non-obvious-patterns.md`, 길면 `.claude/references/`, CLAUDE.md에는 CRITICAL·링크만. CLAUDE.md를 기본 종착지로 두지 않는다(부푼다).
+  2. 한 개념을 한 줄로 쓴다. 위 남기는 문턱 셋을 통과한 것만 쓴다.
+  3. diff와 왜 한 줄을 보이고, 사람이 승인한 뒤에 적용한다.
 - **사고**(실제로 당한 함정) → `.claude/rules/non-obvious-patterns.md` 「규칙」 절의 갈래로 판정한다(장치로 막을지, 한 줄로 둘지). 갈래 판정은 그 절에만 있다. 깔린 사본에 갈래가 없으면(업그레이드 전) `${CLAUDE_PLUGIN_ROOT}/templates/.claude/rules/non-obvious-patterns.md`의 같은 절을 본다. 장치가 플러그인 훅 · 템플릿처럼 모든 레포에 걸리면 바로 만들어도 새 맥락 `code-reviewer`를 한 번 거친다.
 - **반복**(같은 지시·같은 교정·안 불린 스킬·못 맡긴 것·같은 수작업) → `${CLAUDE_PLUGIN_ROOT}/skills/harness-gaps/SKILL.md`를 읽고 그대로 `.claude/observations.md`에 +1. 3회에 닿은 것만 승격 제안, 🙋 판정은 사람. 2회에 만들지 않는다.
 - **더하기만 금지** — 하나 넣었으면 안 쓰는 규칙·스킬·가드레일 하나를 지울 후보로 한 줄 낸다(없으면 "없음"). 개선은 다듬기다.
 
-⚖️ `revise-claude-md`(매 세션·줍는다)와 `harness-gaps`(3회부터·센다)는 **다른 층**이다 — 한 줄로 끝나는 것은 앞이 줍고, 그 계열이 3회 재발하면 뒤가 승격을 건다.
+⚖️ 「흘린 것」(매 세션·줍는다)과 `harness-gaps`(3회부터·센다)는 **다른 층**이다 — 한 줄로 끝나는 것은 앞이 줍고, 그 계열이 3회 재발하면 뒤가 승격을 건다.
 
 ## 3. 지식 정리
 
