@@ -70,10 +70,10 @@ disable-model-invocation: true
 
 **2-c. 확인받기 후보** → `.claude/settings.json`의 `permissions.ask`. 레포 고유 배포 · 마이그레이션 명령을 찾되 실행하지 않는다.
 
-- 찾는 곳: `package.json` scripts와 Makefile 타깃 중 이름에 `deploy` · `release` · `migrate` · `publish`가 든 것, `.github/workflows/*.yml`에서 이름이나 `environment:`로 배포가 보이는 잡의 `run:` 줄, 빌드 파일에 있는 마이그레이션 도구의 적용 명령(예: `prisma migrate deploy` · Flyway · Liquibase Gradle 태스크)
-- 실재 확인은 그 이름이 위 파일에 있는지로만 한다. 후보를 `명령 · 찾은 곳` 표로 보여 주고 🙋 승인한 줄만 `Bash(<명령>*)` 꼴로 템플릿 공통 ask 줄 뒤에 더한다
+- 찾는 곳: `package.json` scripts와 Makefile 타깃 중 이름에 `deploy` · `release` · `migrat` · `publish`가 든 것(스크립트 안에서 부르는 `npm publish` 같은 명령은 권한 규칙이 못 보니 그 스크립트 이름으로 잡는다), `.github/workflows/*.yml`에서 이름이나 `environment:`로 배포가 보이는 잡의 `run:` 줄, 빌드 파일에 있는 마이그레이션 도구의 적용 명령(예: `prisma migrate deploy` · Flyway · Liquibase Gradle 태스크)
+- 실재 확인은 그 이름이 위 파일에 있는지로만 한다. 후보를 `명령 · 찾은 곳` 표로 보여 주고 🙋 승인한 줄만 `Bash(<명령>*)` 꼴로 템플릿 공통 ask 줄 뒤에 더한다. `<명령>`은 사람이 로컬에서 치는 꼴의 머리만 쓴다 — 스크립트는 레포 패키지 매니저의 `run` 꼴(`pnpm run deploy`), CI `run:` 줄은 `${{ … }}` 인자를 뺀 앞부분
 - 이름만으로 배포인지 빌드인지 모르면 후보에 넣고 판정은 사람에게 둔다. 후보가 없으면 더하지 않고 §7 빈 칸에 적는다
-- 사람이 없는 실행에서는 ask 줄이 거부된다. 러너 권한 모드(`claude -p --dangerously-skip-permissions`)와 `--permission-mode auto` 둘 다 ask 줄 명령을 실행하지 않았다(Claude Code 2.1.332, 2026-11-28 실측). 러너 step이 돌려야 하는 명령은 ask에 넣지 않는다
+- 사람이 없는 실행에서는 ask 줄이 거부된다. 러너 권한 모드(`claude -p --dangerously-skip-permissions`)와 `--permission-mode auto` 둘 다 ask 줄 명령(`npm publish`로 확인)을 실행하지 않았다(Claude Code 2.1.332, 2026-11-28 실측). 러너 step이 돌려야 하는 명령은 ask에 넣지 않는다
 
 ## 3. 인터뷰 (기계가 모르는 것만, 10개)
 
