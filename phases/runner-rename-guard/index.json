@@ -17,8 +17,11 @@
     {
       "step": 2,
       "name": "test-edits-doc-line",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-28T13:34:21+0900",
+      "summary": "docs/sdd-runner.md test_edits 항목의 「다음 시도(새 BASE)부터」를 「남은 재시도에는 안 먹고, 멈춘 뒤 재개(새 BASE)부터」로 고쳤다(0.45.0 업그레이드 영향 줄과 같은 뜻)",
+      "completed_at": "2026-11-28T13:42:23+0900"
     }
   ]
 }
