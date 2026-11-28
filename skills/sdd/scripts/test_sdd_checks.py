@@ -282,6 +282,12 @@ class TestsUnchangedTest(RepoCase):
         self.assertEqual(p.returncode, 1, "구현 쪽이 더한 테스트 파일(추적 전)도 테스트 변경이다\n" + self.out)
         self.assertIn("tests/test_new.py", p.stdout)
 
+    def test_untracked_test_from_subfolder_fails(self):
+        self.write("tests/test_new.py", "assert True\n")
+        p = self.run_script(UNCHANGED, self.sha, cwd=self.repo / "src")
+        self.assertEqual(p.returncode, 1, "하위 폴더에서 불러도 레포 전체를 본다\n" + self.out)
+        self.assertIn("tests/test_new.py", p.stdout, "경로는 레포 루트 기준")
+
     def test_deleted_test_fails(self):
         git(self.repo, "rm", "-q", "tests/test_a.py")
         commit(self.repo, "chore: 지움")
