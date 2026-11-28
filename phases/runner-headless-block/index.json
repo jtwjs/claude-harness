@@ -1,0 +1,11 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-headless-block",
+  "docs": "docs/runner-headless-block-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "headless-disallow", "status": "pending", "tdd": true },
+    { "step": 2, "name": "history-ban-text", "status": "pending", "tdd": false },
+    { "step": 3, "name": "headless-trial", "status": "pending", "tdd": false, "kind": "measure" }
+  ]
+}
