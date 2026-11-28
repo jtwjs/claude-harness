@@ -2631,10 +2631,10 @@ class ParallelSuiteTest(unittest.TestCase):
             def test_fail(self):
                 self.assertEqual(1, 2)
 
-        bad = self.run_suite([C("test_ok")] * 5 + [C("test_fail")], 3)
+        bad = self.run_suite([C("test_ok") for _ in range(5)] + [C("test_fail")], 3)
         self.assertEqual(bad.testsRun, 6)
         self.assertFalse(bad.wasSuccessful())
-        good = self.run_suite([C("test_ok")] * 6, 3)
+        good = self.run_suite([C("test_ok") for _ in range(6)], 3)
         self.assertEqual(good.testsRun, 6)
         self.assertTrue(good.wasSuccessful())
 
@@ -2681,9 +2681,119 @@ class ParallelSuiteTest(unittest.TestCase):
         self.assertEqual(jobs({"RUNNER_TEST_JOBS": "8"}), 8)
 
 
+    def test_subtest_failure_carried_over(self):
+        # AC-1 · REVIEW 1회차 🟡: subTest 실패도 그 subTest 이름과 함께 옮겨진다
+        class C(unittest.TestCase):
+            def test_sub(self):
+                for i in range(3):
+                    with self.subTest(i=i):
+                        self.assertNotEqual(i, 1)
+
+        r = self.run_suite([C("test_sub")], 3)
+        self.assertEqual(len(r.failures), 1)
+        self.assertIn("(i=1)", str(r.failures[0][0]))
+        self.assertFalse(r.wasSuccessful())
+
+    def fixture_summary(self, r):
+        return (r.testsRun, sorted(str(t) for t, _ in r.failures), sorted(str(t) for t, _ in r.errors),
+                sorted(str(t) for t, _ in r.skipped))
+
+    def test_class_fixture_matches_plain_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: setUpClass 를 쓰는 클래스는 결과가 일반 묶음과 같다 — 준비 실패가 숨거나 통과로 세지지 않는다
+        class Broken(unittest.TestCase):
+            @classmethod
+            def setUpClass(cls):
+                raise RuntimeError("준비 실패")
+
+            def test_a(self):
+                pass
+
+            def test_b(self):
+                pass
+
+        class Ready(unittest.TestCase):
+            @classmethod
+            def setUpClass(cls):
+                cls.value = 42
+
+            @classmethod
+            def tearDownClass(cls):
+                del cls.value
+
+            def test_uses_value(self):
+                self.assertEqual(self.value, 42)
+
+        class Plain(unittest.TestCase):
+            def test_x(self):
+                pass
+
+        make = lambda: [Broken("test_a"), Broken("test_b"), Ready("test_uses_value"), Plain("test_x")]
+        plain = unittest.TestResult()
+        unittest.TestSuite(make()).run(plain)
+        par = self.run_suite(make(), 3)
+        self.assertEqual(self.fixture_summary(par), self.fixture_summary(plain))
+        self.assertTrue(any("setUpClass" in str(t) for t, _ in par.errors), "준비 실패가 보인다")
+
+    def test_module_fixture_matches_plain_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: setUpModule 이 있는 모듈의 테스트도 결과가 일반 묶음과 같다
+        import types
+        mod = types.ModuleType("parallel_suite_fixture_probe")
+        state = {}
+
+        def setUpModule():
+            state["ready"] = True
+
+        def tearDownModule():
+            state.clear()
+
+        mod.setUpModule, mod.tearDownModule = setUpModule, tearDownModule
+        sys.modules[mod.__name__] = mod   # 이 클래스는 묶음 밖에서 차례로 돈다(load_tests) — 동시 실행 중 공유 상태가 아니다
+        self.addCleanup(sys.modules.pop, mod.__name__, None)
+
+        class M(unittest.TestCase):
+            def test_ready(self):
+                self.assertTrue(state.get("ready"))
+
+        M.__module__ = mod.__name__
+        plain = unittest.TestResult()
+        unittest.TestSuite([M("test_ready")]).run(plain)
+        par = self.run_suite([M("test_ready")], 3)
+        self.assertEqual(self.fixture_summary(par), self.fixture_summary(plain))
+        self.assertTrue(par.wasSuccessful(), par.failures + par.errors)
+
+    def test_guard_tests_run_outside_parallel_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: 묶음을 검증하는 이 클래스가 묶음 안에서 돌면 실패를 버리는 변이에 같이 눈이 먼다
+        loader = unittest.TestLoader()
+        loaded = unittest.TestSuite([loader.loadTestsFromTestCase(ParallelSuiteTest),
+                                     loader.loadTestsFromTestCase(TestFilePatternTest)])
+
+        def walk(s, inside):
+            for x in s:
+                if isinstance(x, unittest.TestSuite):
+                    yield from walk(x, inside or isinstance(x, ParallelSuite))
+                else:
+                    yield x, inside
+
+        seen = list(walk(load_tests(loader, loaded, None), False))
+        self.assertEqual(len(seen), loaded.countTestCases())
+        for x, inside in seen:
+            self.assertEqual(inside, not isinstance(x, ParallelSuiteTest), x.id())
+
+
 def load_tests(loader, tests, pattern):
-    """`python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 가 이 묶음으로 돈다. RUNNER_TEST_JOBS=1 이면 차례 실행."""
-    return ParallelSuite(tests, jobs(os.environ))
+    """`python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 가 이 묶음으로 돈다. RUNNER_TEST_JOBS=1 이면 차례 실행.
+    묶음을 검증하는 ParallelSuiteTest 는 묶음 밖(일반 묶음)에서 먼저 돈다 — 안에서 돌면 실패를 버리는 변이에 같이 눈이 먼다(REVIEW 1회차)."""
+    guard, rest = [], []
+
+    def walk(s):
+        for x in s:
+            if isinstance(x, unittest.TestSuite):
+                walk(x)
+            else:
+                (guard if isinstance(x, ParallelSuiteTest) else rest).append(x)
+
+    walk(tests)
+    return unittest.TestSuite([unittest.TestSuite(guard), ParallelSuite(rest, jobs(os.environ))])
 
 
 if __name__ == "__main__":
