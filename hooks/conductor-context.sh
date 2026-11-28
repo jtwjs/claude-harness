@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # conductor-context — SessionStart(시작·재개·압축 뒤). 지휘 자리에서만 대상 레포마다
 #   트랙 한 줄(tracks_status.py --compact) + 열린 지휘 이슈(label conductor, 최대 10)를 additionalContext 로 넣는다.
-#   레포 템플릿(.claude/harness.json harness.version) ≠ 설치본(CLAUDE_PLUGIN_ROOT plugin.json version)이면 그 레포 줄 끝에 「템플릿 X → 설치본 Y」(#80).
+#   레포 템플릿(.claude/harness.json harness.version) ≠ 설치본(CLAUDE_PLUGIN_ROOT plugin.json version)이면 그 레포 줄 끝에 「템플릿 X → 설치본 Y」(#80). 하네스 원본 줄은 빼고(#95).
 #   하네스 원본 줄에는 설치본 버전 뒤 원격 main 머지(gh api compare, 5초) 「릴리스 안 된 머지 n건」 · 못 세면 「릴리스 확인 실패」(#80).
 # 지휘 설정(~/.claude/conductor.json)이 없거나 지휘 자리가 아니면 무출력 exit 0 (ADR-005, 2026-10-31).
 # gh 는 레포당 5초 제한, 실패하면 (조회 실패). CLAUDE_CONDUCTOR_GH·CLAUDE_CONDUCTOR_TS 로 gh·tracks_status 를 바꿔 끼운다(테스트).
@@ -155,7 +155,11 @@ def release_suffix(top):
 
 
 def template_suffix(top):
-    h = (read_json(Path(top) / ".claude" / "harness.json") or {}).get("harness")
+    # 하네스 원본 줄에는 붙이지 않는다 — 버전 올림이 템플릿 · plugin.json 을 같이 올려 릴리스 전엔 거꾸로 보이고, 그 정보는 릴리스 꼬리에 있다(#95)
+    name = nonempty_str(installed.get("name"))
+    if name and (read_json(Path(top) / ".claude-plugin" / "plugin.json") or {}).get("name") == name:
+        return ""
+    h =(read_json(Path(top) / ".claude" / "harness.json") or {}).get("harness")
     repo_ver = nonempty_str(h.get("version")) if isinstance(h, dict) else None
     if repo_ver and inst_ver and repo_ver != inst_ver:
         return f" · 템플릿 {repo_ver} → 설치본 {inst_ver}"
