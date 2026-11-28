@@ -13,6 +13,26 @@
       "red": "37b0a81721a37f25611831f1bcfa950e6eb4624f",
       "summary": "새 파일 parallel_suite.py: jobs(env) · ParallelSuite(테스트마다 add* 호출을 기록해 원래 순서대로 원래 result에 다시 부름 — subTest · addDuration 포함). 로컬 206개 70.8s OK(1회 · 체감치). setUpClass · setUpModule은 돌리지 않는다(지금 쓰는 테스트 0)",
       "completed_at": "2026-11-28T23:34:43+0900"
+    },
+    {
+      "step": 2,
+      "name": "review-fix-guard-outside",
+      "status": "pending",
+      "tdd": true
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T23:55:00+0900",
+      "head": "25c7ed3b8f346b028687c66f23eb31b8b52a943f",
+      "issues": [
+        "🟡 묶음 검증 테스트가 그 묶음 안에서 돌아 실패를 버리는 변이(M1)에 눈이 멂 — step 2",
+        "🟡 subTest 옮김에 테스트 없음(M6 통과) — step 2",
+        "🟡 setUpClass · setUpModule 준비를 안 돌려 그 에러가 숨고 개수가 바뀜 — step 2(그 클래스는 일반 묶음으로)",
+        "🟢 같은 테스트 객체를 여러 스레드가 돌림(검증 테스트) — step 2",
+        "🟢 Ctrl-C가 남은 테스트를 기다림 · failfast(-f) 무시 · -b 출력이 보고에 안 붙음 · 없는 결과 메서드 조용히 건너뜀 — PR 한계",
+        "확인 필요: 동시 실행 때 가짜 claude 5초 제한 — AC-5 CI 3회로 확인"
+      ]
     }
   ]
 }
