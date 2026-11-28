@@ -65,6 +65,8 @@ disable-model-invocation: true
 
 **7-c. gitignore**: 루트 `.gitignore`에 `.claude/.last-*`가 없으면 ⚠️ — 훅 stamp 가 매 세션 untracked 로 뜬다(`${CLAUDE_PLUGIN_ROOT}/templates/.gitignore.append` 미적용).
 
+**7-d. 확인받기**: `.claude/settings.json`의 `permissions.ask` 줄마다 그 명령이 레포에 실재하는지 본다 — `npm run <x>` · `pnpm <x>` 같은 스크립트는 `package.json` scripts, `make <x>`는 Makefile 타깃, `./gradlew <x>`는 빌드 파일에서 찾는다. 그 밖의 줄(CI 배포 잡에서 따온 스크립트 · 마이그레이션 도구 명령)은 `harness-init` §2-c가 찾는 곳(`.github/workflows/*.yml` · 빌드 파일 · 레포 안 스크립트 경로)에서 명령 머리를 찾고, 거기서도 못 찾으면 ⚠️ 대신 「확인 못 함」으로 적는다. 템플릿 공통 줄(`${CLAUDE_PLUGIN_ROOT}/templates/.claude/settings.json`의 `ask`)은 세지 않는다. 없는 명령을 가리키면 ⚠️ — 배포 · 마이그레이션 명령 이름이 바뀌면 새 이름은 확인 없이 돈다.
+
 ## 8. README 목차 ↔ `skills/`
 
 플러그인 레포에서만 본다 — 레포에 `skills/`와 README 스킬 표가 없으면(하네스를 깐 대상 레포) 이 검사를 건너뛰고 "해당 없음"으로 적는다. 있으면 `bash hooks/test.sh`의 `[readme-index]` 결과를 옮겨 적는다. 규칙(스킬 표 링크 = `ls skills` · 에이전트 · 훅 개수 · 상대 링크)은 `hooks/tests/readme-index.sh`가 정본이다 — 여기서 다시 세지 않는다. 어긋나면 ⚠️ — README에 없는 스킬은 사람이 못 찾고, 없는 스킬을 가리키는 행은 거짓말이다.

@@ -32,6 +32,17 @@
       "Read(**/*.p12)",
       "Read(**/credentials.json)",
       "Read(~/.ssh/**)"
+    ],
+    "ask": [
+      "Bash(gh pr merge*)",
+      "Bash(gh release create*)",
+      "Bash(npm publish*)",
+      "Bash(pnpm publish*)",
+      "Bash(yarn publish*)",
+      "Bash(yarn npm publish*)",
+      "Bash(git push --tags*)",
+      "Bash(git push * --tags)",
+      "Bash(git push * --tags *)"
     ]
   }
 }
