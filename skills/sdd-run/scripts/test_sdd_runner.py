@@ -2053,6 +2053,63 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(git(self.repo, "status", "--porcelain").stdout.strip(), "", "index 를 커밋한다")
         self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, "다음은 구현 차례\n" + self.out)
 
+    # ── 한글 · 공백 테스트 경로(#113) — 파일 목록을 -z + core.quotePath=false 로 읽는다 ─────────────
+    def red_path(self, path):
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}])
+        self.act([["write", path, "hello"], ["commit", "test: step 1 — a (red)"]])
+        return self.session("judge", "t1", "--red", "--step", "1")
+
+    def test_red_judge_nonascii_path_recorded(self):
+        # AC-1 · 재현 A: diff-tree 가 한글 경로에 따옴표 · 8진 이스케이프를 붙여 「테스트 커밋이 없다」로 거절했다
+        p = self.red_path("tests/한글.expect")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], self.head_before_index())
+
+    def test_red_judge_space_path_recorded(self):
+        # AC-2 · 재현 B: 공백 경로가 두 조각으로 쪼개져 「q.expect 가 같이 커밋된 구현」으로 거절했다
+        p = self.red_path("tests/my q.expect")
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], self.head_before_index())
+
+    def head_before_index(self):
+        """red 기록 뒤 HEAD 는 index 커밋 — 그 앞이 테스트 커밋이다."""
+        return git(self.repo, "rev-parse", "HEAD~1").stdout.strip()
+
+    def test_rejudge_nonascii_path_bundle_accepted(self):
+        # AC-3 · 재현 C: 재판정 묶음의 한글 경로가 「테스트 · phases/ 밖 파일」로 보여 거절했다
+        self.blocked_after_red()
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye"), ("write", "tests/한글.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_space_path_bundle_accepted(self):
+        # AC-4 · 재현 D
+        self.blocked_after_red()
+        fixed = self.fix_tests([("write", "tests/a.expect", "bye"), ("write", "tests/my q.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_rejudge_nonascii_new_test_put_on_base(self):
+        # AC-5 · 재현 E: base_with_tests 가 따옴표 경로를 못 찾아 한글 새 테스트를 BASE 에 안 얹고 「BASE 에서도 통과」로 거절했다
+        self.blocked_after_red()
+        fixed = self.fix_tests([("rm", "tests/a.expect"), ("write", "tests/한글.expect", "bye")])
+        self.assertEqual(self.session("rejudge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.step()["red"], fixed)
+
+    def test_red_blame_nonascii_path_blocks(self):
+        # AC-6 · 재현 F: red 테스트 목록이 따옴표 경로라 lint 가 가리킨 한글 red 테스트 파일을 못 찾아 재시도로 태웠다
+        (self.repo / "lint.sh").write_text('rc=0; for f in tests/*; do grep -q BAD "$f" && echo "$f: BAD 금지" && rc=1; done; exit $rc\n')
+        self.red_turn([{"step": 1, "name": "a", "status": "pending", "tdd": True}],
+                      cfg={"verify": {"test": "sh check.sh", "lint": "sh lint.sh"}, "tdd": {"enabled": True}})
+        self.act([RED, ["write", "tests/한글_note.txt", "BAD"], ["commit", "test: a (red)"]])
+        self.assertEqual(self.session("judge", "t1", "--red", "--step", "1").returncode, 0, self.out)
+        self.session("prompt", "t1", "--role", "impl")
+        self.act([IMPL, ["commit", "feat: a"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 2, self.out)
+        s = self.step()
+        self.assertEqual(s["status"], "blocked")
+        self.assertIn("tests/한글_note.txt", s["blocked_reason"], "경로가 따옴표 · 8진 이스케이프 없이 보인다")
+
     def test_rejudge_second_block_goes_to_user(self):
         self.blocked_after_red()
         fixed = self.fix_tests([("write", "tests/a.expect", "bye")])
