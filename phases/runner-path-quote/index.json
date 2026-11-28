@@ -4,6 +4,14 @@
   "docs": "docs/runner-path-quote-2026-11-28",
   "after": [],
   "steps": [
-    { "step": 1, "name": "path-list-nul-quote", "status": "pending", "tdd": true }
+    {
+      "step": 1,
+      "name": "path-list-nul-quote",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T22:24:37+0900",
+      "base": "2cba9bf28a6e65a8bef8d4228839dae0272a087c",
+      "red": "9a54d763ba5924f91ea21ed1be1b47dafb32c2d0"
+    }
   ]
 }
