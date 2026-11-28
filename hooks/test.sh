@@ -704,7 +704,7 @@ rm -f "$CLAUDE_CONDUCTOR_CONFIG"; unset CLAUDE_CONDUCTOR_GH
 # ── hooks/tests/*.sh — 이 파일의 ok·bad·TMP·HOOKS 를 그대로 쓰는 케이스 묶음(source) ──
 # 왜 따로: 러너(sdd_runner.py)의 테스트 파일 판정이 hooks/test.sh 를 못 알아봐서, 새 케이스는 tests/ 아래에 둔다(2026-11-13).
 for _f in "$HOOKS"/tests/*.sh; do
-  [ "$HOOK_TEST_PART" = hooks ] && [ "${_f##*/}" = sdd-runner-unit.sh ] && continue
+  if [ "$HOOK_TEST_PART" = hooks ] && [ "${_f##*/}" = sdd-runner-unit.sh ]; then printf '\n[sdd-runner-unit] 건너뜀 (HOOK_TEST_PART=hooks)\n'; continue; fi
   [ -f "$_f" ] && . "$_f"
 done
 
