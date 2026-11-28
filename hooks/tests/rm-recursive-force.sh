@@ -28,6 +28,21 @@ check_deny 2 '\rm -rf a'
 check_deny 2 'ls | xargs rm -rf'
 check_deny 2 'find . -name x -exec rm -rf {} +'
 check_deny 2 "$(printf 'mkdir -p a\nrm -rf a')"
+check_deny 2 'find . -execdir rm -rf {} +'
+check_deny 2 'rm -rf"a"'
+check_deny 2 'time rm -rf a'
+check_deny 2 'nohup rm -rf a'
+check_deny 2 'env -i rm -rf a'
+check_deny 2 'exec rm -rf a'
+check_deny 2 'nice rm -rf a'
+check_deny 2 'timeout 5 rm -rf a'
+check_deny 2 'for d in a b; do rm -rf "$d"; done'
+check_deny 2 'if true; then rm -rf x; fi'
+check_deny 2 '! rm -rf x'
+check_deny 2 "bash -lc 'rm -rf x'"
+check_deny 2 "sh -ec 'cd /tmp && rm -rf x'"
+check_deny 2 "eval 'rm -rf x'"
+check_deny 2 'eval rm -rf x'
 # 루트 · 홈은 -f 가 없어도 막는다(rm-rf-root-home 회귀)
 check_deny 2 'rm -r ~'
 check_deny 2 'rm -r /'
@@ -46,3 +61,6 @@ check_deny 0 'grep -rf patterns.txt .'
 check_deny 0 'rmdir -p a/b'
 check_deny 0 'rm -r a; ls -f'
 check_deny 0 'rm -r a && grep -f x y'
+check_deny 0 "grep -c 'rm -rf' log.txt"
+check_deny 0 "rg -c 'rm -rf' ."
+check_deny 0 "python3 -c 'print(1)' && rm -r a"

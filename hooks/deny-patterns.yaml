@@ -59,11 +59,14 @@ patterns:
   - id: rm-recursive-force
     # 재귀(-r · -R · --recursive)와 강제(-f · --force)가 한 rm 에 같이 있으면 경로와 상관없이 막는다(#120). 위 항목은 -f 가 없어도 루트 · 홈을 막아서 따로 둔다.
     # -f 없는 rm -r 은 통과(#120 결정 1 B, 사용자). 플래그는 한 덩어리(-rf · -fr · -rfv) · 따로(-r -f) · 긴 이름 · 경로 뒤(rm a -rf) 모두 본다.
-    # rm 은 명령 자리에서만 본다 — secret-file-read 와 같은 앞 덩어리에 `-c '`(sh -c 안) · `-exec ` 를 더했고, 앞에 붙는 낱말에 command 를 더했다.
-    # 그래서 echo · printf · 커밋 메시지 · 질문 본문 같은 따옴표 속 글자는 통과한다. ignore_quoted 는 켜지 않는다(sh -c 안을 봐야 한다).
-    # 놓치는 꼴: git rm -rf · find -delete · 변수에 담은 rm($RM -rf) · 스크립트 파일 안의 rm -rf(훅은 명령 문자열만 본다).
-    # 지나치게 막는 꼴: 여러 줄 명령에서 heredoc 본문 줄이 rm -rf 로 시작하는 줄(grep 은 줄마다 본다).
-    pattern: ^(([^"'|;&(`{]|"[^"]*"|'[^']*')*([|;&(`{]+|"[^"]*\$\(|"[^"`]*`|-c[[:space:]]+["']|-exec(dir)?[[:space:]]+))*[[:space:]]*(([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|(sudo|time|xargs|env|nohup|command)([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]|;&"'][^[:space:]|;&"']*)?)*)[[:space:]]+)*\\?([^[:space:]|;&"'/]*/)*rm(([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+-[a-zA-Z]*([rR][a-zA-Z]*f|f[a-zA-Z]*[rR])[a-zA-Z]*)([[:space:]]|$|[;|&)`"'])
+    # rm 은 명령 자리에서만 본다 — secret-file-read 와 같은 앞 덩어리에 셸 -c 따옴표 안(sh · bash · zsh · dash · ksh, -lc · -ec 같은 합친 플래그 포함) · eval 따옴표 안 · -exec(dir) 뒤를 더했다.
+    # 앞에 붙는 낱말은 sudo · time · xargs · env · nohup 에 command · exec · eval · nice · timeout <시간> · 셸 키워드(do · then · else · elif · !)를 더했다.
+    # 그래서 echo · printf · grep -c 같은 다른 명령의 따옴표 속 글자는 통과한다. ignore_quoted 는 켜지 않는다(sh -c 안을 봐야 한다).
+    # 놓치는 꼴: git rm -rf · find -delete · 변수에 담은 rm($RM -rf) · 따옴표 친 명령 이름("rm" -rf) · GNU 약어(--recur --forc) · 위 목록 밖 낱말이 앞에 붙은 rm
+    #   · 줄 이어 쓰기(\ 줄바꿈)로 rm 과 플래그가 다른 줄에 갈린 꼴 · 여러 줄 따옴표가 끝난 줄의 뒤 명령 · 스크립트 파일 안의 rm -rf(훅은 명령 문자열만 본다).
+    # 지나치게 막는 꼴: grep 은 줄마다 봐서, 여러 줄 본문(heredoc · 여러 줄 따옴표)의 줄 처음이나 그 줄의 ( · 백틱 · ; | & { 뒤에 rm -rf 가 오면 막는다
+    #   — 커밋 · PR 본문에 「(rm -rf)」 · 「`rm -rf`」를 쓴 줄이 여기 든다(「재귀 강제 삭제」로 풀어 쓰면 지나간다). 드물게 rm -r "$(ls -f)" · rm -r a # -f 도 막는다.
+    pattern: ^(([^"'|;&(`{]|"[^"]*"|'[^']*')*([|;&(`{]+|"[^"]*\$\(|"[^"`]*`|((sh|bash|zsh|dash|ksh)([[:space:]]+-[a-zA-Z]+)*[[:space:]]+-[a-zA-Z]*c|eval)[[:space:]]+["']|-exec(dir)?[[:space:]]+))*[[:space:]]*(([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|(sudo|time|xargs|env|nohup|command|exec|eval|nice|do|then|else|elif|!)([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]|;&"'][^[:space:]|;&"']*)?)*|timeout([[:space:]]+-[^[:space:]]*)*[[:space:]]+[0-9.]+[smhd]?)[[:space:]]+)*\\?([^[:space:]|;&"'/]*/)*rm(([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+-[a-zA-Z]*([rR][a-zA-Z]*f|f[a-zA-Z]*[rR])[a-zA-Z]*)([[:space:]]|$|[;|&)`"'])
     title: "rm -rf 재귀 강제 삭제 (경로 무관)"
     reason: "재귀 강제 삭제는 경로와 상관없이 막는다(예외 없음). 지울 필요가 없으면 남긴다 — 임시 폴더는 실행마다 새 이름으로 만든다. 꼭 지워야 하면 경로를 사람에게 알리고, 사람이 자기 터미널에서 지운다."
 
