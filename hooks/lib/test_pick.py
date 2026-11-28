@@ -63,16 +63,26 @@ def main(argv):
     tests = sorted(f for f in os.listdir(tdir) if f.endswith(".sh"))
     body = {f: open(os.path.join(tdir, f), encoding="utf-8").read() for f in tests}
 
+    class Typo(Exception):
+        pass
+
     def expand(tok, f, seen=()):
         if tok.startswith("@"):
-            return {x for t in groups.get(tok, []) if t not in seen for x in expand(t, f, seen + (tok,))}
+            if tok not in groups:
+                raise Typo(f"표의 모르는 묶음: {tok}")
+            return {x for t in groups[tok] if t not in seen for x in expand(t, f, seen + (tok,))}
         if tok == "{self}":
             return {"tests/" + os.path.basename(f)} if os.path.basename(f) in body else set()
         if tok == "{mentions}":
             return {"tests/" + t for t in tests if os.path.basename(f) in body[t]}
         if tok.startswith("tests/"):
-            return {"tests/" + t for t in fnmatch.filter(tests, tok[len("tests/"):])}
-        return {tok}
+            hit = fnmatch.filter(tests, tok[len("tests/"):])
+            if not hit:
+                raise Typo(f"표의 tests 묶음이 아무 파일에도 안 맞는다: {tok}")
+            return {"tests/" + t for t in hit}
+        if tok in ("main", "runner", "all"):
+            return {tok}
+        raise Typo(f"표의 모르는 묶음: {tok}")
 
     picked = set()
     for f in changed:
@@ -80,7 +90,11 @@ def main(argv):
         for pat, toks in rows:
             if pat.match(f):
                 hit = True
-                got |= {x for t in toks for x in expand(t, f)}
+                try:
+                    got |= {x for t in toks for x in expand(t, f)}
+                except Typo as e:
+                    print(f"all\t{e}")
+                    return 0
         if not hit:
             print(f"all\t표에 없는 파일: {f}")
             return 0

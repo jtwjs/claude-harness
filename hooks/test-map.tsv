@@ -11,10 +11,15 @@
 #   {mentions}       바뀐 파일 이름(경로 빼고)이 글자로 든 hooks/tests/ 파일
 #   @<이름>          아래 @ 줄에 정의한 묶음 모음
 # 표에 없는 파일이 하나라도 바뀌었거나, 맞는 줄은 있는데 묶음이 비면 전부 돈다(놓치는 쪽으로 실패하지 않게).
-# 새 훅 · 새 테스트 묶음을 더할 때 여기 한 줄을 같이 쓴다. 문서를 글자로 검사하는 tests/ 파일을 더하면 @docs 에 넣는다.
+# 표에 모르는 묶음 이름이 있거나 tests/<glob> 이 아무 파일에도 안 맞아도 전부 돈다(표 오타가 「통과 0건」으로 끝나지 않게).
+# 새 훅 · 새 테스트 묶음을 더할 때 여기 한 줄을 같이 쓴다. 문서를 글자로 검사하는 tests/ 파일을 더하면 @docs 에,
+# 훅을 실행해 보는 tests/ 파일을 더하면 @hooks 에 넣는다.
+# {mentions} 는 테스트가 훅을 거쳐 쓰는 파일(deny-patterns.yaml · lib/*)을 못 찾는다. 그런 파일은 테스트 파일을 줄에 직접 적는다.
 
 # 문서를 글자로 검사하는 묶음 — 스킬 · 템플릿 · 문서가 바뀌면 이것을 돈다
 @docs	tests/always-on.sh tests/base-branch.sh tests/conductor-issues.sh tests/design-doc-*.sh tests/doc-consistency.sh tests/fill-ci.sh tests/harness-gaps-*.sh tests/no-*.sh tests/principles.sh tests/readme-index.sh tests/release-line.sh tests/renames*.sh tests/secret-scan.sh tests/template-drift.sh tests/version-drift.sh
+# 훅을 실행해 보는 묶음 — 여러 훅이 같이 쓰는 lib/ 가 바뀌면 이것을 돈다
+@hooks	tests/gate-hook.sh tests/hook-log-*.sh tests/ledger-*.sh tests/quiet-without-harness.sh tests/rm-recursive-force.sh tests/release-line.sh tests/template-drift.sh tests/version-drift.sh
 
 # 테스트 장치 자체 — 바뀌면 전부
 hooks/test.sh	all
@@ -29,9 +34,10 @@ skills/sdd-run/scripts/test_sdd_runner.py	runner
 
 # 훅 · 훅 라이브러리 — 본문 + 이름이 든 tests/ 파일 + 훅 문구를 보는 문서 정합
 hooks/*.sh	main {mentions} tests/doc-consistency.sh
+hooks/block-dangerous-bash.sh	tests/rm-recursive-force.sh
+hooks/deny-patterns.yaml	main tests/rm-recursive-force.sh
 hooks/hooks.json	main {mentions}
-hooks/deny-patterns.yaml	main {mentions}
-hooks/lib/*	main {mentions}
+hooks/lib/*	main @hooks
 
 # 스크립트 — 본문이 부르는 것은 main, 나머지는 이름이 든 tests/ 파일
 skills/sdd-run/**	runner main @docs
