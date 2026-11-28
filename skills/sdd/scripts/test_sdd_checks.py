@@ -290,7 +290,7 @@ class TestsUnchangedTest(RepoCase):
         self.assertIn("tests/test_a.py", p.stdout)
 
     def test_renamed_test_shows_old_path(self):
-        git(self.repo, "mv", "tests/test_a.py", "lib/a_check.txt")
+        git(self.repo, "mv", "tests/test_a.py", "src/a_check.txt")
         commit(self.repo, "chore: 옮김")
         p = self.unchanged()
         self.assertEqual(p.returncode, 1, "이름 바꾸기로 옛 테스트 경로가 숨지 않는다(--no-renames)\n" + self.out)
