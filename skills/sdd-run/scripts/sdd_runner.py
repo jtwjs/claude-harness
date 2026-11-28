@@ -663,7 +663,9 @@ class Runner:
                 red_tests = [f for f in self.git("diff", "--name-only", base, red_sha).stdout.split() if TEST_FILE.search(f)]
             else:
                 red_sha, red_tests = self.red_check(commits, base, step=step)
-            changed = [f for f in self.git("diff", "--name-only", f"{red_sha}..HEAD").stdout.split()
+            # 이름 바꾸기도 옛 경로 지움 + 새 경로 추가로 본다 · 공백 · 비ASCII 경로를 그대로 받는다(판정 4'와 같은 꼴, #102)
+            out = self.git("-c", "core.quotePath=false", "diff", "--no-renames", "--name-only", "-z", f"{red_sha}..HEAD").stdout
+            changed = [f for f in out.split("\0") if f
                        if TEST_FILE.search(f) and not f.startswith("phases/")]
             if changed:
                 for f in changed:
