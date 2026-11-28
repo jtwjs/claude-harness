@@ -71,6 +71,14 @@ check_deny 2 'git commit --no-verify -m x'
 check_deny 2 'git commit -m "x" -n'
 check_deny 2 'cat .env'
 check_deny 2 'git push -f origin main'
+# secret-file-read — 읽기 낱말은 명령 자리에서만 본다. 따옴표 본문 · --head 옵션 속 .env 글자는 통과 (#103)
+for c in 'cat ".env"' 'head -5 .env.local' 'cat x | tail .env' 'echo hi && cat .env' 'X=$(cat .env)' "cat 'secrets/.env'" \
+         'less ~/.ssh/id_rsa' 'cd app && cat .env' 'sudo cat .env' 'time cat .env' 'ls | xargs cat .env' 'env FOO=1 cat .env' \
+         'nohup cat .env' 'sudo -u x cat .env'; do check_deny 2 "$c"; done
+for c in 'orca orchestration ask --question "cat .env 가 막힌다"' 'gh pr create --head feature/x --title "fix: .env 오탐"' \
+         'orca orchestration ask --question "막힘; cat .env 가 걸림"' "gh pr create --title 'x; cat .env 문서'" \
+         'git log --oneline | head -5' 'env | head -5' 'git commit -m "time; xargs cat .env 문서"' \
+         'xargs grep cat .env.example' 'git log --format=%H | head -3'; do check_deny 0 "$c"; done
 # PR 머지 → 사람 확인(ask). 자동 머지 판정이 dry-run 인 동안 (2026-10-13)
 for c in 'gh pr merge 12 --squash --delete-branch' 'gh pr merge --auto --squash'; do
   out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$c" | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
