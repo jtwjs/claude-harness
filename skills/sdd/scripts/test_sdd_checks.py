@@ -337,19 +337,20 @@ class TestsUnchangedTest(RepoCase):
 class TestsPassTest(RepoCase):
     def setUp(self):
         super().setUp()
+        self.start = git(self.repo, "rev-parse", "HEAD").stdout.strip()   # 브랜치 시작점(main 머리)
+        git(self.repo, "switch", "-q", "-c", "feature/t")
         self.write("tests/a.expect", "hello")
-        self.sha = commit(self.repo, "test: a")
+        commit(self.repo, "test: a")
         # 명령은 받은 인자를 기록하고 src/a.txt 가 tests/a.expect 와 같으면 통과
         self.write("check.sh", 'printf "%s\\n" "$*" >> "$LOG_FILE"\n'
                                '[ "$(cat src/a.txt 2>/dev/null)" = "$(cat tests/a.expect)" ]\n')
         self.log = self.tmp / "log.txt"
 
-    def cfg(self, verify):
-        self.write(".claude/harness.json", json.dumps({"verify": verify}))
+    def cfg(self, verify, base="main"):
+        self.write(".claude/harness.json", json.dumps({"git": {"baseBranch": base}, "verify": verify}))
 
-    def passes(self, *args, sha=None):
-        env_cmd = [sys.executable, str(PASS), *(args or (sha or self.sha,))]
-        p = subprocess.run(env_cmd, cwd=self.repo, capture_output=True, text=True,
+    def passes(self, *args):
+        p = subprocess.run([sys.executable, str(PASS), *args], cwd=self.repo, capture_output=True, text=True,
                            env={"PATH": "/usr/bin:/bin", "LOG_FILE": str(self.log)})
         self.out = p.stdout + p.stderr
         return p
@@ -363,14 +364,24 @@ class TestsPassTest(RepoCase):
         self.assertEqual(p.returncode, 0, self.out)
         self.assertIn("full", self.log.read_text())
 
-    def test_step_command_gets_parent_of_test_commit(self):
+    def test_step_command_gets_branch_start(self):
         self.cfg({"test": "sh check.sh full", "$step": {"test": "sh check.sh since {since}"}})
+        self.write("tests/b.expect", "")
+        commit(self.repo, "test: b (둘째 테스트 커밋)")
         self.write("src/a.txt", "hello")
         p = self.passes()
         self.assertEqual(p.returncode, 0, self.out)
-        parent = git(self.repo, "rev-parse", f"{self.sha}^").stdout.strip()
-        self.assertIn(f"since {parent}", self.log.read_text(), "{since} = 테스트 커밋의 부모(테스트 파일이 범위에 든다)")
+        self.assertIn(f"since {self.start}", self.log.read_text(),
+                      "{since} = 브랜치 시작점(ADR-025) — 테스트 커밋이 여럿이어도 전부 범위에 든다")
         self.assertNotIn("full", self.log.read_text())
+
+    def test_step_command_without_base_runs_full(self):
+        self.cfg({"test": "sh check.sh full", "$step": {"test": "sh check.sh since {since}"}}, base="nope")
+        self.write("src/a.txt", "hello")
+        p = self.passes()
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("full", self.log.read_text(), "브랜치 시작점을 못 찾으면 전체 명령(놓치는 쪽으로 실패하지 않게)")
+        self.assertNotIn("since", self.log.read_text())
 
     def test_app_form_runs_each_app_in_its_folder(self):
         for app in ("web", "api"):
@@ -392,10 +403,10 @@ class TestsPassTest(RepoCase):
         p = self.passes()
         self.assertEqual(p.returncode, 2, self.out)
 
-    def test_bad_sha_exits_2(self):
-        self.cfg({"test": "sh check.sh full", "$step": {"test": "sh check.sh since {since}"}})
-        p = self.passes(sha="nope123")
-        self.assertEqual(p.returncode, 2, self.out)
+    def test_extra_args_exit_2(self):
+        self.cfg({"test": "sh check.sh full"})
+        p = self.passes("abc123")
+        self.assertEqual(p.returncode, 2, "인자는 받지 않는다\n" + self.out)
 
 
 if __name__ == "__main__":
