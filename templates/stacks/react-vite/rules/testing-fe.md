@@ -10,7 +10,7 @@ paths: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.tsx", "e2e/**
 |---|---|---|---|
 | `model/` · `lib/` 계산 | Vitest 단위 | 규칙 · 파생 계산. 목 0개 | 대상 옆 `*.test.ts` |
 | `shared/ui` · `entities/ui` 표시 부품 | Storybook 스토리. play는 상호작용(포커스 · 키보드 · 열고 닫기)에만 | 상태별 모양(빈 · 로딩 · 에러 · 긴 텍스트). 부품별 Vitest는 쓰지 않는다 | 모듈 폴더 안 `*.stories.tsx` |
-| `features` · 화면 섹션 흐름 | Vitest + Testing Library + MSW, 기능당 통합 1개 | 목록 · 필터 · 빈 화면 · 에러 · 재시도 | 대상 옆 `*.test.tsx` |
+| `features` · 화면 섹션 흐름 | Vitest + Testing Library + MSW, 흐름마다 통합(개수는 미리 정하지 않는다) | 목록 · 필터 · 빈 화면 · 에러 · 재시도 | 대상 옆 `*.test.tsx` |
 | `pages` 핵심 여정 | Playwright, 적게 | 회귀 비용이 큰 흐름만 | `e2e/specs/*.spec.ts` |
 
 ## 통합 (Vitest + Testing Library + MSW)
@@ -18,6 +18,18 @@ paths: ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.tsx", "e2e/**
 - 렌더는 `shared/test/render.tsx` 하나로(테스트용 QueryClient · MemoryRouter를 감싼다). 테스트마다 프로바이더를 새로 조립하지 않는다
 - HTTP는 MSW로 고정한다. 핸들러는 엔티티마다 `entities/<도메인>/api/<도메인>.msw.ts` 하나 — 개발 목 · 테스트 · 스토리가 같은 것을 쓴다. 핸들러 자체는 테스트하지 않는다
 - 쿼리는 `getByRole` → `getByLabelText` 순. 입력은 `userEvent`. 클래스명 · 구현 세부를 단언하지 않는다
+
+## 엣지 5축을 사용자 장면으로
+
+축 정의와 질문은 공통 `testing.md` §2가 정본이다. FE는 같은 축을 사용자가 화면에서 겪는 장면으로 옮겨 묻는다. 엣지 케이스는 이 기능의 의도를 얼마나 이해했는지 보여 주고, FE 테스트는 사용자 관점으로 깊게 팔수록 좋은 테스트가 된다. 아래는 예시다. 기능마다 이 기능의 사용자가 실제로 할 행동으로 바꿔 쓴다.
+
+| 축 | 사용자 장면 예시 |
+|---|---|
+| 빈 값·경계 | 목록이 비어 처음 들어온 화면 · 아주 긴 이름 · 마지막 페이지 |
+| 비정상 입력 | 마우스 없이 키보드만으로 끝까지 · 서식이 섞인 글을 붙여넣기 |
+| 실패 경로 | 느린 네트워크에서 로딩이 길어진 화면 · 중간에 끊긴 네트워크 · 재시도 |
+| 상태 전이 | 입력 도중 뒤로가기 · 새로고침 뒤 다시 들어온 화면 |
+| 동시성 | 제출 버튼 연타 · 응답이 오기 전에 필터를 또 바꿈 |
 
 ## 스토리 · play
 
