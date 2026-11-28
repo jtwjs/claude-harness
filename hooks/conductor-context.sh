@@ -156,10 +156,11 @@ def release_suffix(top):
 
 def template_suffix(top):
     # 하네스 원본 줄에는 붙이지 않는다 — 버전 올림이 템플릿 · plugin.json 을 같이 올려 릴리스 전엔 거꾸로 보이고, 그 정보는 릴리스 꼬리에 있다(#95)
+    # 원본인지 모르면(설치본 name 없음 · 레포 plugin.json 못 읽음) 꼬리를 그대로 붙인다. 같은 줄에 「릴리스 확인 실패」가 같이 뜬다
     name = nonempty_str(installed.get("name"))
     if name and (read_json(Path(top) / ".claude-plugin" / "plugin.json") or {}).get("name") == name:
         return ""
-    h =(read_json(Path(top) / ".claude" / "harness.json") or {}).get("harness")
+    h = (read_json(Path(top) / ".claude" / "harness.json") or {}).get("harness")
     repo_ver = nonempty_str(h.get("version")) if isinstance(h, dict) else None
     if repo_ver and inst_ver and repo_ver != inst_ver:
         return f" · 템플릿 {repo_ver} → 설치본 {inst_ver}"
