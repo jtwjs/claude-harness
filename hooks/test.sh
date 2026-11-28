@@ -128,11 +128,56 @@ for c in 'orca orchestration ask --question "cat .env 가 막힌다"' 'gh pr cre
          'git log --oneline | head -5' 'env | head -5' 'git commit -m "time; xargs cat .env 문서"' \
          'xargs grep cat .env' 'gh pr create --title "use $(date) and cat .env"' 'echo ${X} cat .env' \
          'git log --format=%H | head -3'; do check_deny 0 "$c"; done
-# PR 머지 → 사람 확인(ask). 자동 머지 판정이 dry-run 인 동안 (2026-10-13)
-for c in 'gh pr merge 12 --squash --delete-branch' 'gh pr merge --auto --squash'; do
-  out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$c" | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
-  echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: $c" || bad "머지 무확인" "$c → [$out]"
-done
+# PR 머지 — 훅이 PR 을 한 번 읽어 세 조건(규칙 파일 변경 0 · Risk Score 30 이하 · CI 체크 전부 통과)을 모두 채우면 확인 없이 통과,
+# 하나라도 못 채우거나 PR 을 못 읽으면(읽기 실패 · Risk 없음 · 시간 초과) 사람 확인(ask) (ADR-026 D5 — 2026-10-13 dry-run 확인을 대체)
+_pm_d="$TMP/_pm_"; mkdir -p "$_pm_d/bin"
+cat > "$_pm_d/bin/gh" <<'FAKEGH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$PM_LOG"
+[ "$1 $2" = "pr view" ] || exit 0
+[ -n "${PM_SLEEP:-}" ] && sleep "$PM_SLEEP"
+[ -n "${PM_FAIL:-}" ] && { echo "no pr" >&2; exit 1; }
+cat "$PM_JSON"
+FAKEGH
+chmod +x "$_pm_d/bin/gh"
+_pm_json() { # $1 Risk 줄(빈 값이면 없음) · $2 바뀐 파일(쉼표) · $3 체크 결론(쉼표, 빈 값이면 체크 없음)
+  python3 - "$1" "$2" "$3" > "$_pm_d/pr.json" <<'PMPY'
+import json, sys
+risk, files, checks = sys.argv[1], [f for f in sys.argv[2].split(",") if f], [c for c in sys.argv[3].split(",") if c]
+roll = [{"__typename": "CheckRun", "name": f"c{i}", "status": "COMPLETED" if c != "PENDING" else "IN_PROGRESS",
+         "conclusion": "" if c == "PENDING" else c} for i, c in enumerate(checks)]
+print(json.dumps({"body": f"## Summary\n- x\n\n{risk}\n\n본문", "files": [{"path": f} for f in files],
+                  "changedFiles": len(files), "statusCheckRollup": roll}))
+PMPY
+}
+_pm_run() { # $1 명령 → 훅 출력
+  (cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' "$1" \
+    | env PATH="$_pm_d/bin:$PATH" PM_LOG="$_pm_d/gh.log" PM_JSON="$_pm_d/pr.json" CLAUDE_GH_ACCOUNTS="$_pm_d/none.txt" \
+      bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
+}
+_pm_ask() { # $1 이름 · $2 명령
+  out=$(_pm_run "$2"); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: $1" || bad "머지 무확인" "$1 → [$out]"
+}
+_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'hooks/a.sh,docs/b.md' 'SUCCESS,SUCCESS'
+: > "$_pm_d/gh.log"
+out=$(_pm_run 'gh pr merge 12 -R o/r --squash --match-head-commit abc')
+[ -z "$out" ] && ok "세 조건 통과 → 확인 없이 통과" || bad "조건 통과인데 확인" "[$out]"
+grep -qx 'pr view 12 -R o/r --json body,files,changedFiles,statusCheckRollup' "$_pm_d/gh.log" && ok "그 PR 번호 · 레포로 한 번 읽는다" || bad "읽기 인자" "[$(cat "$_pm_d/gh.log")]"
+out=$(_pm_run 'gh pr merge --squash')
+[ -z "$out" ] && grep -qx 'pr view --json body,files,changedFiles,statusCheckRollup' "$_pm_d/gh.log" && ok "번호 없는 머지 → 지금 브랜치 PR 을 읽고 통과" || bad "번호 없음" "[$out] [$(tail -1 "$_pm_d/gh.log")]"
+_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'hooks/a.sh,.claude/rules/x.md' 'SUCCESS'; _pm_ask "rules 파일이 바뀐 PR" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 21/100 (낮음)' 'web/CLAUDE.md' 'SUCCESS'; _pm_ask "CLAUDE.md 가 바뀐 PR" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 31/100 (중간)' 'a.sh' 'SUCCESS'; _pm_ask "Risk 31" 'gh pr merge 12 --squash'
+_pm_json '' 'a.sh' 'SUCCESS'; _pm_ask "Risk 값 없음" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS,FAILURE'; _pm_ask "CI 하나 실패" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS,PENDING'; _pm_ask "CI 아직 도는 중" 'gh pr merge --auto --squash'
+_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' ''; _pm_ask "CI 체크 없음" 'gh pr merge 12 --squash'
+_pm_json '## ⚠️ Risk Score: 10/100' 'a.sh' 'SUCCESS'
+out=$(PM_FAIL=1 _pm_run 'gh pr merge 12 --squash'); echo "$out" | grep -q '"permissionDecision":"ask"' && ok "ask: PR 을 못 읽음" || bad "읽기 실패 무확인" "[$out]"
+s=$(python3 -c 'import time;print(time.time())')
+out=$(PM_SLEEP=5 CLAUDE_PR_MERGE_TIMEOUT=1 _pm_run 'gh pr merge 12 --squash'); e=$(python3 -c "import time;print(time.time()-$s)")
+echo "$out" | grep -q '"permissionDecision":"ask"' && python3 -c "import sys; sys.exit(0 if $e < 4 else 1)" && ok "ask: 읽기 시간 초과(1초 뒤 묻는다)" || bad "시간 초과" "${e}s [$out]"
+_pm_ask "머지 명령 둘 — 하나씩 따로 묻는다" 'gh pr merge 12 --squash && gh pr merge 13 --squash'
 out=$(cd "$TMP/none" && python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.argv[1]}}))' 'git commit -m "gh pr merge 문서"' | bash "$HOOKS/block-dangerous-bash.sh" 2>/dev/null)
 [ -z "$out" ] && ok "따옴표 안 gh pr merge 는 그냥 통과" || bad "오탐" "커밋 메시지에서 ask"
 
