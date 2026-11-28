@@ -18,7 +18,10 @@
       "step": 2,
       "name": "review-fix-guard-outside",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T23:42:24+0900",
+      "base": "cefc37bdeebd3434f5069c0a352039e83c41e15d",
+      "red": "6b5a1fdc9d1aed914d8ec6156c1a95e696e9c379"
     }
   ],
   "reviews": [
