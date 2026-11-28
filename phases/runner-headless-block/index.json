@@ -48,9 +48,12 @@
     {
       "step": 5,
       "name": "auto-memory-check",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-28T15:03:54+0900",
+      "summary": "`claude -p --dangerously-skip-permissions --output-format json --model haiku --disallowedTools <HEADLESS_DENY 넷> -- <auto-memory 확인 지시문>` 1회(stdin /dev/null, total_cost_usd 0.00607, 도구 호출 0): auto memory 안내 있음(대화 기록 폴더 아래 memory 디렉터리 경로 — 원문은 스크래치에만) · 메모리 파일 내용 실림 없음(그 파일이 지금 비어 있을 수 있음 — 추정). 켜짐 → 끄는 step 6",
+      "completed_at": "2026-11-28T15:08:41+0900"
     }
   ],
   "reviews": [
