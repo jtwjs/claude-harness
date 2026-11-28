@@ -51,10 +51,21 @@ patterns:
     reason: "pre-push hook 우회 금지. hook 실패 시 원인 수정 후 다시 push."
 
   - id: rm-rf-root-home
-    # 플래그 순서·표기 무관(-rf · -fr · -r -f · --recursive), 경로는 따옴표·끝 슬래시 허용. ./build 나 /tmp/x 같은 하위 경로는 막지 않는다.
+    # 플래그 순서·표기 무관(-rf · -fr · -r -f · --recursive), 경로는 따옴표·끝 슬래시 허용. 하위 경로는 아래 rm-recursive-force 가 -f 가 있을 때만 막는다.
     pattern: 'rm[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+-[a-zA-Z-]+)*[[:space:]]+["'"'"']?(/|~|\$HOME|\$\{HOME\})/?["'"'"']?([[:space:]]|$)'
     title: "rm -rf 루트/홈 디렉터리"
     reason: "치명적 재귀 삭제 차단."
+
+  - id: rm-recursive-force
+    # 재귀(-r · -R · --recursive)와 강제(-f · --force)가 한 rm 에 같이 있으면 경로와 상관없이 막는다(#120). 위 항목은 -f 가 없어도 루트 · 홈을 막아서 따로 둔다.
+    # -f 없는 rm -r 은 통과(#120 결정 1 B, 사용자). 플래그는 한 덩어리(-rf · -fr · -rfv) · 따로(-r -f) · 긴 이름 · 경로 뒤(rm a -rf) 모두 본다.
+    # rm 은 명령 자리에서만 본다 — secret-file-read 와 같은 앞 덩어리에 `-c '`(sh -c 안) · `-exec ` 를 더했고, 앞에 붙는 낱말에 command 를 더했다.
+    # 그래서 echo · printf · 커밋 메시지 · 질문 본문 같은 따옴표 속 글자는 통과한다. ignore_quoted 는 켜지 않는다(sh -c 안을 봐야 한다).
+    # 놓치는 꼴: git rm -rf · find -delete · 변수에 담은 rm($RM -rf) · 스크립트 파일 안의 rm -rf(훅은 명령 문자열만 본다).
+    # 지나치게 막는 꼴: 여러 줄 명령에서 heredoc 본문 줄이 rm -rf 로 시작하는 줄(grep 은 줄마다 본다).
+    pattern: ^(([^"'|;&(`{]|"[^"]*"|'[^']*')*([|;&(`{]+|"[^"]*\$\(|"[^"`]*`|-c[[:space:]]+["']|-exec(dir)?[[:space:]]+))*[[:space:]]*(([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|(sudo|time|xargs|env|nohup|command)([[:space:]]+-[^[:space:]]*([[:space:]]+[^-[:space:]|;&"'][^[:space:]|;&"']*)?)*)[[:space:]]+)*\\?([^[:space:]|;&"'/]*/)*rm(([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*f[a-zA-Z]*|--force)([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)|([[:space:]]+[^[:space:]|;&]+)*[[:space:]]+-[a-zA-Z]*([rR][a-zA-Z]*f|f[a-zA-Z]*[rR])[a-zA-Z]*)([[:space:]]|$|[;|&)`"'])
+    title: "rm -rf 재귀 강제 삭제 (경로 무관)"
+    reason: "재귀 강제 삭제는 경로와 상관없이 막는다. 임시 폴더는 실행마다 새 이름으로 만들고 남긴다. 꼭 지워야 하면 경로를 사람에게 알린다."
 
   - id: secret-file-read
     # 읽기 낱말은 명령 자리에서만 본다: 줄 처음, `|;&({` · 백틱 뒤, 큰따옴표 안 `$(` · 백틱 뒤. 그 자리를 찾을 때 따옴표 문자열은 한 덩어리로 건너뛴다.
