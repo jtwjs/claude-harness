@@ -32,6 +32,15 @@
       "started_at": "2026-11-28T14:32:54+0900",
       "summary": "`claude -p --dangerously-skip-permissions --output-format json --model haiku --disallowedTools <HEADLESS_DENY 넷> -- <시험 지시문>` 1회(2.1.332, total_cost_usd 0.00999): ① Bash `grep -rqs zzprobe ~/.claude/projects` 거부(permission_denials) ② Read ~/.claude/projects/… 거부(permission_denials) ③ Grep · ④ Glob 「No such tool available」 — 이 빌드 세션에 두 도구가 없어 규칙 효과는 미확인(경로가 없으니 새는 길도 없음) ⑤ 레포 README.md Read 성공. 애프터: 있는 길 2/2 장치로 막힘 · Grep/Glob 2개는 도구 없음. 앞 와일드카드 Bash(*.claude/projects*) 동작 확인",
       "completed_at": "2026-11-28T14:36:51+0900"
+    },
+    {
+      "step": 4,
+      "name": "deny-rule-exact",
+      "status": "pending",
+      "tdd": false,
+      "test_edits": {
+        "skills/sdd-run/scripts/test_sdd_runner.py": "REVIEW 1회차 🟡 — 차단 규칙을 글자 그대로 단언해 앞 와일드카드 · /** 가 빠지는 회귀를 잡는다"
+      }
     }
   ]
 }
