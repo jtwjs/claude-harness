@@ -26,11 +26,12 @@
     {
       "step": 3,
       "name": "align-commit-guard",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T21:47:21+0900",
-      "base": "2e561425312ea87d9c9bfa317a133a2da67400ae",
-      "red": "64e2b33892205ea197d47933f692f185ccc4d3d4"
+      "red": "64e2b33892205ea197d47933f692f185ccc4d3d4",
+      "summary": "start가 커밋 안 된 test_edits를 보면 종료 1(부작용 전), align_test_edits는 번호 + name이 같은 계획 step만 쓰고 null 칸은 같은 값으로 본다. BASE/HEAD 계획 읽기는 plan_edits(rev, by_name) 하나로 묶었다(계획은 따로 읽기, 이유: start와 align이 같은 꼴을 읽어 한곳에 둠). 문서 개수 줄 195 · 이번 phase 10개",
+      "completed_at": "2026-11-28T22:08:15+0900"
     }
   ],
   "reviews": [
