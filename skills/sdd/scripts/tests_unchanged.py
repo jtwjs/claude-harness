@@ -20,9 +20,10 @@ TEST_FILE = re.compile(r"(\.(test|spec)\.[^/]+$|(^|/)__tests__/|(^|/)tests?/|(^|
 NOT_TEST = re.compile(r"(^|/)__pycache__/|\.pyc$")
 
 
-def git_z(*args) -> list:
-    """NUL 로 나눈 경로 목록. 이름 바꾸기 숨김 · 비ASCII 따옴표를 피한다."""
-    r = subprocess.run(["git", "-c", "core.quotePath=false", *args], capture_output=True, text=True)
+def git_z(root, *args) -> list:
+    """NUL 로 나눈 레포 루트 기준 경로 목록. 이름 바꾸기 숨김 · 비ASCII 따옴표를 피한다.
+    루트에서 돌린다 — ls-files 는 실행 폴더 아래만 · 실행 폴더 기준 경로로 낸다."""
+    r = subprocess.run(["git", "-c", "core.quotePath=false", *args], cwd=root, capture_output=True, text=True)
     return [p for p in r.stdout.split("\0") if p]
 
 
@@ -31,10 +32,14 @@ def main(argv) -> int:
         print("사용: tests_unchanged.py <테스트 커밋 sha>", file=sys.stderr)
         return 2
     sha = argv[0]
-    if subprocess.run(["git", "rev-parse", "--verify", "-q", f"{sha}^{{commit}}"], capture_output=True).returncode:
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    if top.returncode or subprocess.run(["git", "rev-parse", "--verify", "-q", f"{sha}^{{commit}}"],
+                                        capture_output=True).returncode:
         print(f"테스트 무변경: 커밋을 읽을 수 없다 — {sha}", file=sys.stderr)
         return 2
-    changed = git_z("diff", "--no-renames", "--name-only", "-z", sha) + git_z("ls-files", "--others", "--exclude-standard", "-z")
+    root = top.stdout.strip()
+    changed = (git_z(root, "diff", "--no-renames", "--name-only", "-z", sha)
+               + git_z(root, "ls-files", "--others", "--exclude-standard", "-z"))
     hits = sorted({p for p in changed if TEST_FILE.search(p) and not NOT_TEST.search(p)})
     if not hits:
         print(f"테스트 무변경: {sha} 뒤 테스트 파일 무변경")
