@@ -8,7 +8,8 @@ on:
 permissions:
   contents: read
 
-# hooks/test.sh 를 두 잡으로 나눠 동시에 돌린다(HOOK_TEST_PART). 로컬 `bash hooks/test.sh` 는 지금처럼 전부 돈다.
+# PR · main push 는 바뀐 부분만 돈다(hooks/test.sh --since, 표 hooks/test-map.tsv). 전체는 full.yml(수동 발동)에서만 돈다(ADR-028 결정 8).
+# 잡 단위 if 를 두지 않는다 — PR 체크에 skipped 잡이 남으면 머지 가드가 통과로 치지 않는다.
 jobs:
   hooks:
     # hooks/test.sh 는 macOS 에서만 돌려 왔다
@@ -16,17 +17,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 훅 테스트 안의 임시 레포도 git commit 한다. 신원은 두 잡이 같게 둔다
+      # 훅 테스트 안의 임시 레포도 git commit 한다. 신원은 잡마다 같게 둔다
       - name: git identity
         run: |
           git config --global user.name ci
           git config --global user.email ci@example.invalid
 
-      # 훅 회귀(러너 단위 테스트를 뺀 hooks/test.sh 전부)
-      - name: test
-        run: bash hooks/test.sh
+      # 기준 커밋: PR 은 base 쪽 커밋, main push 는 push 직전 머리. 얕은 checkout 에는 없어서 그 커밋 하나만 더 받는다.
+      # 못 받으면(지워진 커밋 · 첫 push 의 0000…) test_pick 이 「커밋을 읽을 수 없다」로 전부 돈다 — 놓치는 쪽으로 실패하지 않는다
+      - name: base commit
+        run: git fetch --no-tags --depth=1 origin "$BASE" || echo "기준 커밋 $BASE 를 못 받았다 — 전부 돈다"
         env:
-          HOOK_TEST_PART: hooks
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+      # 바뀐 부분만. 러너 단위 테스트는 표가 고르면 여기서도 돈다(runner-unit 잡은 그대로 둔다)
+      - name: test
+        run: bash hooks/test.sh --since "$BASE"
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
 
   runner-unit:
     runs-on: macos-latest

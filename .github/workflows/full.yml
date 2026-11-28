@@ -1,0 +1,27 @@
+name: Full
+
+# 전체 테스트 — 사람이 손으로 돌릴 때만(Actions 화면의 Run workflow · gh workflow run full.yml), 또는 scripts/release.sh 가
+# main 머리에서 발동한다(ADR-028 결정 8). PR · main push 는 ci.yml 이 바뀐 부분만 돈다.
+# ci.yml 과 파일을 나눈 까닭: 한 파일에 잡 단위 if 로 두면 PR 체크에 skipped 잡이 남고, 머지 가드는 skipped 를 통과로 치지 않는다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    # hooks/test.sh 는 macOS 에서만 돌려 왔다
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 훅 테스트 안의 임시 레포 · 러너 단위 테스트가 신원 플래그 없이 git commit 한다
+      - name: git identity
+        run: |
+          git config --global user.name ci
+          git config --global user.email ci@example.invalid
+
+      # 전부(훅 회귀 + 러너 단위)
+      - name: test
+        run: bash hooks/test.sh
