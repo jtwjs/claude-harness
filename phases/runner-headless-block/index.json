@@ -4,8 +4,27 @@
   "docs": "docs/runner-headless-block-2026-11-28",
   "after": [],
   "steps": [
-    { "step": 1, "name": "headless-disallow", "status": "pending", "tdd": true },
-    { "step": 2, "name": "history-ban-text", "status": "pending", "tdd": false },
-    { "step": 3, "name": "headless-trial", "status": "pending", "tdd": false, "kind": "measure" }
+    {
+      "step": 1,
+      "name": "headless-disallow",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T14:12:01+0900",
+      "base": "57b59cfb5fbff2cc522c6cad4d7c44ca29e35012",
+      "red": "01983779176f8cbe4ed100cc5f6953e184ff8a24"
+    },
+    {
+      "step": 2,
+      "name": "history-ban-text",
+      "status": "pending",
+      "tdd": false
+    },
+    {
+      "step": 3,
+      "name": "headless-trial",
+      "status": "pending",
+      "tdd": false,
+      "kind": "measure"
+    }
   ]
 }
