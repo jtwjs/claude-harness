@@ -102,6 +102,8 @@ class RunnerCase(unittest.TestCase):
         self.env = dict(os.environ, SDD_RUNNER_CLAUDE=str(fake), FAKE_STATE=str(self.tmp / "n"),
                         FAKE_PROMPTS=str(self.tmp / "prompts"), FAKE_SCENARIO=str(self.tmp / "scenario.json"),
                         FAKE_TASK="t1")
+        # 헤드리스 step 안에서 돌면 부모에 러너가 넣은 끄는 변수가 있다 — 물려받으면 auto memory 단언이 빈 검증이 된다(#118 리뷰)
+        self.env.pop("CLAUDE_CODE_DISABLE_AUTO_MEMORY", None)
 
     def phase(self, steps, task="t1", after=None, md=None):
         """md: {step 번호: step 파일 본문} — 없으면 옛 꼴(의도 절 없음) 기본 본문."""
