@@ -163,6 +163,6 @@ scripts/release.sh --dry-run   # 할 일만 보여 준다
 scripts/release.sh             # push → 마켓플레이스 · 플러그인 갱신 → 설치본 확인
 ```
 
-사전 확인(main, 깨끗한 트리, plugin.json · marketplace.json 버전 일치, main 머리 커밋에서 발동한 CI full 잡 통과)이 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다.
+사전 확인(main, 깨끗한 트리, plugin.json · marketplace.json 버전 일치, 로컬 main = 원격 main, 그 커밋에서 발동한 CI full 잡 통과)이 하나라도 어긋나면 아무것도 바꾸지 않고 멈춘다.
 
 </details>

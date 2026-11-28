@@ -66,7 +66,8 @@ else
     || die "CI full 잡 발동 실패 — 이 레포에 쓰기 권한이 있는 $RELEASE_GH_USER 로 로그인한 뒤 다시"
   run_id=""
   for _ in $(seq 1 60); do
-    ci="$(full_runs | while read -r id rest; do case "$old_ids" in *" $id "*) ;; *) printf '%s %s\n' "$id" "$rest"; break ;; esac; done)"
+    # 거름은 awk 로 — macOS /bin/bash 3.2 는 $(...) 안 case 패턴의 ) 를 치환 끝으로 읽고 죽는다(bash -n 은 통과한다)
+    ci="$(full_runs | awk -v old="$old_ids" '!hit && index(old, " " $1 " ") == 0 { print; hit = 1 }')"
     if [ -n "$ci" ]; then
       read -r run_id ci_st ci_co ci_url <<< "$ci"
       [ "$ci_st" = completed ] && break
@@ -76,7 +77,7 @@ else
     fi
     sleep 30
   done
-  [ -n "$run_id" ] || die "CI full 실행이 30분 안에 나타나지 않았다"
+  [ -n "$run_id" ] || die "CI full 실행이 30분 안에 나타나지 않았다 — 그사이 원격 main 이 움직였으면 받아서 다시"
   [ "$ci_st" = completed ] || die "CI full 이 30분 안에 끝나지 않았다: $ci_url"
   [ "$ci_co" = success ] || die "CI full 실패($ci_co) — 먼저 고친다: $ci_url"
 fi
