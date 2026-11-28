@@ -81,12 +81,12 @@ fi
 # 조건은 문서를 고치기 전까지 안 풀리므로 매 세션 돌리면 반복 비용이 된다 → 레포마다 하루 첫 세션에만.
 # 축 1 · 축 3 이 같은 날짜 기록 하나를 쓴다. 날짜 기록은 레포 밖(HINT_DIR). 레포는 건드리지 않는다.
 # §9 문서 품질은 훅이 고른 파일만 본다(ADR-021 Q4 B): CLAUDE.md · paths 없는 rules · 문서 커밋 뒤 바뀐 파일에 걸리는 rules.
-# 합계가 SCOPE_MAX_BYTES 를 넘으면 셋째 묶음부터 뺀다(doctor §5 상시 로드량 ≈10KB 와 같은 값).
+# 합계가 SCOPE_MAX_BYTES 를 넘으면 셋째 묶음 안에서 큰 파일부터 뺀다. 앞의 둘은 늘 넣고 넘었다고만 적는다(doctor §5 상시 로드량 ≈10KB 와 같은 값).
 SCOPE_MAX_BYTES=10240
 if [ "${#FIRST_RUN[@]}" -gt 0 ]; then
   stamp="$HINT_DIR/$HINT_KEY.doctor-date"
   if [ "$(cat "$stamp" 2>/dev/null)" != "$TODAY" ]; then
-    scope=$(python3 "$PLUGIN_ROOT/hooks/lib/doc_scope.py" . "$SCOPE_MAX_BYTES" 2>/dev/null | tr -d '"\\' | awk 'NF{printf "%s%s", (n++ ? " · " : ""), $0}')
+    scope=$(python3 "$PLUGIN_ROOT/hooks/lib/doc_scope.py" . "$SCOPE_MAX_BYTES" 2>/dev/null | awk 'NF{printf "%s%s", (n++ ? " · " : ""), $0}' | tr -d '\000-\037"\\')   # 줄을 이은 뒤 제어문자 · 따옴표 · 역슬래시를 지운다(JSON 을 깨지 않게)
     run=$(printf '%s · ' "${FIRST_RUN[@]}")
     if [ -n "$scope" ]; then
       say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 ${DOCTOR_MD} 를 읽고 ${run}§9 문서 품질 세 축을 돌려 검사마다 한 줄로 먼저 보여라. §9 는 이 파일들만 본다: ${scope}.${FIRST_TAIL}"
