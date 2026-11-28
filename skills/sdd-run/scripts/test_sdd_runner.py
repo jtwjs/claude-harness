@@ -2571,5 +2571,230 @@ class ErrorTailTest(unittest.TestCase):
         self.assertEqual(self.tail(""), "")
 
 
+
+# ── 동시 실행 묶음(runner-test-time) — 테스트 대부분이 하위 프로세스를 기다려서 스레드로 동시에 돌린다 ──────────
+sys.path.insert(0, str(HERE))
+from parallel_suite import ParallelSuite, jobs  # noqa: E402
+
+
+class ParallelSuiteTest(unittest.TestCase):
+    """묶음이 결과를 하나도 잃지 않는다 — 실패를 삼켜 전부 통과로 보이는 것이 가장 큰 약화다."""
+
+    def run_suite(self, tests, n):
+        result = unittest.TestResult()
+        ParallelSuite(tests, n).run(result)
+        return result
+
+    def test_failures_errors_skips_carried_over(self):
+        # AC-1: 실패 · 에러 · 건너뜀 · 예상한 실패 · 예상 밖 성공이 그 테스트와 함께 옮겨진다 · 중첩 묶음도 펼친다
+        class C(unittest.TestCase):
+            def test_ok(self):
+                pass
+
+            def test_fail(self):
+                self.fail("일부러 실패")
+
+            def test_error(self):
+                raise RuntimeError("일부러 에러")
+
+            @unittest.skip("건너뛴 이유")
+            def test_skip(self):
+                pass
+
+            @unittest.expectedFailure
+            def test_xfail(self):
+                self.fail("예상한 실패")
+
+            @unittest.expectedFailure
+            def test_xpass(self):
+                pass
+
+        nested = unittest.TestSuite([unittest.TestSuite([C("test_ok"), C("test_fail"), C("test_error")]),
+                                     unittest.TestSuite([C("test_skip"), C("test_xfail"), C("test_xpass")])])
+        r = self.run_suite(nested, 3)
+        names = lambda xs: [x[0]._testMethodName for x in xs]
+        self.assertEqual(r.testsRun, 6)
+        self.assertEqual(names(r.failures), ["test_fail"])
+        self.assertIn("일부러 실패", r.failures[0][1])
+        self.assertEqual(names(r.errors), ["test_error"])
+        self.assertIn("RuntimeError: 일부러 에러", r.errors[0][1])
+        self.assertEqual([(x._testMethodName, why) for x, why in r.skipped], [("test_skip", "건너뛴 이유")])
+        self.assertEqual(names(r.expectedFailures), ["test_xfail"])
+        self.assertEqual([x._testMethodName for x in r.unexpectedSuccesses], ["test_xpass"])
+
+    def test_any_failure_makes_run_unsuccessful(self):
+        # AC-1: 하나라도 실패면 전체가 실패로 보인다 · 다 통과면 통과
+        class C(unittest.TestCase):
+            def test_ok(self):
+                pass
+
+            def test_fail(self):
+                self.assertEqual(1, 2)
+
+        bad = self.run_suite([C("test_ok") for _ in range(5)] + [C("test_fail")], 3)
+        self.assertEqual(bad.testsRun, 6)
+        self.assertFalse(bad.wasSuccessful())
+        good = self.run_suite([C("test_ok") for _ in range(6)], 3)
+        self.assertEqual(good.testsRun, 6)
+        self.assertTrue(good.wasSuccessful())
+
+    def test_runs_tests_concurrently(self):
+        # AC-2: jobs 3 이면 세 테스트가 동시에 돌아야 장벽이 풀린다(시간 대신 장벽 — 부하에 흔들리지 않는다)
+        import threading
+        barrier = threading.Barrier(3, timeout=10)
+
+        class C(unittest.TestCase):
+            def test_a(self):
+                barrier.wait()
+            test_b = test_c = test_a
+
+        r = self.run_suite([C("test_a"), C("test_b"), C("test_c")], 3)
+        self.assertEqual((r.testsRun, r.errors, r.failures), (3, [], []), "세 테스트가 동시에 돌지 않았다")
+
+    def test_jobs_one_runs_serially(self):
+        # AC-2: jobs 1 이면 동시에 도는 테스트가 1개를 넘지 않는다
+        import threading
+        import time
+        lock, seen = threading.Lock(), {"now": 0, "max": 0}
+
+        class C(unittest.TestCase):
+            def test_a(self):
+                with lock:
+                    seen["now"] += 1
+                    seen["max"] = max(seen["max"], seen["now"])
+                time.sleep(0.05)
+                with lock:
+                    seen["now"] -= 1
+            test_b = test_c = test_d = test_a
+
+        r = self.run_suite([C("test_a"), C("test_b"), C("test_c"), C("test_d")], 1)
+        self.assertEqual(r.testsRun, 4)
+        self.assertEqual(seen["max"], 1)
+
+    def test_jobs_env_blank_or_invalid_uses_default(self):
+        # AC-3: 환경을 인자로 받는다(테스트가 os.environ 을 바꾸지 않게 — 동시 실행 중 공유 상태)
+        default = min(3, os.cpu_count() or 1)
+        for v in (None, "", "0", "-2", "abc", "1.5"):
+            env = {} if v is None else {"RUNNER_TEST_JOBS": v}
+            self.assertEqual(jobs(env), default, repr(v))
+        self.assertEqual(jobs({"RUNNER_TEST_JOBS": "1"}), 1)
+        self.assertEqual(jobs({"RUNNER_TEST_JOBS": "8"}), 8)
+
+
+    def test_subtest_failure_carried_over(self):
+        # AC-1 · REVIEW 1회차 🟡: subTest 실패도 그 subTest 이름과 함께 옮겨진다
+        class C(unittest.TestCase):
+            def test_sub(self):
+                for i in range(3):
+                    with self.subTest(i=i):
+                        self.assertNotEqual(i, 1)
+
+        r = self.run_suite([C("test_sub")], 3)
+        self.assertEqual(len(r.failures), 1)
+        self.assertIn("(i=1)", str(r.failures[0][0]))
+        self.assertFalse(r.wasSuccessful())
+
+    def fixture_summary(self, r):
+        return (r.testsRun, sorted(str(t) for t, _ in r.failures), sorted(str(t) for t, _ in r.errors),
+                sorted(str(t) for t, _ in r.skipped))
+
+    def test_class_fixture_matches_plain_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: setUpClass 를 쓰는 클래스는 결과가 일반 묶음과 같다 — 준비 실패가 숨거나 통과로 세지지 않는다
+        class Broken(unittest.TestCase):
+            @classmethod
+            def setUpClass(cls):
+                raise RuntimeError("준비 실패")
+
+            def test_a(self):
+                pass
+
+            def test_b(self):
+                pass
+
+        class Ready(unittest.TestCase):
+            @classmethod
+            def setUpClass(cls):
+                cls.value = 42
+
+            @classmethod
+            def tearDownClass(cls):
+                del cls.value
+
+            def test_uses_value(self):
+                self.assertEqual(self.value, 42)
+
+        class Plain(unittest.TestCase):
+            def test_x(self):
+                pass
+
+        make = lambda: [Broken("test_a"), Broken("test_b"), Ready("test_uses_value"), Plain("test_x")]
+        plain = unittest.TestResult()
+        unittest.TestSuite(make()).run(plain)
+        par = self.run_suite(make(), 3)
+        self.assertEqual(self.fixture_summary(par), self.fixture_summary(plain))
+        self.assertTrue(any("setUpClass" in str(t) for t, _ in par.errors), "준비 실패가 보인다")
+
+    def test_module_fixture_matches_plain_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: setUpModule 이 있는 모듈의 테스트도 결과가 일반 묶음과 같다
+        import types
+        mod = types.ModuleType("parallel_suite_fixture_probe")
+        state = {}
+
+        def setUpModule():
+            state["ready"] = True
+
+        def tearDownModule():
+            state.clear()
+
+        mod.setUpModule, mod.tearDownModule = setUpModule, tearDownModule
+        sys.modules[mod.__name__] = mod   # 이 클래스는 묶음 밖에서 차례로 돈다(load_tests) — 동시 실행 중 공유 상태가 아니다
+        self.addCleanup(sys.modules.pop, mod.__name__, None)
+
+        class M(unittest.TestCase):
+            def test_ready(self):
+                self.assertTrue(state.get("ready"))
+
+        M.__module__ = mod.__name__
+        plain = unittest.TestResult()
+        unittest.TestSuite([M("test_ready")]).run(plain)
+        par = self.run_suite([M("test_ready")], 3)
+        self.assertEqual(self.fixture_summary(par), self.fixture_summary(plain))
+        self.assertTrue(par.wasSuccessful(), par.failures + par.errors)
+
+    def test_guard_tests_run_outside_parallel_suite(self):
+        # AC-1 · REVIEW 1회차 🟡: 묶음을 검증하는 이 클래스가 묶음 안에서 돌면 실패를 버리는 변이에 같이 눈이 먼다
+        loader = unittest.TestLoader()
+        loaded = unittest.TestSuite([loader.loadTestsFromTestCase(ParallelSuiteTest),
+                                     loader.loadTestsFromTestCase(TestFilePatternTest)])
+
+        def walk(s, inside):
+            for x in s:
+                if isinstance(x, unittest.TestSuite):
+                    yield from walk(x, inside or isinstance(x, ParallelSuite))
+                else:
+                    yield x, inside
+
+        seen = list(walk(load_tests(loader, loaded, None), False))
+        self.assertEqual(len(seen), loaded.countTestCases())
+        for x, inside in seen:
+            self.assertEqual(inside, not isinstance(x, ParallelSuiteTest), x.id())
+
+
+def load_tests(loader, tests, pattern):
+    """`python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py` 가 이 묶음으로 돈다. RUNNER_TEST_JOBS=1 이면 차례 실행.
+    묶음을 검증하는 ParallelSuiteTest 는 묶음 밖(일반 묶음)에서 먼저 돈다 — 안에서 돌면 실패를 버리는 변이에 같이 눈이 먼다(REVIEW 1회차)."""
+    guard, rest = [], []
+
+    def walk(s):
+        for x in s:
+            if isinstance(x, unittest.TestSuite):
+                walk(x)
+            else:
+                (guard if isinstance(x, ParallelSuiteTest) else rest).append(x)
+
+    walk(tests)
+    return unittest.TestSuite([unittest.TestSuite(guard), ParallelSuite(rest, jobs(os.environ))])
+
+
 if __name__ == "__main__":
     unittest.main()
