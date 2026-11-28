@@ -8,7 +8,7 @@
 명령 고르기(ADR-025):
   - `$step.test` 가 있으면 그것을 쓰고 {since} 에 브랜치 시작점(`git merge-base HEAD origin/<git.baseBranch>`,
     origin 이 없으면 로컬 브랜치)을 넣는다. 테스트 커밋이 여럿이어도 전부 범위에 든다
-  - `$step.test` 가 없거나 브랜치 시작점을 못 찾으면 전체 `test` 를 쓴다
+  - `$step.test` 가 없거나 브랜치 시작점을 못 찾거나 시작점이 HEAD 면(기준 브랜치 위) 전체 `test` 를 쓴다
   - 앱별 verify({"<폴더>": {"test": …}})면 앱마다 그 폴더에서 돌린다
 종료 코드: 0 전부 통과 · 1 하나라도 실패 · 2 harness.json · test 명령 · 인자 오류
 """
@@ -43,7 +43,8 @@ def branch_start(base):
     for ref in (f"origin/{base}", base) if base else ():
         r = subprocess.run(["git", "merge-base", "HEAD", ref], capture_output=True, text=True)
         if r.returncode == 0 and r.stdout.strip():
-            return r.stdout.strip()
+            head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+            return None if r.stdout.strip() == head else r.stdout.strip()   # 시작점이 HEAD 면 범위가 빈다 → 전체
     return None
 
 
