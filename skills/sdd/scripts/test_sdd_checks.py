@@ -317,6 +317,22 @@ class TestsUnchangedTest(RepoCase):
         p = self.unchanged()
         self.assertEqual(p.returncode, 0, "tests/__pycache__ · .pyc 는 테스트 파일이 아니다(오탐 1건)\n" + self.out)
 
+    def test_test_edit_with_pycache_in_same_commit_fails(self):
+        self.write("tests/test_a.py", "assert 1\n")
+        self.write("tests/__pycache__/test_a.cpython-312.pyc", "bytes")
+        commit(self.repo, "feat: a")
+        p = self.unchanged()
+        self.assertEqual(p.returncode, 1, "경로를 NUL 로 나눠 본다 — __pycache__ 가 같이 바뀌어도 테스트 수정이 묻히지 않는다\n" + self.out)
+        self.assertIn("tests/test_a.py", p.stdout)
+        self.assertNotIn("__pycache__", p.stdout)
+
+    def test_harness_json_edit_fails(self):
+        self.write(".claude/harness.json", '{"verify": {"test": "true"}}')
+        commit(self.repo, "chore: 검증 명령")
+        p = self.unchanged()
+        self.assertEqual(p.returncode, 1, "테스트 명령(verify)을 바꿔 테스트를 끄는 길도 잡는다\n" + self.out)
+        self.assertIn(".claude/harness.json", p.stdout)
+
     def test_test_file_patterns(self):
         for rel in ("web/a.test.ts", "web/__tests__/b.js", "app/src/test/kotlin/C.kt", "api/FooTest.kt",
                     "pkg/x_test.go", "hooks/test.sh", "scripts/test_y.py"):
@@ -388,6 +404,16 @@ class TestsPassTest(RepoCase):
         self.assertEqual(p.returncode, 0, self.out)
         self.assertIn("full", self.log.read_text(), "브랜치 시작점을 못 찾으면 전체 명령(놓치는 쪽으로 실패하지 않게)")
         self.assertNotIn("since", self.log.read_text())
+
+    def test_on_base_branch_head_runs_full(self):
+        self.cfg({"test": "sh check.sh full", "$step": {"test": "sh check.sh since {since}"}})
+        self.write("src/a.txt", "hello")
+        commit(self.repo, "feat")
+        git(self.repo, "switch", "-q", "main")
+        git(self.repo, "merge", "-q", "--ff-only", "feature/t")
+        p = self.passes()
+        self.assertEqual(p.returncode, 0, self.out)
+        self.assertIn("full", self.log.read_text(), "시작점이 HEAD 면 바뀐 범위가 비어 전체 명령(테스트 0개 통과를 막는다)")
 
     def test_app_form_runs_each_app_in_its_folder(self):
         for app in ("web", "api"):
