@@ -7,11 +7,12 @@
     {
       "step": 1,
       "name": "judge4-no-renames",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T13:14:03+0900",
-      "base": "81e128eedf9106689261a1f80b4894b092f68d71",
-      "red": "2aa21f2ac8f1ffc637aabff992f3a9fd7dbdb19a"
+      "red": "2aa21f2ac8f1ffc637aabff992f3a9fd7dbdb19a",
+      "summary": "sdd_runner.py check 판정 4의 red..HEAD 테스트 변경 목록을 판정 4'와 같은 꼴(core.quotePath=false · --no-renames -z, \\0 분리)로 받는다. 되돌림 규칙 · 메시지는 그대로",
+      "completed_at": "2026-11-28T13:33:43+0900"
     },
     {
       "step": 2,
