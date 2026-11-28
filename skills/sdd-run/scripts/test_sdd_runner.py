@@ -654,6 +654,169 @@ class RunnerCase(unittest.TestCase):
         self.assertEqual(self.step()["blocked_reason"], "a 기대값이 틀렸다")
         self.assertNotIn("테스트 수정 되돌림", self.log())
 
+    # ── 기록 때 test_edits 를 BASE 계획 값으로 맞춤(#116) ─────────────────────────────
+    def committed_step(self, n=1):
+        d = json.loads(git(self.repo, "show", "HEAD:phases/t1/index.json").stdout)
+        return next(s for s in d["steps"] if s["step"] == n)
+
+    def edit_index(self, fn):
+        f = self.repo / "phases/t1/index.json"
+        d = json.loads(f.read_text())
+        fn(d["steps"])
+        f.write_text(json.dumps(d, ensure_ascii=False, indent=2))
+
+    def test_align_blocked_self_edits_not_granted_after_resume(self):
+        # AC-1 · 재현 A: blocked 멈춤 커밋에 구현이 쓴 칸이 실려 재개(새 BASE) 뒤 허가가 됐다(rc 0)
+        p = self.blocked_impl([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                              [["write", "src/c.txt", "c"],
+                               ["status", "pending", {"test_edits": {"tests/q.expect": "내가 허가"}}]])
+        self.assertEqual(p.returncode, 2, self.out)
+        self.assertIn('step 1 test_edits 되돌림: {"tests/q.expect": "내가 허가"} → 없음', self.out)
+        self.assertNotIn("test_edits", self.committed_step(), "멈춤 커밋에 구현이 쓴 칸이 실리지 않는다")
+        self.assertNotIn("test_edits", self.step())
+        self.edit_index(lambda steps: steps[0].update(status="pending"))   # 사람이 재개
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q", "재개 뒤에도 구현이 쓴 칸은 허가가 아니다")
+        self.assertIn("tests/q.expect", self.step()["last_error"])
+
+    def test_align_error_stop_drops_self_edits(self):
+        # AC-2: 재시도를 다 써 error 로 멈출 때도 멈춤 커밋에 구현이 쓴 칸이 실리지 않는다
+        self.phase([{"step": 1, "name": "c", "status": "pending", "tdd": False}])
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        (r / "tests/q.expect").write_text("q")
+        (r / "src/q.txt").write_text("q")
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트 q")
+        rc = self.run_runner([{"step": 1, "ops": [["status", "error", {"error_message": "못 고침",
+                                                                       "test_edits": {"tests/q.expect": "내가 허가"}}]]}],
+                             "--max-retries", "0")
+        self.assertEqual(rc, 1, self.out)
+        self.assertEqual(self.step()["status"], "error")
+        self.assertIn('step 1 test_edits 되돌림: {"tests/q.expect": "내가 허가"} → 없음', self.out)
+        self.assertNotIn("test_edits", self.committed_step())
+
+    def test_align_completed_next_step_self_edits_not_granted(self):
+        # AC-3 · 재현 B: step 1 구현이 step 2 칸을 써 넣고 완료 → 완료 커밋을 타고 step 2 BASE 의 허가가 됐다(rc 0)
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                         {"step": 2, "name": "d", "status": "pending", "tdd": False}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.edit_index(lambda steps: steps[1].update(test_edits={"tests/q.expect": "내가 허가"}))
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertIn('step 2 test_edits 되돌림: {"tests/q.expect": "내가 허가"} → 없음', self.out)
+        self.assertNotIn("test_edits", self.committed_step(2), "완료 커밋에 뒤 step 칸이 실리지 않는다")
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"], DONE], n=2)
+        self.assertEqual(self.session("judge", "t1", "--step", "2").returncode, 10, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "q")
+
+    def test_align_planned_edits_kept_and_reason_restored(self):
+        # AC-4: 계획에 있던 칸은 남고, 구현이 바꾼 이유 글은 계획 글로 돌아간다. 안 바뀐 step 은 줄이 없다
+        plan1 = {"tests/q.expect": "q 문구가 qq 로 바뀐다"}
+        plan2 = {"tests/r.expect": "r 문구가 rr 로 바뀐다"}
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False, "test_edits": plan1},
+                         {"step": 2, "name": "d", "status": "pending", "tdd": False, "test_edits": plan2}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/q.txt", "qq"], ["write", "tests/q.expect", "qq"], ["commit", "feat: q 바꿈"],
+                  ["status", "completed", {"summary": "q", "test_edits": {"tests/q.expect": "다른 이유"}}]])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertEqual(self.read("tests/q.expect"), "qq", "계획 칸 파일은 그대로 허가")
+        self.assertEqual(self.committed_step(1)["test_edits"], plan1)
+        self.assertEqual(self.committed_step(2)["test_edits"], plan2)
+        self.assertIn("step 1 test_edits 되돌림", self.out)
+        self.assertNotIn("step 2 test_edits 되돌림", self.out, "안 바뀐 칸은 줄을 내지 않는다")
+
+    def test_align_no_plan_in_base_drops_edits(self):
+        # AC-5: BASE 커밋에 index.json 이 없으면 계획 없음 — 판정 4'와 같은 답으로 칸을 빼고 전 값을 한 줄로 남긴다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}], prompt=False)
+        before_plan = git(self.repo, "rev-parse", "HEAD~1").stdout.strip()   # 기존 테스트 커밋 — 계획 커밋 앞
+        self.assertNotEqual(git(self.repo, "cat-file", "-e", f"{before_plan}:phases/t1/index.json").returncode, 0)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl", "--base", before_plan).returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertIn('step 1 test_edits 되돌림: {"tests/q.expect": "q 문구가 qq 로 바뀐다"} → 없음', self.out)
+        self.assertNotIn("test_edits", self.committed_step())
+
+    def test_align_other_session_later_edit_reverted_with_notice(self):
+        # AC-7 · 결정 2에서 감수한 경우: BASE 뒤 다른 세션이 뒤 step 칸을 고쳐 커밋하면 완료 기록이 되돌리고 한 줄을 낸다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                         {"step": 2, "name": "d", "status": "pending", "tdd": False}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.edit_index(lambda steps: steps[1].update(test_edits={"tests/r.expect": "다른 세션이 더함"}))
+        git(self.repo, "add", "phases/t1/index.json")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "chore: 다른 세션이 계획 고침")
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertIn('step 2 test_edits 되돌림: {"tests/r.expect": "다른 세션이 더함"} → 없음', self.out)
+        self.assertNotIn("test_edits", self.committed_step(2), "막는 쪽 실패 — 계획 값으로 돌아간다")
+
+    def test_start_refuses_uncommitted_plan_edits(self):
+        # AC-9 · REVIEW 1회차 🟡: 계획을 커밋 안 하고 첫 실행하면 완료 기록이 뒤 step 의 정당한 칸을 지웠다 — 지우기 전에 멈춘다
+        r = self.repo
+        (r / "tests").mkdir(exist_ok=True)
+        (r / "tests/q.expect").write_text("q")
+        (r / "src/q.txt").write_text("q")
+        git(r, "add", "-A")
+        git(r, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "기존 테스트 q")
+        d = r / "phases/t1"
+        d.mkdir(parents=True)
+        (d / "index.json").write_text(json.dumps({"project": "p", "phase": "t1", "docs": "docs/x", "after": [], "steps": [
+            {"step": 1, "name": "c", "status": "pending", "tdd": False},
+            {"step": 2, "name": "d", "status": "pending", "tdd": False,
+             "test_edits": {"tests/q.expect": "q 문구가 qq 로 바뀐다"}}]}, ensure_ascii=False, indent=2))
+        for n, name in ((1, "c"), (2, "d")):
+            (d / f"step{n}.md").write_text(f"# Step {n}: {name}\n\n## 작업\n- 구현\n")
+        before = (git(r, "branch", "--show-current").stdout.strip(), self.index_bytes())
+        rc = self.session("start", "t1").returncode
+        after = (git(r, "branch", "--show-current").stdout.strip(), self.index_bytes())
+        self.assertEqual(rc, 1, self.out)
+        self.assertIn("step 2 test_edits 가 커밋된 계획과 다르다 — index.json 을 커밋한 뒤 실행", self.out)
+        self.assertEqual(before, after, "브랜치 · index.json 을 바꾸지 않는다")
+
+    def test_start_refuses_uncommitted_edit_on_resume(self):
+        # AC-9: 멈춘 뒤 커밋 없이 칸을 더하고 재개하면 조용히 무시되던 것을 멈춘다 — 커밋하면 지나간다
+        p = self.blocked_impl([{"step": 1, "name": "c", "status": "pending", "tdd": False}],
+                              [["write", "src/c.txt", "c"]])
+        self.assertEqual(p.returncode, 2, self.out)
+        self.edit_index(lambda steps: steps[0].update(status="pending",
+                                                      test_edits={"tests/q.expect": "사람이 더함"}))
+        self.assertEqual(self.session("start", "t1").returncode, 1, self.out)
+        self.assertIn("step 1 test_edits 가 커밋된 계획과 다르다 — index.json 을 커밋한 뒤 실행", self.out)
+        git(self.repo, "add", "phases/t1/index.json")
+        git(self.repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "chore: 사람이 칸을 더함")
+        self.assertEqual(self.session("start", "t1").returncode, 0, self.out)
+
+    def test_align_null_edits_no_notice(self):
+        # AC-11 · REVIEW 1회차 🟢: null 칸은 계획에도 칸이 없으면 같은 값 — 「없음 → 없음」 줄을 내지 않는다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False, "test_edits": None}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        self.assertNotIn("test_edits 되돌림", self.out)
+
+    def test_align_renumbered_step_does_not_inherit_edits(self):
+        # AC-10 · REVIEW 1회차 🟡: 커밋 없이 step 을 끼워 번호를 바꾸면 번호로만 맞춰 옛 step 2 칸이 새 step 2 로 옮겨 붙었다
+        self.guard_turn([{"step": 1, "name": "c", "status": "pending", "tdd": False},
+                         {"step": 2, "name": "d", "status": "pending", "tdd": False,
+                          "test_edits": {"tests/q.expect": "d 가 q 문구를 바꾼다"}}], prompt=False)
+        self.assertEqual(self.session("prompt", "t1", "--role", "impl").returncode, 0, self.out)
+
+        def renumber(steps):
+            d = dict(steps[1], step=3)
+            steps[1:] = [{"step": 2, "name": "x", "status": "pending", "tdd": False}, d]
+        self.edit_index(renumber)
+        (self.repo / "phases/t1/step3.md").write_text("# Step 3: d\n\n## 작업\n- 구현\n")
+        self.act([["write", "src/c.txt", "c"], ["commit", "feat: c"], DONE])
+        self.assertEqual(self.session("judge", "t1", "--step", "1").returncode, 0, self.out)
+        x = self.committed_step(2)
+        self.assertEqual(x["name"], "x")
+        self.assertNotIn("test_edits", x, "이름이 다른 step 은 계획 칸을 받지 않는다")
+        self.assertNotIn("test_edits", self.committed_step(3), "계획에 없는 번호 + 이름 — 막는 쪽으로 뺀다")
+
     # ── test_edits 칸 꼴 검사(ADR-024 T4) — start 가 첫 step 전에 거른다 ─────────────────
     def start_with(self, steps):
         """phase 를 두고 start. (종료 코드, 앞뒤 (브랜치, index 바이트) 같은가)."""

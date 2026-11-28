@@ -1,0 +1,59 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-resume-test-edits",
+  "docs": "docs/runner-resume-test-edits-2026-11-28",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "align-test-edits-on-record",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T20:36:16+0900",
+      "red": "cc4825a40ea29905a26e3527f236f407ef0220a1",
+      "summary": "sdd_runner.py에 align_test_edits(idx, base)를 더하고 record의 blocked · completed · error 멈춤 세 갈래가 index를 쓰기 전에 부른다",
+      "completed_at": "2026-11-28T20:55:17+0900"
+    },
+    {
+      "step": 2,
+      "name": "test-edits-doc-resume",
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-28T20:55:57+0900",
+      "summary": "docs/sdd-runner.md test_edits 항목에 멈춤 · 완료 기록 때 칸 맞추기 · 되돌림 줄 · 재개 전 커밋 · 한계를 적고 테스트 개수 줄을 191로, SKILL.md §4에 한 구절. 개수 줄의 이번 phase 몫은 6개로 했다(계획은 5개, 이유: 실제 test_align_* 가 6개 — 다른 세션이 고친 뒤 step 칸 포함)",
+      "completed_at": "2026-11-28T21:09:09+0900"
+    },
+    {
+      "step": 3,
+      "name": "align-commit-guard",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T21:47:21+0900",
+      "red": "64e2b33892205ea197d47933f692f185ccc4d3d4",
+      "summary": "start가 커밋 안 된 test_edits를 보면 종료 1(부작용 전), align_test_edits는 번호 + name이 같은 계획 step만 쓰고 null 칸은 같은 값으로 본다. BASE/HEAD 계획 읽기는 plan_edits(rev, by_name) 하나로 묶었다(계획은 따로 읽기, 이유: start와 align이 같은 꼴을 읽어 한곳에 둠). 문서 개수 줄 195 · 이번 phase 10개",
+      "completed_at": "2026-11-28T22:08:15+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T21:47:20+0900",
+      "head": "778f9208d674d1e042041885bd06453156962829",
+      "issues": [
+        "🟡 계획 index.json 미커밋 첫 실행 → 뒤 step 정당한 칸이 지워짐(AC-5 전제 오류) → step 3(start 검사, 결정 3 A)",
+        "🟡 미커밋 번호 바꾼 재개 → 칸이 다른 step으로 옮겨 붙음 → step 3(name 맞춤, 결정 4 A)",
+        "🟢 null 칸이 「없음 → 없음」 줄 → step 3",
+        "🟢 없음 → 값에도 「되돌림」 표현 · SKILL 구절 보강 → step 3 문서",
+        "원래 있던 문제: 구현 지시문 칸 목록이 작업 트리에서 읽힘 · sdd SKILL 재개 구절 없음 → PR 한계(지휘)"
+      ]
+    },
+    {
+      "at": "2026-11-28T22:12:45+0900",
+      "head": "dd9b7eae65aa1d25228d45a0264c6669c2b2dad7",
+      "issues": [
+        "✅ 1회차 🟡 2 · 🟢 null 줄 — step 3로 고침(red 4개 고치기 전 실패 → 통과)",
+        "🟢 plan_edits 헬퍼와 planned_edits가 BASE 계획 읽기를 따로 함(건너뜀: 판정 4' 그대로 두는 계획 범위)",
+        "code-reviewer 2회차 건너뜀: 트랙 지시문이 1회 허락 · 1회차 지적 고침은 red 테스트로 증명"
+      ]
+    }
+  ]
+}

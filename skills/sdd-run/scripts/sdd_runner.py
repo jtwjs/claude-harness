@@ -470,6 +470,12 @@ class Runner:
             if why:
                 print(f"step {s['step']} test_edits: {why}")
                 return 1
+        committed = self.plan_edits("HEAD", by_name=False)   # 커밋 안 된 칸은 기록 때 맞추기가 지운다(#116) — 부작용 전에 멈춘다
+        for s in self.read()["steps"]:
+            now = s.get("test_edits") if isinstance(s.get("test_edits"), dict) else None
+            if now != committed.get(s.get("step")):
+                print(f"step {s['step']} test_edits 가 커밋된 계획과 다르다 — index.json 을 커밋한 뒤 실행")
+                return 1
         docs = self.read().get("docs")
         if docs and gate(self.root / docs):   # 구현 시작 관문 — 부작용 전에(ADR-023 R2)
             return 2
@@ -727,6 +733,35 @@ class Runner:
         except (ValueError, KeyError, TypeError, StopIteration):
             edits = None
         return edits if isinstance(edits, dict) else {}
+
+    def plan_edits(self, rev: str, by_name: bool = True) -> dict:
+        """rev 커밋의 index.json 에 적힌 step 별 test_edits(dict 만). 키는 step 번호(by_name 이면 (번호, name)).
+        없거나 읽을 수 없으면 빈 dict — 계획 없음."""
+        r = self.git("show", f"{rev}:phases/{self.task}/index.json")
+        try:
+            steps = json.loads(r.stdout).get("steps", []) if r.returncode == 0 else []
+            return {((p.get("step"), p.get("name")) if by_name else p.get("step")): p["test_edits"]
+                    for p in steps if isinstance(p, dict) and isinstance(p.get("test_edits"), dict)}
+        except (ValueError, AttributeError, TypeError):
+            return {}
+
+    def align_test_edits(self, idx: dict, base: str) -> None:
+        """멈춤 · 완료 기록 커밋 전에 모든 step 의 test_edits 를 BASE 계획 값으로 맞춘다(#116). 구현이 써 넣은 칸이
+        러너 커밋에 실려 다음 BASE 의 허가가 되지 않게. 계획 값은 번호와 name 이 둘 다 같은 step 에서만 가져온다.
+        BASE 에 계획이 없거나 읽을 수 없으면 계획 없음으로 본다."""
+        planned = self.plan_edits(base)
+        show = lambda v: "없음" if v is None else json.dumps(v, ensure_ascii=False)
+        for st in idx.get("steps", []):
+            want = planned.get((st.get("step"), st.get("name")))
+            now = st.get("test_edits") if isinstance(st.get("test_edits"), dict) else None
+            raw = st.get("test_edits")
+            if now == want and (want is not None or raw is None):   # 둘 다 칸 없음(키 없음 · null)도 같은 값
+                continue
+            if want is None:
+                st.pop("test_edits", None)
+            else:
+                st["test_edits"] = want
+            print(f"step {st.get('step')} test_edits 되돌림: {show(raw)} → {show(want)}")
 
     def revert_test_edits(self, step: dict, base: str) -> list:
         """판정 4' 되돌림(ADR-024 T1 · T2 · T5). BASE ~ HEAD 순변화 중 BASE 에 있던 테스트 파일이고 test_edits 키
@@ -1031,6 +1066,7 @@ class Runner:
             s["blocked_at"] = stamp()
             if not s.get("red"):   # 나눔 모드는 red 와 짝인 BASE 를 남긴다(재판정 뒤 구현 쪽이 그대로 쓴다)
                 s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
             if s.get("red"):   # 재판정 묶음 경계(#86 D4) — 이 뒤 커밋은 검증 세션 몫. index 커밋은 phases/ 만 담아 묶음에 섞여도 된다
@@ -1046,6 +1082,7 @@ class Runner:
             s.pop("last_error", None)   # 실패 사유 이력은 attempts 에 남는다(REFLECT 재료)
             s.pop("error_message", None)
             s.pop("base", None)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit_index(n)
             print(f"✓ step {n} {s['name']}: {s.get('summary', '')}")
@@ -1070,6 +1107,7 @@ class Runner:
                     s["error_message"] += f" (테스트 수정 되돌림: {', '.join(reverted[:5])})"
             if not s.get("red"):
                 s.pop("base", None)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit_index(n)
             print(f"✗ step {n} 실패로 멈춤: {reason}")
