@@ -4,7 +4,20 @@
   "docs": "docs/runner-resume-test-edits-2026-11-28",
   "after": [],
   "steps": [
-    { "step": 1, "name": "align-test-edits-on-record", "status": "pending", "tdd": true },
-    { "step": 2, "name": "test-edits-doc-resume", "status": "pending", "tdd": false }
+    {
+      "step": 1,
+      "name": "align-test-edits-on-record",
+      "status": "pending",
+      "tdd": true,
+      "started_at": "2026-11-28T20:36:16+0900",
+      "base": "be15adcddc30c3216fd657712b4da5a76702d0d6",
+      "red": "cc4825a40ea29905a26e3527f236f407ef0220a1"
+    },
+    {
+      "step": 2,
+      "name": "test-edits-doc-resume",
+      "status": "pending",
+      "tdd": false
+    }
   ]
 }
