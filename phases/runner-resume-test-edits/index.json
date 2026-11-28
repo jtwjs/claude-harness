@@ -17,8 +17,11 @@
     {
       "step": 2,
       "name": "test-edits-doc-resume",
-      "status": "pending",
-      "tdd": false
+      "status": "completed",
+      "tdd": false,
+      "started_at": "2026-11-28T20:55:57+0900",
+      "summary": "docs/sdd-runner.md test_edits 항목에 멈춤 · 완료 기록 때 칸 맞추기 · 되돌림 줄 · 재개 전 커밋 · 한계를 적고 테스트 개수 줄을 191로, SKILL.md §4에 한 구절. 개수 줄의 이번 phase 몫은 6개로 했다(계획은 5개, 이유: 실제 test_align_* 가 6개 — 다른 세션이 고친 뒤 step 칸 포함)",
+      "completed_at": "2026-11-28T21:09:09+0900"
     }
   ]
 }
