@@ -25,7 +25,7 @@
 - 엣지 5축(축마다 테스트 이름 또는 「해당 없음」 — 비면 러너가 이 step을 돌리지 않는다):
   - 빈 값·경계: `test_class_fixture_matches_plain_suite`
   - 비정상 입력: `test_module_fixture_matches_plain_suite`
-  - 실패 경로: `test_failures_errors_skips_carried_over`(실패하는 subTest 포함)
+  - 실패 경로: `test_failures_errors_skips_carried_over` · `test_subtest_failure_carried_over`
   - 상태 전이: 해당 없음: 묶음은 한 번 돌고 끝나는 상태 없는 실행이다
   - 동시성: `test_guard_tests_run_outside_parallel_suite`
 
