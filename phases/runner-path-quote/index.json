@@ -1,0 +1,29 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-path-quote",
+  "docs": "docs/runner-path-quote-2026-11-28",
+  "after": [],
+  "steps": [
+    {
+      "step": 1,
+      "name": "path-list-nul-quote",
+      "status": "completed",
+      "tdd": true,
+      "started_at": "2026-11-28T22:24:37+0900",
+      "red": "9a54d763ba5924f91ea21ed1be1b47dafb32c2d0",
+      "summary": "sdd_runner.py 네 자리(commits_since · red_tests · base_with_tests · rejudge_split files_of)를 core.quotePath=false + -z NUL 분리로 읽는다(red_tests · base_with_tests는 --no-renames 없이, 판정 4 · 4' 줄 그대로). 문서 개수 줄 201 · 이번 phase 6개",
+      "completed_at": "2026-11-28T22:44:02+0900"
+    }
+  ],
+  "reviews": [
+    {
+      "at": "2026-11-28T23:00:00+0900",
+      "head": "c21270cdf62fc5f3871de37fda982b9a2a090dbd",
+      "issues": [
+        "🟢 PRD가 red 테스트 목록을 줄 번호(:663)로 가리켜 낡음 — 이름으로 고침(이 회차)",
+        "🟢 테스트가 「-z 대신 quotePath=false + 줄 나눔」 변이를 못 가림(\" · 탭 경로에서만 갈림) — 범위 밖, PR 한계",
+        "🟢 pathspec glob(`[` `]` `*` `?` 경로) — 원래 있던 문제, PR 한계"
+      ]
+    }
+  ]
+}
