@@ -5,7 +5,7 @@
   1. CLAUDE.md
   2. paths 없는 .claude/rules/**/*.md (Claude Code 가 늘 띄운다)
   3. 마지막 CLAUDE.md · rules 커밋 뒤 바뀐 파일에 paths 가 걸리는 rules
-모델이 아니라 이 스크립트가 고른다. 합계 바이트가 상한을 넘으면 3부터 빼고 그 사실을 마지막 줄로 남긴다.
+모델이 아니라 이 스크립트가 고른다. 합계 바이트가 상한을 넘으면 3을 큰 파일부터 빼고, 뺀 수를 마지막 줄로 남긴다.
 
 쓰는 법: doc_scope.py <레포 루트> <상한 바이트>  → 고른 파일 절대 경로를 한 줄씩
 """
@@ -93,12 +93,17 @@ def pick(root, limit):
             always.append(f)
         elif any(glob_re(p).match(x) for p in pats for x in files):
             matched.append(f)
-    size = sum(f.stat().st_size for f in always + matched)
-    note = ""
-    if matched and size > limit:
-        note = f"(뺌: paths 걸린 rules {len(matched)}개 — 합계 {size}바이트가 상한 {limit}바이트를 넘었다)"
-        matched = []
-    return [str(f) for f in always + matched], note
+    # 앞의 둘은 늘 넣는다. 셋째 묶음은 작은 파일부터 상한 안에 드는 만큼만 넣는다(통째로 빼면 템플릿 레포에서 거의 늘 빈다)
+    size = sum(f.stat().st_size for f in always)
+    kept, dropped = [], 0
+    for f in sorted(matched, key=lambda f: (f.stat().st_size, str(f))):
+        if size + f.stat().st_size <= limit:
+            kept.append(f)
+            size += f.stat().st_size
+        else:
+            dropped += 1
+    note = f"(뺌: paths 걸린 rules {dropped}개 — 상한 {limit}바이트를 넘어서)" if dropped else ""
+    return [str(f) for f in always + sorted(kept)], note
 
 
 def main():

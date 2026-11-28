@@ -44,6 +44,14 @@ _ds_out=$(python3 "$_ds_py" "$_ds_r" 30 2>&1 | sed "s#^$_ds_r/##")
 printf '%s\n' "$_ds_out" | grep -qx '.claude/rules/ts.md' && bad "상한" "넘었는데 셋째 묶음을 안 뺐다 [$_ds_out]" || ok "상한 초과 — paths 걸린 rules 를 뺀다"
 printf '%s\n' "$_ds_out" | grep -q '^(뺌: paths 걸린 rules 1개' && ok "상한 초과 — 뺀 수를 한 줄로 남긴다" || bad "뺀 줄" "[$_ds_out]"
 printf '%s\n' "$_ds_out" | grep -qx 'CLAUDE.md' && ok "상한 초과 — 앞의 둘은 그대로" || bad "앞 묶음" "[$_ds_out]"
+# 걸린 rules 둘 중 작은 하나만 드는 상한 → 작은 것은 남고 큰 것만 빠진다
+printf -- '---\npaths: ["**/*.ts"]\n---\n# ts\n%s\n' "$(printf 'z%.0s' $(seq 200))" > "$_ds_r/.claude/rules/ts.md"
+_ds_git add -A && _ds_git commit -qm "docs: ts 규칙 키움"
+printf 'y' > "$_ds_r/c.ts"; printf 'y' > "$_ds_r/docs/c.md"; _ds_git add -A && _ds_git commit -qm "feat: c"
+_ds_lim=$(( $(cat "$_ds_r/CLAUDE.md" "$_ds_r/.claude/rules/always.md" "$_ds_r/.claude/rules/brace.md" "$_ds_r/.claude/rules/sub/docs.md" | wc -c) + 10 ))
+_ds_out=$(python3 "$_ds_py" "$_ds_r" "$_ds_lim" 2>&1 | sed "s#^$_ds_r/##")
+printf '%s\n' "$_ds_out" | grep -qx '.claude/rules/sub/docs.md' && ! printf '%s\n' "$_ds_out" | grep -qx '.claude/rules/ts.md' \
+  && printf '%s\n' "$_ds_out" | grep -q '^(뺌: paths 걸린 rules 1개' && ok "상한 초과 — 큰 것부터 빼고 드는 것은 남긴다" || bad "부분 남김" "[$_ds_out]"
 
 # 5. 템플릿 · 팩 rules 의 paths 는 전부 아는 꼴이다(모르는 꼴로 넘어가 늘 들어가는 파일이 없다)
 _ds_unk=$(python3 - "$_ds_py" "$ROOT/templates" <<'PY'
