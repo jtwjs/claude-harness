@@ -1,0 +1,10 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-resume-test-edits",
+  "docs": "docs/runner-resume-test-edits-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "align-test-edits-on-record", "status": "pending", "tdd": true },
+    { "step": 2, "name": "test-edits-doc-resume", "status": "pending", "tdd": false }
+  ]
+}
