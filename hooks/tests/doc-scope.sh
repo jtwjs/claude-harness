@@ -125,8 +125,8 @@ FMPY
 # 7. 훅 — 축 3(문서 크기)이 켜진 날 첫 세션: §9 와 고른 목록을 지시, 같은 날 둘째 세션은 생략
 _ds_new hook
 printf '{}' > "$_ds_r/.claude/harness.json"
+printf '# 탭 이름\n' > "$_ds_r/.claude/rules/a$(printf '\t')b.md"   # 제어문자가 든 이름도 JSON 을 깨지 않아야 한다(문서 커밋에 같이 넣는다 — 뒤 커밋에 넣으면 그게 기준점이 된다)
 python3 -c "print('x\n'*100, end='')" > "$_ds_r/CLAUDE.md"; _ds_git add -A && _ds_git commit -qm "docs: 큼"
-printf '# 탭 이름\n' > "$_ds_r/.claude/rules/a$(printf '\t')b.md"   # 제어문자가 든 이름도 JSON 을 깨지 않아야 한다
 printf 'x' > "$_ds_r/a.ts"; _ds_git add -A && _ds_git commit -qm "feat: ts"
 _ds_hook() { (cd "$_ds_r" && printf '{}' | env CLAUDE_SKILL_HINTS_DIR="$_ds_d/hints" CLAUDE_HARNESS_HOOK_LOG="$_ds_d/log.tsv" bash "$HOOKS/cadence-reminder.sh" 2>&1); }
 _ds_out=$(_ds_hook)
