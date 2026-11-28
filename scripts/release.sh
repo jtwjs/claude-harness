@@ -48,10 +48,18 @@ ver="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"
 mver="$(python3 -c 'import json;d=json.load(open(".claude-plugin/marketplace.json"));print(next(p["version"] for p in d["plugins"] if p["name"]=="'"$PLUGIN"'"))')"
 [ "$ver" = "$mver" ] || die "버전 불일치: plugin.json $ver · marketplace.json $mver"
 skills=$(ls -d skills/*/ | wc -l | tr -d ' ')
-bash hooks/test.sh >/dev/null 2>&1 || die "hooks/test.sh 실패 — 먼저 고친다"
-python3 -m unittest skills/sdd-run/scripts/test_sdd_runner.py >/dev/null 2>&1 || die "SDD 러너 테스트 실패 — 먼저 고친다"
+# 러너 단위 테스트는 hooks/tests/sdd-runner-unit.sh 가 test.sh 안에서 돌린다. 두 개수 모두 이 출력 한 번에서 읽는다(#111)
+# test.sh 출력 문구에 기댄다: 「러너 단위 테스트 통과|실패」 · 「Ran N tests」 · 마지막 「통과 N · 실패 N」. 그 문구를 바꾸면 여기도 고친다(못 읽으면 멈춘다)
+hout="$(bash hooks/test.sh 2>&1)" && hrc=0 || hrc=$?
+runner_line="$(printf '%s\n' "$hout" | grep -E '러너 단위 테스트 (통과|실패)' | tail -1 || true)"
+case "$runner_line" in *"러너 단위 테스트 실패"*) die "SDD 러너 테스트 실패 — 먼저 고친다";; esac
+[ "$hrc" = 0 ] || die "hooks/test.sh 실패 — 먼저 고친다"
+hook_n="$(printf '%s\n' "$hout" | sed -n 's/^통과 \([0-9][0-9]*\) · 실패 0$/\1/p' | tail -1)"
+runner_n="$(printf '%s\n' "$runner_line" | sed -n 's/.*Ran \([0-9][0-9]*\) tests*.*/\1/p')"
+[ -n "$runner_n" ] || die "hooks/test.sh 출력에 러너 테스트 결과 줄이 없다 — hooks/tests/sdd-runner-unit.sh 를 확인한다"
+[ -n "$hook_n" ] || die "hooks/test.sh 출력에서 통과 개수를 못 읽었다"
 ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')
-printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · 훅 테스트 통과\n' "$ver" "$skills" "$ahead"
+printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · 훅 테스트 통과 %s · 러너 테스트 통과 %s\n' "$ver" "$skills" "$ahead" "$hook_n" "$runner_n"
 
 # ── 1. 계정 전환 — 어떤 이유로 끝나든 원래 계정으로 되돌린다 ─────────────────
 step "gh 계정 → $RELEASE_GH_USER"
