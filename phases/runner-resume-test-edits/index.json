@@ -27,7 +27,10 @@
       "step": 3,
       "name": "align-commit-guard",
       "status": "pending",
-      "tdd": true
+      "tdd": true,
+      "started_at": "2026-11-28T21:47:21+0900",
+      "base": "2e561425312ea87d9c9bfa317a133a2da67400ae",
+      "red": "64e2b33892205ea197d47933f692f185ccc4d3d4"
     }
   ],
   "reviews": [
