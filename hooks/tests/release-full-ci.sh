@@ -9,15 +9,17 @@ printf '{"plugins":[{"name":"claude-harness","version":"9.9.9"}]}\n' > "$_rf_d/r
 : > "$_rf_d/r/skills/a/SKILL.md"
 (cd "$_rf_d/r" && git init -q -b main && git add -A && git -c user.email=t@t -c user.name=t commit -qm i)
 _rf_head="$(git -C "$_rf_d/r" rev-parse HEAD)"
-# 실행 목록: 발동 전에는 지난 실행 1 하나, 발동(POST) 뒤에는 새 실행 2(결론은 RF_NEW)가 맨 앞에 붙는다
+# 실행 목록: 발동 전에는 지난 실행 1 하나, 발동(POST) 뒤 둘째 조회부터 새 실행 2(결론은 RF_NEW)가 맨 앞에 붙는다
 cat > "$_rf_d/bin/gh" <<FAKE
 #!/bin/sh
 printf '%s\n' "\$*" >> "$_rf_d/gh.log"
 case "\$*" in
   *"-X POST"*) : > "$_rf_d/posted"; exit 0 ;;
   *commits/main*) echo "$_rf_head" ;;
-  *actions/runs*)
-    [ -f "$_rf_d/posted" ] && echo "2 completed \$RF_NEW https://x/runs/2"
+  *actions/runs*)   # 발동 뒤 첫 조회에는 아직 안 뜬다 — 그때 지난 실행(성공)을 집으면 거름이 빠진 것
+    if [ -f "$_rf_d/posted" ]; then
+      if [ -f "$_rf_d/seen" ]; then echo "2 completed \$RF_NEW https://x/runs/2"; else : > "$_rf_d/seen"; fi
+    fi
     echo "1 completed success https://x/runs/1" ;;
   *) exit 1 ;;
 esac
@@ -25,7 +27,7 @@ FAKE
 printf '#!/bin/sh\nexit 0\n' > "$_rf_d/bin/sleep"
 printf '#!/bin/sh\nexit 1\n' > "$_rf_d/bin/claude"   # dry-run 끝 상시 비용이 실제 설치본을 읽지 않게
 chmod +x "$_rf_d/bin/gh" "$_rf_d/bin/sleep" "$_rf_d/bin/claude"
-_rf_run() { rm -f "$_rf_d/posted" "$_rf_d/gh.log"; (cd "$_rf_d/r" && PATH="$_rf_d/bin:$PATH" /bin/bash scripts/release.sh "$@" >"$_rf_d/out" 2>&1); echo $?; }
+_rf_run() { rm -f "$_rf_d/posted" "$_rf_d/seen" "$_rf_d/gh.log"; (cd "$_rf_d/r" && PATH="$_rf_d/bin:$PATH" /bin/bash scripts/release.sh "$@" >"$_rf_d/out" 2>&1); echo $?; }
 
 # 새 실행이 실패면 지난 실행이 성공이어도 멈춘다 — 실행 거름이 /bin/bash 에서 돈다
 _rf_c=$(RF_NEW=failure _rf_run)
