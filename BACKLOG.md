@@ -22,7 +22,6 @@
 | `sdd-run` 독립 phase 병렬 (Fan-out) | `after`로 서로 묶이지 않은 pending phase 둘 이상을 순차로 돌려 기다린 사례 **3건** (`phases_status.py` 현황으로 센다) |
 | `harness-score` Sanity 단계(죽은 코드 먼저) | 지도(`CODEBASE_MAP`)가 가리킨 경로가 죽은 코드였던 사례 **3건** (`harness-gaps`) |
 | step `model` 기본값 승격 (기본 → opus. step별 `model` 필드는 이미 있다) | `phases/*/index.json` 의 `retries` ≥ 2 인 step **3건**. 올리기 전에 step 분해부터 의심한다 |
-| 실제 자동 머지 켜기 (`pr-write` 4.6, 지금 dry-run) | PR 본문에 `자동 머지 조건` 줄이 있는 **머지된 PR 10건**(`gh pr list --state merged --search '"자동 머지 조건" in:body'`)에서 오판 **0건**. 오판 = `충족`이었는데 머지 뒤 그 PR 파일을 고친 `fix:`·`revert` 커밋이 나옴, 또는 `미충족`이었는데 사람이 아무것도 고치지 않고 머지함. 켜면 `block-dangerous-bash`의 `gh pr merge` ask를 같이 푼다 |
 | 헤드리스 러너 worktree 격리 (강의 Contain 층) | 헤드리스 `run`이 step 범위 밖 파일을 바꾼 사례 **3건** (`git diff --stat`에 step 파일의 「작업」에 없는 경로) |
 | 운영 DB 가드 — Bash 밖 경로(MCP DB 도구·docker compose·설정 파일 Edit) | 이 경로로 운영 DB 에 붙은 사례 **1건** — 사고 1번이 곧 조건이다 |
 | `judge` 이동 테스트 판정 — 이름 변경 + `package` · `import` 줄만 바뀐 테스트 파일은 「RED 뒤 테스트 무변경」으로 친다(가져오는 이름이 같을 때만) | 이동 리팩터에서 RED를 측정 step(`kind: measure`)으로 떼고 이동 step을 `tdd: false`로 돌린 phase **3건** (`phases/*/index.json`) — 그때까지는 측정 step 우회로 푼다. 2026-10-21 1건 |
