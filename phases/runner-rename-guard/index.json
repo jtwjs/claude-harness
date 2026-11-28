@@ -1,0 +1,10 @@
+{
+  "project": "claude-harness",
+  "phase": "runner-rename-guard",
+  "docs": "docs/runner-rename-guard-2026-11-28",
+  "after": [],
+  "steps": [
+    { "step": 1, "name": "judge4-no-renames", "status": "pending", "tdd": true },
+    { "step": 2, "name": "test-edits-doc-line", "status": "pending", "tdd": false }
+  ]
+}
