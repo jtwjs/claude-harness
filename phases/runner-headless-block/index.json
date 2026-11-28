@@ -80,9 +80,12 @@
     {
       "step": 8,
       "name": "auto-memory-off-check",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
-      "kind": "measure"
+      "kind": "measure",
+      "started_at": "2026-11-28T15:35:02+0900",
+      "summary": "`env -u SDD_RUNNER_SINCE CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 claude -p --dangerously-skip-permissions --output-format json --model haiku --disallowedTools <HEADLESS_DENY 넷> -- <step 5와 같은 지시문>` 1회(claude 2.1.332, stdin /dev/null, total_cost_usd 0.00634, 도구 호출 0 · step 계획 커밋 직전에 돌림): auto memory 안내 없음 · 메모리 파일 내용 실림 없음. 비포(step 5) 안내 있음 → 애프터 없음",
+      "completed_at": "2026-11-28T15:39:17+0900"
     }
   ],
   "reviews": [
