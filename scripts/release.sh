@@ -48,24 +48,40 @@ ver="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"
 mver="$(python3 -c 'import json;d=json.load(open(".claude-plugin/marketplace.json"));print(next(p["version"] for p in d["plugins"] if p["name"]=="'"$PLUGIN"'"))')"
 [ "$ver" = "$mver" ] || die "버전 불일치: plugin.json $ver · marketplace.json $mver"
 skills=$(ls -d skills/*/ | wc -l | tr -d ' ')
-# 전체 테스트는 로컬에서 다시 돌리지 않고 main 머리 커밋의 CI(ci.yml 은 main push 에도 돈다) 결과를 본다(2026-11-29, 사용자 지시).
-# 돌고 있으면 기다리고, 실패 · 없음이면 멈춘다. 옛 gh(2.21)에는 run list --commit 이 없어 REST 로 묻는다
+# 전체 테스트는 로컬에서 다시 돌리지 않고, main 머리 커밋에서 CI full 잡(수동 발동)을 돌려 그 결과를 기다린다(ADR-028 결정 8).
+# PR · main push CI 는 바뀐 부분만 돌아 릴리스 근거가 되지 못한다. 옛 gh(2.21)에는 run list --commit 이 없어 REST 로 묻는다
 head_sha="$(git rev-parse HEAD)"
+gh_ci() { gh api "$@" 2>/dev/null || die "CI 를 못 읽었다 — gh 계정이 이 레포를 못 보면 $RELEASE_GH_USER 로 로그인한 뒤 다시"; }
+remote_sha="$(gh_ci "repos/{owner}/{repo}/commits/main" -q .sha)"
+[ "$remote_sha" = "$head_sha" ] || die "main 머리 커밋 ${head_sha:0:7} 이 원격 main(${remote_sha:0:7})과 다르다 — push 안 된 커밋이면 PR 로 넣는다"
+full_runs() { gh_ci "repos/{owner}/{repo}/actions/runs?event=workflow_dispatch&head_sha=$head_sha" -q '.workflow_runs[] | select(.name == "CI") | "\(.id) \(.status) \(.conclusion // "none") \(.html_url)"'; }
 ci_st="" ci_co="" ci_url=""
-for _ in $(seq 1 60); do
-  ci="$(gh api "repos/{owner}/{repo}/actions/runs?branch=main&event=push&head_sha=$head_sha" \
-        -q 'first(.workflow_runs[] | select(.name == "CI")) | "\(.status) \(.conclusion // "none") \(.html_url)"' 2>/dev/null)" \
-    || die "main CI 를 못 읽었다 — gh 계정이 이 레포를 못 보면 $RELEASE_GH_USER 로 로그인한 뒤 다시"
-  [ -n "$ci" ] || die "main 머리 커밋 ${head_sha:0:7} 의 CI 실행이 없다 — push 안 된 커밋이면 PR 로 넣는다"
-  read -r ci_st ci_co ci_url <<< "$ci"
-  [ "$ci_st" = completed ] && break
-  printf '  main CI 도는 중(%s) — 30초 뒤 다시 본다: %s\n' "$ci_st" "$ci_url"
-  sleep 30
-done
-[ "$ci_st" = completed ] || die "main CI 가 30분 안에 끝나지 않았다: $ci_url"
-[ "$ci_co" = success ] || die "main CI 실패($ci_co) — 먼저 고친다: $ci_url"
+if [ "$DRY" = 1 ]; then
+  printf '  (dry-run) CI full 잡을 main(%s)에서 발동하고 결과를 기다린다\n' "${head_sha:0:7}"
+  ci_url="(dry-run 발동 안 함)"
+else
+  # 발동 전 실행 id 를 적어 두고, 그 목록에 없는 새 실행을 기다린다 — 같은 커밋의 지난 실행을 잘못 집지 않게
+  old_ids=" $(full_runs | awk '{print $1}' | tr '\n' ' ')"
+  gh api -X POST "repos/{owner}/{repo}/actions/workflows/ci.yml/dispatches" -f ref=main >/dev/null \
+    || die "CI full 잡 발동 실패 — 이 레포에 쓰기 권한이 있는 $RELEASE_GH_USER 로 로그인한 뒤 다시"
+  run_id=""
+  for _ in $(seq 1 60); do
+    ci="$(full_runs | while read -r id rest; do case "$old_ids" in *" $id "*) ;; *) printf '%s %s\n' "$id" "$rest"; break ;; esac; done)"
+    if [ -n "$ci" ]; then
+      read -r run_id ci_st ci_co ci_url <<< "$ci"
+      [ "$ci_st" = completed ] && break
+      printf '  CI full 도는 중(%s) — 30초 뒤 다시 본다: %s\n' "$ci_st" "$ci_url"
+    else
+      printf '  CI full 실행이 아직 안 보인다 — 30초 뒤 다시 본다\n'
+    fi
+    sleep 30
+  done
+  [ -n "$run_id" ] || die "CI full 실행이 30분 안에 나타나지 않았다"
+  [ "$ci_st" = completed ] || die "CI full 이 30분 안에 끝나지 않았다: $ci_url"
+  [ "$ci_co" = success ] || die "CI full 실패($ci_co) — 먼저 고친다: $ci_url"
+fi
 ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')
-printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · main CI 통과 %s\n' "$ver" "$skills" "$ahead" "$ci_url"
+printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · CI full 통과 %s\n' "$ver" "$skills" "$ahead" "$ci_url"
 
 # ── 1. 계정 전환 — 어떤 이유로 끝나든 원래 계정으로 되돌린다 ─────────────────
 step "gh 계정 → $RELEASE_GH_USER"
