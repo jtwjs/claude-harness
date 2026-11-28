@@ -48,18 +48,24 @@ ver="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"
 mver="$(python3 -c 'import json;d=json.load(open(".claude-plugin/marketplace.json"));print(next(p["version"] for p in d["plugins"] if p["name"]=="'"$PLUGIN"'"))')"
 [ "$ver" = "$mver" ] || die "버전 불일치: plugin.json $ver · marketplace.json $mver"
 skills=$(ls -d skills/*/ | wc -l | tr -d ' ')
-# 러너 단위 테스트는 hooks/tests/sdd-runner-unit.sh 가 test.sh 안에서 돌린다. 두 개수 모두 이 출력 한 번에서 읽는다(#111)
-# test.sh 출력 문구에 기댄다: 「러너 단위 테스트 통과|실패」 · 「Ran N tests」 · 마지막 「통과 N · 실패 N」. 그 문구를 바꾸면 여기도 고친다(못 읽으면 멈춘다)
-hout="$(bash hooks/test.sh 2>&1)" && hrc=0 || hrc=$?
-runner_line="$(printf '%s\n' "$hout" | grep -E '러너 단위 테스트 (통과|실패)' | tail -1 || true)"
-case "$runner_line" in *"러너 단위 테스트 실패"*) die "SDD 러너 테스트 실패 — 먼저 고친다";; esac
-[ "$hrc" = 0 ] || die "hooks/test.sh 실패 — 먼저 고친다"
-hook_n="$(printf '%s\n' "$hout" | LC_ALL=C sed -n 's/^통과 \([0-9][0-9]*\) · 실패 0$/\1/p' | tail -1)"
-runner_n="$(printf '%s\n' "$runner_line" | LC_ALL=C sed -n 's/.*Ran \([0-9][0-9]*\) tests*.*/\1/p')"
-[ -n "$runner_n" ] || die "hooks/test.sh 출력에 러너 테스트 결과 줄이 없다 — hooks/tests/sdd-runner-unit.sh 를 확인한다"
-[ -n "$hook_n" ] || die "hooks/test.sh 출력에서 통과 개수를 못 읽었다"
+# 전체 테스트는 로컬에서 다시 돌리지 않고 main 머리 커밋의 CI(ci.yml 은 main push 에도 돈다) 결과를 본다(2026-11-29, 사용자 지시).
+# 돌고 있으면 기다리고, 실패 · 없음이면 멈춘다. 옛 gh(2.21)에는 run list --commit 이 없어 REST 로 묻는다
+head_sha="$(git rev-parse HEAD)"
+ci_st="" ci_co="" ci_url=""
+for _ in $(seq 1 60); do
+  ci="$(gh api "repos/{owner}/{repo}/actions/runs?branch=main&event=push&head_sha=$head_sha" \
+        -q 'first(.workflow_runs[] | select(.name == "CI")) | "\(.status) \(.conclusion // "none") \(.html_url)"' 2>/dev/null)" \
+    || die "main CI 를 못 읽었다 — gh 계정이 이 레포를 못 보면 $RELEASE_GH_USER 로 로그인한 뒤 다시"
+  [ -n "$ci" ] || die "main 머리 커밋 ${head_sha:0:7} 의 CI 실행이 없다 — push 안 된 커밋이면 PR 로 넣는다"
+  read -r ci_st ci_co ci_url <<< "$ci"
+  [ "$ci_st" = completed ] && break
+  printf '  main CI 도는 중(%s) — 30초 뒤 다시 본다: %s\n' "$ci_st" "$ci_url"
+  sleep 30
+done
+[ "$ci_st" = completed ] || die "main CI 가 30분 안에 끝나지 않았다: $ci_url"
+[ "$ci_co" = success ] || die "main CI 실패($ci_co) — 먼저 고친다: $ci_url"
 ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')
-printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · 훅 테스트 통과 %s · 러너 테스트 통과 %s\n' "$ver" "$skills" "$ahead" "$hook_n" "$runner_n"
+printf '  버전 %s · 스킬 %s개 · push 할 커밋 %s건 · main CI 통과 %s\n' "$ver" "$skills" "$ahead" "$ci_url"
 
 # ── 1. 계정 전환 — 어떤 이유로 끝나든 원래 계정으로 되돌린다 ─────────────────
 step "gh 계정 → $RELEASE_GH_USER"
