@@ -68,11 +68,14 @@
     {
       "step": 7,
       "name": "memory-test-isolation",
-      "status": "pending",
+      "status": "completed",
       "tdd": false,
       "test_edits": {
         "skills/sdd-run/scripts/test_sdd_runner.py": "REVIEW(step 6) 🟡 — 부모 환경에 끄는 변수가 1이면 테스트가 빈 검증이 된다. setUp에서 뺀다"
-      }
+      },
+      "started_at": "2026-11-28T15:30:35+0900",
+      "summary": "setUp 이 CLAUDE_CODE_DISABLE_AUTO_MEMORY 를 뺀다. 스크래치 변이(부모 환경 =1): 원본 OK · 「첫 시도에만 설정」 FAILED (failures=1) — 고치기 전에는 리뷰어 실험에서 OK(못 잡음)",
+      "completed_at": "2026-11-28T15:34:27+0900"
     }
   ],
   "reviews": [
