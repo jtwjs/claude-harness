@@ -17,11 +17,12 @@
     {
       "step": 2,
       "name": "review-fix-guard-outside",
-      "status": "pending",
+      "status": "completed",
       "tdd": true,
       "started_at": "2026-11-28T23:42:24+0900",
-      "base": "cefc37bdeebd3434f5069c0a352039e83c41e15d",
-      "red": "6b5a1fdc9d1aed914d8ec6156c1a95e696e9c379"
+      "red": "6b5a1fdc9d1aed914d8ec6156c1a95e696e9c379",
+      "summary": "ParallelSuite.run이 setUpClass · tearDownClass를 바꾼 클래스와 setUpModule · tearDownModule 있는 모듈의 테스트를 일반 TestSuite로 먼저 돌리고 나머지를 동시에. docstring · docs 개수 줄 210. 로컬 첫 실행이 부하 평균 약 50에서 3건 실패(이름 미기록) → 재실행 210 OK",
+      "completed_at": "2026-11-29T00:14:01+0900"
     }
   ],
   "reviews": [
