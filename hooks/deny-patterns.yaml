@@ -43,6 +43,13 @@ patterns:
     title: "git commit --no-verify"
     reason: "pre-commit hook 우회 금지. hook 실패 시 원인 수정 후 재커밋. (CLAUDE.md 정책)"
 
+  - id: push-no-verify
+    # commit-no-verify 와 같은 꼴. `-n` 은 push 에서 dry-run 이라 넣지 않는다(ADR-021 Q1 A 첫 적용).
+    pattern: 'git[[:space:]]+push[[:space:]][^|;&]*\B--no-verify\b'
+    ignore_quoted: true
+    title: "git push --no-verify"
+    reason: "pre-push hook 우회 금지. hook 실패 시 원인 수정 후 다시 push."
+
   - id: rm-rf-root-home
     # 플래그 순서·표기 무관(-rf · -fr · -r -f · --recursive), 경로는 따옴표·끝 슬래시 허용. ./build 나 /tmp/x 같은 하위 경로는 막지 않는다.
     pattern: 'rm[[:space:]]+(-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)([[:space:]]+-[a-zA-Z-]+)*[[:space:]]+["'"'"']?(/|~|\$HOME|\$\{HOME\})/?["'"'"']?([[:space:]]|$)'

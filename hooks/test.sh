@@ -71,6 +71,9 @@ check_deny 2 'git commit --no-verify -m x'
 check_deny 2 'git commit -m "x" -n'
 check_deny 2 'cat .env'
 check_deny 2 'git push -f origin main'
+# push-no-verify — 인자 위치와 상관없이 막고, dry-run -n 은 통과 (ADR-021 I3)
+for c in 'git push --no-verify' 'git push origin x --no-verify' 'git push --no-verify origin x' 'git push origin --no-verify x'; do check_deny 2 "$c"; done
+for c in 'git push -n' 'git push origin x -n' 'git commit -m "git push --no-verify 금지 문서"' 'git push origin feature/no-verify-docs'; do check_deny 0 "$c"; done
 # secret-file-read — 읽기 낱말은 명령 자리에서만 본다. 따옴표 본문 · --head 옵션 속 .env 글자는 통과 (#103)
 for c in 'cat ".env"' 'head -5 .env.local' 'cat x | tail .env' 'echo hi && cat .env' 'X=$(cat .env)' "cat 'secrets/.env'" \
          'less ~/.ssh/id_rsa' 'cd app && cat .env' 'sudo cat .env' 'time cat .env' 'ls | xargs cat .env' 'env FOO=1 cat .env' \
