@@ -728,6 +728,28 @@ class Runner:
             edits = None
         return edits if isinstance(edits, dict) else {}
 
+    def align_test_edits(self, idx: dict, base: str) -> None:
+        """멈춤 · 완료 기록 커밋 전에 모든 step 의 test_edits 를 BASE 계획 값으로 맞춘다(#116). 구현이 써 넣은 칸이
+        러너 커밋에 실려 다음 BASE 의 허가가 되지 않게. BASE 에 계획이 없거나 읽을 수 없으면 계획 없음으로 본다."""
+        r = self.git("show", f"{base}:phases/{self.task}/index.json")
+        try:
+            plan = json.loads(r.stdout) if r.returncode == 0 else {}
+            planned = {p.get("step"): p.get("test_edits") for p in plan.get("steps", []) if isinstance(p, dict)}
+        except (ValueError, AttributeError, TypeError):
+            planned = {}
+        show = lambda v: "없음" if v is None else json.dumps(v, ensure_ascii=False)
+        for st in idx.get("steps", []):
+            want = planned.get(st.get("step"))
+            want = want if isinstance(want, dict) else None
+            now = st.get("test_edits")
+            if now == want and ("test_edits" in st) == (want is not None):
+                continue
+            if want is None:
+                st.pop("test_edits", None)
+            else:
+                st["test_edits"] = want
+            print(f"step {st.get('step')} test_edits 되돌림: {show(now)} → {show(want)}")
+
     def revert_test_edits(self, step: dict, base: str) -> list:
         """판정 4' 되돌림(ADR-024 T1 · T2 · T5). BASE ~ HEAD 순변화 중 BASE 에 있던 테스트 파일이고 test_edits 키
         (경로 글자 그대로, glob 없음 — T4)에 없는 것을 BASE 내용으로 되돌려 커밋한다. 되돌린 경로를 돌려준다."""
@@ -1031,6 +1053,7 @@ class Runner:
             s["blocked_at"] = stamp()
             if not s.get("red"):   # 나눔 모드는 red 와 짝인 BASE 를 남긴다(재판정 뒤 구현 쪽이 그대로 쓴다)
                 s.pop("base", None)   # 재개는 새 BASE 로(앞 시도는 wip 커밋으로 남는다)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit(f"wip: step {n} — {s['name']} (blocked 시점 코드)")
             if s.get("red"):   # 재판정 묶음 경계(#86 D4) — 이 뒤 커밋은 검증 세션 몫. index 커밋은 phases/ 만 담아 묶음에 섞여도 된다
@@ -1046,6 +1069,7 @@ class Runner:
             s.pop("last_error", None)   # 실패 사유 이력은 attempts 에 남는다(REFLECT 재료)
             s.pop("error_message", None)
             s.pop("base", None)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit_index(n)
             print(f"✓ step {n} {s['name']}: {s.get('summary', '')}")
@@ -1070,6 +1094,7 @@ class Runner:
                     s["error_message"] += f" (테스트 수정 되돌림: {', '.join(reverted[:5])})"
             if not s.get("red"):
                 s.pop("base", None)
+            self.align_test_edits(idx, base)
             self.write(idx)
             self.commit_index(n)
             print(f"✗ step {n} 실패로 멈춤: {reason}")
