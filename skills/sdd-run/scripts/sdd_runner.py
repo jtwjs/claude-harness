@@ -639,7 +639,7 @@ class Runner:
         """[(sha, [파일])] 오래된 것부터."""
         out = []
         for sha in self.git("rev-list", "--reverse", f"{base}..HEAD").stdout.split():
-            files = self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
+            files = [f for f in self.git("-c", "core.quotePath=false", "diff-tree", "--no-commit-id", "--name-only", "-z", "-r", sha).stdout.split("\0") if f]
             out.append((sha, [f for f in files if not f.startswith(f"phases/{self.task}/")]))
         return [c for c in out if c[1]]
 
@@ -672,7 +672,8 @@ class Runner:
         if step.get("tdd"):
             if step.get("red"):   # 나눔 모드 구현 쪽: 판정 2·3 은 judge --red 가 이미 했다 — red 를 기준으로 4·5
                 red_sha = step["red"]
-                red_tests = [f for f in self.git("diff", "--name-only", base, red_sha).stdout.split() if TEST_FILE.search(f)]
+                red_tests = [f for f in self.git("-c", "core.quotePath=false", "diff", "--name-only", "-z", base, red_sha).stdout.split("\0")
+                             if f and TEST_FILE.search(f)]
             else:
                 red_sha, red_tests = self.red_check(commits, base, step=step)
             # 이름 바꾸기도 옛 경로 지움 + 새 경로 추가로 본다 · 공백 · 비ASCII 경로를 그대로 받는다(판정 4'와 같은 꼴, #102)
@@ -879,7 +880,7 @@ class Runner:
         run = lambda *a: subprocess.run(["git", *a], cwd=self.root, env=env, capture_output=True, text=True, check=True)
         try:
             run("read-tree", base)
-            for f in self.git("diff", "--name-only", base, "HEAD").stdout.splitlines():
+            for f in filter(None, self.git("-c", "core.quotePath=false", "diff", "--name-only", "-z", base, "HEAD").stdout.split("\0")):
                 if not TEST_FILE.search(f) or f.startswith("phases/"):
                     continue
                 ls = self.git("ls-tree", "HEAD", "--", f).stdout.split()
@@ -951,7 +952,8 @@ class Runner:
         old = step["red"]
         is_test = lambda f: TEST_FILE.search(f) and not f.startswith("phases/")
         blob = lambda rev, f: self.git("rev-parse", "-q", "--verify", f"{rev}:{f}").stdout.strip()
-        files_of = lambda sha: self.git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).stdout.split()
+        files_of = lambda sha: [f for f in self.git("-c", "core.quotePath=false", "diff-tree", "--no-commit-id", "--name-only", "-z", "-r",
+                                                    sha).stdout.split("\0") if f]
         bh = step.get("blocked_head")
         if bh:
             fix = []
