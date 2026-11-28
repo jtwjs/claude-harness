@@ -383,10 +383,11 @@ echo "$out" | grep -q "verify.test 가 비어" && ok "빈 verify.test 를 보고
 printf '\n[5] cadence 축 3 — CLAUDE.md 비대 임계\n'
 printf '# tiny\n' > "$TMP/on/CLAUDE.md"
 out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
-echo "$out" | grep -q 'claude-md-improver' && bad "오탐" "작은 CLAUDE.md 에 떠들었다" || ok "임계 아래 — 조용"
+echo "$out" | grep -q '줄(목표 ~40)' && bad "오탐" "작은 CLAUDE.md 에 떠들었다" || ok "임계 아래 — 조용"
 python3 -c "print('x\n'*100, end='')" > "$TMP/on/CLAUDE.md"
-out=$(cd "$TMP/on" && printf '{}' | bash "$HOOKS/cadence-reminder.sh" 2>&1)
-echo "$out" | grep -q 'claude-md-improver' && ok "임계 초과 — 환기" || bad "침묵" "101줄인데 아무 말이 없다 out=[$out]"
+# 축 3 도 하루 첫 세션 기록(doctor-date)을 쓴다 — 아래 축 1 하루 한 번 케이스와 기록이 섞이지 않게 폴더를 나눈다
+out=$(cd "$TMP/on" && printf '{}' | CLAUDE_SKILL_HINTS_DIR="$TMP/hints-case5" bash "$HOOKS/cadence-reminder.sh" 2>&1)
+echo "$out" | grep -q '줄(목표 ~40)' && echo "$out" | grep -qF 'harness-doctor/SKILL.md 의 §5 · §9' && ok "임계 초과 — harness-doctor §5 · §9 로 환기" || bad "침묵" "101줄인데 doctor 환기가 없다 out=[$out]"
 
 # ── 케이스 6: weekly-readiness-check — 자동 채점 · 하락 시만 알림 (2026-10-11) ──
 # cadence 축 4(환기만, 94세션에 채점 0)를 대체한다. 테스트는 CLAUDE_READINESS_SYNC 로 채점을 동기 실행한다.

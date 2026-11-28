@@ -46,7 +46,7 @@ printf '{"harness":{"version":"0.37.0"}}' > "$_vd_d/repo/.claude/harness.json"
 seq 90 > "$_vd_d/repo/CLAUDE.md"
 _vd_run both "$_vd_d/repo"
 _vd_n=$(awk 'END{print NR}' "$_vd_d/both.out")
-if [ "$_vd_n" = "1" ] && grep -qF "$_vd_line" "$_vd_d/both.out" && grep -qF 'claude-md-improver' "$_vd_d/both.out"; then ok "다름 + 기존 권고 — 한 줄 출력에 둘 다"; else bad "둘 다" "${_vd_n}줄 [$(cat "$_vd_d/both.out")]"; fi
+if [ "$_vd_n" = "1" ] && grep -qF "$_vd_line" "$_vd_d/both.out" && grep -qF '줄(목표 ~40)' "$_vd_d/both.out"; then ok "다름 + 기존 권고 — 한 줄 출력에 둘 다"; else bad "둘 다" "${_vd_n}줄 [$(cat "$_vd_d/both.out")]"; fi
 [ "$(_vd_result both)" = "warn" ] && ok "다름 + 기존 권고 — 기록 결과 warn 그대로" || bad "둘 다 기록" "[$(_vd_result both)]"
 rm -f "$_vd_d/repo/CLAUDE.md"
 

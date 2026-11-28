@@ -49,34 +49,52 @@ RULES_MAX_LINES=400    # 정할 때 템플릿 rules 4개 180줄의 2배 + 여유
 
 # ── 축 1: 함정 freshness ─────────────────────────────────────────────────────
 # CLAUDE.md·rules 갱신 이후 fix: 가 쌓였다면 새 함정이 문서에 없을 가능성.
+FIRST_RUN=()   # 쌓인 양 장치가 켜졌을 때 그날 첫 세션에 먼저 돌릴 doctor 검사
+FIRST_TAIL=""
 anchor=$(git log -1 --format=%H -- CLAUDE.md .claude/rules/ 2>/dev/null || true)
 if [ -n "$anchor" ]; then
   fixes=$(git log --oneline "${anchor}..HEAD" --grep='^fix:' 2>/dev/null | wc -l | tr -d ' ')
   if [ "${fixes:-0}" -ge "$FIX_THRESHOLD" ]; then
     say "CLAUDE.md·rules 갱신 이후 fix: 커밋 ${fixes}건. 새 함정이 있으면 .claude/rules/non-obvious-patterns.md 에 한 줄 추가할 시점이다 (${DOCTOR_MD} 를 읽고 점검)."
     HINTS+=("harness-doctor — fix ${fixes}건")
-    # 결과 먼저, 하루 한 번 (2026-10-11) — 권유만으로는 17세션 환기에 doctor 호출 0이었다.
-    # 조건은 CLAUDE.md·rules 를 고치기 전까지 안 풀리므로 매 세션 돌리면 반복 비용이 된다 → 레포마다 하루 첫 세션에만.
-    # 날짜 기록은 레포 밖(HINT_DIR). 레포는 건드리지 않는다.
-    stamp="$HINT_DIR/$HINT_KEY.doctor-date"
-    if [ "$(cat "$stamp" 2>/dev/null)" != "$TODAY" ]; then
-      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 ${DOCTOR_MD} 를 읽고 §2 참조 무결성 · §3 빈 축적소 두 검사만 돌려 결과를 3줄로 먼저 보여라. fix: 커밋 중 함정 후보가 있으면 non-obvious-patterns.md 한 줄 초안까지 낸다(쓰기는 승인 뒤)."
-      mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "$TODAY" > "$stamp" 2>/dev/null || true
-    fi
+    FIRST_RUN+=("§2 참조 무결성" "§3 빈 축적소")
+    FIRST_TAIL=" fix: 커밋 중 함정 후보가 있으면 non-obvious-patterns.md 한 줄 초안까지 낸다(쓰기는 승인 뒤)."
   fi
 fi
 
 # ── 축 2: 지식 자본화 — 2026-11-23 뺐다(레포에 _brain/ 을 두지 않는다, ADR-013) ──
 
 # ── 축 3: CLAUDE.md 비대 ─────────────────────────────────────────────────────
-# `revise-claude-md`(SDD REFLECT)가 매 세션 한 줄씩 쌓는다. 쌓는 주체가 있으면
-# 깎는 주체도 있어야 한다 — 깎는 쪽은 공식 `claude-md-improver`다.
+# sdd ④ REFLECT 「흘린 것」이 매 세션 한 줄씩 쌓는다. 쌓는 주체가 있으면
+# 깎는 주체도 있어야 한다 — 깎는 쪽은 harness-doctor §5(크기) · §9(문서 품질)다(ADR-021 I2).
 c=0; r=0
 [ -f CLAUDE.md ] && c=$(wc -l < CLAUDE.md | tr -d ' ')
 [ -d .claude/rules ] && r=$(find .claude/rules -name '*.md' -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
 if [ "${c:-0}" -gt "$CLAUDE_MAX_LINES" ] || [ "${r:-0}" -gt "$RULES_MAX_LINES" ]; then
-  say "CLAUDE.md ${c}줄(목표 ~40) · .claude/rules 합계 ${r}줄. claude-md-improver 로 등급·압축 제안을 받을 시점이다."
-  HINTS+=("claude-md-improver — CLAUDE.md ${c}줄")
+  say "CLAUDE.md ${c}줄(목표 ~40) · .claude/rules 합계 ${r}줄. ${DOCTOR_MD} 의 §5 · §9 로 점검할 시점이다."
+  HINTS+=("harness-doctor — CLAUDE.md ${c}줄")
+  FIRST_RUN+=("§5 크기")
+fi
+
+# ── 쌓인 양 장치가 켜진 날 첫 세션: 결과 먼저, 하루 한 번 ─────────────────────────
+# 권유만으로는 17세션 환기에 doctor 호출 0이었다(2026-10-11) → 답보다 먼저 돌리게 한다.
+# 조건은 문서를 고치기 전까지 안 풀리므로 매 세션 돌리면 반복 비용이 된다 → 레포마다 하루 첫 세션에만.
+# 축 1 · 축 3 이 같은 날짜 기록 하나를 쓴다. 날짜 기록은 레포 밖(HINT_DIR). 레포는 건드리지 않는다.
+# §9 문서 품질은 훅이 고른 파일만 본다(ADR-021 Q4 B): CLAUDE.md · paths 없는 rules · 문서 커밋 뒤 바뀐 파일에 걸리는 rules.
+# 합계가 SCOPE_MAX_BYTES 를 넘으면 셋째 묶음 안에서 큰 파일부터 뺀다. 앞의 둘은 늘 넣고 넘었다고만 적는다(doctor §5 상시 로드량 ≈10KB 와 같은 값).
+SCOPE_MAX_BYTES=10240
+if [ "${#FIRST_RUN[@]}" -gt 0 ]; then
+  stamp="$HINT_DIR/$HINT_KEY.doctor-date"
+  if [ "$(cat "$stamp" 2>/dev/null)" != "$TODAY" ]; then
+    scope=$(python3 "$PLUGIN_ROOT/hooks/lib/doc_scope.py" . "$SCOPE_MAX_BYTES" 2>/dev/null | awk 'NF{printf "%s%s", (n++ ? " · " : ""), $0}' | tr -d '\000-\037"\\')   # 줄을 이은 뒤 제어문자 · 따옴표 · 역슬래시를 지운다(JSON 을 깨지 않게)
+    run=$(printf '%s · ' "${FIRST_RUN[@]}")
+    if [ -n "$scope" ]; then
+      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 ${DOCTOR_MD} 를 읽고 ${run}§9 문서 품질 세 축을 돌려 검사마다 한 줄로 먼저 보여라. §9 는 이 파일들만 본다: ${scope}.${FIRST_TAIL}"
+    else
+      say "오늘 이 레포 첫 세션이다 — 사용자 요청에 답하기 전에 ${DOCTOR_MD} 를 읽고 ${run% · } 검사를 돌려 검사마다 한 줄로 먼저 보여라.${FIRST_TAIL}"
+    fi
+    mkdir -p "$HINT_DIR" 2>/dev/null && printf '%s\n' "$TODAY" > "$stamp" 2>/dev/null || true
+  fi
 fi
 
 # ── 축 4: AI-Readiness — 2026-10-11 이 훅에서 뺐다 ─────────────────────────────
