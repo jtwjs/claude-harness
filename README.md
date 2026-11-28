@@ -157,7 +157,8 @@ claude plugin disable claude-harness@jtwjs-plugins                              
 <summary>관리자용</summary>
 
 ```bash
-bash hooks/test.sh             # 훅 회귀 + SDD 러너 단위 테스트(CI도 같은 명령)
+bash hooks/test.sh             # 훅 회귀 + SDD 러너 단위 테스트 전부(CI는 두 잡으로 나눠 같은 것을 돈다)
+bash hooks/test.sh --since "$(git merge-base HEAD origin/main)"   # 바꾼 부분만(표 hooks/test-map.tsv, ADR-025)
 scripts/release.sh --dry-run   # 할 일만 보여 준다
 scripts/release.sh             # push → 마켓플레이스 · 플러그인 갱신 → 설치본 확인
 ```

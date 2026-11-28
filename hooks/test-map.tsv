@@ -1,0 +1,52 @@
+# 바뀐 파일 → 돌릴 테스트 묶음 (ADR-025). hooks/test.sh --since <커밋> 이 hooks/lib/test_pick.py 로 읽는다.
+#
+# 한 줄 = 경로 glob<TAB>묶음(공백으로 여럿). glob 의 * 는 폴더 하나 안에서만, ** 는 폴더를 넘어 맞는다.
+# 맞는 줄을 전부 보고 묶음을 합친다.
+# 묶음:
+#   main             hooks/test.sh 본문(번호 케이스)
+#   runner           러너 단위 테스트(tests/sdd-runner-unit.sh)
+#   all              전부
+#   tests/<glob>     hooks/tests/ 안 파일(glob 가능)
+#   {self}           바뀐 파일이 hooks/tests/ 안 파일이면 그 파일
+#   {mentions}       바뀐 파일 이름(경로 빼고)이 글자로 든 hooks/tests/ 파일
+#   @<이름>          아래 @ 줄에 정의한 묶음 모음
+# 표에 없는 파일이 하나라도 바뀌었거나, 맞는 줄은 있는데 묶음이 비면 전부 돈다(놓치는 쪽으로 실패하지 않게).
+# 새 훅 · 새 테스트 묶음을 더할 때 여기 한 줄을 같이 쓴다. 문서를 글자로 검사하는 tests/ 파일을 더하면 @docs 에 넣는다.
+
+# 문서를 글자로 검사하는 묶음 — 스킬 · 템플릿 · 문서가 바뀌면 이것을 돈다
+@docs	tests/always-on.sh tests/base-branch.sh tests/conductor-issues.sh tests/design-doc-*.sh tests/doc-consistency.sh tests/fill-ci.sh tests/harness-gaps-*.sh tests/no-*.sh tests/principles.sh tests/readme-index.sh tests/release-line.sh tests/renames*.sh tests/secret-scan.sh tests/template-drift.sh tests/version-drift.sh
+
+# 테스트 장치 자체 — 바뀌면 전부
+hooks/test.sh	all
+hooks/test-map.tsv	all
+hooks/lib/test_pick.py	all
+.github/**	all
+
+# 테스트 파일 — 그 파일 자신(실패 확인 판정에서 step 이 더한 테스트가 꼭 들어가게)
+hooks/tests/*.sh	{self}
+hooks/tests/sdd-runner-unit.sh	runner
+skills/sdd-run/scripts/test_sdd_runner.py	runner
+
+# 훅 · 훅 라이브러리 — 본문 + 이름이 든 tests/ 파일 + 훅 문구를 보는 문서 정합
+hooks/*.sh	main {mentions} tests/doc-consistency.sh
+hooks/hooks.json	main {mentions}
+hooks/deny-patterns.yaml	main {mentions}
+hooks/lib/*	main {mentions}
+
+# 스크립트 — 본문이 부르는 것은 main, 나머지는 이름이 든 tests/ 파일
+skills/sdd-run/**	runner main @docs
+skills/conductor/scripts/*	main {mentions}
+scripts/daily-hub/**	main
+scripts/*	{mentions}
+skills/*/scripts/**	{mentions}
+
+# 문서 · 템플릿 · 설정
+skills/**	@docs
+agents/**	@docs
+templates/**	@docs
+docs/**	@docs
+evals/**	@docs
+phases/**	@docs
+*.md	@docs
+.claude/**	@docs
+.claude-plugin/**	@docs
