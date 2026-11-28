@@ -94,6 +94,46 @@ if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/mixed.out"; then ok
 _li_c=$(_li_run talk 'Another Claude session sent a message: 라는 문구를 훅이 어떻게 거르는지 설명해줘')
 if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/talk.out"; then ok "표식 문구를 말로 꺼낸 사람 프롬프트 → 판정 지시 그대로"; else bad "표식 문구 언급" "exit=$_li_c [$(cat "$_li_d/talk.out")]"; fi
 
+# 사람이 치지 않은 다섯 종류 턴(ADR-026 D4) — 출력 없음 · 기록 nonhuman · 원문은 어디에도 남지 않음
+_li_nh() { # $1 경우 · $2 프롬프트 · $3 이름
+  _li_c=$(_li_run "$1" "$2")
+  if [ "$_li_c" = "0" ] && [ ! -s "$_li_d/$1.out" ] && [ "$(_li_result "$1")" = "hypothesis-gate nonhuman|" ]; then
+    ok "$3 → 출력 없음 · 기록 nonhuman"; else bad "$3" "exit=$_li_c [$(cat "$_li_d/$1.out")] [$(_li_result "$1")]"; fi
+}
+_li_nh orca1 'You have 1 orchestration message. Run `orca orchestration check --terminal term_abc-123`.' "Orca 알림(1건)"
+_li_nh orcaN 'You have 4 orchestration messages. Run `orca orchestration check --terminal term_abc-123`.' "Orca 알림(여러 건)"
+_li_nh task '<task-notification>
+<task-id>a1b2</task-id>
+<status>completed</status>
+<summary>Agent "리뷰" finished</summary>
+<result>secret-body-marker 리뷰 끝</result>
+</task-notification>' "백그라운드 완료"
+_li_nh plugin 'The plannotator plugin sent a message:
+
+secret-body-marker Inbox 답: ① 고름' "플러그인 메시지"
+_li_nh resume 'This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. secret-body-marker 요청' "압축 뒤 이어 가기 요약"
+if ! grep -rq 'secret-body-marker' "$_li_d"/task.tsv "$_li_d"/plugin.tsv "$_li_d"/resume.tsv "$_li_d/home" 2>/dev/null && [ ! -e "$_li_d/hook-ledger.jsonl" ]; then
+  ok "다섯 종류 원문은 기록 · 원장 어디에도 없다"; else bad "원문 남음" "기록 또는 원장에 원문"; fi
+# 알림 줄에 사람 글이 붙은 턴 · 표식을 말로 꺼낸 턴 — 사람 입력이므로 판정 지시 그대로
+_li_c=$(_li_run orcamix 'You have 1 orchestration message. Run `orca orchestration check --terminal term_abc-123`.
+그리고 PR도 열어줘')
+if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/orcamix.out"; then ok "Orca 알림 + 사람 글 → 판정 지시 그대로"; else bad "Orca 섞인 턴" "exit=$_li_c [$(cat "$_li_d/orcamix.out")]"; fi
+for _li_k in \
+  'tasktalk|<task-notification> 표식이 붙은 턴을 훅이 어떻게 거르는지 알려줘' \
+  'plugtalk|The plannotator plugin sent a message 라는 문구가 원장에 남는지 확인해줘' \
+  'resumetalk|This session is being continued from a previous conversation 이라는 요약이 왜 붙는지 알려줘' \
+  'taskplus|<task-notification>
+<task-id>a1</task-id>
+<status>completed</status>
+</task-notification>
+이 결과 보고 다음 단계 진행해줘'; do
+  _li_n="${_li_k%%|*}"; _li_c=$(_li_run "$_li_n" "${_li_k#*|}")
+  if [ "$_li_c" = "0" ] && grep -q '\[판정 지시\]' "$_li_d/$_li_n.out"; then ok "표식을 말로 꺼냈거나 사람 글이 붙은 턴($_li_n) → 판정 지시 그대로"; else bad "거짓 거름 $_li_n" "exit=$_li_c [$(cat "$_li_d/$_li_n.out")]"; fi
+done
+
 # 입력이 JSON 이 아니거나 비어도 막지 않는다 — 사람 프롬프트로 보고 판정 지시
 _li_c=$( (cd "$_li_d/repo" && printf 'not json' | env HOME="$_li_d/home" GIT_CEILING_DIRECTORIES="$_li_d" CLAUDE_HARNESS_HOOK_LOG="$_li_d/bad.tsv" \
   CLAUDE_CONDUCTOR_CONFIG="$_li_d/none.json" CLAUDE_HYPOTHESIS_LEDGER="$_li_d/hook-ledger.jsonl" bash "$HOOKS/hypothesis-gate.sh" >"$_li_d/bad.out" 2>&1); echo $?)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse(Bash) — ① 같은 폴더 deny-patterns.yaml 의 사고 패턴 차단 ② owner별 gh 쓰기 계정 확인(~/.claude/gh-accounts.txt)
-#   ③ gh pr merge 는 사람 확인(ask) ④ harness.json guard.prodDb 운영 DB 조회 밖 SQL·운영 프로필 실행 차단
+#   ③ gh pr merge 는 자동 머지 조건(ADR-026 D5)을 못 채우면 사람 확인(ask) ④ harness.json guard.prodDb 운영 DB 조회 밖 SQL·운영 프로필 실행 차단
 # stdin: { tool_input: { command: "..." } }
 # exit 2 = 차단 (Claude가 stderr 메시지를 deny 사유로 인식)
 set -uo pipefail
@@ -130,12 +130,19 @@ if [ -f "$GH_ACCOUNTS" ]; then
   fi
 fi
 
-# PR 머지는 사람 확인으로 — pr-write 4.6 자동 머지 판정이 dry-run 인 동안(2026-10-13, PR 10건 오판 0 이면 따로 결정).
-# 막지(exit 2) 않고 묻는다(ask): 사람이 "머지해"라고 한 머지는 그대로 승인하면 된다. 문장 하나로만 막던 것을 장치로(10-13 리뷰)
+# PR 머지 — 훅이 그 PR 을 한 번 읽어 세 조건(규칙 파일 변경 0 · Risk Score 30 이하 · CI 체크 전부 통과)을 모두 채우면 확인 없이 통과(ADR-026 D5).
+# 하나라도 못 채우거나 PR 을 못 읽으면(읽기 실패 · Risk 없음 · 시간 초과) 사람 확인(ask). 판정은 lib/pr_merge_ok.py.
+# 2026-10-13 「자동 머지 판정 dry-run 동안 늘 사람 확인」을 대체한다. 막지(exit 2) 않고 묻는 것은 그대로다.
 unq=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
 if printf '%s' "$unq" | grep -Eq 'gh[[:space:]]+pr[[:space:]]+merge\b'; then
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 판정은 아직 dry-run(pr-write 4.6)"}}\n'
-  HOOK_RESULT=ask HOOK_DETAIL=pr-merge; exit 0
+  # 통과해도 여기서 끝내지 않는다 — 아래 검사(운영 DB · 검사 상한)를 끝까지 돌린다. 판정기는 단순한 머지 명령 하나만 통과시킨다
+  if why=$(python3 "$SCRIPT_DIR/lib/pr_merge_ok.py" "$cmd" 2>/dev/null); then
+    HOOK_DETAIL=pr-merge-ok
+  else
+    why=$(printf '%s' "${why:-판정 실패}" | tr -d '\000-\037"\\' | head -c 200)
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"PR 머지는 사람 확인 — 자동 머지 조건 미충족: %s (ADR-026 D5)"}}\n' "$why"
+    HOOK_RESULT=ask HOOK_DETAIL=pr-merge; exit 0
+  fi
 fi
 
 # 운영 DB — 레포의 .claude/harness.json guard.prodDb 가 있을 때만 (2026-10-13). 판별은 lib/prod_db.py:
