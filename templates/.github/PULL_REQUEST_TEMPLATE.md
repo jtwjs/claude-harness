@@ -19,7 +19,7 @@
 
 ## 검증
 
-- [ ] `.claude/harness.json`의 `verify` 전체 통과 (실행 출력 확인)
+- [ ] `.claude/harness.json`의 `verify` 통과 (실행 출력 확인). 테스트 전체는 PR CI 결과로 본다. CI가 없으면 PR 직전 로컬 전체 1번의 출력
 - [ ] `verify.test`가 비어 있다면 → 그 사실을 아래 "남은 것"에 적었다
 
 ## 결정 기록

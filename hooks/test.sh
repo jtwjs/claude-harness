@@ -4,7 +4,8 @@
 # 왜 2케이스뿐인가: "리뷰 품질이 좋아졌나" 같은 것은 사람이 봐야 하고,
 # 게이트가 될 수 없다. 여기 있는 것은 전부 exit code 로 갈리는 것들이다.
 #
-# 사용: bash hooks/test.sh
+# 사용: bash hooks/test.sh                 # 전부
+#       bash hooks/test.sh --since <커밋>  # 그 커밋 뒤 바뀐 파일에 걸린 묶음만(표 hooks/test-map.tsv, ADR-025)
 set -uo pipefail
 
 HOOKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,20 +33,52 @@ spread_commits() {
   done
 }
 
-# 나눠 돌리기 — HOOK_TEST_PART 가 없으면 전부 돈다(로컬 기본, 러너 verify 도 이 기본을 쓴다). CI 가 두 잡으로 나눠 동시에 돌릴 때만 켠다.
-#   runner = 러너 단위 테스트(tests/sdd-runner-unit.sh)만 · hooks = 그것을 뺀 나머지 전부. 두 값의 통과 수 합 = 기본 실행의 통과 수
+ROOT="$(cd "$HOOKS/.." && pwd)"
+# deny 패턴 검사 — 본문(2-b · 10)과 tests/rm-recursive-force.sh 가 같이 쓴다. 본문을 건너뛰는 부분 실행에서도 있게 여기 둔다
+check_deny() { # $1=expect(0|2)  $2=command
+  [ -d "$TMP/none/.git" ] || { mkdir -p "$TMP/none/src" && (cd "$TMP/none" && git init -q); }
+  out=$(cd "$TMP/none" && printf '%s' "$2" | python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.stdin.read()}}))' \
+        | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
+  if [ "$code" = "$1" ]; then ok "exit $1: $2"; else bad "exit $code (기대 $1)" "$2"; fi
+}
+
+# ── 무엇을 돌릴지 ──────────────────────────────────────────────────────────────
+# 묶음 셋: 본문(이 파일의 번호 케이스) · 러너 단위(tests/sdd-runner-unit.sh) · tests/*.sh 파일 하나하나. 기본은 전부다.
+# HOOK_TEST_PART(CI 두 잡): runner = 러너 단위만 · hooks = 러너 단위를 뺀 나머지 전부. 두 값의 통과 수 합 = 기본 실행의 통과 수
+# --since <커밋>(로컬 부분 실행, ADR-025): 고르기는 hooks/lib/test_pick.py 가 hooks/test-map.tsv 로 한다.
+#   표에 없는 파일 · 묶음이 비는 파일 · 바뀐 파일 0개 · 읽을 수 없는 커밋이면 전부 돈다(놓치는 쪽으로 실패하지 않게)
 HOOK_TEST_PART="${HOOK_TEST_PART:-}"
 case "$HOOK_TEST_PART" in
   ''|hooks|runner) ;;
   *) printf 'HOOK_TEST_PART 는 hooks · runner 중 하나다 (받은 값: %s)\n' "$HOOK_TEST_PART" >&2; exit 2 ;;
 esac
-if [ "$HOOK_TEST_PART" = runner ]; then
-  ROOT="$(cd "$HOOKS/.." && pwd)"
-  . "$HOOKS/tests/sdd-runner-unit.sh"
-  printf '\n──────────────\n통과 %s · 실패 %s\n' "$pass" "$fail"
-  [ "$fail" -eq 0 ] || exit 1
-  exit 0
+SINCE=""
+case "${1:-}" in
+  '') ;;
+  --since) [ -n "${2:-}" ] || { printf -- '--since 뒤에 커밋이 없다\n' >&2; exit 2; }; SINCE="$2" ;;
+  *) printf '모르는 인자: %s (쓸 수 있는 것: --since <커밋>)\n' "$1" >&2; exit 2 ;;
+esac
+if [ -n "$SINCE" ] && [ -n "$HOOK_TEST_PART" ]; then printf -- '--since 와 HOOK_TEST_PART 는 같이 쓰지 않는다\n' >&2; exit 2; fi
+RUN_MAIN=1; RUN_RUNNER=1; RUN_TESTS="*"   # RUN_TESTS: * = tests/*.sh 전부, 아니면 고른 파일 이름을 공백으로 잇는다
+case "$HOOK_TEST_PART" in
+  runner) RUN_MAIN=0; RUN_TESTS="" ;;
+  hooks) RUN_RUNNER=0 ;;
+esac
+if [ -n "$SINCE" ]; then
+  _pick=$(cd "$ROOT" && python3 "$HOOKS/lib/test_pick.py" "$SINCE" "$HOOKS/test-map.tsv" "$HOOKS/tests")
+  _why=$(printf '%s\n' "$_pick" | head -1 | cut -f2-)
+  if [ "$(printf '%s\n' "$_pick" | head -1 | cut -f1)" = pick ]; then
+    _sel=$(printf '%s\n' "$_pick" | tail -n +2)
+    printf '%s\n' "$_sel" | grep -qx main || RUN_MAIN=0
+    printf '%s\n' "$_sel" | grep -qx runner || RUN_RUNNER=0
+    RUN_TESTS=$(printf '%s\n' "$_sel" | sed -n 's#^tests/##p' | tr '\n' ' ')
+    printf '[부분 실행] --since %s · %s → %s\n' "$SINCE" "$_why" "$(printf '%s\n' "$_sel" | tr '\n' ' ')"
+  else
+    printf '[부분 실행] --since %s · 전부 돈다 — %s\n' "$SINCE" "${_why:-고르기 실패}"
+  fi
 fi
+
+if [ "$RUN_MAIN" = 1 ]; then
 
 # ── 케이스 1: 하네스가 없는 레포에서는 전부 조용해야 한다 ────────────────────
 # 오탐 1건 = 신뢰 10건 손실. 남의 레포에서 떠드는 훅은 즉시 꺼진다.
@@ -71,11 +104,6 @@ if [ "$code" = "0" ] && [ -z "$out" ]; then ok "정상 명령 통과: git status
 # ── 케이스 2-b: deny 패턴 경계 — `.*` 가 &&·;·| 를 넘어가던 오탐 (2026-10-08) ─
 # 명령은 JSON 으로 감싸 넘긴다 (따옴표가 섞여 printf 포맷으로 못 쓴다).
 printf '\n[2-b] deny 패턴 — 한 명령 안에서만 매칭 · 따옴표 안 무시 · exclude\n'
-check_deny() { # $1=expect(0|2)  $2=command
-  out=$(cd "$TMP/none" && printf '%s' "$2" | python3 -c 'import json,sys; print(json.dumps({"tool_input":{"command":sys.stdin.read()}}))' \
-        | bash "$HOOKS/block-dangerous-bash.sh" 2>&1); code=$?
-  if [ "$code" = "$1" ]; then ok "exit $1: $2"; else bad "exit $code (기대 $1)" "$2"; fi
-}
 check_deny 0 'git commit -m "x" && git log | head -n 5'      # -n 이 다른 명령에 있다
 check_deny 0 'git commit -m "fix" ; sed -n 1p a'             # ; 뒤
 check_deny 0 'git commit -m "use -n flag later"'             # 메시지 문자열 안
@@ -552,28 +580,7 @@ c='cd apps/api && mytool verify-all'
 [ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "0" ] && [ "$(llm "$c")" = "2" ] \
   && ok "loop-lock — 중첩 verify 명령 3회째 exit 2" || bad "loop-lock 중첩" "앱별 verify 명령을 추적하지 못했다"
 
-
-# ── 케이스 10: 문서 정합 — 지운·바꾼 스킬 이름과 옛 결정 경로가 지시문에 남지 않는다 (2026-10-11) ──
-# 규칙을 한 곳만 바꾸고 둘레(sdd·훅 지시문)에 옛 규칙이 남던 것을 리뷰가 두 번 잡았다.
-printf '\n[10] 문서 정합\n'
-ROOT="$(cd "$HOOKS/.." && pwd)"
-left=$(grep -rnE '`(grilling|why-logictree|why-plan|brain-intake|find-skills|harness-new)`|claude-harness:(brain-recall|why-plan)|decisions/<기능>' \
-  "$ROOT/skills" "$ROOT/agents" "$ROOT/hooks" "$ROOT/templates" 2>/dev/null | grep -v '/hooks/test.sh:' | grep -vE '삭제|당시 기준|합쳤다|합침|원형|2026-10-11 \|')   # 업그레이드 이름표 행(| 날짜 |)은 옛 이름이 정상
-[ -z "$left" ] && ok "지운 스킬·옛 결정 경로 참조 0" || bad "남은 참조" "$(echo "$left" | head -3)"
-# 설계 3장 (0.12.4 · 0.22.0 sdd 내장): DESIGN 절차는 세 장만 쓴다. 옛 결정 경로(decisions/)로 바로 쓰는 문구가 남지 않는다.
-direct=$(grep -nE 'DESIGN`?이 `?decisions' \
-  "$ROOT/skills" "$ROOT/templates" -r 2>/dev/null)
-grep -q '지식 정리' "$ROOT/skills/sdd/SKILL.md" && grep -q 'ARCHITECTURE.md\*\* — PRD 확정 직후' "$ROOT/skills/sdd/references/design.md" && [ -z "$direct" ] \
-  && ok "DESIGN 절차는 세 장 · REFLECT 지식 정리" || bad "설계 3장 흐름" "${direct:-sdd REFLECT 지식 정리 또는 design.md ARCHITECTURE 단계 없음}"
-# 0.22.0: ① 계획(DESIGN→PLAN) · why 는 파일을 안 쓴다 · step 빈칸은 harness §2 · REFLECT 는 회고 1장 + 출구 조건 · ⑤ 마무리가 릴리스. 되돌아가면 실패.
-cross=$(grep -nE 'why-plan`? 한 번 더|step 승인 직전에 불렸으면|빈칸이 많다 \| `why-plan`' "$ROOT/skills/sdd/SKILL.md" "$ROOT/skills/sdd/references/design.md" "$ROOT/templates/.claude/README.md" "$ROOT/README.md" || true)
-for need in '이 자리에서 묻는다:skills/sdd-plan/SKILL.md' '절차를 건너뛰고 세 장을 바로 쓰지 않는다:skills/sdd/SKILL.md' '회고 1장 새 파일:skills/sdd/references/reflect.md' '출구 조건:skills/sdd/SKILL.md' 'REFLECT 건너뜀:skills/sdd/SKILL.md' '마무리(SHIP):skills/sdd/SKILL.md' '파일은 쓰지 않는다:skills/why/SKILL.md' '물러서는 조건:docs/principles/ask-questions.md' 'docs/retro/YYYY-MM-DD:skills/sdd/references/reflect.md'; do
-  grep -q "${need%%:*}" "$ROOT/${need#*:}" || cross="${cross}
-없음: ${need}"
-done
-top=$(grep -nF '최신이 위' "$ROOT/skills/sdd/references/reflect.md" || true)
-[ -z "$top" ] && ok "회고·로그는 한 건 = 파일 하나(한 파일 맨 위에 쌓지 않는다 — 병렬 PR 충돌)" || bad "회고·로그 한 파일 맨 위" "$top"
-[ -z "$cross" ] && ok "① 계획 두 게이트 · why 는 화면만 · REFLECT 회고+출구 조건 · ⑤ 마무리" || bad "0.22.0 흐름" "$cross"
+# 케이스 10 문서 정합은 tests/doc-consistency.sh 로 옮겼다(ADR-025 — 문서만 바뀐 부분 실행이 본문을 돌지 않게)
 
 # ── 케이스 7-a: 지휘 설정 — 자리 판정 · 대상 레포 (2026-10-31 single-conductor) ──
 printf '\n[7-a] conductor.py — 설정 없음·깨짐은 꺼짐 · 자리 판정 · 레포 목록\n'
@@ -701,10 +708,18 @@ ctx=$(cd "$TMP/seat2" && printf '{}' | CLAUDE_CONDUCTOR_DEADLINE=0 bash "$CC" 2>
 printf '%s' "$ctx" | grep -qF 'tr (시간 초과 — 건너뜀)' && ok "마감을 넘으면 남은 레포는 건너뜀 · 현황은 그래도 나온다" || bad "마감" "$ctx"
 rm -f "$CLAUDE_CONDUCTOR_CONFIG"; unset CLAUDE_CONDUCTOR_GH
 
-# ── hooks/tests/*.sh — 이 파일의 ok·bad·TMP·HOOKS 를 그대로 쓰는 케이스 묶음(source) ──
+fi   # RUN_MAIN
+
+# ── hooks/tests/*.sh — 이 파일의 ok·bad·TMP·HOOKS·ROOT·check_deny 를 그대로 쓰는 케이스 묶음(source) ──
 # 왜 따로: 러너(sdd_runner.py)의 테스트 파일 판정이 hooks/test.sh 를 못 알아봐서, 새 케이스는 tests/ 아래에 둔다(2026-11-13).
+# 새 파일을 더하면 hooks/test-map.tsv 에서 그 파일이 어느 줄로 골리는지 본다(ADR-025)
 for _f in "$HOOKS"/tests/*.sh; do
-  if [ "$HOOK_TEST_PART" = hooks ] && [ "${_f##*/}" = sdd-runner-unit.sh ]; then printf '\n[sdd-runner-unit] 건너뜀 (HOOK_TEST_PART=hooks)\n'; continue; fi
+  _n="${_f##*/}"
+  if [ "$_n" = sdd-runner-unit.sh ]; then
+    if [ "$RUN_RUNNER" = 1 ]; then . "$_f"; else printf '\n[sdd-runner-unit] 건너뜀 (%s)\n' "${HOOK_TEST_PART:+HOOK_TEST_PART=$HOOK_TEST_PART}${SINCE:+--since}"; fi
+    continue
+  fi
+  [ "$RUN_TESTS" = "*" ] || case " $RUN_TESTS " in *" $_n "*) ;; *) continue ;; esac
   [ -f "$_f" ] && . "$_f"
 done
 

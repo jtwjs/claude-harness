@@ -16,7 +16,7 @@ disable-model-invocation: true
 ## 2. 변경 수집
 
 - `git diff --name-only <base>...HEAD`(또는 `git diff HEAD`)로 변경 파일 파악 — `<base>`는 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/base-branch.sh"` 출력(exit 2면 사람에게 묻는다) → 필요한 파일 맥락 확인. diff가 비면 범위를 한 번 확인.
-- **회차**(#10) — `phases/{task}/index.json`의 `reviews`(없으면 빈 목록) 길이 + 1이 이번 회차다. 2회차부터는 **직전 회차의 `head` 이후 diff(`git diff <head>..HEAD`)만** 대조한다. 단 「빌드·테스트」 축의 `verify`는 늘 전체로 돌린다. 이전 회차의 `issues`에 있는 지적은 다시 내지 않는다.
+- **회차**(#10) — `phases/{task}/index.json`의 `reviews`(없으면 빈 목록) 길이 + 1이 이번 회차다. 2회차부터는 **직전 회차의 `head` 이후 diff(`git diff <head>..HEAD`)만** 대조한다. 「빌드·테스트」 축의 테스트 범위는 회차와 상관없이 그 축 행대로 정한다(브랜치 시작점부터 바뀐 부분). 이전 회차의 `issues`에 있는 지적은 다시 내지 않는다.
 
 ## 3. 체크리스트 대조
 
@@ -26,7 +26,7 @@ disable-model-invocation: true
 | 기술스택·ADR  | `ADR.md` 결정과 일치. **미승인 새 의존성 없음**(추가됐다면 어느 ADR이 허락했는지 대라). ADR을 인용할 땐 번호 옆에 괄호로 한 줄 — `ADR-003(설정 스키마를 blocks 패키지에)` |
 | 수용 조건 대조 | PRD 수용 조건의 `AC-N` 번호마다 테스트 위치 표(번호 · 테스트 `파일:줄` · 통과 여부)를 낸다. 맡는 쪽이 이 세션 몫인데 테스트가 없는 번호는 🟡. 번호가 없는 옛 PRD는 `harness.json.tdd.include` 범위의 변경 파일에 짝 테스트가 있는지만 보고 「번호 없음」 한 줄. 어느 쪽이든 **동작 기준**으로 단언(구현 디테일 아님). 대상 판정은 `.claude/rules/testing.md` §0 |
 | CRITICAL 규칙 | `CLAUDE.md`의 🔴 CRITICAL 각 항목을 **그대로 대조**. 자동 생성물 미수정. hook 우회(`--no-verify`)는 `.claude/settings.json` `permissions.deny`(템플릿에 깔림)가 막는다 — 리뷰는 deny 줄이 깔렸는지만 본다 |
-| 빌드·테스트   | `.claude/harness.json`의 `verify`를 **실제 실행**해 통과 확인. 앱별이면 root마다 그 폴더에서 돌리고 결과를 root 이름으로 적는다. 비어 있는 키는 그 사실을 보고한다          |
+| 빌드·테스트   | `.claude/harness.json`의 `verify`를 **실제 실행**해 통과 확인. 테스트는 `$step.test`가 있으면 그 명령의 `{since}`를 브랜치 시작점(`git merge-base HEAD origin/<base>`)으로 채워 바꾼 부분만 돌린다. 없으면 `test` 전체를 돌린다. 전체 테스트는 PR CI가 한 번 돈다(ADR-025). CI가 없는 레포면 PR을 열기 직전에 로컬에서 전체를 한 번 돌린다. 결과에는 부분 · 전체 중 무엇을 돌렸는지 적는다. 앱별이면 root마다 그 폴더에서 돌리고 결과를 root 이름으로 적는다. 비어 있는 키는 그 사실을 보고한다          |
 | 실제 동작     | **verify 통과는 동작 증거가 아니다** — 목·스텁·MSW로 바꾼 경계는 계약 위반을 못 잡는다. UI·API·외부 연동을 바꿨으면 앱을 띄워(`run` 스킬·브라우저·실 백엔드) 바뀐 경로를 **한 번 실제로** 지나가 본다. 못 했으면 `확인 필요 — 미실행: 이유`로 보고하고 통과로 적지 않는다. 디자인 트랙이면 시각 대조는 `design-reconcile`이 하고 여기는 동작만 본다 |
 
 ## 4. 출력 형식
