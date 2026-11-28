@@ -68,7 +68,7 @@ flowchart TD
 | 스크립트 | 하는 일 | 종료 코드 |
 |---|---|---|
 | `tests_unchanged.py <테스트 커밋 sha>` | 그 커밋 뒤(커밋 · 스테이징 · 작업 트리 · 추적 전 새 파일) 테스트 파일이 바뀌었나 | 0 무변경 · 1 바뀜(목록) · 2 인자 · 커밋 오류 |
-| `tests_pass.py <테스트 커밋 sha>` | `.claude/harness.json` verify의 test 명령. `$step.test`가 있으면 `{since}`에 테스트 커밋의 부모를 넣는다(ADR-025) | 0 통과 · 1 실패 · 2 설정 · 커밋 오류 |
+| `tests_pass.py` | `.claude/harness.json` verify의 test 명령. `$step.test`가 있으면 `{since}`에 브랜치 시작점을 넣는다(ADR-025). 시작점을 못 찾으면 전체 | 0 통과 · 1 실패 · 2 설정 · 인자 오류 |
 | `gate.py <docs 폴더>` | 구현 시작 관문. ADR 「결정할 것」 표의 주체 빈 행과 PRD 「남은 ⚠️」 항목을 센다(ADR-023 R1, 세는 규칙 그대로) | 0 열린 것 없음 · 2 열린 것 있음 |
 
 - 무변경 판정의 교훈 둘을 스크립트에 박는다. ① 바뀐 파일은 `git -c core.quotePath=false diff --no-renames --name-only -z <sha>`로 받는다(옮긴 · 지운 테스트와 한글 · 공백 경로가 빠지지 않게). ② `__pycache__/` · `.pyc`는 테스트 파일이 아니다
